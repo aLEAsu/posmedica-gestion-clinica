@@ -15,7 +15,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "start:render": "prisma migrate deploy && node dist/seed.js && node dist/server.js",
-    "admin:restablecer": "tsx --env-file=../../.env src/restablecer-admin.ts"
+    "admin:restablecer": "tsx --env-file=../../.env src/restablecer-admin.ts",
+    "esquema:hd": "tsx scripts/generar-esquema-hd.mjs",
+    "dev:e2e": "tsx --env-file=../../.env.e2e src/server.ts"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
@@ -30,7 +32,8 @@
     "helmet": "^8.1.0",
     "prisma": "6.19.3",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "@posmedica/clinical-rules": "0.2.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.8",
