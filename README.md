@@ -10,7 +10,7 @@ Frontend React, backend Node.js y base de datos PostgreSQL, desplegados en Rende
 | Fase | Contenido | Estado |
 |---|---|---|
 | 0 | Análisis del prototipo | ✅ Aprobada (8 oct 2026) |
-| 1 | Monorepo, base de datos, autenticación, usuarios y permisos, auditoría, respaldo, panel, `render.yaml` | ✅ Lista para desplegar |
+| 1 | Monorepo, base de datos, autenticación, usuarios y permisos, auditoría, respaldo, panel, guía de despliegue | ✅ Aprobada |
 | 2 | `packages/clinical-rules` con pruebas de equivalencia | Pendiente |
 | 3 | Hemodiálisis | Pendiente |
 | 4 | VIH | Pendiente |
@@ -31,7 +31,6 @@ packages/shared          Catálogo de programas y regla única de permisos (fron
 packages/clinical-rules  Reglas clínicas puras (Fase 2)
 _analisis/               Prototipo separado por módulos: referencia para las fases siguientes
 docs/                    Análisis y documentación
-render.yaml              Blueprint de Render (3 servicios)
 ```
 
 ## Desarrollo local
@@ -100,7 +99,7 @@ En **Respaldo** el administrador descarga **toda** la información:
 
 Las claves y los tokens de sesión nunca se incluyen. Cada descarga queda en la auditoría. Las tablas que se agreguen en las fases siguientes entran solas en el respaldo.
 
-Además, Render guarda copias de la base de datos (recuperación a un punto en el tiempo de 3 días en el plan Hobby o 7 días en Pro). Para una copia con `pg_dump` desde un equipo autorizado, agregue temporalmente su IP en *posmedica-db → Networking* y ejecute:
+Las bases de datos **pagas** de Render tienen además recuperación a un punto en el tiempo (3 días en el plan Hobby, 7 en Pro); la gratuita no. Para una copia exacta con `pg_dump` use la *External Database URL*:
 ```bash
 pg_dump --format=custom --no-owner --file=posmedica.dump "URL_EXTERNA_DE_LA_BASE"
 ```
@@ -111,23 +110,11 @@ pg_restore --no-owner --dbname="URL_DE_LA_BASE_DESTINO" posmedica.dump
 
 ## Despliegue en Render
 
-1. Suba este repositorio a GitHub (privado).
-2. En Render: **New → Blueprint**, elija el repositorio. Render lee `render.yaml` y crea:
-   - `posmedica-db`: PostgreSQL 16, plan `0.1c-256mb`, región Virginia, sin acceso desde internet.
-   - `posmedica-api`: Web Service (backend). Antes de cada despliegue aplica las migraciones y la siembra.
-   - `posmedica-web`: Static Site (frontend). Reenvía `/api/*` al backend.
-3. Render pedirá los valores marcados con `sync: false`:
-   - `ALLOWED_ORIGINS`: la URL del Static Site, por ejemplo `https://posmedica-web.onrender.com`.
-   - `ADMIN_USUARIO`, `ADMIN_NOMBRE` y `ADMIN_CLAVE_INICIAL`: el primer administrador. La clave debe tener al menos 10 caracteres con letras y números, y se cambia en el primer ingreso.
-4. Si Render asigna al backend una URL distinta de `https://posmedica-api.onrender.com`, corríjala en la regla `routes` de `render.yaml` (Static Site).
-5. Verifique:
-   - `https://<backend>/api/health` responde `{"ok":true}`.
-   - El Static Site muestra la pantalla de ingreso y permite entrar.
+Los tres servicios (PostgreSQL, Web Service y Static Site) se crean **manualmente** en el panel de Render, en plan gratuito. Paso a paso, integración y límites del plan gratuito: **[docs/DESPLIEGUE_RENDER.md](docs/DESPLIEGUE_RENDER.md)**.
 
-**¿Por qué el reenvío `/api/*`?** El frontend y el backend quedan en dominios distintos de `onrender.com`, y los navegadores bloquean las cookies entre dominios distintos. Con el reenvío, el navegador solo habla con el dominio del frontend y la cookie de sesión funciona sin configuración adicional.
-
-**Plan alternativo** si el reenvío no funcionara: use un dominio propio con dos subdominios (`app.` y `api.`). En ese caso hay que activar CORS con credenciales en el backend; es un cambio pequeño.
+> ⚠️ La base de datos gratuita de Render **expira a los 30 días** y no tiene copias de seguridad. Antes de cargar datos reales, pásela a un plan pago o siga el procedimiento de renovación de la guía.
 
 ## Documentación
 
 - [docs/ANALISIS.md](docs/ANALISIS.md): análisis del prototipo, modelo de datos, reglas clínicas, formatos Excel y decisiones.
+- [docs/DESPLIEGUE_RENDER.md](docs/DESPLIEGUE_RENDER.md): guía de despliegue manual en Render.

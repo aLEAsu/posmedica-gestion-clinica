@@ -10,8 +10,13 @@ import { Usuarios } from "./pages/Usuarios";
 import { useSesion } from "./sesion";
 
 export function App() {
-  const { usuario, cargando } = useSesion();
-  if (cargando) return <div className="cargando">Conectando con el servidor…</div>;
+  const { usuario, cargando, despertando } = useSesion();
+  if (cargando)
+    return (
+      <div className="cargando">
+        {despertando ? "El servidor se está encendiendo (puede tardar hasta un minuto después de un rato sin uso)…" : "Conectando con el servidor…"}
+      </div>
+    );
   if (!usuario) return <Ingreso />;
   if (usuario.debeCambiarClave) return <CambiarClave />;
   const admin = usuario.rol === "ADMIN";

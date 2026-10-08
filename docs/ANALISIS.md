@@ -326,7 +326,7 @@ HD (`hd.js:359`): IDs y documentos duplicados, maestro incompleto, puestos doble
 | D1 | Aprobado: maestro único de pacientes | Tablas `persona` (única por tipo y número de documento) e `inscripcion_programa` (código interno por programa) |
 | D2 | Dos roles: **Administrador** y **Médico (estándar)**. El administrador asigna o quita módulos y permisos a los médicos | Enum `Rol {ADMIN, MEDICO}` + `usuario_programa` con ver, registrar, anular y exportar por programa; pantalla Usuarios → «Programas y permisos» |
 | D3 | El administrador ve facturación; el médico no | `puedeFacturacion()` solo es verdadero para ADMIN; no es un permiso asignable |
-| D5 | Tres servicios en Render: PostgreSQL, Static Site (front) y Web Service (back) | `render.yaml` con los tres. El Static Site reenvía `/api/*` al backend para que la sesión sea del mismo origen |
+| D5 | Tres servicios en Render: PostgreSQL, Static Site (front) y Web Service (back) | Creados manualmente en el panel (plan gratuito), guía en `docs/DESPLIEGUE_RENDER.md`. El Static Site reenvía `/api/*` al backend para que la sesión sea del mismo origen |
 | P1 | No existe SQL previo: se crea desde cero | Migración inicial de Prisma (`apps/api/prisma/migrations`) |
 | P3 | CAC-01 a CAC-03 se quitaron a propósito | Se conservan los 34 indicadores CAC-04 a CAC-37 |
 | P6 | El sistema debe permitir bajar toda la información para tenerla en local o en físico | Pantalla **Respaldo** (administrador): Excel con todas las tablas y JSON exacto; queda auditado |
