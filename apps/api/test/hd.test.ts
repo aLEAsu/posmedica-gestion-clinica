@@ -144,7 +144,8 @@ describe("registro clínico", () => {
     expect(dup.status).toBe(409);
     expect((await enf.post("/api/v1/hd/sincronizar", { cambios: { ses: { nuevos: [{ ID: "SE-900002", Paciente: "P999", Fecha: "2026-10-07" }] } } })).status).toBe(400);
     expect((await enf.post("/api/v1/hd/sincronizar", { cambios: { pac: { nuevos: [{ ID: "P901", TipoDoc: "CC", Documento: "900000001", Nombres: "Otra", Apellidos: "Persona" }] } } })).status).toBe(409);
-    expect((await enf.post("/api/v1/hd/sincronizar", { cambios: { ses: { nuevos: [{ ID: "SE-900003", Paciente: "P900", Fecha: "08/10/2026" }] } } })).status).toBe(400);
+    expect((await enf.post("/api/v1/hd/sincronizar", { cambios: { ses: { nuevos: [{ ID: "SE-900003", Paciente: "P900", Fecha: "2026-13-45" }] } } })).status).toBe(400);
+    expect((await enf.post("/api/v1/hd/sincronizar", { cambios: { ses: { nuevos: [{ ID: "SE-900004", Paciente: "P900", Fecha: "ayer" }] } } })).status).toBe(400);
   });
 
   it("anular exige el permiso «anular» y queda auditado con su motivo", async () => {

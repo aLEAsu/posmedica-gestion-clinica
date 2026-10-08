@@ -41,12 +41,12 @@ export function relojFijo(hoy: Date) {
   };
 }
 
-function contexto(hoy: Date, extra: Record<string, unknown> = {}) {
+function contexto(hoy: Date, extra: Record<string, unknown> = {}, relojReal = false) {
   const doc = comodin();
   const almacen: Record<string, string> = {};
   const g: Record<string, unknown> = {
     console: { log() {}, warn() {}, error() {}, info() {} },
-    Date: relojFijo(hoy),
+    Date: relojReal ? Date : relojFijo(hoy),
     document: doc,
     localStorage: { getItem: (k: string) => almacen[k] ?? null, setItem: (k: string, v: string) => (almacen[k] = String(v)), removeItem: (k: string) => delete almacen[k] },
     sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} },
@@ -93,9 +93,10 @@ export interface Oraculo {
 }
 
 /** Carga el portal completo (Hemodiálisis, VIH y núcleo del portal). */
-export function cargarPortal(hoy: Date): Oraculo {
+export function cargarPortal(hoy: Date, opciones: { relojReal?: boolean } = {}): Oraculo {
   const P = leerPrototipo();
-  const ctx = contexto(hoy);
+  // relojReal: usa la clase Date del anfitrión (necesario cuando el prototipo recibe fechas creadas por SheetJS).
+  const ctx = contexto(hoy, {}, !!opciones.relojReal);
   for (const s of P.scripts) vm.runInContext(s, ctx, { filename: "prototipo.html" });
   return { ev: (e) => vm.runInContext(e, ctx) };
 }
