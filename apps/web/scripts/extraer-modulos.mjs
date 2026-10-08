@@ -67,3 +67,31 @@ copyFileSync(require.resolve("xlsx/dist/xlsx.full.min.js"), resolve(PUBLICO, "ve
   );
   console.log(`hd: ${(codigo.length / 1024).toFixed(0)} KB de código original`);
 }
+
+/* ---------- VIH ----------
+   VIH es un módulo nativo del portal del prototipo: usa el núcleo del portal (pxRender, pxGo, pxExport…) y las
+   utilidades de hemodiálisis. Se copia el script principal COMPLETO (sin el HTML embebido de Nefroprotección, que se
+   migra aparte) y el marcado completo del cuerpo; el adaptador lo deja abierto en VIH y conectado a la base. */
+{
+  mkdirSync(resolve(PUBLICO, "vih"), { recursive: true });
+  const codigo = P.lineas.map((l) => (l.startsWith("const NEFRO_HTML=") ? 'const NEFRO_HTML=""; /* Nefroprotección se migra como módulo aparte */' : l)).join("\n");
+  writeFileSync(resolve(PUBLICO, "vih/portal.js"), CABECERA + codigo + "\n");
+  // Del primer <body> al ÚLTIMO </body> (dentro del código hay cadenas con "</body>"), sin scripts ni estilos.
+  const ini = P.html.indexOf(">", P.html.indexOf("<body")) + 1;
+  const cuerpo = P.html.slice(ini, P.html.lastIndexOf("</body>"))
+    .replace(/<script[\s\S]*?<\/script>/g, "")
+    .replace(/<style[\s\S]*?<\/style>/g, "")
+    .replace(/<link[^>]*>/g, "")
+    .replace(/<title>[\s\S]*?<\/title>/g, "")
+    .replace(/<div class="toast" id="toast"[^>]*><\/div>/, "")
+    .replace(/<div id="dlg" class="ovl"[^>]*><\/div>/, "");
+  writeFileSync(
+    resolve(PUBLICO, "vih/index.html"),
+    pagina({
+      titulo: "Programa VIH · POSMÉDICA",
+      cuerpo: `<div class="cargando-modulo" id="cargando-modulo">Cargando el programa VIH…</div>\n${sinBase64(cuerpo).replace('<div id="pxmain"', '<div id="pxmain-original"')}`,
+      scripts: ["../vendor/xlsx.full.min.js", "portal.js", "../adaptador-comun.js", "adaptador-vih.js"],
+    }).replace('<div id="pxmain" hidden></div>\n', "").replace('id="pxmain-original"', 'id="pxmain"'),
+  );
+  console.log(`vih: ${(codigo.length / 1024).toFixed(0)} KB de código original (portal completo)`);
+}

@@ -2,3 +2,17 @@
 html, body { margin: 0; background: var(--bg); }
 #hdapp > .wrap { padding-block: 12px 40px; }
 #bookinfo .lnk { font-size: inherit; }
+
+/* Módulos nativos del portal del prototipo (VIH): la barra del portal la pone el portal nuevo. */
+#pxbar { display: none !important; }
+.cargando-modulo { padding: 40px 16px; text-align: center; color: var(--muted); font-family: var(--f-body); }
+body.listo .cargando-modulo { display: none; }
+body:not(.listo) #px { visibility: hidden; }
+.estado-modulo { max-width: 1320px; margin: 10px auto 0; padding: 6px 16px; font-size: 13px; font-family: var(--f-body); }
+.estado-modulo.ok strong { color: var(--ok); }
+.estado-modulo.warn strong { color: var(--warn); }
+.estado-modulo.bad strong { color: var(--bad); }
+/* Sin datos ficticios ni libros sueltos: todo vive en la base de datos. */
+[data-x="demo"], [data-x="new"], [data-x="unload"], [data-x="bookexp"] { display: none !important; }
+body:not(.carga-inicial) label[for="vxbook"] { display: none !important; }
+body.sin-registrar label[for="vximp"] { display: none !important; }
