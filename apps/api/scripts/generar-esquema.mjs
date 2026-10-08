@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { crearMotorHD, crearMotorVIH } from "@posmedica/clinical-rules";
 import { CAMPOS_PERSONA, MODELOS_HD } from "../src/modulos/hd/hojas.ts";
 import { CAMPOS_PERSONA_VIH, MODELOS_VIH } from "../src/modulos/vih/hojas.ts";
+import { HOJAS_PORTAL } from "../src/modulos/portal/hojas.ts";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const RUTA = resolve(aqui, "../prisma/schema.prisma");
@@ -59,4 +60,15 @@ escribir(
   "// >>> VIH",
   modelos({ hojas: vih.VXS, modelosPorHoja: MODELOS_VIH, camposPersona: CAMPOS_PERSONA_VIH, tipo: () => "texto", etiquetaLibro: "libro del programa VIH" }),
 );
-console.log("Modelos generados: hemodiálisis", Object.keys(MODELOS_HD).length, "· VIH", Object.keys(MODELOS_VIH).length);
+escribir(
+  "// <<< PORTAL (GENERADO por scripts/generar-esquema.mjs: no editar a mano)",
+  "// >>> PORTAL",
+  modelos({
+    hojas: Object.fromEntries(Object.entries(HOJAS_PORTAL).map(([k, h]) => [k, [h.nombre, h.columnas]])),
+    modelosPorHoja: HOJAS_PORTAL,
+    camposPersona: [],
+    tipo: () => "texto",
+    etiquetaLibro: "libro institucional",
+  }),
+);
+console.log("Modelos generados: hemodiálisis", Object.keys(MODELOS_HD).length, "· VIH", Object.keys(MODELOS_VIH).length, "· portal", Object.keys(HOJAS_PORTAL).length);

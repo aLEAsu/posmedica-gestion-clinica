@@ -1,6 +1,7 @@
 /* Configuración del libro del programa VIH para el motor genérico (modulos/libro). */
 import { crearMotorVIH } from "@posmedica/clinical-rules";
 import type { ConfigLibro, Fila, HojaDef } from "../libro/servicio.js";
+import { escrituraConTransversales, leeProgramaOTransversal } from "../libro/transversal.js";
 import { CAMPOS_PERSONA_VIH, ETNIA_VIH, MODELOS_VIH, ZONA_VIH } from "./hojas.js";
 
 const { VXS } = crearMotorVIH({ libro: { pac: [] } }) as unknown as { VXS: Record<string, [string, string[]]> };
@@ -20,6 +21,9 @@ export const CONFIG_VIH: ConfigLibro = {
   // El prototipo lee el libro VIH todo como texto (vxParse): las columnas se guardan como texto para conservarlo idéntico.
   tipo: () => "texto",
   vacio: "", // vxParse devuelve "" para las celdas vacías
+  puedeLeer: leeProgramaOTransversal("vih"),
+  // Laboratorio valida la solicitud del mes y carga resultados en el libro VIH.
+  ...escrituraConTransversales("vih", { sol: ["lab"], lab: ["lab"] }),
   paciente: {
     hoja: "pac",
     relacionPersona: "vihPaciente",

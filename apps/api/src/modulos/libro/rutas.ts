@@ -2,10 +2,10 @@ import { Router } from "express";
 import { z } from "zod";
 import { puede } from "@posmedica/shared";
 import { prisma } from "../../db.js";
-import { h } from "../../http/errors.js";
-import { requiereAdmin, requierePermiso } from "../../http/middleware.js";
+import { h, prohibido } from "../../http/errors.js";
+import { requiereAdmin, requiereSesion } from "../../http/middleware.js";
 import { auditar } from "../../services/auditoria.js";
-import { crearServicioLibro, type Actor, type Cambios, type ConfigLibro } from "./servicio.js";
+import { actorDe, crearServicioLibro, type Cambios, type ConfigLibro } from "./servicio.js";
 
 const Lote = z.array(z.record(z.unknown())).max(20_000).optional();
 const Sincronizacion = z.object({
@@ -21,30 +21,28 @@ const Importacion = z.object({
 });
 const EventoCliente = z.object({ accion: z.enum(["EXPORTA"]), detalle: z.string().max(300) });
 
-/** Rutas de un libro de programa: /libro, /version, /sincronizar, /importar (carga inicial) y /auditar (exportaciones). */
+/** Rutas de un libro: /libro, /version, /sincronizar, /importar (carga inicial) y /auditar (exportaciones).
+    Los permisos finos (por hoja y por fila) los aplica el servicio según la configuración del libro. */
 export function crearRutasLibro(C: ConfigLibro) {
   const S = crearServicioLibro(C);
   const r = Router();
-  const actorDe = (u: NonNullable<Express.Request["usuario"]>): Actor => ({
-    id: u.id,
-    nombre: `${u.nombre} · ${u.cargo}`,
-    admin: u.rol === "ADMIN",
-    puedeAnular: puede(u, C.programa, "anular"),
-  });
+  r.use(requiereSesion());
+  const lee = h(async (req, _res, next) => (S.puedeLeer(req.usuario!) ? next() : next(prohibido())));
 
   r.get(
     "/libro",
-    requierePermiso(C.programa, "ver"),
+    lee,
     h(async (req, res) => {
-      const libro = await S.leerLibro(req.usuario!.rol === "ADMIN");
-      await auditar(req, { accion: "CONSULTA", entidad: `${C.programa}.libro`, programa: C.programa, detalle: `${libro.hojas[C.paciente.hoja].length} pacientes` });
+      const libro = await S.leerLibro(req.usuario!);
+      const total = Object.values(libro.hojas).reduce((a, L) => a + L.length, 0);
+      await auditar(req, { accion: "CONSULTA", entidad: `${C.programa}.libro`, programa: C.programa, detalle: `${total} registros` });
       res.json(libro);
     }),
   );
 
   r.get(
     "/version",
-    requierePermiso(C.programa, "ver"),
+    lee,
     h(async (_req, res) => {
       res.json({ version: await S.version() });
     }),
@@ -52,8 +50,9 @@ export function crearRutasLibro(C: ConfigLibro) {
 
   r.post(
     "/sincronizar",
-    requierePermiso(C.programa, "registrar"),
+    lee,
     h(async (req, res) => {
+      if (!S.puedeEscribir(req.usuario!)) throw prohibido(`Su usuario no tiene permiso para registrar en ${C.nombre}.`);
       const body = Sincronizacion.parse(req.body) as Cambios;
       const out = await prisma.$transaction(
         (tx) => S.sincronizar(tx, actorDe(req.usuario!), body, (e) => auditar(req, { ...e, programa: C.programa }, tx)),
@@ -82,9 +81,10 @@ export function crearRutasLibro(C: ConfigLibro) {
 
   r.post(
     "/auditar",
-    requierePermiso(C.programa, "exportar"),
+    lee,
     h(async (req, res) => {
       const e = EventoCliente.parse(req.body);
+      if (req.usuario!.rol !== "ADMIN" && !puede(req.usuario!, C.programa, "exportar") && C.programa !== "portal") throw prohibido("Su usuario no tiene permiso para exportar.");
       await auditar(req, { accion: e.accion, entidad: `${C.programa}.reporte`, programa: C.programa, detalle: e.detalle });
       res.json({ ok: true });
     }),

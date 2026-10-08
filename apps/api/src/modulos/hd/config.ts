@@ -1,6 +1,7 @@
 /* Configuración del libro de Hemodiálisis para el motor genérico (modulos/libro). */
 import { crearMotorHD } from "@posmedica/clinical-rules";
 import type { ConfigLibro, Fila, HojaDef } from "../libro/servicio.js";
+import { escrituraConTransversales, leeProgramaOTransversal } from "../libro/transversal.js";
 import { CAMPOS_PERSONA, MODELOS_HD } from "./hojas.js";
 
 const { SH, DATE_F, NUM_F } = crearMotorHD({ libro: { pac: [] } }) as unknown as {
@@ -23,6 +24,9 @@ export const CONFIG_HD: ConfigLibro = {
   tipo: (_h, c) => (DATE_F.has(c) ? "fecha" : NUM_F.has(c) ? "numero" : "texto"),
   vacio: null, // al reabrir el libro de Excel, las celdas vacías vuelven como null
   textoNumerico: new Set(["lab.Valor"]), // el valor de un paraclínico puede ser 9.8 o «Reactivo»
+  puedeLeer: leeProgramaOTransversal("hd"),
+  // Laboratorio carga solicitudes y resultados; SP, IAAS y PROA llevan sus hojas con los datos de hemodiálisis.
+  ...escrituraConTransversales("hd", { sol: ["lab"], lab: ["lab"], seg: ["sp"], aud: ["iaas"], atb: ["proa"] }),
   paciente: {
     hoja: "pac",
     relacionPersona: "hdPaciente",

@@ -14,6 +14,8 @@ import { usuarios } from "./routes/usuarios.js";
 import { CONFIG_HD } from "./modulos/hd/config.js";
 import { crearRutasLibro } from "./modulos/libro/rutas.js";
 import { CONFIG_VIH } from "./modulos/vih/config.js";
+import { CONFIG_PORTAL } from "./modulos/portal/config.js";
+import { nefroPg } from "./modulos/nefro/fachada.js";
 
 export function crearApp() {
   const app = express();
@@ -57,6 +59,8 @@ export function crearApp() {
   app.use("/api/v1/catalogos", catalogos);
   app.use("/api/v1/hd", crearRutasLibro(CONFIG_HD));
   app.use("/api/v1/vih", crearRutasLibro(CONFIG_VIH));
+  app.use("/api/v1/portal", crearRutasLibro(CONFIG_PORTAL));
+  app.use("/api/v1/nefro/pg", nefroPg);
 
   app.use("/api", (_req, _res, next) => next(noEncontrado("Ruta no encontrada.")));
   app.use(manejadorErrores);
