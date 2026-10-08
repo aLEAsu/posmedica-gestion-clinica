@@ -1,8 +1,9 @@
 {
   "name": "@posmedica/clinical-rules",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
+  "description": "Reglas clínicas del prototipo POSMÉDICA (HD, VIH, Nefroprotección) extraídas textualmente, sin DOM",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -12,10 +13,16 @@
     }
   },
   "scripts": {
+    "extraer": "node scripts/extraer-reglas.mjs",
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "acorn": "^8.15.0",
+    "acorn-walk": "^8.3.4",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }
 }
