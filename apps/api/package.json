@@ -16,8 +16,8 @@
     "test": "vitest run",
     "start:render": "prisma migrate deploy && node dist/seed.js && node dist/server.js",
     "admin:restablecer": "tsx --env-file=../../.env src/restablecer-admin.ts",
-    "esquema:hd": "tsx scripts/generar-esquema-hd.mjs",
-    "dev:e2e": "tsx --env-file=../../.env.e2e src/server.ts"
+    "dev:e2e": "tsx --env-file=../../.env.e2e src/server.ts",
+    "esquema": "tsx scripts/generar-esquema.mjs"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"

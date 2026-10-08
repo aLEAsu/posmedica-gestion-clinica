@@ -168,6 +168,7 @@ model Persona {
   eps           Eps?                  @relation(fields: [epsId], references: [id])
   inscripciones InscripcionPrograma[]
   hdPaciente    HdPaciente?
+  vihPaciente   VihPaciente?
 
   @@unique([tipoDoc, documento])
   @@index([primerApellido, primerNombre])
@@ -213,7 +214,7 @@ model Parametro {
   @@map("parametro")
 }
 
-// <<< HEMODIALISIS (GENERADO por scripts/generar-esquema-hd.mjs: no editar a mano)
+// <<< HEMODIALISIS (GENERADO por scripts/generar-esquema.mjs: no editar a mano)
 
 /// Hoja «Pacientes» del libro de hemodiálisis del prototipo.
 model HdPaciente {
@@ -763,3 +764,374 @@ model HdCorte {
 }
 
 // >>> HEMODIALISIS
+
+// <<< VIH (GENERADO por scripts/generar-esquema.mjs: no editar a mano)
+
+/// Hoja «Pacientes» del libro del programa VIH del prototipo.
+model VihPaciente {
+  ID                String   @id @map("id")
+  ContactoRed       String?  @map("contacto_red")
+  PoblacionClave    String?  @map("poblacion_clave")
+  NaturalDe         String?  @map("natural_de")
+  Escolaridad       String?  @map("escolaridad")
+  Ocupacion         String?  @map("ocupacion")
+  EstadoCivil       String?  @map("estado_civil")
+  Mecanismo         String?  @map("mecanismo")
+  TipoIngreso       String?  @map("tipo_ingreso")
+  FechaDx           String?  @map("fecha_dx")
+  FechaPresentacion String?  @map("fecha_presentacion")
+  FechaIngresoIPS   String?  @map("fecha_ingreso_ips")
+  OportunistaDx     String?  @map("oportunista_dx")
+  Modalidad         String?  @map("modalidad")
+  Sede              String?  @map("sede")
+  Gestante          String?  @map("gestante")
+  UltAtencionExt    String?  @map("ult_atencion_ext")
+  CIE10             String?  @map("cie10")
+  OrientacionSexual String?  @map("orientacion_sexual")
+  PracticaAnal      String?  @map("practica_anal")
+  TARPrevio         String?  @map("tar_previo")
+  TARPrevioDetalle  String?  @map("tar_previo_detalle")
+  DxOtraIPS         String?  @map("dx_otra_ips")
+  SoporteDx         String?  @map("soporte_dx")
+  MotivoTamizaje    String?  @map("motivo_tamizaje")
+  PruebasDx         String?  @map("pruebas_dx")
+  Barreras          String?  @map("barreras")
+  NovedadNominal    String?  @map("novedad_nominal")
+  Estado            String?  @map("estado")
+  FechaEgreso       String?  @map("fecha_egreso")
+  MotivoEgreso      String?  @map("motivo_egreso")
+  Observaciones     String?  @map("observaciones")
+  Usuario           String?  @map("usuario")
+  Registrado        String?  @map("registrado")
+  Anulado           String?  @map("anulado")
+  MotivoAnulacion   String?  @map("motivo_anulacion")
+  personaId         String   @unique @map("persona_id") @db.Uuid
+  persona           Persona  @relation(fields: [personaId], references: [id])
+  creadoPor         String?  @map("creado_por") @db.Uuid
+  creadoEn          DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor    String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn     DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@map("vih_paciente")
+}
+
+/// Hoja «Antecedentes» del libro del programa VIH del prototipo.
+model VihAntecedente {
+  ID                String   @id @map("id")
+  Paciente          String?  @map("paciente")
+  Fecha             String?  @map("fecha")
+  Patologicos       String?  @map("patologicos")
+  Oportunistas      String?  @map("oportunistas")
+  ITS               String?  @map("its")
+  TB                String?  @map("tb")
+  Quirurgicos       String?  @map("quirurgicos")
+  FarmNoTAR         String?  @map("farm_no_tar")
+  Toxicos           String?  @map("toxicos")
+  Alergicos         String?  @map("alergicos")
+  Transfusionales   String?  @map("transfusionales")
+  Traumaticos       String?  @map("traumaticos")
+  Psiquiatricos     String?  @map("psiquiatricos")
+  Psicosociales     String?  @map("psicosociales")
+  Discapacidad      String?  @map("discapacidad")
+  Familiares        String?  @map("familiares")
+  GrupoSanguineo    String?  @map("grupo_sanguineo")
+  Ginecoobstetricos String?  @map("ginecoobstetricos")
+  Usuario           String?  @map("usuario")
+  Registrado        String?  @map("registrado")
+  creadoPor         String?  @map("creado_por") @db.Uuid
+  creadoEn          DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor    String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn     DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("vih_antecedente")
+}
+
+/// Hoja «Laboratorios» del libro del programa VIH del prototipo.
+model VihLaboratorio {
+  ID              String   @id @map("id")
+  Paciente        String?  @map("paciente")
+  FechaToma       String?  @map("fecha_toma")
+  Examen          String?  @map("examen")
+  Valor           String?  @map("valor")
+  Resultado       String?  @map("resultado")
+  Fuente          String?  @map("fuente")
+  Solicitud       String?  @map("solicitud")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([FechaToma])
+  @@map("vih_laboratorio")
+}
+
+/// Hoja «EsquemasTAR» del libro del programa VIH del prototipo.
+model VihEsquemaTar {
+  ID              String   @id @map("id")
+  Paciente        String?  @map("paciente")
+  Inicio          String?  @map("inicio")
+  Fin             String?  @map("fin")
+  Esquema         String?  @map("esquema")
+  Linea           String?  @map("linea")
+  Motivo          String?  @map("motivo")
+  TARPrevio       String?  @map("tar_previo")
+  Validacion      String?  @map("validacion")
+  ValidadoPor     String?  @map("validado_por")
+  FechaValidacion String?  @map("fecha_validacion")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Inicio])
+  @@map("vih_esquema_tar")
+}
+
+/// Hoja «EntregasTAR» del libro del programa VIH del prototipo.
+model VihEntregaTar {
+  ID              String   @id @map("id")
+  Paciente        String?  @map("paciente")
+  Fecha           String?  @map("fecha")
+  Esquema         String?  @map("esquema")
+  Meses           String?  @map("meses")
+  Unidades        String?  @map("unidades")
+  Lugar           String?  @map("lugar")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("vih_entrega_tar")
+}
+
+/// Hoja «Agenda» del libro del programa VIH del prototipo.
+model VihCita {
+  ID              String   @id @map("id")
+  Paciente        String?  @map("paciente")
+  Fecha           String?  @map("fecha")
+  Hora            String?  @map("hora")
+  Disciplina      String?  @map("disciplina")
+  Tipo            String?  @map("tipo")
+  Modalidad       String?  @map("modalidad")
+  Profesional     String?  @map("profesional")
+  Estado          String?  @map("estado")
+  Motivo          String?  @map("motivo")
+  Gestion         String?  @map("gestion")
+  FechaGestion    String?  @map("fecha_gestion")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("vih_cita")
+}
+
+/// Hoja «Valoraciones» del libro del programa VIH del prototipo.
+model VihValoracion {
+  ID               String   @id @map("id")
+  Paciente         String?  @map("paciente")
+  Fecha            String?  @map("fecha")
+  Cita             String?  @map("cita")
+  Disciplina       String?  @map("disciplina")
+  Profesional      String?  @map("profesional")
+  Motivo           String?  @map("motivo")
+  Peso             String?  @map("peso")
+  Talla            String?  @map("talla")
+  PerAbd           String?  @map("per_abd")
+  PAS              String?  @map("pas")
+  PAD              String?  @map("pad")
+  FC               String?  @map("fc")
+  FR               String?  @map("fr")
+  Temp             String?  @map("temp")
+  SatO2            String?  @map("sat_o2")
+  SMAQ             String?  @map("smaq")
+  SMAQd            String?  @map("sma_qd")
+  RCV              String?  @map("rcv")
+  RCVCat           String?  @map("rcv_cat")
+  TamizTB          String?  @map("tamiz_tb")
+  Fumador          String?  @map("fumador")
+  RiesgoSocial     String?  @map("riesgo_social")
+  EnfermedadActual String?  @map("enfermedad_actual")
+  RevisionSistemas String?  @map("revision_sistemas")
+  ExamenFisico     String?  @map("examen_fisico")
+  Diagnosticos     String?  @map("diagnosticos")
+  Educacion        String?  @map("educacion")
+  Extra            String?  @map("extra")
+  Analisis         String?  @map("analisis")
+  Plan             String?  @map("plan")
+  Usuario          String?  @map("usuario")
+  Registrado       String?  @map("registrado")
+  Anulado          String?  @map("anulado")
+  MotivoAnulacion  String?  @map("motivo_anulacion")
+  creadoPor        String?  @map("creado_por") @db.Uuid
+  creadoEn         DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor   String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn    DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("vih_valoracion")
+}
+
+/// Hoja «Vacunas» del libro del programa VIH del prototipo.
+model VihVacuna {
+  ID              String   @id @map("id")
+  Paciente        String?  @map("paciente")
+  Vacuna          String?  @map("vacuna")
+  Dosis           String?  @map("dosis")
+  Fecha           String?  @map("fecha")
+  Lote            String?  @map("lote")
+  Estado          String?  @map("estado")
+  Soporte         String?  @map("soporte")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("vih_vacuna")
+}
+
+/// Hoja «Procedimientos» del libro del programa VIH del prototipo.
+model VihProcedimiento {
+  ID              String   @id @map("id")
+  Paciente        String?  @map("paciente")
+  Tipo            String?  @map("tipo")
+  Ordenado        String?  @map("ordenado")
+  OrdenadoPor     String?  @map("ordenado_por")
+  Fecha           String?  @map("fecha")
+  Lote            String?  @map("lote")
+  FechaLectura    String?  @map("fecha_lectura")
+  Lectura         String?  @map("lectura")
+  Resultado       String?  @map("resultado")
+  Conducta        String?  @map("conducta")
+  ProximaFecha    String?  @map("proxima_fecha")
+  Estado          String?  @map("estado")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("vih_procedimiento")
+}
+
+/// Hoja «Profilaxis» del libro del programa VIH del prototipo.
+model VihProfilaxis {
+  ID              String   @id @map("id")
+  Paciente        String?  @map("paciente")
+  Medicamento     String?  @map("medicamento")
+  Indicacion      String?  @map("indicacion")
+  Inicio          String?  @map("inicio")
+  Fin             String?  @map("fin")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Inicio])
+  @@map("vih_profilaxis")
+}
+
+/// Hoja «Novedades» del libro del programa VIH del prototipo.
+model VihNovedad {
+  ID              String   @id @map("id")
+  Paciente        String?  @map("paciente")
+  Fecha           String?  @map("fecha")
+  Tipo            String?  @map("tipo")
+  Detalle         String?  @map("detalle")
+  FechaFin        String?  @map("fecha_fin")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("vih_novedad")
+}
+
+/// Hoja «SolicitudesLab» del libro del programa VIH del prototipo.
+model VihSolicitudLab {
+  ID              String   @id @map("id")
+  Mes             String?  @map("mes")
+  Paciente        String?  @map("paciente")
+  Examen          String?  @map("examen")
+  Origen          String?  @map("origen")
+  Motivo          String?  @map("motivo")
+  Estado          String?  @map("estado")
+  FechaToma       String?  @map("fecha_toma")
+  Nota            String?  @map("nota")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([FechaToma])
+  @@index([Mes])
+  @@map("vih_solicitud_lab")
+}
+
+/// Hoja «ArrastreCAC» del libro del programa VIH del prototipo.
+model VihArrastreCac {
+  Paciente       String   @id @map("paciente")
+  Corte          String?  @map("corte")
+  Fuente         String?  @map("fuente")
+  Datos          String?  @map("datos")
+  creadoPor      String?  @map("creado_por") @db.Uuid
+  creadoEn       DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn  DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@map("vih_arrastre_cac")
+}
+
+// >>> VIH
