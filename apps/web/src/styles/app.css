@@ -1,0 +1,13 @@
+/* Complementos de la versión web. La base visual es portal.css, copiado sin cambios del prototipo. */
+html,body{margin:0;padding:0}
+img{max-width:100%}
+.pxwrap{padding-block:18px 56px}
+.dlg .form{margin-top:4px}
+.permtab td,.permtab th{text-align:center}
+.permtab td:first-child,.permtab th:first-child{text-align:left}
+.permtab input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+.clave-temp{font-family:var(--f-mono);font-size:20px;letter-spacing:.06em;background:var(--accent-soft);border-radius:8px;padding:10px 14px;display:inline-block;user-select:all}
+.pag{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.jsonmini{font-family:var(--f-mono);font-size:11.5px;white-space:pre-wrap;word-break:break-word;max-width:420px;margin:0;color:var(--muted)}
+.cargando{padding:40px 16px;text-align:center;color:var(--muted)}
+.fase{font-family:var(--f-mono);font-size:12px}
