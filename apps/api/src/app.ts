@@ -11,6 +11,7 @@ import { auth } from "./routes/auth.js";
 import { catalogos } from "./routes/catalogos.js";
 import { respaldo } from "./routes/respaldo.js";
 import { usuarios } from "./routes/usuarios.js";
+import { hd } from "./modulos/hd/rutas.js";
 
 export function crearApp() {
   const app = express();
@@ -20,7 +21,13 @@ export function crearApp() {
   app.use(idPeticion);
   // La API solo devuelve JSON y archivos: política de contenido mínima.
   app.use(helmet({ contentSecurityPolicy: { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } }, crossOriginResourcePolicy: { policy: "same-site" } }));
-  app.use(express.json({ limit: "2mb" }));
+  // Límite de tamaño por ruta: la importación inicial de un libro existente puede pesar varios MB.
+  const jsonGrande = express.json({ limit: "40mb" });
+  const jsonMedio = express.json({ limit: "10mb" });
+  const jsonNormal = express.json({ limit: "2mb" });
+  app.use((req, res, next) =>
+    (req.path.endsWith("/importar") ? jsonGrande : req.path.endsWith("/sincronizar") ? jsonMedio : jsonNormal)(req, res, next),
+  );
   app.use(cookieParser());
 
   app.get(
@@ -46,6 +53,7 @@ export function crearApp() {
   app.use("/api/v1/auditoria", auditoria);
   app.use("/api/v1/respaldo", respaldo);
   app.use("/api/v1/catalogos", catalogos);
+  app.use("/api/v1/hd", hd);
 
   app.use("/api", (_req, _res, next) => next(noEncontrado("Ruta no encontrada.")));
   app.use(manejadorErrores);
