@@ -11,7 +11,7 @@ Frontend React, backend Node.js y base de datos PostgreSQL, desplegados en Rende
 |---|---|---|
 | 0 | Análisis del prototipo | ✅ Aprobada (8 oct 2026) |
 | 1 | Monorepo, base de datos, autenticación, usuarios y permisos, auditoría, respaldo, panel, guía de despliegue | ✅ Aprobada |
-| 2 | `packages/clinical-rules` con pruebas de equivalencia | Pendiente |
+| 2 | `packages/clinical-rules`: reglas extraídas textualmente y 132 pruebas de equivalencia | ✅ Lista para revisión |
 | 3 | Hemodiálisis | Pendiente |
 | 4 | VIH | Pendiente |
 | 5 | Nefroprotección | Pendiente |
@@ -28,7 +28,7 @@ apps/api                 Backend: Express 5 + Prisma 6 + PostgreSQL (TypeScript)
   test/                  Pruebas de integración (Vitest + Supertest)
 apps/web                 Frontend: React 19 + Vite (estilos copiados del prototipo)
 packages/shared          Catálogo de programas y regla única de permisos (front y back)
-packages/clinical-rules  Reglas clínicas puras (Fase 2)
+packages/clinical-rules  Reglas clínicas extraídas del prototipo + pruebas de equivalencia (ver su README)
 _analisis/               Prototipo separado por módulos: referencia para las fases siguientes
 docs/                    Análisis y documentación
 ```
@@ -118,3 +118,5 @@ Los tres servicios (PostgreSQL, Web Service y Static Site) se crean **manualment
 
 - [docs/ANALISIS.md](docs/ANALISIS.md): análisis del prototipo, modelo de datos, reglas clínicas, formatos Excel y decisiones.
 - [docs/DESPLIEGUE_RENDER.md](docs/DESPLIEGUE_RENDER.md): guía de despliegue manual en Render.
+- [docs/REGLAS_CLINICAS.md](docs/REGLAS_CLINICAS.md): inventario de las 306 definiciones clínicas extraídas, con su origen (generado).
+- [packages/clinical-rules/README.md](packages/clinical-rules/README.md): cómo se extraen y verifican las reglas.
