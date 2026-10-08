@@ -11,7 +11,9 @@ import { auth } from "./routes/auth.js";
 import { catalogos } from "./routes/catalogos.js";
 import { respaldo } from "./routes/respaldo.js";
 import { usuarios } from "./routes/usuarios.js";
-import { hd } from "./modulos/hd/rutas.js";
+import { CONFIG_HD } from "./modulos/hd/config.js";
+import { crearRutasLibro } from "./modulos/libro/rutas.js";
+import { CONFIG_VIH } from "./modulos/vih/config.js";
 
 export function crearApp() {
   const app = express();
@@ -53,7 +55,8 @@ export function crearApp() {
   app.use("/api/v1/auditoria", auditoria);
   app.use("/api/v1/respaldo", respaldo);
   app.use("/api/v1/catalogos", catalogos);
-  app.use("/api/v1/hd", hd);
+  app.use("/api/v1/hd", crearRutasLibro(CONFIG_HD));
+  app.use("/api/v1/vih", crearRutasLibro(CONFIG_VIH));
 
   app.use("/api", (_req, _res, next) => next(noEncontrado("Ruta no encontrada.")));
   app.use(manejadorErrores);
