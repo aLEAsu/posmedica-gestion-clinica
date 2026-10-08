@@ -1,0 +1,31 @@
+{
+  "name": "posmedica-gestion-clinica",
+  "private": true,
+  "description": "Sistema de gestión clínica POSMÉDICA: frontend, backend y base de datos",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "build": "npm run build -w packages/shared && npm run build -w packages/clinical-rules && npm run build -w apps/api && npm run build -w apps/web",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.25.12": true
+  },
+  "overrides": {
+    "deepmerge-ts": "^8.0.0"
+  }
+}

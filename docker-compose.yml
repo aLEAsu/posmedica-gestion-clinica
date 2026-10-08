@@ -1,0 +1,21 @@
+# Solo para desarrollo local. En Render la base de datos la crea render.yaml.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: posmedica-db
+    environment:
+      POSTGRES_DB: posmedica
+      POSTGRES_USER: posmedica
+      POSTGRES_PASSWORD: posmedica_local
+      TZ: America/Bogota
+    ports:
+      - "5433:5432"
+    volumes:
+      - posmedica-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U posmedica -d posmedica"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  posmedica-db-data:

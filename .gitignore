@@ -1,0 +1,20 @@
+node_modules/
+dist/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+
+# Nunca versionar datos de pacientes ni respaldos
+*.xlsx
+*.xls
+*.csv
+*.sql.gz
+*.dump
+respaldos/
+!apps/**/test/fixtures/*.xlsx
+
+.vite/
+.DS_Store
+Thumbs.db
