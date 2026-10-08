@@ -70,7 +70,7 @@ Render → **New → Web Service** → elija el repositorio:
 | Branch | `main` |
 | Root Directory | (vacío) |
 | Runtime / Language | Node |
-| Build Command | `npm ci --include=dev && npm run build -w packages/shared && npm run build -w apps/api` |
+| Build Command | `npm ci --include=dev && npm run build -w packages/shared && npm run build -w packages/clinical-rules && npm run build -w apps/api` |
 | Start Command | `npm run start:render -w apps/api` |
 | Instance Type | Free |
 
@@ -137,8 +137,8 @@ En la pestaña **Headers**, todas con Path `/*`:
 
 | Name | Value |
 |---|---|
-| `Content-Security-Policy` | `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'` |
-| `X-Frame-Options` | `DENY` |
+| `Content-Security-Policy` | `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'` |
+| `X-Frame-Options` | `SAMEORIGIN` (los módulos se muestran dentro del portal) |
 | `X-Content-Type-Options` | `nosniff` |
 | `Referrer-Policy` | `same-origin` |
 | `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` |
@@ -168,6 +168,8 @@ Y con Path `/index.html`: `Cache-Control` = `no-cache` (para que siempre cargue 
 | «ADMIN_CLAVE_INICIAL no cumple la política» | Use 10 caracteres o más, con letras y números, sin incluir el usuario. |
 
 ---
+
+> Si ya había creado los servicios con la guía anterior: cambie el **Build Command** del backend (ahora compila también `packages/clinical-rules`) y en el Static Site cambie `frame-ancestors 'none'` por `frame-ancestors 'self'` y `X-Frame-Options` a `SAMEORIGIN`.
 
 ## 6. Despliegues siguientes
 
