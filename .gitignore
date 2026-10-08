@@ -18,3 +18,9 @@ respaldos/
 .vite/
 .DS_Store
 Thumbs.db
+
+# Generados en cada build por apps/web/scripts/extraer-modulos.mjs (copias textuales del prototipo y SheetJS)
+apps/web/public/modulos/portal.css
+apps/web/public/modulos/vendor/
+apps/web/public/modulos/*/index.html
+apps/web/public/modulos/hd/hd.js

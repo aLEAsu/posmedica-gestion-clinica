@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { ACCIONES, PROGRAMA_POR_CLAVE, puede } from "@posmedica/shared";
 import { Icono } from "../components/Barra";
+import { ModuloOriginal } from "../components/ModuloOriginal";
 import { useSesion } from "../sesion";
 
 /* Página de cada programa. En la Fase 1 muestra en qué fase se construye y los permisos del usuario;
@@ -17,6 +18,8 @@ export function Programa() {
       </div>
     );
   }
+
+  if (p.migrado) return <ModuloOriginal key={clave} clave={clave} titulo={p.nombre} />;
 
   return (
     <div className="wrap pxwrap" style={{ display: "grid", gap: 16 }}>

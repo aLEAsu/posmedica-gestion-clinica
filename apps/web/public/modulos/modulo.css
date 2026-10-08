@@ -1,0 +1,4 @@
+/* Ajustes de los módulos con la interfaz original cuando se muestran dentro del portal. */
+html, body { margin: 0; background: var(--bg); }
+#hdapp > .wrap { padding-block: 12px 40px; }
+#bookinfo .lnk { font-size: inherit; }

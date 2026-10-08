@@ -11,6 +11,8 @@ export interface ProgramaDef {
   /** Texto adicional para programas sin módulo (prototipo: campo nx). */
   mientras?: string;
   fase: number | null;
+  /** Módulo ya migrado y en uso (muestra la interfaz original del prototipo conectada a la base de datos). */
+  migrado?: boolean;
   /** Acceso abierto a todo usuario autenticado (prototipo: pxCan devuelve true para msg, docs y cal). */
   abierto?: boolean;
 }
@@ -24,7 +26,7 @@ export const GRUPOS: Record<GrupoPrograma, string> = {
 
 export const PROGRAMAS: ProgramaDef[] = [
   { clave: "nefro", nombre: "Nefroprotección", grupo: "mis", fase: 5, descripcion: "Ruta de nefroprotección v7.2: valoración y grupo CAC, plan de intervenciones, agenda espejo, cohorte, vencidos e indicadores por EPS." },
-  { clave: "hd", nombre: "Hemodiálisis", grupo: "mis", fase: 3, descripcion: "Turno con UF, valoración mensual, paraclínicos, vacunación VHB, acceso vascular, trasplante, calidad de diálisis e indicadores CAC." },
+  { clave: "hd", nombre: "Hemodiálisis", grupo: "mis", fase: 3, migrado: true, descripcion: "Turno con UF, valoración mensual, paraclínicos, vacunación VHB, acceso vascular, trasplante, calidad de diálisis e indicadores CAC." },
   { clave: "dp", nombre: "Diálisis peritoneal", grupo: "mis", fase: null, descripcion: "Censo DP, entrenamiento, adecuación (Kt/V semanal), peritonitis e infecciones del orificio, visitas domiciliarias.", mientras: "Mientras se construye: reporte aquí eventos de seguridad y los aportes mensuales a IAAS (peritonitis, IAAS-09)." },
   { clave: "vih", nombre: "VIH", grupo: "mis", fase: 4, descripcion: "Cohorte, agenda e inasistentes, laboratorios, TAR por grupo farmacológico, enfermería y carné de vacunación, historia clínica precargada, indicadores CAC y Nueva EPS, reportes y ruta GAO-PT-008." },
   { clave: "ce", nombre: "Consulta externa", grupo: "mis", fase: null, descripcion: "Agenda, oportunidad de la cita, inasistencia y remisiones por especialidad." },

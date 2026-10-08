@@ -53,7 +53,7 @@ export function Panel() {
                     <b>{p.nombre}</b>
                   </span>
                   <span className="pxcd">{p.descripcion}</span>
-                  <span className="pxck">{p.fase == null ? <span className="tag">en desarrollo</span> : <span className="tag">en migración · fase {p.fase}</span>}</span>
+                  <span className="pxck">{p.migrado ? <span className="tag cac">en uso</span> : p.fase == null ? <span className="tag">en desarrollo</span> : <span className="tag">en migración · fase {p.fase}</span>}</span>
                 </button>
               );
             })}
