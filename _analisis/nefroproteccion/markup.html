@@ -1,0 +1,355 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Ruta de Nefroprotección POSMÉDICA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="logo"><img src="data:image/jpeg;base64,<<img/imagen_03.jpg>>" alt="UNO-P Unidad Oncológica del Putumayo"></span>
+      <div>
+        <div class="eyebrow">UNO-P · POSMÉDICA · Programa de Nefroprotección</div>
+        <h1>Ruta de Nefroprotección · valoración y gestión</h1>
+      </div>
+    </div>
+  </header>
+  <nav class="nav" role="tablist" aria-label="Secciones">
+    <button role="tab" data-v="calc" aria-selected="true">Valoración</button>
+    <button role="tab" data-v="pac">Pacientes</button>
+    <button role="tab" data-v="agenda">Agenda</button>
+    <button role="tab" data-v="coh">Cohorte</button>
+    <button role="tab" data-v="mes">Próximo mes</button>
+    <button role="tab" data-v="venc">Vencidos</button>
+    <button role="tab" data-v="ind">Indicadores por EPS</button>
+    <button role="tab" data-v="alert">Alertas</button>
+    <button role="tab" data-v="cal">Calidad del dato</button>
+    <button role="tab" data-v="ref">Referencia</button>
+  </nav>
+  <div class="bookbar panel" id="bookbar">
+    <div class="copyrow">
+      <label class="btn primary" for="bookfile" id="booklabel">Cargar libro de Excel</label><input type="file" id="bookfile" accept=".xlsx,.xls" hidden>
+      <button type="button" class="btn" id="bookdemo">Ver con datos ficticios</button>
+      <button type="button" class="btn" id="bookexp" hidden>Descargar libro actualizado</button>
+      <span class="note" id="bookinfo">Sin libro cargado. El archivo se lee solo en este navegador.</span>
+    </div>
+    <div class="filters">
+      <label class="f">Fecha de corte<input type="date" id="corte"></label>
+      <label class="f">Mes a programar<input type="month" id="mes"></label>
+      <label class="f">EPS<select id="f_eps"><option value="">Todas</option><option>EPS Familiar de Colombia</option><option>Nueva EPS</option><option>Mallamas EPS</option><option value="sin">Sin EPS</option></select></label>
+      <label class="f">Grupo<select id="f_grp"><option value="">Todos</option><option value="1">Grupo 1</option><option value="2">Grupo 2</option><option value="3">Grupo 3</option></select></label>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <div id="agdlg" class="agover" hidden></div>
+  <div class="tip" id="tip" hidden></div>
+  <p class="privacy">Se diligencia en cada valoración del programa. Nada de lo que escriba se guarda ni sale de este navegador; la herramienta propone y la decisión es del profesional.</p>
+
+  <div id="view-calc" role="tabpanel">
+  <div class="grid">
+    <form class="panel" id="frm" autocomplete="off">
+      <div class="examples">
+        <button type="button" class="btn" data-ex="a">HTA · TFG 50 · A1</button>
+        <button type="button" class="btn" data-ex="b">DM2 descontrolado · G3b A2</button>
+        <button type="button" class="btn" data-ex="d">G1 A3</button>
+        <button type="button" class="btn" data-ex="c">G5 · TMND</button>
+        <button type="button" class="btn" data-ex="clear">Limpiar</button>
+      </div>
+      <div class="pickbox" id="pickbox" hidden>
+        <label class="f">Paciente del libro de cohorte<select id="pick"></select></label>
+        <p class="hint" id="pickmsg"></p>
+      </div>
+
+      <details open>
+        <summary><span><span class="n">1</span>Valoración y paciente</span></summary>
+        <div class="fs">
+          <div class="row">
+            <label class="f">Profesional que valora<select id="prof"><option value="nefro">Nefrología</option><option value="exp">Médico experto</option><option value="mi">Medicina interna</option><option value="mg">Medicina general</option></select></label>
+            <label class="f">Tipo de valoración<select id="tipo"><option value="control">Control</option><option value="primera">Primera vez</option></select></label>
+          </div>
+          <label class="f">Causa probable de la ERC (CGA)
+            <select id="causa"><option value="">Sin registrar</option><option value="dm">Enfermedad renal diabética</option><option value="hta">Nefropatía hipertensiva</option><option value="glom">Glomerulopatía</option><option value="pq">Poliquistosis renal</option><option value="uro">Uropatía obstructiva o litiasis</option><option value="nti">Nefritis tubulointersticial o nefrotóxicos</option><option value="otra">Otra</option><option value="desc">No establecida, en estudio</option></select>
+          </label>
+          <label class="f" id="box-cond">Conducta de nefrología
+            <select id="conducta"><option value="">Sin definir</option><option value="sigue">Continúa seguimiento por nefrología</option><option value="contra">Contrarreferencia al médico del programa</option><option value="prep">Inicia preparación para TRR</option><option value="tmnd">Decisión de TMND</option></select>
+          </label>
+          <div class="row">
+            <label class="f">Código del paciente<input type="text" id="pid"></label>
+            <label class="f">EPS<select id="eps"><option value="">—</option><option>EPS Familiar de Colombia</option><option>Nueva EPS</option><option>Mallamas EPS</option></select></label>
+          </div>
+          <div class="row3">
+            <label class="f">Fecha de nacimiento<input type="date" id="fnac"></label>
+            <label class="f">Edad <span class="u">años</span><input type="text" id="edad" inputmode="numeric"></label>
+            <label class="f">Sexo<select id="sexo"><option value="">—</option><option value="F">Femenino</option><option value="M">Masculino</option></select></label>
+          </div>
+          <label class="f">Fecha de la consulta<input type="date" id="fcons"></label>
+          <p class="hint" id="epsmodel"></p>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">2</span>Precursoras y antecedentes</span></summary>
+        <div class="fs">
+          <div class="row">
+            <label class="chk" style="align-self:end"><input type="checkbox" id="hta"> Hipertensión arterial</label>
+            <label class="f">Diabetes<select id="dm"><option value="">No</option><option value="2">Tipo 2</option><option value="1">Tipo 1</option><option value="otra">Otra</option></select></label>
+          </div>
+          <div class="cols2">
+            <label class="chk"><input type="checkbox" id="ecv"> Enfermedad cardiovascular</label>
+            <label class="chk"><input type="checkbox" id="fam"> Familiar con ERC</label>
+            <label class="chk"><input type="checkbox" id="aine"> AINE u otros nefrotóxicos</label>
+            <label class="chk"><input type="checkbox" id="uro"> Litiasis o uropatía</label>
+            <label class="chk"><input type="checkbox" id="tab"> Tabaquismo</label>
+          </div>
+          <label class="f">Otros antecedentes relevantes<input type="text" id="otrosAnt"></label>
+          <label class="f">Situación renal
+            <select id="terapia"><option value="">Sin terapia de reemplazo</option><option value="tmnd">G5 con TMND (manejo conservador)</option><option value="trr">G5 en preparación para TRR</option><option value="dx">En diálisis o trasplantado</option></select>
+          </label>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">3</span>Paraclínicos con fecha</span><span class="sm" id="sm3"></span></summary>
+        <div class="fs">
+          <div class="seg" role="radiogroup" aria-label="Cómo ingresar la TFGe">
+            <label><input type="radio" name="modo" value="creat" id="modo-creat" checked> Con creatinina</label>
+            <label><input type="radio" name="modo" value="tfg" id="modo-tfg"> TFGe reportada</label>
+          </div>
+          <label class="f">Fecha por defecto (se usa si un examen no tiene fecha propia)<input type="date" id="flab"></label>
+          <div class="tablebox"><table class="labt"><thead><tr><th>Examen</th><th>Valor</th><th>Fecha de toma</th></tr></thead><tbody>
+          <tr id="tr-creat"><td><label for="creat">Creatinina</label> <span class="u">mg/dL</span><span class="calc" id="tfgcalc"></span></td><td><input type="text" id="creat" inputmode="decimal"></td><td><input type="date" id="fd_creat" aria-label="Fecha de Creatinina"></td></tr>
+          <tr id="tr-tfgdir"><td><label for="tfgdir">TFGe reportada</label> <span class="u">ml/min</span></td><td><input type="text" id="tfgdir" inputmode="decimal"></td><td><input type="date" id="fd_tfgdir" aria-label="Fecha de TFGe reportada"></td></tr>
+          <tr id="tr-rac"><td><label for="rac">RAC urinaria</label> <span class="u">mg/g</span></td><td><input type="text" id="rac" inputmode="decimal"></td><td><input type="date" id="fd_rac" aria-label="Fecha de RAC urinaria"></td></tr>
+          <tr id="tr-hba1c"><td><label for="hba1c">HbA1c</label> <span class="u">%</span></td><td><input type="text" id="hba1c" inputmode="decimal"></td><td><input type="date" id="fd_hba1c" aria-label="Fecha de HbA1c"></td></tr>
+          <tr id="tr-ldl"><td><label for="ldl">cLDL</label> <span class="u">mg/dL</span></td><td><input type="text" id="ldl" inputmode="decimal"></td><td><input type="date" id="fd_ldl" aria-label="Fecha de cLDL"></td></tr>
+          <tr id="tr-hb"><td><label for="hb">Hemoglobina</label> <span class="u">g/dL</span></td><td><input type="text" id="hb" inputmode="decimal"></td><td><input type="date" id="fd_hb" aria-label="Fecha de Hemoglobina"></td></tr>
+          <tr id="tr-k"><td><label for="k">Potasio</label> <span class="u">mEq/L</span></td><td><input type="text" id="k" inputmode="decimal"></td><td><input type="date" id="fd_k" aria-label="Fecha de Potasio"></td></tr>
+          <tr id="tr-ca" class="compl"><td><label for="ca">Calcio</label> <span class="u">mg/dL</span></td><td><input type="text" id="ca" inputmode="decimal"></td><td><input type="date" id="fd_ca" aria-label="Fecha de Calcio"></td></tr>
+          <tr id="tr-fos" class="compl"><td><label for="fos">Fósforo</label> <span class="u">mg/dL</span></td><td><input type="text" id="fos" inputmode="decimal"></td><td><input type="date" id="fd_fos" aria-label="Fecha de Fósforo"></td></tr>
+          <tr id="tr-pth" class="compl"><td><label for="pth">PTH</label> <span class="u">pg/mL</span></td><td><input type="text" id="pth" inputmode="decimal"></td><td><input type="date" id="fd_pth" aria-label="Fecha de PTH"></td></tr>
+          <tr id="tr-hco3" class="compl"><td><label for="hco3">Bicarbonato</label> <span class="u">mmol/L</span></td><td><input type="text" id="hco3" inputmode="decimal"></td><td><input type="date" id="fd_hco3" aria-label="Fecha de Bicarbonato"></td></tr>
+          <tr id="tr-alb" class="compl"><td><label for="alb">Albúmina</label> <span class="u">g/dL</span></td><td><input type="text" id="alb" inputmode="decimal"></td><td><input type="date" id="fd_alb" aria-label="Fecha de Albúmina"></td></tr>
+          </tbody></table></div>
+          <p class="hint" id="hint-compl" hidden>Calcio, fósforo, PTH, bicarbonato y albúmina aparecen con TFGe &lt; 60.</p>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">4</span>Diagnóstico de ERC</span></summary>
+        <div class="fs">
+          <div class="sub-h">Otros marcadores de daño renal</div>
+          <div class="cols2">
+            <label class="chk"><input type="checkbox" id="mk_hem"> Hematuria o sedimento anormal</label>
+            <label class="chk"><input type="checkbox" id="mk_img"> Alteración en imagen</label>
+            <label class="chk"><input type="checkbox" id="mk_bx"> Hallazgo histológico</label>
+          </div>
+          <div class="sub-h">Cronicidad (resultado previo)</div>
+          <div class="row3">
+            <label class="f">TFGe previa<input type="text" id="tfgprev" inputmode="decimal"></label>
+            <label class="f">RAC previa<input type="text" id="racprev" inputmode="decimal"></label>
+            <label class="f">Fecha previa<input type="date" id="fprev"></label>
+          </div>
+          <label class="chk"><input type="checkbox" id="cronHC"> Persistencia &gt; 3 meses documentada en la HC</label>
+          <label class="chk"><input type="checkbox" id="agudo"> Sospecha de deterioro agudo</label>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">5</span>Control clínico de hoy</span></summary>
+        <div class="fs">
+          <div class="row">
+            <label class="f">PA sistólica <span class="u">mmHg</span><input type="text" id="pas" inputmode="numeric"></label>
+            <label class="f">PA diastólica <span class="u">mmHg</span><input type="text" id="pad" inputmode="numeric"></label>
+          </div>
+          <div class="row3">
+            <label class="f">Peso <span class="u">kg</span><input type="text" id="peso" inputmode="decimal"></label>
+            <label class="f">Talla <span class="u">cm</span><input type="text" id="talla" inputmode="decimal"></label>
+            <label class="f">Cintura <span class="u">cm</span><input type="text" id="cint" inputmode="decimal"></label>
+          </div>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">6</span>Tratamiento nefroprotector</span></summary>
+        <div class="fs">
+          <div class="row">
+            <label class="f">IECA o ARA II<select id="m_raas"></select></label>
+            <label class="f">iSGLT2<select id="m_sglt2"></select></label>
+          </div>
+          <div class="row">
+            <label class="f">Estatina ± ezetimiba<select id="m_stat"></select></label>
+            <label class="f" id="box-fin">Finerenona<select id="m_fin"></select></label>
+          </div>
+          <label class="chk" id="box-dmaj"><input type="checkbox" id="dmaj"> Ajusta hoy el tratamiento de la diabetes</label>
+          <label class="chk"><input type="checkbox" id="htares"> HTA resistente</label>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">7</span>Síntomas y calidad de vida</span><span class="sm" id="sm7"></span></summary>
+        <div class="fs">
+          <div class="cols2" id="sintomas"></div>
+          <label class="f">En general, usted diría que su salud es (ítem 1 SF-36)
+            <select id="sf1"><option value="">Sin dato</option><option>Excelente</option><option>Muy buena</option><option>Buena</option><option>Regular</option><option>Mala</option></select>
+          </label>
+          <label class="f" id="box-kps">Estado funcional (Karnofsky)
+            <select id="kps"><option value="">Sin dato</option>
+              <option value="100">100 · Normal, sin evidencia de enfermedad</option>
+              <option value="90">90 · Actividad normal, signos menores</option>
+              <option value="80">80 · Actividad normal con esfuerzo</option>
+              <option value="70">70 · Se vale por sí mismo, no puede trabajar</option>
+              <option value="60">60 · Requiere ayuda ocasional</option>
+              <option value="50">50 · Requiere ayuda considerable</option>
+              <option value="40">40 · Incapacitado</option>
+              <option value="30">30 · Gravemente incapacitado</option>
+              <option value="20">20 · Muy enfermo</option>
+              <option value="10">10 · Moribundo</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">8</span>Atenciones en los últimos 12 meses</span></summary>
+        <div class="fs">
+          <div class="cols2">
+            <label class="chk"><input type="checkbox" id="at_nefro"> Nefrología</label>
+            <label class="chk"><input type="checkbox" id="at_nut"> Nutrición</label>
+            <label class="chk"><input type="checkbox" id="at_enf"> Enfermería</label>
+            <label class="chk"><input type="checkbox" id="at_psi"> Psicología</label>
+            <label class="chk"><input type="checkbox" id="at_ts"> Trabajo social</label>
+            <label class="chk"><input type="checkbox" id="at_edu"> Educación estructurada</label>
+            <label class="chk"><input type="checkbox" id="at_flu"> Vacuna influenza</label>
+            <label class="chk"><input type="checkbox" id="at_rcv"> RCV con escala validada</label>
+          </div>
+        </div>
+      </details>
+    </form>
+
+    <div class="out" id="out"></div>
+  </div>
+  </div>
+
+  <div id="view-pac" role="tabpanel" hidden><div class="out mout" id="out-pac"></div></div>
+  <div id="view-agenda" role="tabpanel" hidden><div class="out mout" id="out-agenda"></div></div>
+  <div id="view-coh" role="tabpanel" hidden><div class="out mout" id="out-coh"></div></div>
+  <div id="view-mes" role="tabpanel" hidden><div class="out mout" id="out-mes"></div></div>
+  <div id="view-venc" role="tabpanel" hidden><div class="out mout" id="out-venc"></div></div>
+  <div id="view-ind" role="tabpanel" hidden><div class="out mout" id="out-ind"></div></div>
+  <div id="view-alert" role="tabpanel" hidden><div class="out mout" id="out-alert"></div></div>
+  <div id="view-cal" role="tabpanel" hidden><div class="out mout" id="out-cal"></div></div>
+  <div id="view-ref" role="tabpanel" hidden>
+    <div class="panel ref" style="margin-top:18px">
+      <section>
+        <h2>Cómo decide la herramienta</h2>
+        <ol>
+          <li><strong>¿Tiene ERC?</strong> Sí, si hay TFGe &lt; 60 o un marcador de daño (RAC ≥ 30 mg/g, sedimento, imagen, histología) con persistencia &gt; 3 meses. Un resultado aislado da categorías provisionales y la fecha para repetir a los 3 meses. G1–G2 A1 sin otros marcadores es «sin ERC demostrada».</li>
+          <li><strong>Grupo del programa</strong> por TFGe: grupo 1 G1–G2, grupo 2 G3a–G3b, grupo 3 G4–G5 sin diálisis. La albuminuria no cambia el grupo; acorta las frecuencias (decisión de implementación adoptada).</li>
+          <li><strong>Frecuencia fija</strong>: se parte de la agenda base por G y A; se acorta si la PA o la HbA1c están fuera de meta, si hay ajuste de fármacos, progresión o síntomas de alarma. Siempre se toma el intervalo más corto que aplique.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Agenda base adoptada</h2>
+        <p class="note">Propuesta operativa institucional construida sobre KDIGO 2024 (figura 13) y la herramienta CAC 2026 (tablas 8 y 9). No es una tabla oficial de CAC ni de KDIGO. Requiere adopción formal por el responsable clínico.</p>
+        <div class="tablebox"><table>
+          <thead><tr><th>Categoría</th><th>Riesgo KDIGO</th><th>KDIGO: TFGe y RAC/año</th><th>Control médico</th><th>Creatinina/TFGe</th><th>RAC</th></tr></thead>
+          <tbody>
+            <tr><td>G1–G2 A1</td><td>Sin ERC demostrada*</td><td>1</td><td>6 m con HTA/DM; 12 m sin ellas</td><td>12 m</td><td>12 m</td></tr>
+            <tr><td>G1–G2 A2</td><td>Moderado</td><td>1</td><td>6 m con HTA/DM; 12 m sin ellas</td><td>12 m</td><td>12 m</td></tr>
+            <tr><td>G1–G2 A3</td><td>Alto</td><td>3</td><td>3 m</td><td>3 m</td><td>3 m</td></tr>
+            <tr><td>G3a A1</td><td>Moderado</td><td>1</td><td>6 m</td><td>6 m</td><td>12 m</td></tr>
+            <tr><td>G3a A2</td><td>Alto</td><td>2</td><td>6 m</td><td>6 m</td><td>6 m</td></tr>
+            <tr><td>G3a A3</td><td>Muy alto</td><td>3</td><td>3 m</td><td>3 m</td><td>3 m</td></tr>
+            <tr><td>G3b A1</td><td>Alto</td><td>2</td><td>6 m</td><td>6 m</td><td>6 m</td></tr>
+            <tr><td>G3b A2</td><td>Muy alto</td><td>3</td><td>3 m</td><td>3 m</td><td>4 m</td></tr>
+            <tr><td>G3b A3</td><td>Muy alto</td><td>3</td><td>3 m</td><td>3 m</td><td>3 m</td></tr>
+            <tr><td>G4 A1–A2</td><td>Muy alto</td><td>3</td><td>2 m</td><td>2 m</td><td>4 m</td></tr>
+            <tr><td>G4 A3</td><td>Muy alto</td><td>≥ 4</td><td>2 m</td><td>2 m</td><td>3 m</td></tr>
+            <tr><td>G5 (TMND o preparación TRR)</td><td>Muy alto</td><td>≥ 4</td><td>1 m</td><td>1 m</td><td>3 m</td></tr>
+          </tbody></table></div>
+        <p class="note">*Con HTA o DM sigue en el programa por su condición precursora. Si falta la RAC, se usa la fila A2 y la RAC queda «ahora».</p>
+      </section>
+
+      <section>
+        <h2>Otros controles por estadio</h2>
+        <div class="tablebox"><table>
+          <thead><tr><th>Actividad</th><th>G3a–G3b</th><th>G4</th><th>G5</th><th>Base</th></tr></thead>
+          <tbody>
+            <tr><td>Hemoglobina</td><td>6 m</td><td>3 m</td><td>3 m</td><td>Propuesta; CAC p. 46 dice semestral y p. 69 trimestral</td></tr>
+            <tr><td>Calcio y fósforo</td><td>12 m</td><td>6 m</td><td>3 m</td><td>CAC; KDIGO MBD 2017 da rangos</td></tr>
+            <tr><td>PTH</td><td>12 m</td><td>6 m</td><td>3 m</td><td>CAC; KDIGO MBD 2017 da rangos</td></tr>
+            <tr><td>Potasio</td><td colspan="3">Con cada creatinina si recibe IECA/ARA II o finerenona, y en G4–G5</td><td>Propuesta</td></tr>
+            <tr><td>Tamizaje de desnutrición</td><td colspan="2">6 m si &gt; 65 años (G1–G3); 6 m en G4</td><td>6 m</td><td>CAC</td></tr>
+          </tbody></table></div>
+        <p class="note">Todos los grupos: HbA1c cada 6 meses en meta y cada 3 fuera de meta o con ajuste; perfil lipídico anual (8 semanas tras iniciar o ajustar estatina); antropometría, RCV, nutrición, educación y vacuna de influenza anuales. Enfermería, psicología y trabajo social: al menos una atención al año desde G3a (nefro_40). Bicarbonato y albúmina: según indicación, sin cuota fija.</p>
+      </section>
+
+      <section>
+        <h2>Reglas que adelantan la atención</h2>
+        <ul>
+          <li>PA o HbA1c fuera de meta: control de ajuste de metas al mes hasta lograrla (CAC: cada 1 a 2 meses). Lo hace el profesional que defina el modelo de la EPS; la valoración por nefrología conserva su frecuencia.</li>
+          <li>Modelo por EPS: EPS Familiar, médico experto cada mes que no hay valoración por nefrología, para formulación de medicamentos contratados. Nueva EPS, paquete con nefrología y equipo multidisciplinario: las frecuencias son las del riesgo del paciente (CAC/GPC) y el equipo se agenda el mismo día de nefrología.</li>
+          <li>Nutrición: mínimo anual (CAC). Cada 3 meses con fósforo fuera de meta, potasio ≥ 5,5, albúmina &lt; 3,5, IMC &lt; 20 o ≥ 35, o G5; cada 6 meses con G4, IMC 25–34,9 o HbA1c fuera de meta (propuesta institucional).</li>
+          <li>Paraclínicos individualizados: potasio 5,5–5,9 a la semana; fósforo fuera de meta a los 3 meses; anemia en G3 a los 3 meses; caída de TFGe &gt; 20 % o RAC duplicada a 1 mes; albúmina &lt; 3,5 a los 3 meses (propuestas). Lo que vence dentro de 35 días se adelanta a la misma toma.</li>
+          <li>Fosfatasa alcalina: no se programa de rutina (decisión del programa). Puede registrarse si se solicita por indicación clínica.</li>
+          <li>Inicio o aumento de IECA, ARA II, iSGLT2 o finerenona: PA, creatinina y potasio a las 2 semanas si TFGe &lt; 30 o K ≥ 5,0; a las 4 semanas en los demás (KDIGO 2024 PP 3.6.2 dice 2–4 semanas; fecha fija = propuesta).</li>
+          <li>Inicio o ajuste de estatina: perfil lipídico a las 8 semanas (ESC/EAS 2019: 8 ± 4 semanas).</li>
+          <li>Cambio de TFGe &gt; 20 % frente a la medición previa: revisión clínica. Duplicación de la RAC: verificar y adelantar valoración.</li>
+          <li>Nefrología al menos una vez al año (nefro_33) con TFGe &lt; 30, RAC &gt; 300, caída &gt; 5 ml/min/año, KFRE a 5 años ≥ 5 % o HTA resistente.</li>
+          <li>KFRE a 2 años &gt; 10 %: atención multidisciplinaria intensiva; &gt; 40 %: educación de modalidades y preparación de TRR o TMND (KDIGO 2024 PP 2.2.2–2.2.3).</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Discrepancias que se mantienen visibles</h2>
+        <ul>
+          <li>Remisión por albuminuria: el indicador nefro_33 usa RAC &gt; 300; la tabla 7 de la herramienta 2026 usa RAC persistente &gt; 700 o ≥ 300 con hematuria. Se adoptó &gt; 300.</li>
+          <li>Tabla 9 de CAC: G4–G5 «&gt; 4 controles/año»; cada 3 meses no lo cumple. Por eso G4 queda cada 2 meses.</li>
+          <li>PTH: los rangos CAC (70–110 en G4, 150–300 en G5) son referencia de indicador; KDIGO 2017 dice que el nivel óptimo en ERC sin diálisis se desconoce. No disparan tratamiento por sí solos.</li>
+          <li>Hb &gt; 10 del indicador no define ausencia de anemia (KDIGO: &lt; 13 g/dL hombres, &lt; 12 g/dL mujeres).</li>
+          <li>Lípidos: KDIGO 2013 no exige perfil lipídico seriado después de iniciar estatina; CAC mide metas de cLDL. El control a 8 semanas responde a la meta CAC.</li>
+          <li>Población de los indicadores de HbA1c (nefro_03 &lt; 7 % vs nefro_12 &lt; 8 %) inferida de la ficha técnica; pendiente de confirmar.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Agenda, asistencia e inasistencias</h2>
+        <ul>
+          <li>La agenda se abre por jornadas: fecha, servicio, profesional, horario y duración del cupo. Nefrología trabaja con agenda espejo: agendas A y B a la misma hora (cupo de 20 minutos en cada una, 6 pacientes por hora).</li>
+          <li>Cada cita guarda fecha de solicitud, fecha deseada (o fecha límite del plan) y fecha de asignación, como pide la Res. 256 de 2016 para medir oportunidad.</li>
+          <li>Desenlaces: llegó (en sala), atendida, llegó y no fue atendida, no asistió, cancelada. Cualquier aviso antes de la hora de la cita es cancelación, no inasistencia (decisión del programa); se guarda la anticipación del aviso.</li>
+          <li>Motivos agrupados por responsable: paciente, barrera de acceso, EPS, IPS, otro. Separar lo atribuible a la EPS (autorizaciones) y a la IPS de lo atribuible al paciente es lo que permite actuar y negociar.</li>
+          <li>Nada se borra: cada cambio queda en la hoja Citas_log con fecha, hora, usuario y motivo. Una cita atendida cuenta como atención de su disciplina para los indicadores; no se registra dos veces.</li>
+          <li>Evidencia usada: el antecedente de inasistencia y el tiempo largo entre asignación y cita son los predictores más consistentes de inasistencia (Dantas et al., Health Policy 2018;122:412–21). Los recordatorios por mensaje de texto aumentan la asistencia frente a no recordar (RR 1,14; IC 95 % 1,03–1,26; evidencia de calidad moderada) y rinden igual que la llamada (Gurol-Urganci et al., Cochrane 2013, CD007458).</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Fuentes</h2>
+        <ol>
+          <li>Cuenta de Alto Costo. Herramienta técnica: contenidos mínimos y suficientes de un programa de nefroprotección. v1.0, 2026 (tablas 5, 7, 8, 9 y 10, según el documento de referencia interno).</li>
+          <li>Cuenta de Alto Costo. Actualización del consenso basado en la evidencia: indicadores mínimos HTA, DM y ERC 1–5 sin diálisis ni trasplante. 2025.</li>
+          <li>KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of CKD. Kidney Int. 2024;105(4S):S117–S314.</li>
+          <li>KDIGO 2017 CKD-MBD Guideline Update. Kidney Int Suppl. 2017;7:1–59. · KDIGO 2013 Lipid Management in CKD. Kidney Int Suppl. 2013;3:259–305. · KDIGO 2012 Anemia in CKD. Kidney Int Suppl. 2012;2:279–335. · KDIGO 2022 Diabetes Management in CKD. Kidney Int. 2022;102(5S):S1–S127.</li>
+          <li>Inker LA, et al. N Engl J Med. 2021;385:1737–49 (CKD-EPI 2021). · Tangri N, et al. JAMA. 2011;305:1553–9 y JAMA. 2016;315:164–74 (KFRE, calibración no norteamericana).</li>
+          <li>Mach F, et al. 2019 ESC/EAS Guidelines for the management of dyslipidaemias. Eur Heart J. 2020;41:111–88.</li>
+          <li>Lista de síntomas basada en IPOS-Renal (Cicely Saunders Institute, King's College London), registrada como sí/no; no reemplaza el puntaje validado. Calidad de vida: ítem 1 del SF-36 (RAND, dominio público) y escala de Karnofsky.</li>
+        </ol>
+        <p class="note">Versión 7.2 · octubre de 2026. Indicadores: tablero de 15 fichas del programa; el semáforo usa la meta CAC y, donde la CAC no la fija, una meta institucional propuesta pendiente de adopción. El indicador nefro_33 usa solo los criterios de la CAC; la regla clínica de remisión (KFRE, HTA resistente) es más amplia.</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+</body></html>

@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Gestión Clínica POSMÉDICA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+
+<img id="pxlogo" src="data:image/jpeg;base64,<<img/imagen_01.jpg>>" alt="" hidden>
+<div id="px">
+<div id="pxbar" class="pxbar" hidden></div>
+<div class="wrap pxwrap" id="pxmain"></div>
+<section id="hdapp" hidden>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="logo"><img src="data:image/jpeg;base64,<<img/imagen_02.jpg>>" alt="UNO-P Unidad Oncológica del Putumayo"></span>
+      <div>
+        <div class="eyebrow">UNO-P · POSMÉDICA · Unidad Renal</div>
+        <h1>Hemodiálisis · control y gestión</h1>
+      </div>
+    </div>
+  </header>
+  <nav class="nav" id="nav" role="tablist" aria-label="Secciones"></nav>
+  <div class="bookbar panel" id="bookbar">
+    <div class="copyrow">
+      <label class="btn primary" for="bookfile">Cargar libro o Dashboard</label><input type="file" id="bookfile" accept=".xlsx,.xls" hidden>
+      <button type="button" class="btn" id="bookdemo">Ver con datos ficticios</button>
+      <button type="button" class="btn" id="booknew">Empezar libro nuevo</button>
+      <button type="button" class="btn" id="bookexp" hidden>Descargar libro actualizado</button>
+      <span class="note" id="bookinfo">Sin libro cargado. El archivo se lee solo en este navegador.</span>
+    </div>
+    <div class="filters">
+      <label class="f">Usuario que registra *<input type="text" id="user" placeholder="Nombre y cargo" autocomplete="name"></label>
+      <label class="f">Fecha de corte<input type="date" id="corte"></label>
+      <label class="f">Inicio del periodo<input type="date" id="ps"></label>
+      <label class="f">EPS<select id="feps"></select></label>
+    </div>
+  </div>
+  <p class="privacy">Datos de salud sensibles (Ley 1581 de 2012). Nada sale de este navegador: el libro se lee y se descarga en su equipo. La herramienta calcula y alerta; la decisión clínica es del profesional.</p>
+  <main id="out" class="mout"></main>
+</div>
+</section>
+<section id="nefroapp" hidden></section>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+<div id="dlg" class="ovl" hidden></div>
+
+
+
+</body></html>
