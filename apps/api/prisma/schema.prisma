@@ -1,0 +1,214 @@
+// Esquema de la base de datos · Fase 1 (núcleo).
+// Convenciones: tablas y columnas en snake_case; fechas clínicas como DATE; marcas de tiempo con zona horaria.
+// Los registros clínicos nunca se borran: se anulan (anulado_en, anulado_por, motivo_anulacion).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  ADMIN
+  MEDICO
+}
+
+/// Usuarios del sistema. Reemplaza la hoja «Usuarios» del libro institucional.
+model Usuario {
+  id               String    @id @default(uuid()) @db.Uuid
+  usuario          String    @unique
+  nombre           String
+  cargo            String
+  area             String?
+  email            String?
+  rol              Rol       @default(MEDICO)
+  claveHash        String    @map("clave_hash")
+  debeCambiarClave Boolean   @default(true) @map("debe_cambiar_clave")
+  activo           Boolean   @default(true)
+  intentosFallidos Int       @default(0) @map("intentos_fallidos")
+  bloqueadoHasta   DateTime? @map("bloqueado_hasta") @db.Timestamptz(3)
+  ultimoIngreso    DateTime? @map("ultimo_ingreso") @db.Timestamptz(3)
+  claveCambiadaEn  DateTime? @map("clave_cambiada_en") @db.Timestamptz(3)
+  creadoEn         DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
+  creadoPor        String?   @map("creado_por") @db.Uuid
+  actualizadoEn    DateTime  @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  permisos UsuarioPrograma[]
+  sesiones Sesion[]
+
+  @@map("usuario")
+}
+
+/// Programas del portal (catálogo de @posmedica/shared, sembrado por el seed).
+model Programa {
+  clave       String  @id
+  nombre      String
+  grupo       String
+  descripcion String
+  fase        Int?
+  abierto     Boolean @default(false)
+  orden       Int
+
+  permisos      UsuarioPrograma[]
+  inscripciones InscripcionPrograma[]
+
+  @@map("programa")
+}
+
+/// Permisos que el administrador asigna a un usuario médico en un programa.
+model UsuarioPrograma {
+  usuarioId     String   @map("usuario_id") @db.Uuid
+  programaClave String   @map("programa_clave")
+  ver           Boolean  @default(true)
+  registrar     Boolean  @default(false)
+  anular        Boolean  @default(false)
+  exportar      Boolean  @default(false)
+  asignadoEn    DateTime @default(now()) @map("asignado_en") @db.Timestamptz(3)
+  asignadoPor   String?  @map("asignado_por") @db.Uuid
+
+  usuario  Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  programa Programa @relation(fields: [programaClave], references: [clave])
+
+  @@id([usuarioId, programaClave])
+  @@map("usuario_programa")
+}
+
+/// Sesiones de ingreso. Solo se guarda el hash del token; el token viaja en una cookie httpOnly.
+model Sesion {
+  id              String    @id @default(uuid()) @db.Uuid
+  tokenHash       String    @unique @map("token_hash")
+  usuarioId       String    @map("usuario_id") @db.Uuid
+  creadaEn        DateTime  @default(now()) @map("creada_en") @db.Timestamptz(3)
+  ultimaActividad DateTime  @default(now()) @map("ultima_actividad") @db.Timestamptz(3)
+  expiraEn        DateTime  @map("expira_en") @db.Timestamptz(3)
+  revocadaEn      DateTime? @map("revocada_en") @db.Timestamptz(3)
+  ip              String?
+  agente          String?
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("sesion")
+}
+
+/// Auditoría inmutable: un trigger en la base de datos impide UPDATE y DELETE (ver la migración inicial).
+model Auditoria {
+  id            BigInt   @id @default(autoincrement())
+  fecha         DateTime @default(now()) @db.Timestamptz(3)
+  usuarioId     String?  @map("usuario_id") @db.Uuid
+  usuarioNombre String?  @map("usuario_nombre")
+  accion        String
+  entidad       String
+  registroId    String?  @map("registro_id")
+  programa      String?
+  ip            String?
+  antes         Json?
+  despues       Json?
+  detalle       String?
+
+  @@index([fecha])
+  @@index([entidad, registroId])
+  @@index([usuarioId])
+  @@map("auditoria")
+}
+
+/// EPS y entidades reportantes. codigo = código de habilitación para reportes CAC (FOMAG RES004, Familiar CCF033…).
+model Eps {
+  id       Int     @id @default(autoincrement())
+  nombre   String  @unique
+  codigo   String?
+  activo   Boolean @default(true)
+
+  personas Persona[]
+
+  @@map("eps")
+}
+
+/// DIVIPOLA. Se siembran los municipios del Putumayo; los demás se agregan cuando se necesiten.
+model Municipio {
+  codigoDane   String @id @map("codigo_dane")
+  nombre       String
+  departamento String
+
+  personas Persona[]
+
+  @@map("municipio")
+}
+
+/// Maestro único de pacientes (decisión D1). Una persona por tipo y número de documento.
+model Persona {
+  id              String    @id @default(uuid()) @db.Uuid
+  tipoDoc         String    @map("tipo_doc")
+  documento       String
+  primerNombre    String    @map("primer_nombre")
+  segundoNombre   String?   @map("segundo_nombre")
+  primerApellido  String    @map("primer_apellido")
+  segundoApellido String?   @map("segundo_apellido")
+  fechaNacimiento DateTime? @map("fecha_nacimiento") @db.Date
+  sexo            String?
+  epsId           Int?      @map("eps_id")
+  regimen         String?
+  fechaAfiliacion DateTime? @map("fecha_afiliacion") @db.Date
+  municipioDane   String?   @map("municipio_dane")
+  zona            String?
+  direccion       String?
+  telefono        String?
+  etnia           String?
+  grupoPoblacional String?  @map("grupo_poblacional")
+  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
+  creadoPor       String?   @map("creado_por") @db.Uuid
+  actualizadoEn   DateTime  @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  anuladoEn       DateTime? @map("anulado_en") @db.Timestamptz(3)
+  anuladoPor      String?   @map("anulado_por") @db.Uuid
+  motivoAnulacion String?   @map("motivo_anulacion")
+
+  eps           Eps?                  @relation(fields: [epsId], references: [id])
+  municipio     Municipio?            @relation(fields: [municipioDane], references: [codigoDane])
+  inscripciones InscripcionPrograma[]
+
+  @@unique([tipoDoc, documento])
+  @@index([primerApellido, primerNombre])
+  @@map("persona")
+}
+
+/// Inscripción de una persona en un programa, con el código interno del programa (P001, V0001, código de Nefro).
+model InscripcionPrograma {
+  id              String    @id @default(uuid()) @db.Uuid
+  personaId       String    @map("persona_id") @db.Uuid
+  programaClave   String    @map("programa_clave")
+  codigoInterno   String    @map("codigo_interno")
+  estado          String    @default("Activo")
+  fechaIngreso    DateTime? @map("fecha_ingreso") @db.Date
+  fechaEgreso     DateTime? @map("fecha_egreso") @db.Date
+  motivoEgreso    String?   @map("motivo_egreso")
+  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
+  creadoPor       String?   @map("creado_por") @db.Uuid
+  actualizadoEn   DateTime  @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  anuladoEn       DateTime? @map("anulado_en") @db.Timestamptz(3)
+  anuladoPor      String?   @map("anulado_por") @db.Uuid
+  motivoAnulacion String?   @map("motivo_anulacion")
+
+  persona  Persona  @relation(fields: [personaId], references: [id])
+  programa Programa @relation(fields: [programaClave], references: [clave])
+
+  @@unique([programaClave, codigoInterno])
+  @@index([personaId])
+  @@map("inscripcion_programa")
+}
+
+/// Parámetros configurables por programa (metas, frecuencias, contratos por EPS…). Reemplaza las hojas «Config».
+model Parametro {
+  id             Int      @id @default(autoincrement())
+  programa       String
+  clave          String
+  valor          Json
+  vigenteDesde   DateTime @default(now()) @map("vigente_desde") @db.Timestamptz(3)
+  actualizadoPor String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn  DateTime @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@unique([programa, clave])
+  @@map("parametro")
+}

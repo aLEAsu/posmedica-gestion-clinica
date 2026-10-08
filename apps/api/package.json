@@ -1,0 +1,44 @@
+{
+  "name": "@posmedica/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file=../../.env src/server.ts",
+    "build": "prisma generate && tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "migrate:dev": "dotenv -e ../../.env -- prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "seed": "node dist/seed.js",
+    "seed:dev": "tsx --env-file=../../.env src/seed.ts",
+    "prisma:local": "dotenv -e ../../.env -- prisma",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.0.2",
+    "@posmedica/shared": "0.1.0",
+    "@prisma/client": "6.19.3",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.0",
+    "helmet": "^8.1.0",
+    "prisma": "6.19.3",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.15.0",
+    "@types/supertest": "^6.0.3",
+    "dotenv-cli": "^8.0.0",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3"
+  }
+}
