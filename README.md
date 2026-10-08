@@ -66,6 +66,13 @@ npm run dev:web
 ```
 Abra http://localhost:5173 e ingrese con `ADMIN_USUARIO` y `ADMIN_CLAVE_INICIAL` del `.env`. El sistema pide cambiar la clave en el primer ingreso.
 
+### ¿Olvidó la clave o quedó bloqueado en local?
+
+```bash
+npm run admin:restablecer -w apps/api
+```
+Deja al usuario `ADMIN_USUARIO` con la clave `ADMIN_CLAVE_INICIAL` de su `.env` (desbloqueado y con cambio obligatorio). Para otro usuario: `npm run admin:restablecer -w apps/api -- nombre.usuario`. En Render (sin consola en el plan gratuito) la recuperación la hace otro administrador desde **Usuarios → Restablecer clave**.
+
 > **npm 11** bloquea los scripts de instalación por defecto. Los de Prisma y esbuild ya están aprobados en `package.json` (`allowScripts`).
 
 ### Pruebas

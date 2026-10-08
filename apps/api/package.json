@@ -14,7 +14,8 @@
     "prisma:local": "dotenv -e ../../.env -- prisma",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "start:render": "prisma migrate deploy && node dist/seed.js && node dist/server.js"
+    "start:render": "prisma migrate deploy && node dist/seed.js && node dist/server.js",
+    "admin:restablecer": "tsx --env-file=../../.env src/restablecer-admin.ts"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
