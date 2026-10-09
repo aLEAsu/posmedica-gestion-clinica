@@ -181,6 +181,24 @@
     });
   }
 
+  /* ---------- sin datos ficticios ---------- */
+  if (window.MG) window.MG.loadDemo = function () {
+    aviso("Los datos ficticios se retiraron: la Ruta trabaja con la base de datos.");
+  };
+  // El botón se oculta y deshabilita (no se elimina: la Ruta lo usa al arrancar).
+  const demo = document.getElementById("bookdemo");
+  if (demo) {
+    demo.hidden = true;
+    demo.disabled = true;
+  }
+
+  /* ---------- textos heredados del modo sin servidor ---------- */
+  for (const el of document.querySelectorAll(".privacy, p")) {
+    if (/Nada de lo que escriba se guarda/.test(el.textContent || "")) {
+      el.textContent = "Se diligencia en cada valoración del programa. Lo que se registra (pacientes, valoraciones, paraclínicos, atenciones, novedades, contactos y agenda) se guarda en la base de datos con su usuario y hora. La herramienta propone y la decisión es del profesional.";
+    }
+  }
+
   /* ---------- arranque ---------- */
   async function iniciar() {
     try {

@@ -23,3 +23,6 @@ body:not(.carga-inicial) #booklabel { display: none !important; }
 
 /* Producción asistencial: tarifas y valores (cifrados) solo para el administrador (D3). */
 body.no-admin #prodf { display: none !important; }
+
+/* Sin datos ficticios: el generador de demostración de la Ruta no está disponible. */
+#bookdemo { display: none !important; }

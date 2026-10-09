@@ -13,10 +13,12 @@ Frontend React, backend Node.js y base de datos PostgreSQL, desplegados en Rende
 | 1 | Monorepo, base de datos, autenticación, usuarios y permisos, auditoría, respaldo, panel, guía de despliegue | ✅ Aprobada |
 | 2 | `packages/clinical-rules`: reglas extraídas textualmente y 132 pruebas de equivalencia | ✅ Aprobada |
 | 3 | Hemodiálisis con persistencia real (20 tablas), sin datos ficticios, importación inicial del libro o Dashboard | ✅ Aprobada |
-| 4 | VIH con persistencia real (13 tablas), maestro único compartido con Hemodiálisis, importación del reporte CAC | ✅ Lista para revisión |
-| 5 | Nefroprotección | Pendiente |
-| 6 | Laboratorio, Producción, SP/IAAS/PROA, SOGCS, Calendario, Mensajes, Documentos | Pendiente |
-| 7 | Importadores y exportadores CAC/EPS, migración de libros, E2E | Pendiente |
+| 4 | VIH con persistencia real (13 tablas), maestro único compartido con Hemodiálisis, importación del reporte CAC | ✅ Aprobada |
+| 5 | Nefroprotección (Ruta de nefroprotección) en «modo base de datos», con su agenda | ✅ Lista para pruebas |
+| 6 | Laboratorio, Producción, SP/IAAS/PROA, SOGCS, Calendario, Mensajes, Documentos | ✅ Lista para pruebas |
+| — | Guía de despliegue en Render (plan gratuito) y guía de pruebas de aceptación | ✅ [DESPLIEGUE_RENDER.md](docs/DESPLIEGUE_RENDER.md) · [PRUEBAS_ACEPTACION.md](docs/PRUEBAS_ACEPTACION.md) |
+
+**Pruebas automáticas:** 47 de integración del backend y 132 de equivalencia de reglas clínicas, todas en verde.
 
 ## Estructura
 
@@ -25,9 +27,12 @@ apps/api                 Backend: Express 5 + Prisma 6 + PostgreSQL (TypeScript)
   prisma/schema.prisma   Esquema de la base de datos
   prisma/migrations/     Migraciones versionadas (la inicial incluye el trigger de auditoría inmutable)
   src/routes/            auth, usuarios, auditoria, respaldo, catalogos
+  src/modulos/libro/     Motor genérico de libros (lectura, sincronización, permisos, importación)
+  src/modulos/{hd,vih,portal}/  Configuración de cada libro
+  src/modulos/nefro/     Fachada de la API de la Ruta de nefroprotección y su agenda
   test/                  Pruebas de integración (Vitest + Supertest)
 apps/web                 Frontend: React 19 + Vite (estilos copiados del prototipo)
-  public/modulos/          Módulos con la interfaz ORIGINAL del prototipo + su adaptador a la API (ver abajo)
+  public/modulos/          Interfaz ORIGINAL del prototipo + adaptadores a la API: hd/, nefro/, portal/ (VIH y transversales)
   scripts/extraer-modulos.mjs  Copia textual del código del prototipo a public/modulos (corre en cada build)
 packages/shared          Catálogo de programas y regla única de permisos (front y back)
 packages/clinical-rules  Reglas clínicas extraídas del prototipo + pruebas de equivalencia (ver su README)
@@ -84,7 +89,7 @@ npm run test -w apps/api
 ```
 Cada corrida crea una base temporal `posmedica_test_<marca>` en el Postgres local, aplica las migraciones y la elimina al terminar. Nunca toca la base de desarrollo.
 
-## Cómo funcionan los módulos migrados (Hemodiálisis y VIH)
+## Cómo funcionan los módulos migrados
 
 Cada módulo conserva **la interfaz y la lógica originales del prototipo** (copiadas textualmente en cada build) y un **adaptador** (`public/modulos/<modulo>/adaptador-<modulo>.js`, con el motor de sincronización común en `public/modulos/adaptador-comun.js`) las conecta con el servidor. En el backend, un **motor genérico de libros** (`apps/api/src/modulos/libro/`) atiende a todos los programas con su configuración (`modulos/hd/config.ts`, `modulos/vih/config.ts`):
 
@@ -93,9 +98,22 @@ Cada módulo conserva **la interfaz y la lógica originales del prototipo** (cop
 - El servidor valida los tipos, los permisos (registrar, anular, exportar; configuración y facturación solo del administrador), audita cada registro con su valor anterior y nuevo, y **rechaza ediciones simultáneas** del mismo registro (el segundo usuario recarga y repite).
 - Si otro usuario guardó algo, aparece «Hay datos nuevos de otros usuarios: actualizar».
 - **No hay datos ficticios**: se retiraron el botón de demostración y la carga y descarga del libro. El administrador tiene **«Importar libro o Dashboard (carga inicial)»**, solo disponible mientras Hemodiálisis está vacío, para migrar los datos reales existentes.
-- **VIH** usa el portal del prototipo completo (VIH es un módulo nativo de ese portal); el adaptador manda la navegación hacia otros programas al portal nuevo. Mensajes y reportes de seguridad del paciente avisan que se habilitan en la Fase 6. «Importar cohorte o archivo CAC» funciona para cualquier usuario con permiso de registrar y **acepta el reporte CAC sin fila de encabezado** (tal como se envía a la EPS).
+- **VIH** usa el portal del prototipo completo (VIH es un módulo nativo de ese portal); el adaptador manda la navegación hacia otros programas al portal nuevo. «Importar cohorte o archivo CAC» funciona para cualquier usuario con permiso de registrar y **acepta el reporte CAC sin fila de encabezado** (tal como se envía a la EPS).
 - **Maestro único de personas**: la identidad (documento, nombres, nacimiento, sexo, EPS, residencia, etnia, zona) vive en `persona` y la comparten los programas. Etnia y zona se guardan como código CAC y VIH las ve con su etiqueta (equivalencias del propio prototipo). **Un campo vacío no borra un dato que otro programa registró**: para cambiarlo, escriba el valor nuevo.
 - Tablas de hemodiálisis: `hd_paciente` (la identidad vive en `persona`, el maestro único), `hd_sesion`, `hd_evento`, `hd_paraclinico`, `hd_novedad`, `hd_movimiento`, `hd_contacto`, `hd_acceso_novedad`, `hd_atencion`, `hd_valoracion`, `hd_estudio`, `hd_vacuna`, `hd_trasplante_item`, `hd_solicitud_lab`, `hd_seguridad_paciente`, `hd_antimicrobiano`, `hd_auditoria_iaas`, `hd_prescripcion`, `hd_dispensacion`, `hd_corte`. Tablas de VIH (todo texto, como lo lee el prototipo): `vih_paciente`, `vih_antecedente`, `vih_laboratorio`, `vih_esquema_tar`, `vih_entrega_tar`, `vih_cita`, `vih_valoracion`, `vih_vacuna`, `vih_procedimiento`, `vih_profilaxis`, `vih_novedad`, `vih_solicitud_lab`, `vih_arrastre_cac`. Todas se generan desde las hojas del prototipo con `npm run esquema -w apps/api`.
+
+### Nefroprotección (Fase 5)
+
+La Ruta de nefroprotección original ya tenía un «modo base de datos» que habla con una API estilo PostgREST. El backend ofrece esa misma API en `/api/v1/nefro/pg/` (`apps/api/src/modulos/nefro/fachada.ts`), sobre tablas propias (`nefro_paciente`, `nefro_laboratorio`, `nefro_valoracion`, `nefro_plan_item`, `nefro_atencion`, `nefro_novedad`, `nefro_contacto`, `eps_modelo_atencion`, `nefro_corte`) y el maestro único `persona`. La agenda (jornadas, citas, asistencia) se guarda en `nefro_agenda_fila` cada pocos segundos (`/api/v1/nefro/agenda`). La Ruta arranca en «BASE DE DATOS» y el botón de datos ficticios está deshabilitado. Anular exige el permiso «anular»; el modelo de atención por EPS solo lo cambia el administrador.
+
+### Portal y módulos transversales (Fase 6)
+
+VIH, Laboratorio, Seguridad del paciente, IAAS, PROA, SOGCS, Producción, Documentos, Mensajes y Calendario usan el portal original (`public/modulos/portal/`). Su libro institucional (12 tablas `portal_*`, idénticas a las hojas del prototipo) lo atiende el mismo motor de libros en `/api/v1/portal`. El servidor aplica las reglas:
+- **Mensajes**: el remitente lo fija el servidor; cada usuario recibe solo los suyos (ni el administrador lee mensajes ajenos).
+- **Seguridad del paciente**: cualquiera reporta y ve sus reportes; el análisis y cierre son del equipo de SP.
+- **Documentos**: los editan el administrador o el área Calidad.
+- **Producción**: las tarifas y valores cifrados solo llegan al administrador.
+- Los módulos transversales leen los libros de Hemodiálisis y VIH y escriben solo lo suyo (Laboratorio: solicitudes y resultados; SP: seguridad; IAAS: auditorías; PROA: antimicrobianos).
 
 Las pruebas (`apps/api/test/hd.test.ts`, `vih.test.ts`) importan en una base temporal la cohorte ficticia del prototipo, la leen desde la API y verifican que **los resultados clínicos sean idénticos** a los del prototipo original (HD: indicadores, alertas, semáforos, vacunación, calidad de diálisis, matriz CAC; VIH: 46 indicadores, alertas, carné, plan de laboratorios, estado al corte, cohorte nominal y reporte CAC). Cada archivo de pruebas usa su propia base temporal.
 
@@ -142,5 +160,6 @@ Los tres servicios (PostgreSQL, Web Service y Static Site) se crean **manualment
 
 - [docs/ANALISIS.md](docs/ANALISIS.md): análisis del prototipo, modelo de datos, reglas clínicas, formatos Excel y decisiones.
 - [docs/DESPLIEGUE_RENDER.md](docs/DESPLIEGUE_RENDER.md): guía de despliegue manual en Render.
+- [docs/PRUEBAS_ACEPTACION.md](docs/PRUEBAS_ACEPTACION.md): lista de verificación para el personal de la clínica, por módulo y rol.
 - [docs/REGLAS_CLINICAS.md](docs/REGLAS_CLINICAS.md): inventario de las 306 definiciones clínicas extraídas, con su origen (generado).
 - [packages/clinical-rules/README.md](packages/clinical-rules/README.md): cómo se extraen y verifican las reglas.
