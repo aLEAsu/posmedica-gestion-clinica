@@ -20,6 +20,15 @@ catalogos.get(
   }),
 );
 
+/** Directorio de usuarios para mensajes, comités, calendario y responsables (sin permisos ni datos de acceso). */
+catalogos.get(
+  "/usuarios",
+  h(async (_req, res) => {
+    const L = await prisma.usuario.findMany({ select: { id: true, usuario: true, nombre: true, cargo: true, area: true, rol: true, activo: true }, orderBy: { nombre: "asc" } });
+    res.json({ usuarios: L });
+  }),
+);
+
 catalogos.get(
   "/municipios",
   h(async (_req, res) => {

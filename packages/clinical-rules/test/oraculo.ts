@@ -101,10 +101,11 @@ export function cargarPortal(hoy: Date, opciones: { relojReal?: boolean } = {}):
   return { ev: (e) => vm.runInContext(e, ctx) };
 }
 
-/** Carga la Ruta de Nefroprotección (documento aparte, como el iframe original). */
-export function cargarNefro(hoy: Date): Oraculo {
+/** Carga la Ruta de Nefroprotección (documento aparte, como el iframe original). «extra» reemplaza globales del
+    navegador simulado (p. ej. fetch y location para probar su modo base de datos contra el servidor). */
+export function cargarNefro(hoy: Date, extra: Record<string, unknown> = {}): Oraculo {
   const P = leerPrototipo();
-  const ctx = contexto(hoy);
+  const ctx = contexto(hoy, extra);
   for (const s of P.nefroScripts) vm.runInContext(s, ctx, { filename: "nefro.html" });
   return { ev: (e) => vm.runInContext(e, ctx) };
 }

@@ -2,7 +2,7 @@
    El código del prototipo se copia TEXTUALMENTE; el adaptador (adaptador-<modulo>.js, escrito a mano) lo conecta con
    la API: carga desde la base de datos, guarda cada cambio, aplica permisos y elimina los datos ficticios.
    Uso: npm run extraer-modulos -w apps/web   (después de cualquier cambio del prototipo) */
-import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -68,14 +68,48 @@ copyFileSync(require.resolve("xlsx/dist/xlsx.full.min.js"), resolve(PUBLICO, "ve
   console.log(`hd: ${(codigo.length / 1024).toFixed(0)} KB de código original`);
 }
 
-/* ---------- VIH ----------
-   VIH es un módulo nativo del portal del prototipo: usa el núcleo del portal (pxRender, pxGo, pxExport…) y las
-   utilidades de hemodiálisis. Se copia el script principal COMPLETO (sin el HTML embebido de Nefroprotección, que se
-   migra aparte) y el marcado completo del cuerpo; el adaptador lo deja abierto en VIH y conectado a la base. */
+/* ---------- Nefroprotección ----------
+   La Ruta v7.2 es un documento propio (en el prototipo iba en un iframe). Se copia completo; sus scripts en línea pasan
+   a archivos (la CSP no admite scripts en línea) y SheetJS se toma local. ÚNICO cambio de configuración: la dirección de
+   su API de «modo base de datos» (const API="api/") apunta a la fachada del servidor (/api/v1/nefro/pg/). */
 {
-  mkdirSync(resolve(PUBLICO, "vih"), { recursive: true });
+  if (!P.nefroHtml) throw new Error("El prototipo no trae la Ruta de Nefroprotección (NEFRO_HTML).");
+  mkdirSync(resolve(PUBLICO, "nefro"), { recursive: true });
+  let html = P.nefroHtml;
+  let n = 0;
+  html = html.replace(/<script src="https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/xlsx\/[^"]+"><\/script>/, '<script src="../vendor/xlsx.full.min.js"></script>');
+  html = html.replace(/<script>([\s\S]*?)<\/script>/g, (_m, codigo) => {
+    n++;
+    let c = codigo;
+    if (c.includes('const API="api/";')) {
+      c = c.replace('const API="api/";', 'const API="/api/v1/nefro/pg/"; /* CAMBIO DE CONFIGURACIÓN: fachada del servidor */');
+      // PUENTE (única línea agregada): el adaptador avisa que la agenda ya quedó guardada en el servidor, para que la
+      // Ruta deje de marcarla «con cambios sin descargar» y no advierta al cerrar si no hay nada pendiente.
+      const fin = c.lastIndexOf("})();");
+      if (fin < 0) throw new Error("No se encontró el cierre del script de gestión de la Ruta.");
+      c = c.slice(0, fin) + 'window.MG.agendaGuardada=function(){ST.dirty=false;try{bookInfo();}catch(e){}}; /* PUENTE agregado por extraer-modulos.mjs */\n' + c.slice(fin);
+    }
+    writeFileSync(resolve(PUBLICO, `nefro/ruta-${n}.js`), CABECERA + c + "\n");
+    return `<script src="ruta-${n}.js"></script>`;
+  });
+  if (!html.includes("/api/v1/nefro/pg/") && !readFileSync(resolve(PUBLICO, "nefro/ruta-4.js"), "utf8").includes("/api/v1/nefro/pg/")) throw new Error("No se encontró la configuración de la API de la Ruta.");
+  // Adaptadores: el previo va antes de los scripts de la Ruta y el posterior al final.
+  html = html.replace(/<script src="\.\.\/vendor\/xlsx\.full\.min\.js"><\/script>/, '<script src="../vendor/xlsx.full.min.js"></script>\n<script src="../adaptador-comun.js"></script>\n<script src="adaptador-nefro-previo.js"></script>');
+  html = html.replace(/<\/body>(?![\s\S]*<\/body>)/, '<script src="adaptador-nefro.js"></script>\n<link rel="stylesheet" href="../modulo.css">\n</body>');
+  html = html.replace(/<head>/, "<head>\n<!-- GENERADO por apps/web/scripts/extraer-modulos.mjs. NO EDITAR A MANO. -->");
+  writeFileSync(resolve(PUBLICO, "nefro/index.html"), html);
+  console.log(`nefro: ${n} scripts de la Ruta copiados (${(html.length / 1024).toFixed(0)} KB de marcado)`);
+}
+
+/* ---------- Portal (VIH y módulos transversales) ----------
+   VIH, Laboratorio, Producción, Seguridad del paciente, IAAS, PROA, SOGCS, Documentos, Mensajes y Calendario viven en
+   el portal del prototipo: usan su núcleo (pxRender, pxGo, pxExport…) y las utilidades de hemodiálisis. Se copia el
+   script principal COMPLETO (sin el HTML embebido de Nefroprotección, que se migra aparte) y el marcado completo del
+   cuerpo; el adaptador lo conecta con la base (libro institucional, VIH y Hemodiálisis). */
+{
+  mkdirSync(resolve(PUBLICO, "portal"), { recursive: true });
   const codigo = P.lineas.map((l) => (l.startsWith("const NEFRO_HTML=") ? 'const NEFRO_HTML=""; /* Nefroprotección se migra como módulo aparte */' : l)).join("\n");
-  writeFileSync(resolve(PUBLICO, "vih/portal.js"), CABECERA + codigo + "\n");
+  writeFileSync(resolve(PUBLICO, "portal/portal.js"), CABECERA + codigo + "\n");
   // Del primer <body> al ÚLTIMO </body> (dentro del código hay cadenas con "</body>"), sin scripts ni estilos.
   const ini = P.html.indexOf(">", P.html.indexOf("<body")) + 1;
   const cuerpo = P.html.slice(ini, P.html.lastIndexOf("</body>"))
@@ -86,12 +120,12 @@ copyFileSync(require.resolve("xlsx/dist/xlsx.full.min.js"), resolve(PUBLICO, "ve
     .replace(/<div class="toast" id="toast"[^>]*><\/div>/, "")
     .replace(/<div id="dlg" class="ovl"[^>]*><\/div>/, "");
   writeFileSync(
-    resolve(PUBLICO, "vih/index.html"),
+    resolve(PUBLICO, "portal/index.html"),
     pagina({
-      titulo: "Programa VIH · POSMÉDICA",
-      cuerpo: `<div class="cargando-modulo" id="cargando-modulo">Cargando el programa VIH…</div>\n${sinBase64(cuerpo).replace('<div id="pxmain"', '<div id="pxmain-original"')}`,
-      scripts: ["../vendor/xlsx.full.min.js", "portal.js", "../adaptador-comun.js", "adaptador-vih.js"],
+      titulo: "Portal · POSMÉDICA",
+      cuerpo: `<div class="cargando-modulo" id="cargando-modulo">Cargando…</div>\n${sinBase64(cuerpo).replace('<div id="pxmain"', '<div id="pxmain-original"')}`,
+      scripts: ["../vendor/xlsx.full.min.js", "portal.js", "../adaptador-comun.js", "adaptador-portal.js"],
     }).replace('<div id="pxmain" hidden></div>\n', "").replace('id="pxmain-original"', 'id="pxmain"'),
   );
-  console.log(`vih: ${(codigo.length / 1024).toFixed(0)} KB de código original (portal completo)`);
+  console.log(`portal: ${(codigo.length / 1024).toFixed(0)} KB de código original (portal completo con VIH y módulos transversales)`);
 }
