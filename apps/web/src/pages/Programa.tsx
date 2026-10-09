@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { ACCIONES, PROGRAMA_POR_CLAVE, puede } from "@posmedica/shared";
+import { ACCIONES, PROGRAMA_POR_CLAVE, paginaDe, puede } from "@posmedica/shared";
 import { Icono } from "../components/Barra";
 import { ModuloOriginal } from "../components/ModuloOriginal";
 import { useSesion } from "../sesion";
@@ -19,7 +19,9 @@ export function Programa() {
     );
   }
 
-  if (p.migrado) return <ModuloOriginal key={clave} clave={clave} titulo={p.nombre} />;
+  // Todos los programas se muestran con la interfaz original; las vistas del portal comparten iframe (misma key).
+  const pagina = paginaDe(clave);
+  if (p.migrado || pagina === "portal") return <ModuloOriginal key={pagina} pagina={pagina} vista={clave} titulo={p.nombre} />;
 
   return (
     <div className="wrap pxwrap" style={{ display: "grid", gap: 16 }}>

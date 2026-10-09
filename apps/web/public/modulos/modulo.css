@@ -16,3 +16,10 @@ body:not(.listo) #px { visibility: hidden; }
 [data-x="demo"], [data-x="new"], [data-x="unload"], [data-x="bookexp"] { display: none !important; }
 body:not(.carga-inicial) label[for="vxbook"] { display: none !important; }
 body.sin-registrar label[for="vximp"] { display: none !important; }
+
+/* Ruta de Nefroprotección: el usuario que registra sale de la sesión; la carga del libro es solo del administrador. */
+label:has(#aguser) { display: none !important; }
+body:not(.carga-inicial) #booklabel { display: none !important; }
+
+/* Producción asistencial: tarifas y valores (cifrados) solo para el administrador (D3). */
+body.no-admin #prodf { display: none !important; }
