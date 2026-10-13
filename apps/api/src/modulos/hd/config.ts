@@ -1,6 +1,7 @@
 /* Configuración del libro de Hemodiálisis para el motor genérico (modulos/libro). */
 import { crearMotorHD } from "@posmedica/clinical-rules";
 import type { ConfigLibro, Fila, HojaDef } from "../libro/servicio.js";
+import { sexoEtiqueta } from "../libro/persona.js";
 import { escrituraConTransversales, leeProgramaOTransversal } from "../libro/transversal.js";
 import { CAMPOS_PERSONA, MODELOS_HD } from "./hojas.js";
 
@@ -38,7 +39,7 @@ export const CONFIG_HD: ConfigLibro = {
       const [a1, a2] = partir(r.Apellidos);
       return {
         tipoDoc: r.TipoDoc, documento: r.Documento, primerNombre: n1, segundoNombre: n2, primerApellido: a1, segundoApellido: a2,
-        fechaNacimiento: r.FechaNac, sexo: r.Sexo, eps: r.EPS, regimen: r.Regimen, fechaAfiliacion: r.FechaAfiliacion,
+        fechaNacimiento: r.FechaNac, sexo: sexoEtiqueta(r.Sexo), eps: r.EPS, regimen: r.Regimen, fechaAfiliacion: r.FechaAfiliacion,
         municipio: r.Municipio, municipioDane: r.MunicipioDANE, zona: r.Zona, direccion: r.Direccion, telefono: r.Telefono,
         etnia: r.Etnia, grupoPoblacional: r.GrupoPob,
       };
@@ -47,7 +48,7 @@ export const CONFIG_HD: ConfigLibro = {
       TipoDoc: p.tipoDoc, Documento: p.documento,
       Apellidos: [p.primerApellido, p.segundoApellido].filter(Boolean).join(" ") || null,
       Nombres: [p.primerNombre, p.segundoNombre].filter(Boolean).join(" ") || null,
-      FechaNac: fecha(p.fechaNacimiento), Sexo: p.sexo, EPS: p.eps?.nombre ?? null, Regimen: p.regimen,
+      FechaNac: fecha(p.fechaNacimiento), Sexo: sexoEtiqueta(p.sexo), EPS: p.eps?.nombre ?? null, Regimen: p.regimen,
       FechaAfiliacion: fecha(p.fechaAfiliacion), Municipio: p.municipio, MunicipioDANE: p.municipioDane,
       Zona: p.zona, Direccion: p.direccion, Telefono: p.telefono, Etnia: p.etnia, GrupoPob: p.grupoPoblacional,
     }),

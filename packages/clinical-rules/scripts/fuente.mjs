@@ -28,7 +28,9 @@ export function leerPrototipo(ruta = RUTA_PROTOTIPO) {
   const ln = lineas.find((l) => l.startsWith("const NEFRO_HTML="));
   const nefroHtml = ln ? JSON.parse(ln.slice("const NEFRO_HTML=".length).replace(/;\s*$/, "")) : null;
   const nefroScripts = nefroHtml ? scriptsDe(nefroHtml) : [];
-  return { html, scripts, principal, lineas, nefroHtml, nefroScripts };
+  // Línea del archivo HTML que corresponde a la línea 1 del script principal (para citar el origen de cada regla).
+  const lineaBase = html.slice(0, html.indexOf(principal)).split("\n").length - 1;
+  return { html, scripts, principal, lineas, lineaBase, nefroHtml, nefroScripts };
 }
 
 /** Rango de líneas [desde, hasta) del script principal entre dos marcadores (texto de inicio de línea). */
@@ -43,5 +45,8 @@ export const MARCAS = {
   hd: ["\"use strict\";", "/* ================= PORTAL POSMÉDICA · núcleo"],
   vih: ["/* ================= v0.4 · PROGRAMA VIH · estructura", "/* ================= eventos del portal"],
 };
+
+/** Nombre con que se cita el archivo del prototipo en el código generado («prototipo:línea»). */
+export const ETIQUETA = "prototipo";
 
 export { ENTIDADES };

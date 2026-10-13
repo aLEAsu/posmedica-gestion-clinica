@@ -19,9 +19,10 @@ export function Programa() {
     );
   }
 
-  // Todos los programas se muestran con la interfaz original; las vistas del portal comparten iframe (misma key).
+  // Los programas migrados (y las fichas «en desarrollo» de los que no tienen módulo) se muestran con la interfaz
+  // original; todas las vistas del portal comparten un iframe (misma key). Los módulos en migración muestran su fase.
   const pagina = paginaDe(clave);
-  if (p.migrado || pagina === "portal") return <ModuloOriginal key={pagina} pagina={pagina} vista={clave} titulo={p.nombre} />;
+  if (p.migrado || p.fase == null) return <ModuloOriginal key={pagina} pagina={pagina} vista={clave} titulo={p.nombre} />;
 
   return (
     <div className="wrap pxwrap" style={{ display: "grid", gap: 16 }}>

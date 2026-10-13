@@ -2,11 +2,12 @@
    El código del prototipo se copia TEXTUALMENTE; el adaptador (adaptador-<modulo>.js, escrito a mano) lo conecta con
    la API: carga desde la base de datos, guarda cada cambio, aplica permisos y elimina los datos ficticios.
    Uso: npm run extraer-modulos -w apps/web   (después de cualquier cambio del prototipo) */
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { MARCAS, leerPrototipo, seccion } from "../../../packages/clinical-rules/scripts/fuente.mjs";
+import { leerPrototipo } from "../../../packages/clinical-rules/scripts/fuente.mjs";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const PUBLICO = resolve(aqui, "../public/modulos");
@@ -42,31 +43,12 @@ ${scripts.map((s) => `<script src="${s}"></script>`).join("\n")}
 `;
 }
 
-mkdirSync(resolve(PUBLICO, "hd"), { recursive: true });
 mkdirSync(resolve(PUBLICO, "vendor"), { recursive: true });
 
 // Estilos del prototipo (los mismos del portal) y SheetJS local (la CSP no permite scripts de otros dominios).
 writeFileSync(resolve(PUBLICO, "portal.css"), "/* GENERADO: estilos del prototipo. NO EDITAR A MANO. */\n" + estilos);
 const require = createRequire(import.meta.url);
 copyFileSync(require.resolve("xlsx/dist/xlsx.full.min.js"), resolve(PUBLICO, "vendor/xlsx.full.min.js"));
-
-/* ---------- Hemodiálisis ---------- */
-{
-  const s = seccion(P.lineas, ...MARCAS.hd);
-  const codigo = P.lineas.slice(s.desde, s.hasta).join("\n");
-  writeFileSync(resolve(PUBLICO, "hd/hd.js"), CABECERA + codigo + "\n");
-  const m = /<section id="hdapp" hidden>([\s\S]*?)<\/section>/.exec(P.html);
-  if (!m) throw new Error("No se encontró el marcado de Hemodiálisis (#hdapp).");
-  writeFileSync(
-    resolve(PUBLICO, "hd/index.html"),
-    pagina({
-      titulo: "Hemodiálisis · POSMÉDICA",
-      cuerpo: `<section id="hdapp">${sinBase64(m[1])}</section>`,
-      scripts: ["../vendor/xlsx.full.min.js", "hd.js", "../adaptador-comun.js", "adaptador-hd.js"],
-    }),
-  );
-  console.log(`hd: ${(codigo.length / 1024).toFixed(0)} KB de código original`);
-}
 
 /* ---------- Nefroprotección ----------
    La Ruta v7.2 es un documento propio (en el prototipo iba en un iframe). Se copia completo; sus scripts en línea pasan
@@ -77,22 +59,26 @@ copyFileSync(require.resolve("xlsx/dist/xlsx.full.min.js"), resolve(PUBLICO, "ve
   mkdirSync(resolve(PUBLICO, "nefro"), { recursive: true });
   let html = P.nefroHtml;
   let n = 0;
+  let apiConfigurada = false;
   html = html.replace(/<script src="https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/xlsx\/[^"]+"><\/script>/, '<script src="../vendor/xlsx.full.min.js"></script>');
   html = html.replace(/<script>([\s\S]*?)<\/script>/g, (_m, codigo) => {
     n++;
     let c = codigo;
     if (c.includes('const API="api/";')) {
+      apiConfigurada = true;
       c = c.replace('const API="api/";', 'const API="/api/v1/nefro/pg/"; /* CAMBIO DE CONFIGURACIÓN: fachada del servidor */');
       // PUENTE (única línea agregada): el adaptador avisa que la agenda ya quedó guardada en el servidor, para que la
-      // Ruta deje de marcarla «con cambios sin descargar» y no advierta al cerrar si no hay nada pendiente.
+      // Ruta deje de marcarla «con cambios sin descargar» y no advierta al cerrar si no hay nada pendiente. Desde la v8,
+      // también da acceso al estado interno de la Ruta, donde viven la auditoría de guías, el arrastre y la configuración
+      // de la nominal (ST.aud, ST.arr, ST.ncfg), que antes solo se guardaban en el Excel.
       const fin = c.lastIndexOf("})();");
       if (fin < 0) throw new Error("No se encontró el cierre del script de gestión de la Ruta.");
-      c = c.slice(0, fin) + 'window.MG.agendaGuardada=function(){ST.dirty=false;try{bookInfo();}catch(e){}}; /* PUENTE agregado por extraer-modulos.mjs */\n' + c.slice(fin);
+      c = c.slice(0, fin) + 'window.MG.agendaGuardada=function(){ST.dirty=false;try{bookInfo();}catch(e){}};window.MG.estadoRuta=function(){return ST;}; /* PUENTE agregado por extraer-modulos.mjs */\n' + c.slice(fin);
     }
     writeFileSync(resolve(PUBLICO, `nefro/ruta-${n}.js`), CABECERA + c + "\n");
     return `<script src="ruta-${n}.js"></script>`;
   });
-  if (!html.includes("/api/v1/nefro/pg/") && !readFileSync(resolve(PUBLICO, "nefro/ruta-4.js"), "utf8").includes("/api/v1/nefro/pg/")) throw new Error("No se encontró la configuración de la API de la Ruta.");
+  if (!apiConfigurada) throw new Error("No se encontró la configuración de la API de la Ruta.");
   // Adaptadores: el previo va antes de los scripts de la Ruta y el posterior al final.
   html = html.replace(/<script src="\.\.\/vendor\/xlsx\.full\.min\.js"><\/script>/, '<script src="../vendor/xlsx.full.min.js"></script>\n<script src="../adaptador-comun.js"></script>\n<script src="adaptador-nefro-previo.js"></script>');
   html = html.replace(/<\/body>(?![\s\S]*<\/body>)/, '<script src="adaptador-nefro.js"></script>\n<link rel="stylesheet" href="../modulo.css">\n</body>');
@@ -101,11 +87,12 @@ copyFileSync(require.resolve("xlsx/dist/xlsx.full.min.js"), resolve(PUBLICO, "ve
   console.log(`nefro: ${n} scripts de la Ruta copiados (${(html.length / 1024).toFixed(0)} KB de marcado)`);
 }
 
-/* ---------- Portal (VIH y módulos transversales) ----------
-   VIH, Laboratorio, Producción, Seguridad del paciente, IAAS, PROA, SOGCS, Documentos, Mensajes y Calendario viven en
-   el portal del prototipo: usan su núcleo (pxRender, pxGo, pxExport…) y las utilidades de hemodiálisis. Se copia el
-   script principal COMPLETO (sin el HTML embebido de Nefroprotección, que se migra aparte) y el marcado completo del
-   cuerpo; el adaptador lo conecta con la base (libro institucional, VIH y Hemodiálisis). */
+/* ---------- Portal (Hemodiálisis, VIH, módulos transversales y marco de Nefroprotección) ----------
+   Como en el prototipo, todo vive en una sola página: Hemodiálisis en su sección #hdapp (su código usa también el de
+   dispositivos, microbiología e IAAS que está más abajo en el mismo script), VIH, Laboratorio, Producción, Seguridad del
+   paciente, IAAS, PROA, SOGCS, Documentos, Mensajes y Calendario, y la Ruta de Nefroprotección en el iframe #nefroframe
+   (cargada desde el servidor). Se copia el script principal COMPLETO (sin el HTML embebido de Nefroprotección, que se
+   publica como página aparte) y el marcado completo del cuerpo; el adaptador lo conecta con la base de datos. */
 {
   mkdirSync(resolve(PUBLICO, "portal"), { recursive: true });
   const codigo = P.lineas.map((l) => (l.startsWith("const NEFRO_HTML=") ? 'const NEFRO_HTML=""; /* Nefroprotección se migra como módulo aparte */' : l)).join("\n");
@@ -127,5 +114,35 @@ copyFileSync(require.resolve("xlsx/dist/xlsx.full.min.js"), resolve(PUBLICO, "ve
       scripts: ["../vendor/xlsx.full.min.js", "portal.js", "../adaptador-comun.js", "adaptador-portal.js"],
     }).replace('<div id="pxmain" hidden></div>\n', "").replace('id="pxmain-original"', 'id="pxmain"'),
   );
-  console.log(`portal: ${(codigo.length / 1024).toFixed(0)} KB de código original (portal completo con VIH y módulos transversales)`);
+  console.log(`portal: ${(codigo.length / 1024).toFixed(0)} KB de código original (portal completo: Hemodiálisis, VIH, módulos transversales y marco de Nefroprotección)`);
+}
+
+/* ---------- Huella de los archivos estáticos (solo en la compilación: npm run build) ----------
+   Cada script y hoja de estilos que cargan las páginas de los módulos se copia a public/modulos/c/ con una huella de su
+   contenido en el nombre (portal.3f9a1c2b.js). Así Render puede guardarlos en caché por un año (cabecera de
+   /modulos/c/*) y el navegador solo descarga de nuevo lo que cambió. Las páginas index.html no se guardan en caché. */
+if (process.argv.includes("--huella")) {
+  const CACHE = resolve(PUBLICO, "c");
+  rmSync(CACHE, { recursive: true, force: true });
+  mkdirSync(CACHE, { recursive: true });
+  const copias = new Map();
+  const huella = (ruta) => {
+    if (!copias.has(ruta)) {
+      const datos = readFileSync(ruta);
+      const h = createHash("sha256").update(datos).digest("hex").slice(0, 10);
+      const nombre = basename(ruta).replace(/(\.[a-z]+)$/, `.${h}$1`);
+      writeFileSync(resolve(CACHE, nombre), datos);
+      copias.set(ruta, nombre);
+    }
+    return copias.get(ruta);
+  };
+  for (const pag of ["portal/index.html", "nefro/index.html"]) {
+    const archivo = resolve(PUBLICO, pag);
+    const dir = dirname(archivo);
+    const html = readFileSync(archivo, "utf8").replace(/(<script src="|<link rel="stylesheet" href=")([^"]+)(")/g, (m, a, src, b) =>
+      /^(https?:)?\/\//.test(src) || src.startsWith("/") ? m : a + "../c/" + huella(resolve(dir, src)) + b,
+    );
+    writeFileSync(archivo, html);
+  }
+  console.log(`huella: ${copias.size} archivos en /modulos/c/`);
 }

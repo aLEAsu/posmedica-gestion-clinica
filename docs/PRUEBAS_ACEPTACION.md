@@ -24,6 +24,9 @@ Marque cada casilla al comprobarla y anote en **Observaciones** cualquier difere
 | `prueba.sp` | Seguridad del paciente | Seguridad del paciente, IAAS, PROA: ver, registrar |
 | `prueba.calidad` | **Calidad** | SOGCS: ver, registrar |
 | `prueba.lectura` | Nutrición | Hemodiálisis: solo ver |
+| `prueba.dp` | Enfermería diálisis peritoneal | Diálisis peritoneal: ver, registrar · rol en DP: **Enfermería profesional** |
+| `prueba.ce` | Admisiones | Consulta externa: ver, registrar · rol en CE: **Admisiones**, sin ver reservadas |
+| `prueba.infecto` | Infectología | Consulta externa: ver, registrar · rol en CE: **Admisiones**, **ve reservadas** |
 
 - [ ] Cada usuario recibió su clave temporal, ingresó y la cambió.
 
@@ -53,6 +56,10 @@ Observaciones: ______________________________________________
 - [ ] **Reportes**: exportar la matriz CAC; el archivo descarga y queda en la auditoría.
 - [ ] **Dos personas a la vez**: dos usuarios editan el mismo paciente; al segundo le aparece «Otro usuario modificó… Se recargaron los datos».
 - [ ] Facturación: solo el administrador la ve.
+- [ ] **Acceso vascular → Registro de dispositivos** (v0.6): registrar un catéter con su fecha de inserción; con «Proponer desde el historial» aparecen los catéteres sin validar y se validan uno por uno. Mientras falte un dato, el indicador ITS-CVC (dia_33) dice «no calculable» y explica qué falta.
+- [ ] **Infecciones y antimicrobianos**: registrar una infección fuera de sesión y prescribir un antimicrobiano. El hemocultivo se confirma solo cuando Laboratorio registra el resultado en **Microbiología**.
+- [ ] **Limpieza y desinfección**: registrar la limpieza de una máquina y la terminal de sala; marcar la desinfección del puesto en el Turno del día.
+- [ ] La barra fija **Reportar evento adverso** y **Novedad a Coordinación** aparece abajo a la derecha; la novedad llega a Mensajes del área Coordinación asistencial (o del administrador).
 
 Observaciones: ______________________________________________
 
@@ -83,6 +90,8 @@ Observaciones: ______________________________________________
 - [ ] **Asistencia**: marcar llegada o inasistencia de una cita; se guarda.
 - [ ] **Cohorte, Próximo mes, Vencidos, Indicadores por EPS, Alertas**: iguales al prototipo.
 - [ ] El **modelo de atención por EPS** solo lo cambia el administrador.
+- [ ] Ruta **v8**: pestañas **Cohortes**, **Auditoría GPC** y **Nominal EPS**. Registrar una auditoría de adherencia: aparece «Guardado en la base de datos» y al recargar sigue ahí. Al cargar la nominal anterior de la EPS (arrastre), queda guardada.
+- [ ] La Ruta se abre dentro del portal con la barra **Reportar evento adverso / Novedad a Coordinación**.
 
 Observaciones: ______________________________________________
 
@@ -92,12 +101,15 @@ Observaciones: ______________________________________________
 
 **Laboratorio (`prueba.lab`)**
 - [ ] Ve la solicitud del mes de Hemodiálisis y de VIH, marca muestras tomadas y carga resultados. Los resultados aparecen en Paraclínicos de Hemodiálisis y en Laboratorios de VIH.
+- [ ] **Microbiología**: registra un hemocultivo de un evento ITS-CVC de hemodiálisis con su resultado y antibiograma. En Hemodiálisis el evento pasa a «Confirmada». Solo Laboratorio registra cultivos.
 - [ ] No puede registrar sesiones de hemodiálisis.
 
 **Seguridad del paciente, IAAS y PROA (`prueba.sp`)**
 - [ ] Ve los reportes de seguridad de todos los programas y puede analizarlos y cerrarlos.
 - [ ] Listas de chequeo (higiene de manos, desinfección), matrices IAAS y PROA, auditoría de antimicrobianos y alertas de resistencia se registran y se conservan al recargar.
 - [ ] Un usuario de otra área puede **reportar** un evento, pero no analizarlo; solo ve sus propios reportes.
+- [ ] **Seguridad del paciente → Higiene de manos**: registrar la auditoría trimestral de los 5 momentos por servicio.
+- [ ] **IAAS y PROA por procesos** (v0.7): Bandeja, Procesos, Plan de trabajo, Vigilancia, Comité (con compromisos verificados), Mejoramiento, Documentos e Indicadores. IAAS clasifica los episodios infecciosos de HD; PROA audita los tratamientos que prescribe Hemodiálisis (no los vuelve a digitar). Cerrar el mes de un indicador deja su valor congelado.
 
 **SOGCS y Documentos (`prueba.calidad`)**
 - [ ] Crear un comité, una sesión con acta y quórum, y un compromiso con fecha límite.
@@ -116,13 +128,47 @@ Observaciones: ______________________________________________
 
 ---
 
-## 6. Programas sin módulo propio
+## 6. Diálisis peritoneal (`prueba.dp`)
 
-- [ ] Diálisis peritoneal, Consulta externa, Quimioterapia y Servicio farmacéutico muestran su ficha «en desarrollo» y permiten reportar eventos de seguridad y aportes a IAAS y PROA.
+- [ ] El administrador asigna los roles en **Reportes → Roles y parámetros** (p. ej. `prueba.dp` = Enfermería profesional). Sin rol, el usuario solo consulta.
+- [ ] **Pacientes → Nuevo paciente** y **Editar datos**: se guardan («Guardado · hora») y siguen al recargar. Si la persona ya existe en otro programa (mismo documento), es la misma persona del maestro único.
+- [ ] **Valoraciones**, **Agenda**, **Laboratorios** (resultado, validación y Kt/V), **Tratamiento y seguridad** (catéter, peritonitis y orificio de salida con criterios ISPD, antimicrobianos, hospitalización, trasplante, calidad de vida), **Insumos y entregas**: se registran según el rol (Enfermería no prescribe diálisis; solo Nefrología o Dirección).
+- [ ] **Indicadores** (consenso CAC 2026 y operativos) y **Reportes → Reporte CAC — DP**: iguales al prototipo con los mismos datos.
+- [ ] **Importar archivos** (archivo de control de valoraciones): muestra la vista previa, no duplica pacientes y deja los heredados «pendientes de verificación».
+- [ ] **Reportes → Bitácora** muestra quién cambió qué y cuándo (es la auditoría del servidor).
+- [ ] Una peritonitis registrada aparece en **IAAS** (IAAS-09) y su antimicrobiano en **PROA**; el cultivo lo registra **Laboratorio → Microbiología**.
+
+Observaciones: ______________________________________________
 
 ---
 
-## 7. Respaldo y continuidad
+## 7. Consulta externa (`prueba.ce`, `prueba.infecto`)
+
+- [ ] El administrador asigna los roles en **Administración** (Coordinación, Admisiones, Autorizaciones, Profesional, Calidad) y quién **ve especialidades reservadas**.
+- [ ] **Nueva solicitud**: registra la demanda aunque falte la autorización; detecta la solicitud duplicada de la misma necesidad.
+- [ ] **Agenda**: abrir jornadas por rango (sin cruces de profesional ni de consultorio), bloquear cupos y **asignar citas** respetando el orden de la lista de espera (saltarlo exige motivo).
+- [ ] **Dos personas asignan el mismo cupo a la vez**: a la segunda le aparece «Otro usuario asignó este cupo» y la solicitud sigue en la lista.
+- [ ] `prueba.ce` **no ve** solicitudes ni citas de Infectología u Oncología; `prueba.infecto` sí.
+- [ ] **Autorizaciones**, **Pacientes**, **Calidad del dato** y la **oportunidad** de la asignación (Res. 256) funcionan como en el prototipo.
+
+Observaciones: ______________________________________________
+
+---
+
+## 8. Tablero gerencial (administrador)
+
+- [ ] Solo lo ven los administradores (no aparece en Usuarios para asignarlo).
+- [ ] Muestra el rendimiento de cada programa frente a sus metas, los riesgos abiertos y los datos para decidir. Nefroprotección aparece después de unos segundos (se calcula en segundo plano).
+
+---
+
+## 9. Programas sin módulo propio
+
+- [ ] Quimioterapia y Servicio farmacéutico muestran su ficha «en desarrollo», como en el prototipo.
+
+---
+
+## 10. Respaldo y continuidad
 
 - [ ] El administrador descarga el **Respaldo** (Excel y JSON) y lo guarda en un medio cifrado de la institución.
 - [ ] Si la base de Render es gratuita: está anotada la fecha de vencimiento y la decisión de pasarla a plan pago o renovarla (ver [DESPLIEGUE_RENDER.md](DESPLIEGUE_RENDER.md), sección 8).

@@ -26,3 +26,8 @@ body.no-admin #prodf { display: none !important; }
 
 /* Sin datos ficticios: el generador de demostración de la Ruta no está disponible. */
 #bookdemo { display: none !important; }
+
+/* Diálisis peritoneal y Consulta externa: sin libros sueltos ni datos ficticios (todo vive en la base de datos). */
+[data-p="dpexp"], [data-p="dpclose"], [data-p="dpnew"], [data-p="dpdemo"],
+[data-ce="demo"], [data-ce="exp"], [data-ce="new"], [data-ce="unload"] { display: none !important; }
+.carga-inicial-panel { margin-bottom: 12px; }

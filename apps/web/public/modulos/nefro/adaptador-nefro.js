@@ -1,6 +1,7 @@
 /* Adaptador de la Ruta de Nefroprotección (se carga DESPUÉS de su código, que no se modifica).
    La Ruta trabaja en su «modo base de datos» contra la fachada del servidor (/api/v1/nefro/pg). Este adaptador completa
-   lo que el prototipo aún no guardaba: la AGENDA (jornadas, citas, bitácora y contactos).
+   lo que el prototipo aún no guardaba: la AGENDA (jornadas, citas, bitácora y contactos) y, desde la v8, la auditoría de
+   adherencia a guías, el arrastre de la nominal por EPS y la configuración de la nominal (estado interno de la Ruta).
    - Al cargar, la agenda guardada se incorpora a la cohorte con el lector de la propia Ruta (COH.parseRows).
    - Cuando la Ruta recarga sus datos tras un registro, se conserva la agenda que está en pantalla.
    - Cada cambio de agenda se guarda en el servidor en segundos (con control de ediciones simultáneas).
@@ -9,7 +10,18 @@
 (function () {
   "use strict";
   const { pedir, hora } = window.POSMEDICA;
-  const HOJAS = ["Jornadas", "Citas", "Citas_log", "Contactos"];
+  const HOJAS = ["Jornadas", "Citas", "Citas_log", "Contactos", "Auditoria_GPC", "Arrastre_nominal", "Config_nominal"];
+  /* Hojas v8 que la Ruta guarda en su estado (ST.aud, ST.arr, ST.ncfg) con las mismas columnas de su Excel. */
+  const ruta = () => (window.MG && window.MG.estadoRuta ? window.MG.estadoRuta() : null);
+  const EXTRA = {
+    Auditoria_GPC: { leer: (st) => st.aud || [], clave: (f) => String(f.ID), poner: (st, L) => { st.aud = L; } },
+    Arrastre_nominal: { leer: (st) => st.arr || [], clave: (f) => f.Codigo + "|" + f.Formato, poner: (st, L) => { st.arr = L; } },
+    Config_nominal: {
+      leer: (st) => Object.entries(st.ncfg || {}).map(([Clave, Valor]) => ({ Clave, Valor })),
+      clave: (f) => String(f.Clave),
+      poner: (st, L) => { st.ncfg = Object.fromEntries(L.map((f) => [f.Clave, f.Valor])); },
+    },
+  };
   const CAMPO = { Jornadas: "jor", Citas: "cit", Citas_log: "clog", Contactos: "ctc" };
   let PERM = { ver: false, registrar: false, anular: false, exportar: false };
   let ADMIN = false;
@@ -56,6 +68,11 @@
     });
   }
   function filasDe(B, hoja) {
+    const X = EXTRA[hoja];
+    if (X) {
+      const st = ruta();
+      return st ? X.leer(st).map((f) => ({ clave: X.clave(f), datos: JSON.parse(JSON.stringify(f)) })) : [];
+    }
     const filas = (B[CAMPO[hoja]] || []).map(A_FILA[hoja]);
     const k = claves(hoja, filas);
     return filas.map((datos, i) => ({ clave: k[i], datos }));
@@ -79,6 +96,8 @@
       }
       const B2 = COH.parseRows(S);
       B.jor = B2.jor; B.cit = B2.cit; B.clog = B2.clog; B.ctc = B2.ctc;
+      const st = ruta();
+      if (st) for (const h of Object.keys(EXTRA)) EXTRA[h].poner(st, (window.__agendaNefro.hojas[h] || []).map((x) => x.datos));
       const avisos = (B2.issues || []).filter((x) => HOJAS.some((h) => JSON.stringify(x).includes(h)));
       B.issues = (B.issues || []).concat(avisos);
       setTimeout(tomarBase, 0); // cuando la Ruta termine de instalar el libro
@@ -128,7 +147,7 @@
         Object.assign((ts[h] = ts[h] || {}), (r.ts && r.ts[h]) || {});
       }
       if (window.MG.agendaGuardada) window.MG.agendaGuardada();
-      aviso("Agenda guardada · " + hora());
+      aviso("Guardado en la base de datos · " + hora());
     } catch (e) {
       if (e.status === 0 || e.status >= 500) {
         aviso("La agenda no se pudo guardar todavía: " + e.message + " Se reintentará.");
@@ -163,13 +182,26 @@
       rd.onload = async (ev) => {
         try {
           const wb = XLSX.read(new Uint8Array(ev.target.result), { type: "array", cellDates: false });
-          if (!wb.SheetNames.some((n) => /^(jornadas|citas)$/i.test(n))) return;
+          if (!wb.SheetNames.some((n) => HOJAS.some((h) => h.toLowerCase() === n.toLowerCase()))) return;
           const actual = await pedir("GET", "/nefro/agenda");
           if (HOJAS.some((h) => (actual.hojas[h] || []).length)) return; // la agenda ya existe: solo carga inicial
           const S = COH.sheetsFromWb(wb);
           const B = COH.parseRows(S);
           const hojas = {};
-          for (const h of HOJAS) hojas[h] = filasDe(B, h);
+          for (const h of HOJAS) {
+            if (!EXTRA[h]) {
+              hojas[h] = filasDe(B, h);
+              continue;
+            }
+            // Mismo lector de la Ruta v8 (rawInit): hoja por nombre, celdas como texto.
+            const sn = wb.SheetNames.find((n) => n.toLowerCase() === h.toLowerCase());
+            const L = sn ? XLSX.utils.sheet_to_json(wb.Sheets[sn], { defval: "", raw: false }) : [];
+            const st = { aud: [], arr: [], ncfg: {} };
+            if (h === "Config_nominal") L.forEach((r) => { if (r.Clave) st.ncfg[r.Clave] = r.Valor; });
+            else EXTRA[h].poner(st, L);
+            const vistos = new Set();
+            hojas[h] = EXTRA[h].leer(st).map((f) => ({ clave: EXTRA[h].clave(f), datos: f })).filter((f) => !vistos.has(f.clave) && vistos.add(f.clave));
+          }
           const r = await pedir("POST", "/nefro/agenda/importar", { hojas });
           aviso("Agenda importada: " + Object.entries(r.conteo).map(([k, v]) => v + " " + k).join(", ") + ". Recargando…");
           setTimeout(() => location.reload(), 2500);

@@ -21,7 +21,7 @@ interface UsuarioFila {
 }
 
 /* Programas con permisos asignables: los de acceso abierto (mensajes, documentos, calendario) no se asignan. */
-const ASIGNABLES = PROGRAMAS.filter((p) => !p.abierto);
+const ASIGNABLES = PROGRAMAS.filter((p) => !p.abierto && !p.soloAdmin);
 const fh = (s: string | null) => (s ? new Date(s).toLocaleString("es-CO", { timeZone: "America/Bogota", dateStyle: "short", timeStyle: "short" }) : "—");
 const msgError = (e: unknown) => (e instanceof ErrorApi ? (e.campos?.length ? e.campos.map((c) => c.mensaje).join(" ") : e.message) : "No se pudo completar la acción.");
 

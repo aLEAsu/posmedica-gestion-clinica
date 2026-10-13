@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/extraer-modulos.mjs && vite",
-    "build": "node scripts/extraer-modulos.mjs && tsc -p tsconfig.json --noEmit && vite build",
+    "build": "node scripts/extraer-modulos.mjs --huella && tsc -p tsconfig.json --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "extraer-modulos": "node scripts/extraer-modulos.mjs",

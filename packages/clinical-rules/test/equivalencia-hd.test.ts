@@ -1,5 +1,7 @@
 /* Equivalencia Hemodiálisis: prototipo original (oráculo) frente a crearMotorHD, con la cohorte ficticia de
-   40 pacientes que trae el propio prototipo («Ver con datos ficticios»), en dos fechas de corte distintas. */
+   40 pacientes que trae el propio prototipo («Ver con datos ficticios»), en dos fechas de corte distintas, y con la
+   demostración institucional completa (pxDemo), que agrega el registro de dispositivos, la limpieza y la hoja
+   Microbiología del libro institucional (confirmación de ITS-CVC y días-catéter). */
 import { describe, expect, it } from "vitest";
 import { crearMotorHD } from "../src/generado/hd.js";
 import { clonarLibro, evaluarEn, normalizar } from "./comparar.js";
@@ -28,6 +30,8 @@ const POR_PACIENTE = [
 ];
 
 const GLOBALES = [
+  "cdCalc(ST.ps, ST.corte, \"\")",
+  "ST.book.evt.filter(e => e.Tipo === ITS).map(itsConf)",
   "IND.map(d => evalInd(d, ctxFor(ST.corte, ST.ps, ST.eps)))",
   "IND.map(d => trendPoints(d, 6))",
   "alertas()",
@@ -37,18 +41,30 @@ const GLOBALES = [
   "pacs().map(p => [p.ID, p._iv, p._noStart])",
 ];
 
-for (const fecha of [new Date(2026, 9, 8), new Date(2026, 2, 15)]) {
-  describe(`Hemodiálisis · corte ${fecha.toISOString().slice(0, 10)}`, async () => {
+const ESCENARIOS = [
+  { fecha: new Date(2026, 9, 8), demo: "loadDemo()" },
+  { fecha: new Date(2026, 2, 15), demo: "loadDemo()" },
+  { fecha: new Date(2026, 9, 8), demo: "pxDemo()" },
+];
+
+for (const { fecha, demo } of ESCENARIOS) {
+  describe(`Hemodiálisis · corte ${fecha.toISOString().slice(0, 10)} · ${demo}`, async () => {
     const o = cargarPortal(fecha);
-    await o.ev("loadDemo()");
+    await o.ev(demo);
+    if (demo === "pxDemo()") o.ev("ST.corte = new Date(); ST.ps = cacStart(ST.corte); IDX.dirty = true");
     const libro = clonarLibro(o.ev("ST.book"));
+    const portal = o.ev<Record<string, unknown> | null>("PX.book") ? clonarLibro(o.ev("PX.book")) : null;
     const ps = o.ev<Date>("ST.ps");
-    const m = crearMotorHD({ libro, hoy: fecha, corte: fecha, inicioPeriodo: ps }) as Record<string, unknown>;
+    const m = crearMotorHD({ libro, portal, hoy: fecha, corte: fecha, inicioPeriodo: ps }) as Record<string, unknown>;
     evaluarEn(m, "ensureIdx()");
     const ids = o.ev<string[]>("pacs().map(p => p.ID)");
 
     it("la cohorte ficticia es la esperada", () => {
       expect(ids.length).toBe(40);
+      if (demo === "pxDemo()") {
+        expect(o.ev<number>("ST.book.dsp.length")).toBeGreaterThan(0);
+        expect(o.ev<number>("PX.book.mic.length")).toBeGreaterThan(0);
+      }
       expect(evaluarEn(m, "pacs().map(p => p.ID)")).toEqual(ids);
     });
 

@@ -24,18 +24,20 @@
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",
+    "@posmedica/clinical-rules": "0.2.0",
     "@posmedica/shared": "0.1.0",
     "@prisma/client": "6.19.3",
+    "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.0",
     "helmet": "^8.1.0",
     "prisma": "6.19.3",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
-    "zod": "^3.25.76",
-    "@posmedica/clinical-rules": "0.2.0"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/compression": "^1.8.1",
     "@types/cookie-parser": "^1.4.8",
     "@types/express": "^5.0.3",
     "@types/node": "^22.15.0",

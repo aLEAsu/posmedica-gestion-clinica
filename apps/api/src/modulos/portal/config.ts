@@ -4,7 +4,10 @@
    - Mensajes: cada usuario solo recibe los que envió o los dirigidos a él o a su área (pxMine).
    - Documentos: los edita el administrador o el área de Calidad (pxDocEdit).
    - Reportes de seguridad: cualquier usuario puede reportar; el análisis y el cierre los hace Seguridad del paciente.
-   - Valores de producción (prod_fin, cifrados con su clave): solo los recibe el administrador (D3). */
+   - Valores de producción (prod_fin, cifrados con su clave): solo los recibe el administrador (D3).
+   - v0.6/v0.7 (dato capturado una sola vez en su proceso de origen): Microbiología la registra Laboratorio y la leen
+     IAAS, PROA, SP, Hemodiálisis y DP; la clasificación IAAS es de IAAS; cierres de indicadores, plan de trabajo,
+     hallazgos, actas e indicadores históricos son de IAAS y PROA, que además llevan su comité en las hojas del SOGCS. */
 import { puede, type UsuarioSesion } from "@posmedica/shared";
 import { ahoraTexto, type ConfigLibro, type Fila, type HojaDef } from "../libro/servicio.js";
 import { HOJAS_PORTAL } from "./hojas.js";
@@ -15,7 +18,14 @@ const norm = (s: unknown) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g
 const esCalidad = (u: UsuarioSesion) => norm(u.area) === "CALIDAD";
 
 /** Módulos que leen (y registran) cada hoja. Las hojas sin entrada son de todos los usuarios. */
-const LECTURA: Record<string, string[]> = { lst: ["iaas", "sp"], man: ["iaas", "proa", "sp"], prv: ["proa", "iaas"], ram: ["proa", "iaas", "sp"], prd: ["prod"] };
+const LECTURA: Record<string, string[]> = {
+  lst: ["iaas", "sp"], man: ["iaas", "proa", "sp"], prv: ["proa", "iaas"], ram: ["proa", "iaas", "sp"], prd: ["prod"],
+  mic: ["lab", "iaas", "proa", "sp", "hd", "dp"], icl: ["iaas", "proa", "sp", "hd", "dp"], cie: ["iaas", "proa"], pln: ["iaas", "proa"],
+  hal: ["iaas", "proa"], act: ["iaas", "proa", "sogcs"], ihi: ["iaas", "proa"],
+};
+/** Hojas que registra solo una parte de quienes las leen (el propietario del dato). */
+const ESCRITURA: Record<string, string[]> = { mic: ["lab"], icl: ["iaas"], act: ["iaas", "proa"] };
+const IAAS_PROA = ["iaas", "proa"];
 
 export const CONFIG_PORTAL: ConfigLibro = {
   programa: "portal",
@@ -39,16 +49,17 @@ export const CONFIG_PORTAL: ConfigLibro = {
       case "cal":
         return true; // mensajes y calendario son de todos (la fila de un mensaje ya se filtró por destinatario)
       case "doc":
-        return admin(u) || esCalidad(u) || puede(u, "docs", "registrar");
+        // IAAS y PROA asocian los documentos existentes a sus procesos.
+        return admin(u) || esCalidad(u) || puede(u, "docs", "registrar") || (tipo === "modificado" && algun(u, IAAS_PROA, "registrar"));
       case "com":
       case "cse":
-        return algun(u, ["sogcs"], "registrar");
+        return algun(u, ["sogcs", ...IAAS_PROA], "registrar");
       case "cmp":
-        return algun(u, ["sogcs"], "registrar") || (tipo === "modificado" && (f.Responsable === u.id || f.Responsable === u.area));
+        return algun(u, ["sogcs", ...IAAS_PROA], "registrar") || (tipo === "modificado" && (f.Responsable === u.id || f.Responsable === u.area));
       case "rsp":
         return tipo === "nuevo" || algun(u, ["sp"], "registrar");
       default:
-        return algun(u, LECTURA[h] ?? [], "registrar");
+        return algun(u, ESCRITURA[h] ?? LECTURA[h] ?? [], "registrar");
     }
   },
   fijarNuevo: (h, datos, u) => {

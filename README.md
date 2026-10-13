@@ -17,8 +17,15 @@ Frontend React, backend Node.js y base de datos PostgreSQL, desplegados en Rende
 | 5 | Nefroprotección (Ruta de nefroprotección) en «modo base de datos», con su agenda | ✅ Lista para pruebas |
 | 6 | Laboratorio, Producción, SP/IAAS/PROA, SOGCS, Calendario, Mensajes, Documentos | ✅ Lista para pruebas |
 | — | Guía de despliegue en Render (plan gratuito) y guía de pruebas de aceptación | ✅ [DESPLIEGUE_RENDER.md](docs/DESPLIEGUE_RENDER.md) · [PRUEBAS_ACEPTACION.md](docs/PRUEBAS_ACEPTACION.md) |
+| 7 | Prototipo v0.8 sobre lo ya migrado: HD (dispositivos, limpieza, infecciones y antimicrobianos, ITS-CVC por días-catéter), Nefroprotección v8 (auditoría GPC, nominal por EPS), Microbiología, IAAS y PROA por procesos, barra fija de reporte | ✅ Aprobada (13 oct 2026) |
+| 8 | Diálisis peritoneal: 24 tablas `dp_*`, roles del módulo en dos capas, importación del archivo de control, reporte CAC, bitácora desde la auditoría | ✅ Lista para pruebas |
+| 9 | Consulta externa: 13 tablas `ce_*`, roles del módulo, especialidades reservadas ocultas desde el servidor, un cupo nunca se asigna dos veces | ✅ Lista para pruebas |
+| 10 | Tablero gerencial (solo administradores), con Nefroprotección calculada en segundo plano | ✅ Lista para pruebas |
+| — | Optimización: respuestas comprimidas, lecturas en paralelo, carga paralela de libros (DP y CE solo a quien los usa), guardado de seguridad solo tras interacción, código de los módulos con huella para caché larga | ✅ |
 
-**Pruebas automáticas:** 47 de integración del backend y 132 de equivalencia de reglas clínicas, todas en verde.
+Quimioterapia y Servicio farmacéutico siguen «en desarrollo», igual que en el prototipo.
+
+**Pruebas automáticas:** 66 de integración del backend y 164 de equivalencia de reglas clínicas, todas en verde.
 
 ## Estructura
 
@@ -28,11 +35,11 @@ apps/api                 Backend: Express 5 + Prisma 6 + PostgreSQL (TypeScript)
   prisma/migrations/     Migraciones versionadas (la inicial incluye el trigger de auditoría inmutable)
   src/routes/            auth, usuarios, auditoria, respaldo, catalogos
   src/modulos/libro/     Motor genérico de libros (lectura, sincronización, permisos, importación)
-  src/modulos/{hd,vih,portal}/  Configuración de cada libro
+  src/modulos/{hd,vih,portal,dp,ce}/  Configuración de cada libro (hojas, tipos, permisos y roles)
   src/modulos/nefro/     Fachada de la API de la Ruta de nefroprotección y su agenda
   test/                  Pruebas de integración (Vitest + Supertest)
 apps/web                 Frontend: React 19 + Vite (estilos copiados del prototipo)
-  public/modulos/          Interfaz ORIGINAL del prototipo + adaptadores a la API: hd/, nefro/, portal/ (VIH y transversales)
+  public/modulos/          Interfaz ORIGINAL del prototipo + adaptadores a la API: portal/ (HD, VIH, transversales) y nefro/
   scripts/extraer-modulos.mjs  Copia textual del código del prototipo a public/modulos (corre en cada build)
 packages/shared          Catálogo de programas y regla única de permisos (front y back)
 packages/clinical-rules  Reglas clínicas extraídas del prototipo + pruebas de equivalencia (ver su README)
@@ -98,22 +105,24 @@ Cada módulo conserva **la interfaz y la lógica originales del prototipo** (cop
 - El servidor valida los tipos, los permisos (registrar, anular, exportar; configuración y facturación solo del administrador), audita cada registro con su valor anterior y nuevo, y **rechaza ediciones simultáneas** del mismo registro (el segundo usuario recarga y repite).
 - Si otro usuario guardó algo, aparece «Hay datos nuevos de otros usuarios: actualizar».
 - **No hay datos ficticios**: se retiraron el botón de demostración y la carga y descarga del libro. El administrador tiene **«Importar libro o Dashboard (carga inicial)»**, solo disponible mientras Hemodiálisis está vacío, para migrar los datos reales existentes.
+- **Una sola página, como en el prototipo**: Hemodiálisis (sección `#hdapp`), VIH y los módulos transversales viven en el portal del prototipo (`public/modulos/portal/`), y la Ruta de Nefroprotección se abre dentro de él en su iframe («cargada desde el servidor»). Desde la v0.6, el código de Hemodiálisis usa definiciones que viven más abajo en el mismo script (dispositivos, Microbiología, IAAS), y la barra fija «Reportar evento adverso / Novedad a Coordinación» aparece en todos los programas.
 - **VIH** usa el portal del prototipo completo (VIH es un módulo nativo de ese portal); el adaptador manda la navegación hacia otros programas al portal nuevo. «Importar cohorte o archivo CAC» funciona para cualquier usuario con permiso de registrar y **acepta el reporte CAC sin fila de encabezado** (tal como se envía a la EPS).
 - **Maestro único de personas**: la identidad (documento, nombres, nacimiento, sexo, EPS, residencia, etnia, zona) vive en `persona` y la comparten los programas. Etnia y zona se guardan como código CAC y VIH las ve con su etiqueta (equivalencias del propio prototipo). **Un campo vacío no borra un dato que otro programa registró**: para cambiarlo, escriba el valor nuevo.
-- Tablas de hemodiálisis: `hd_paciente` (la identidad vive en `persona`, el maestro único), `hd_sesion`, `hd_evento`, `hd_paraclinico`, `hd_novedad`, `hd_movimiento`, `hd_contacto`, `hd_acceso_novedad`, `hd_atencion`, `hd_valoracion`, `hd_estudio`, `hd_vacuna`, `hd_trasplante_item`, `hd_solicitud_lab`, `hd_seguridad_paciente`, `hd_antimicrobiano`, `hd_auditoria_iaas`, `hd_prescripcion`, `hd_dispensacion`, `hd_corte`. Tablas de VIH (todo texto, como lo lee el prototipo): `vih_paciente`, `vih_antecedente`, `vih_laboratorio`, `vih_esquema_tar`, `vih_entrega_tar`, `vih_cita`, `vih_valoracion`, `vih_vacuna`, `vih_procedimiento`, `vih_profilaxis`, `vih_novedad`, `vih_solicitud_lab`, `vih_arrastre_cac`. Todas se generan desde las hojas del prototipo con `npm run esquema -w apps/api`.
+- **Diálisis peritoneal y Consulta externa** tienen roles propios del prototipo (hojas RolesDP y RolesCE) además de los permisos del programa: el servidor valida las dos capas en cada hoja. El administrador es Dirección Médica en DP y Coordinación en CE. En CE, quien no tiene «ve reservadas» no recibe del servidor las solicitudes, autorizaciones, gestiones ni citas de Infectología u Oncología, y un cupo no puede recibir dos citas (se verifica dentro de la transacción serializable del guardado).
+- Tablas de hemodiálisis: `hd_paciente` (la identidad vive en `persona`, el maestro único), `hd_sesion`, `hd_evento`, `hd_paraclinico`, `hd_novedad`, `hd_movimiento`, `hd_contacto`, `hd_acceso_novedad`, `hd_atencion`, `hd_valoracion`, `hd_estudio`, `hd_vacuna`, `hd_trasplante_item`, `hd_solicitud_lab`, `hd_seguridad_paciente`, `hd_antimicrobiano`, `hd_auditoria_iaas`, `hd_prescripcion`, `hd_dispensacion`, `hd_dispositivo`, `hd_limpieza`, `hd_corte`. Tablas de VIH (todo texto, como lo lee el prototipo): `vih_paciente`, `vih_antecedente`, `vih_laboratorio`, `vih_esquema_tar`, `vih_entrega_tar`, `vih_cita`, `vih_valoracion`, `vih_vacuna`, `vih_procedimiento`, `vih_profilaxis`, `vih_novedad`, `vih_solicitud_lab`, `vih_arrastre_cac`. Tablas de Diálisis peritoneal (`dp_*`, 24) y de Consulta externa (`ce_*`, 13), con los mismos nombres de hoja del prototipo. Todas se generan desde las hojas del prototipo con `npm run esquema -w apps/api`.
 
 ### Nefroprotección (Fase 5)
 
-La Ruta de nefroprotección original ya tenía un «modo base de datos» que habla con una API estilo PostgREST. El backend ofrece esa misma API en `/api/v1/nefro/pg/` (`apps/api/src/modulos/nefro/fachada.ts`), sobre tablas propias (`nefro_paciente`, `nefro_laboratorio`, `nefro_valoracion`, `nefro_plan_item`, `nefro_atencion`, `nefro_novedad`, `nefro_contacto`, `eps_modelo_atencion`, `nefro_corte`) y el maestro único `persona`. La agenda (jornadas, citas, asistencia) se guarda en `nefro_agenda_fila` cada pocos segundos (`/api/v1/nefro/agenda`). La Ruta arranca en «BASE DE DATOS» y el botón de datos ficticios está deshabilitado. Anular exige el permiso «anular»; el modelo de atención por EPS solo lo cambia el administrador.
+La Ruta de nefroprotección original ya tenía un «modo base de datos» que habla con una API estilo PostgREST. El backend ofrece esa misma API en `/api/v1/nefro/pg/` (`apps/api/src/modulos/nefro/fachada.ts`), sobre tablas propias (`nefro_paciente`, `nefro_laboratorio`, `nefro_valoracion`, `nefro_plan_item`, `nefro_atencion`, `nefro_novedad`, `nefro_contacto`, `eps_modelo_atencion`, `nefro_corte`) y el maestro único `persona`. La agenda (jornadas, citas, asistencia) y, desde la v8, la auditoría de adherencia a guías, el arrastre y la configuración de la nominal por EPS se guardan en `nefro_agenda_fila` cada pocos segundos (`/api/v1/nefro/agenda`); la configuración de la nominal solo la cambia el administrador. La Ruta arranca en «BASE DE DATOS» y el botón de datos ficticios está deshabilitado. Anular exige el permiso «anular»; el modelo de atención por EPS solo lo cambia el administrador.
 
 ### Portal y módulos transversales (Fase 6)
 
-VIH, Laboratorio, Seguridad del paciente, IAAS, PROA, SOGCS, Producción, Documentos, Mensajes y Calendario usan el portal original (`public/modulos/portal/`). Su libro institucional (12 tablas `portal_*`, idénticas a las hojas del prototipo) lo atiende el mismo motor de libros en `/api/v1/portal`. El servidor aplica las reglas:
+VIH, Laboratorio, Seguridad del paciente, IAAS, PROA, SOGCS, Producción, Documentos, Mensajes y Calendario usan el portal original (`public/modulos/portal/`). Su libro institucional (19 tablas `portal_*`, idénticas a las hojas del prototipo, incluidas las de la v0.6 y v0.7: Microbiología, clasificación IAAS, cierres de indicadores, plan de trabajo, hallazgos, actas e indicadores históricos) lo atiende el mismo motor de libros en `/api/v1/portal`. El servidor aplica las reglas:
 - **Mensajes**: el remitente lo fija el servidor; cada usuario recibe solo los suyos (ni el administrador lee mensajes ajenos).
 - **Seguridad del paciente**: cualquiera reporta y ve sus reportes; el análisis y cierre son del equipo de SP.
 - **Documentos**: los editan el administrador o el área Calidad.
 - **Producción**: las tarifas y valores cifrados solo llegan al administrador.
-- Los módulos transversales leen los libros de Hemodiálisis y VIH y escriben solo lo suyo (Laboratorio: solicitudes y resultados; SP: seguridad; IAAS: auditorías; PROA: antimicrobianos).
+- Los módulos transversales leen los libros de Hemodiálisis y VIH y escriben solo lo suyo (Laboratorio: solicitudes, resultados y Microbiología; SP: seguridad e higiene de manos; IAAS: clasificación de episodios, cierres, plan de trabajo, hallazgos y su comité; PROA: auditoría de tratamientos, cierres, plan, hallazgos y su comité). Cada dato se registra una sola vez en su proceso de origen: los antimicrobianos los prescribe Hemodiálisis y PROA los lee; los cultivos los registra Laboratorio y Hemodiálisis, IAAS y PROA los leen.
 
 Las pruebas (`apps/api/test/hd.test.ts`, `vih.test.ts`) importan en una base temporal la cohorte ficticia del prototipo, la leen desde la API y verifican que **los resultados clínicos sean idénticos** a los del prototipo original (HD: indicadores, alertas, semáforos, vacunación, calidad de diálisis, matriz CAC; VIH: 46 indicadores, alertas, carné, plan de laboratorios, estado al corte, cohorte nominal y reporte CAC). Cada archivo de pruebas usa su propia base temporal.
 

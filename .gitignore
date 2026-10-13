@@ -23,6 +23,6 @@ Thumbs.db
 apps/web/public/modulos/portal.css
 apps/web/public/modulos/vendor/
 apps/web/public/modulos/*/index.html
-apps/web/public/modulos/hd/hd.js
 apps/web/public/modulos/portal/portal.js
 apps/web/public/modulos/nefro/ruta-*.js
+apps/web/public/modulos/c/

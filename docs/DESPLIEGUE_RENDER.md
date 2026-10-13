@@ -127,7 +127,7 @@ Render → **New → Static Site** → elija el repositorio:
 
 Variable de entorno: `NODE_VERSION` = `22`.
 
-> El build del frontend genera las páginas de los módulos (`/modulos/hd`, `/modulos/nefro`, `/modulos/portal`) copiando el código del prototipo «Gestión Clínica POSMÉDICA (1).html», que está en el repositorio.
+> El build del frontend genera las páginas de los módulos (`/modulos/portal`, donde viven Hemodiálisis, VIH y los módulos transversales, y `/modulos/nefro`, que el portal abre dentro de sí) copiando el código del prototipo «Gestión Clínica POSMÉDICA (1).html», que está en el repositorio.
 
 Clic en **Create Static Site**.
 
@@ -155,7 +155,15 @@ En la pestaña **Headers**, agregue estas cabeceras, todas con Path `/*`:
 | `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` |
 
-Agregue también, con Path `/index.html`, la cabecera `Cache-Control` = `no-cache`, para que siempre cargue la versión nueva.
+Agregue también estas cabeceras de caché (rendimiento):
+
+| Path | Name | Value | Para qué |
+|---|---|---|---|
+| `/index.html` | `Cache-Control` | `no-cache` | Que siempre cargue la versión nueva del portal. |
+| `/assets/*` | `Cache-Control` | `public, max-age=31536000, immutable` | Archivos del portal con huella en el nombre (los genera Vite). |
+| `/modulos/c/*` | `Cache-Control` | `public, max-age=31536000, immutable` | Código de los módulos con huella en el nombre (`portal.3f9a1c2b.js`). El navegador lo descarga una sola vez y vuelve a descargarlo solo cuando cambia. |
+
+Las páginas `/modulos/portal/index.html` y `/modulos/nefro/index.html` no llevan caché larga: así cada despliegue llega de inmediato.
 
 ---
 
@@ -164,7 +172,7 @@ Agregue también, con Path `/index.html`, la cabecera `Cache-Control` = `no-cach
 1. En el backend, confirme que `ALLOWED_ORIGINS` sea **exactamente** la URL del Static Site, con `https://` y sin `/` final. Si la cambió, haga **Manual Deploy → Deploy latest commit**.
 2. Abra `https://posmedica-web.onrender.com/api/health`. Debe responder `{"ok":true}`; eso confirma que el reenvío funciona.
 3. Abra `https://posmedica-web.onrender.com`, ingrese con `ADMIN_USUARIO` y `ADMIN_CLAVE_INICIAL` y cambie la clave.
-4. Abra **Hemodiálisis**, **VIH**, **Nefroprotección**, **Laboratorio** y **Mensajes**: cada uno debe cargar y mostrar «Datos al día» (o «BASE DE DATOS» en Nefroprotección).
+4. Abra **Hemodiálisis**, **VIH**, **Nefroprotección**, **Diálisis peritoneal**, **Consulta externa**, **Laboratorio**, **Mensajes** y el **Tablero gerencial**: cada uno debe cargar y mostrar «Datos al día» (o «BASE DE DATOS» en Nefroprotección).
 5. En **Usuarios**, cree los usuarios y asígneles sus programas y permisos.
 6. En **Respaldo**, descargue un Excel de prueba.
 
@@ -193,7 +201,11 @@ Cada programa permite **una carga inicial** desde los archivos de Excel que se u
 |---|---|---|
 | Hemodiálisis | Hemodiálisis → **Importar libro o Dashboard (carga inicial)** | Libro de hemodiálisis o «Dashboard MES.xlsx» |
 | VIH | VIH → **Cargar libro VIH** (solo carga inicial). **Importar cohorte o archivo CAC** sirve en cualquier momento para quien tenga permiso de registrar. | Libro VIH, cohorte nominal de Nueva EPS o reporte CAC de 193 variables. Se acepta **con o sin** fila de encabezado. |
-| Nefroprotección | Nefroprotección → **Importar libro de Excel a la base** | Libro de la Ruta: Pacientes, Laboratorios, Valoraciones, Atenciones y Novedades. Si trae hojas de agenda, también se importan. |
+| Nefroprotección | Nefroprotección → **Importar libro de Excel a la base** | Libro de la Ruta: Pacientes, Laboratorios, Valoraciones, Atenciones y Novedades. Si trae hojas de agenda, auditoría GPC o nominal, también se importan. |
+| Diálisis peritoneal | Diálisis peritoneal → **Carga inicial · Cargar libro (.xlsx)** (aparece mientras el programa está vacío). **Pacientes → Importar archivos** sirve en cualquier momento para quien tenga el rol «Importar» y no duplica pacientes. | Libro DP del prototipo («DP_libro_….xlsx»); archivo de control de valoraciones y la plantilla del dashboard DP. |
+| Consulta externa | Consulta externa → **Carga inicial · Cargar libro (.xlsx)** (aparece mientras el programa está vacío). | Libro de Consulta externa del prototipo. Si no hay libro, el módulo arranca con las especialidades y EPS del prototipo. |
+
+**Roles dentro de DP y CE.** Además de los permisos del programa (Usuarios), cada persona necesita su rol dentro del módulo: en DP, **Reportes → Roles y parámetros** (Dirección Médica, Nefrología, Enfermería, Laboratorio…); en CE, **Administración → Roles** (Coordinación, Admisiones, Autorizaciones, Profesional, Calidad) y si **ve especialidades reservadas**. El administrador del sistema actúa como Dirección Médica en DP y como Coordinación en CE. Sin rol, la persona solo consulta.
 
 Antes de guardar, el sistema muestra lo que va a cargar y los avisos (p. ej. documentos repetidos). Todo queda en la auditoría.
 

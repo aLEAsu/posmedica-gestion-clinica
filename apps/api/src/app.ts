@@ -1,3 +1,4 @@
+import compression from "compression";
 import cookieParser from "cookie-parser";
 import express from "express";
 import rateLimit from "express-rate-limit";
@@ -17,6 +18,9 @@ import { CONFIG_VIH } from "./modulos/vih/config.js";
 import { CONFIG_PORTAL } from "./modulos/portal/config.js";
 import { nefroPg } from "./modulos/nefro/fachada.js";
 import { nefroAgenda } from "./modulos/nefro/agenda.js";
+import { CONFIG_DP } from "./modulos/dp/config.js";
+import { dpBitacora } from "./modulos/dp/bitacora.js";
+import { CONFIG_CE } from "./modulos/ce/config.js";
 
 export function crearApp() {
   const app = express();
@@ -34,6 +38,8 @@ export function crearApp() {
     (req.path.endsWith("/importar") ? jsonGrande : req.path.endsWith("/sincronizar") ? jsonMedio : jsonNormal)(req, res, next),
   );
   app.use(cookieParser());
+  // Respuestas comprimidas (gzip): el libro de un programa es JSON de varios MB y se reduce unas 8 a 10 veces.
+  app.use(compression({ threshold: 2048 }));
 
   app.get(
     "/api/health",
@@ -61,6 +67,9 @@ export function crearApp() {
   app.use("/api/v1/hd", crearRutasLibro(CONFIG_HD));
   app.use("/api/v1/vih", crearRutasLibro(CONFIG_VIH));
   app.use("/api/v1/portal", crearRutasLibro(CONFIG_PORTAL));
+  app.use("/api/v1/dp", dpBitacora);
+  app.use("/api/v1/dp", crearRutasLibro(CONFIG_DP));
+  app.use("/api/v1/ce", crearRutasLibro(CONFIG_CE));
   app.use("/api/v1/nefro/pg", nefroPg);
   app.use("/api/v1/nefro", nefroAgenda);
 

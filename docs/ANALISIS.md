@@ -331,3 +331,20 @@ HD (`hd.js:359`): IDs y documentos duplicados, maestro incompleto, puestos doble
 | P3 | CAC-01 a CAC-03 se quitaron a propósito | Se conservan los 34 indicadores CAC-04 a CAC-37 |
 | P6 | El sistema debe permitir bajar toda la información para tenerla en local o en físico | Pantalla **Respaldo** (administrador): Excel con todas las tablas y JSON exacto; queda auditado |
 | P7 | Archivos de muestra entregados | `BD_VIH_POSMEDICA (1).xlsx`: plantilla CAC VIH, **idéntica** a las 193 variables del prototipo (`VX_CAC_COLS`). `860010090801_30092026_VIH.xlsx`: reporte CAC real de EPS Familiar (CCF033), 16 registros sin fila de encabezado, con el mismo orden de 193 columnas. Contiene **datos reales**: se usa solo como referencia de formato en la Fase 4 y **no se copia al repositorio**. Falta la cohorte nominal de Nueva EPS (43 columnas) para validar ese importador. |
+
+## 10. Prototipo v0.8 (13 de octubre de 2026): decisiones aprobadas
+
+El prototipo se reemplazó por la versión 0.8, que es la base de cómo debe quedar el proyecto. Trae módulos nuevos (Consulta externa, Diálisis peritoneal integral, Tablero gerencial) y mejoras sobre lo ya migrado (Hemodiálisis v0.6, Nefroprotección v8, Microbiología, IAAS y PROA por procesos, barra fija de reporte). Quimioterapia y Servicio farmacéutico siguen «en desarrollo» en el prototipo.
+
+| # | Decisión | Aplicación |
+|---|---|---|
+| V1 | Aplicar todas las mejoras del prototipo a los módulos ya migrados | Fase 7. Los datos guardados se conservan: la migración solo agrega tablas y columnas. Las reglas se vuelven a extraer y las pruebas de equivalencia se comparan con la v0.8 |
+| V2 | Roles propios de Consulta externa y Diálisis peritoneal en dos capas | El permiso del programa en Usuarios decide quién entra; dentro del módulo se asigna el rol del prototipo (hojas RolesCE y RolesDP), con el administrador como Coordinación o Dirección Médica. El servidor valida ambas capas (fases 8 y 9) |
+| V3 | Quimioterapia y Servicio farmacéutico se quedan como en el prototipo | Ficha «en desarrollo»; no se inventan funciones clínicas |
+| V4 | Tablero gerencial solo para administradores | Fase 10 |
+| V5 | Una sola página, como en el prototipo | Hemodiálisis vive en el portal (sección `#hdapp`) porque su código v0.6 usa Microbiología, IAAS y DP del mismo script; la Ruta de Nefroprotección se abre dentro del portal «desde el servidor» (configuración `nefro_url` del propio prototipo). La barra fija de reporte aparece en todos los programas |
+| V6 | Especialidades reservadas de Consulta externa ocultas desde el servidor | Quien no tiene «ve reservadas» no recibe solicitudes, autorizaciones, gestiones ni citas de esas especialidades; jornadas y cupos sí (sin datos del paciente) para detectar cruces |
+| V7 | Bitácora de Diálisis peritoneal | La muestra la auditoría inmutable del servidor (la cadena de huellas del prototipo protegía un Excel; ya no aplica) |
+| V8 | Sexo en el maestro único | La persona guarda la etiqueta (Femenino, Masculino, Indeterminado), como HD, DP y Nefro; VIH y CE traducen su código F/M/I. Al inscribir a una persona que ya existe, un programa solo completa lo que falta |
+| V9 | Optimización sin cambiar reglas ni vistas | Compresión gzip, lecturas en paralelo, carga paralela de libros, guardado de seguridad solo tras interacción, archivos de los módulos con huella para caché larga, conflictos de concurrencia como 409 |
+| V10 | Tablero gerencial con la Ruta en el servidor | La Ruta se carga oculta en segundo plano para calcular sus indicadores (el prototipo solo lo hacía en la demostración) |

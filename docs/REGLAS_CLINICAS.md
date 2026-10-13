@@ -5,324 +5,359 @@
 > Equivalencia verificada en `packages/clinical-rules/test/` (prototipo original frente al módulo extraído, con las cohortes ficticias del propio prototipo).
 > Descripción clínica de cada regla: `docs/ANALISIS.md` §4.
 
-## HD · `crearMotorHD(ctx)` (164 definiciones)
+## HD · `crearMotorHD(ctx)` (200 definiciones)
 
 | Definición | Tipo | Origen |
 |---|---|---|
-| `esc` | función | `hd.js:5` |
-| `pad` | función | `hd.js:6` |
-| `iso` | función | `hd.js:7` |
-| `fd` | función | `hd.js:8` |
-| `ym` | función | `hd.js:9` |
-| `addDays` | función | `hd.js:11` |
-| `addMonths` | función | `hd.js:12` |
-| `monthStart` | función | `hd.js:13` |
-| `monthEnd` | función | `hd.js:14` |
-| `dayDiff` | función | `hd.js:15` |
-| `nowTs` | función | `hd.js:16` |
-| `pdate` | función | `hd.js:17` |
-| `num` | función | `hd.js:25` |
-| `norm` | función | `hd.js:26` |
-| `f1` | función | `hd.js:27` |
-| `pct` | función | `hd.js:28` |
-| `money` | función | `hd.js:29` |
-| `EPS_L` | constante / catálogo | `hd.js:36` |
-| `epsList` | función | `hd.js:37` |
-| `TURNOS_DEF` | constante / catálogo | `hd.js:38` |
-| `turnosCfg` | función | `hd.js:39` |
-| `turnoNames` | función | `hd.js:40` |
-| `DIAS_L` | constante / catálogo | `hd.js:41` |
-| `ESTADOS_SES` | constante / catálogo | `hd.js:42` |
-| `MOTIVOS` | constante / catálogo | `hd.js:44` |
-| `MOT_RESP` | constante / catálogo | `hd.js:45` |
-| `CAUSA_HOSP` | constante / catálogo | `hd.js:46` |
-| `ATRIB` | constante / catálogo | `hd.js:47` |
-| `TIPO_SES` | constante / catálogo | `hd.js:48` |
-| `MOT_EXTRA` | constante / catálogo | `hd.js:49` |
-| `RESP` | constante / catálogo | `hd.js:50` |
-| `ACCESOS` | constante / catálogo | `hd.js:51` |
-| `isCVC` | función | `hd.js:52` |
-| `ITS` | constante / catálogo | `hd.js:53` |
-| `EVENTOS` | constante / catálogo | `hd.js:54` |
-| `SEV` | constante / catálogo | `hd.js:55` |
-| `RESUELTO` | constante / catálogo | `hd.js:56` |
-| `HEMOC` | constante / catálogo | `hd.js:57` |
-| `NOV_TIPOS` | constante / catálogo | `hd.js:58` |
-| `MOV_EGRESO` | constante / catálogo | `hd.js:59` |
-| `MOV_TIPOS` | constante / catálogo | `hd.js:60` |
-| `EGRESO_ESTADO` | constante / catálogo | `hd.js:61` |
-| `RUTA` | constante / catálogo | `hd.js:62` |
-| `RUTA_EXCL` | constante / catálogo | `hd.js:63` |
-| `ACC_NOV` | constante / catálogo | `hd.js:64` |
-| `ACC_NOV_RES` | constante / catálogo | `hd.js:65` |
-| `TX` | constante / catálogo | `hd.js:66` |
-| `PROCED` | constante / catálogo | `hd.js:67` |
-| `MEDIOS` | constante / catálogo | `hd.js:68` |
-| `RESULT_CTC` | constante / catálogo | `hd.js:69` |
-| `DISCIPLINAS` | constante / catálogo | `hd.js:70` |
-| `EXAMS` | constante / catálogo | `hd.js:72` |
-| `EX` | función | `hd.js:82` |
-| `FREQ_TXT` | constante / catálogo | `hd.js:83` |
-| `ANCHOR_DEF` | constante / catálogo | `hd.js:85` |
-| `META_DEF` | constante / catálogo | `hd.js:86` |
-| `CFG_DEF` | constante / catálogo | `hd.js:87` |
-| `MUN_DANE` | constante / catálogo | `hd.js:95` |
-| `MEDS` | constante / catálogo | `hd.js:97` |
-| `AEE` | constante / catálogo | `hd.js:98` |
-| `SH` | constante / catálogo | `hd.js:101` |
-| `BOOK_KEYS` | constante / catálogo | `hd.js:126` |
-| `DATE_F` | constante / catálogo | `hd.js:127` |
-| `NUM_F` | constante / catálogo | `hd.js:128` |
-| `cacStart` | función | `hd.js:131` |
-| `newBook` | función | `hd.js:133` |
-| `readSheet` | función | `hd.js:134` |
-| `fromRow` | función | `hd.js:135` |
-| `isToolBook` | función | `hd.js:136` |
-| `isDashboard` | función | `hd.js:137` |
-| `parseToolBook` | función | `hd.js:138` |
-| `live` | función | `hd.js:171` |
-| `IDX` | constante / catálogo | `hd.js:174` |
-| `reindex` | función | `hd.js:175` |
-| `ensureIdx` | función | `hd.js:195` |
-| `nombre` | función | `hd.js:196` |
-| `activeAt` | función | `hd.js:197` |
-| `activeDays` | función | `hd.js:198` |
-| `overlaps` | función | `hd.js:199` |
-| `ageAt` | función | `hd.js:200` |
-| `adult` | función | `hd.js:201` |
-| `ninety` | función | `hd.js:202` |
-| `epsOk` | función | `hd.js:203` |
-| `turnoDias` | función | `hd.js:204` |
-| `turnoJor` | función | `hd.js:205` |
-| `absentOn` | función | `hd.js:206` |
-| `progDays` | función | `hd.js:207` |
-| `sesIn` | función | `hd.js:208` |
-| `lastLab` | función | `hd.js:209` |
-| `labsIn` | función | `hd.js:210` |
-| `accessAt` | función | `hd.js:211` |
-| `lastSes` | función | `hd.js:217` |
-| `gidStats` | función | `hd.js:219` |
-| `taStats` | función | `hd.js:223` |
-| `glucoStats` | función | `hd.js:225` |
-| `ktvOnline` | función | `hd.js:227` |
-| `fmtTA` | función | `hd.js:228` |
-| `parseTA` | función | `hd.js:229` |
-| `ktvDaugirdas` | función | `hd.js:231` |
-| `metasDe` | función | `hd.js:232` |
-| `CAC_H_FOMAG` | constante / catálogo | `hd.js:234` |
-| `CAC_H_ERC` | constante / catálogo | `hd.js:235` |
-| `CAC_SHEET_FOMAG` | constante / catálogo | `hd.js:236` |
-| `CAC_SHEET_ERC` | constante / catálogo | `hd.js:237` |
-| `pacs` | función | `hd.js:240` |
-| `popCut` | función | `hd.js:241` |
-| `popPer` | función | `hd.js:242` |
-| `popInc` | función | `hd.js:243` |
-| `ctxFor` | función | `hd.js:244` |
-| `pv` | función | `hd.js:248` |
-| `propLab` | función | `hd.js:249` |
-| `IND` | constante / catálogo | `hd.js:250` |
-| `INDM` | función | `hd.js:298` |
-| `progUpTo` | función | `hd.js:299` |
-| `catDays` | función | `hd.js:300` |
-| `evalInd` | función | `hd.js:305` |
-| `statusOf` | función | `hd.js:312` |
-| `STATUS_TXT` | constante / catálogo | `hd.js:316` |
-| `fmtVal` | función | `hd.js:317` |
-| `trendPoints` | función | `hd.js:318` |
-| `semaforo` | función | `hd.js:321` |
-| `alertas` | función | `hd.js:333` |
-| `calidad` | función | `hd.js:359` |
-| `tarifaFor` | función | `hd.js:381` |
-| `conciliar` | función | `hd.js:382` |
-| `freqOf` | función | `hd.js:396` |
-| `schedMonths` | función | `hd.js:397` |
-| `susceptibleVHB` | función | `hd.js:399` |
-| `examApplies` | función | `hd.js:400` |
-| `examsForMonth` | función | `hd.js:402` |
-| `labDue` | función | `hd.js:410` |
-| `CAL_DOM` | constante / catálogo | `hd.js:422` |
-| `CAL_OPC` | constante / catálogo | `hd.js:434` |
-| `calidadAuto` | función | `hd.js:436` |
-| `calidadScore` | función | `hd.js:443` |
-| `CAL_CLASS` | constante / catálogo | `hd.js:459` |
-| `ultimaValoracion` | función | `hd.js:460` |
-| `calidadDe` | función | `hd.js:461` |
-| `D1800, D1845, D1811` | constante / catálogo | `hd.js:1100` |
-| `isoOr` | función | `hd.js:1101` |
-| `cacVals` | función | `hd.js:1102` |
-| `ufCalc` | función | `hd.js:1427` |
-| `sesUF` | función | `hd.js:1428` |
-| `EST_TIPOS` | constante / catálogo | `hd.js:1434` |
-| `EST_NOM` | constante / catálogo | `hd.js:1435` |
-| `estRelevantes` | función | `hd.js:1436` |
-| `estVencidos` | función | `hd.js:1437` |
-| `vacEsquemas` | función | `hd.js:1444` |
-| `vacMeses` | función | `hd.js:1445` |
-| `vacDoses` | función | `hd.js:1446` |
-| `labTxt` | función | `hd.js:1447` |
-| `vacStatus` | función | `hd.js:1448` |
-| `VAC_GRUPOS` | constante / catálogo | `hd.js:1473` |
-| `vacGrupo` | función | `hd.js:1474` |
-| `vacNextDefaults` | función | `hd.js:1475` |
-| `vacEtiqueta` | función | `hd.js:1495` |
-| `TX_EST` | constante / catálogo | `hd.js:1501` |
-| `txItems` | función | `hd.js:1502` |
-| `txState` | función | `hd.js:1503` |
-| `TX_EN_PROCESO` | constante / catálogo | `hd.js:1506` |
-| `tenerPresente` | función | `hd.js:1534` |
-| `SOL_EST` | constante / catálogo | `hd.js:1541` |
-| `solRecs` | función | `hd.js:1543` |
-| `solPropuesta` | función | `hd.js:1544` |
+| `esc` | función | `prototipo:740` |
+| `pad` | función | `prototipo:741` |
+| `iso` | función | `prototipo:742` |
+| `fd` | función | `prototipo:743` |
+| `ym` | función | `prototipo:744` |
+| `addDays` | función | `prototipo:746` |
+| `addMonths` | función | `prototipo:747` |
+| `monthStart` | función | `prototipo:748` |
+| `monthEnd` | función | `prototipo:749` |
+| `dayDiff` | función | `prototipo:750` |
+| `nowTs` | función | `prototipo:751` |
+| `pdate` | función | `prototipo:752` |
+| `num` | función | `prototipo:760` |
+| `norm` | función | `prototipo:761` |
+| `f1` | función | `prototipo:762` |
+| `pct` | función | `prototipo:763` |
+| `money` | función | `prototipo:764` |
+| `EPS_L` | constante / catálogo | `prototipo:771` |
+| `epsList` | función | `prototipo:772` |
+| `TURNOS_DEF` | constante / catálogo | `prototipo:773` |
+| `turnosCfg` | función | `prototipo:774` |
+| `turnoNames` | función | `prototipo:775` |
+| `DIAS_L` | constante / catálogo | `prototipo:776` |
+| `ESTADOS_SES` | constante / catálogo | `prototipo:777` |
+| `MOTIVOS` | constante / catálogo | `prototipo:779` |
+| `MOT_RESP` | constante / catálogo | `prototipo:780` |
+| `CAUSA_HOSP` | constante / catálogo | `prototipo:781` |
+| `ATRIB` | constante / catálogo | `prototipo:782` |
+| `MOT_EXTRA` | constante / catálogo | `prototipo:783` |
+| `ACCESOS` | constante / catálogo | `prototipo:784` |
+| `isCVC` | función | `prototipo:785` |
+| `ITS` | constante / catálogo | `prototipo:786` |
+| `EVENTOS` | constante / catálogo | `prototipo:787` |
+| `SEV` | constante / catálogo | `prototipo:788` |
+| `RESUELTO` | constante / catálogo | `prototipo:789` |
+| `HEMOC` | constante / catálogo | `prototipo:790` |
+| `NOV_TIPOS` | constante / catálogo | `prototipo:791` |
+| `MOV_EGRESO` | constante / catálogo | `prototipo:792` |
+| `MOV_TIPOS` | constante / catálogo | `prototipo:793` |
+| `EGRESO_ESTADO` | constante / catálogo | `prototipo:794` |
+| `RUTA` | constante / catálogo | `prototipo:795` |
+| `RUTA_EXCL` | constante / catálogo | `prototipo:796` |
+| `ACC_NOV` | constante / catálogo | `prototipo:797` |
+| `ACC_NOV_RES` | constante / catálogo | `prototipo:798` |
+| `TX` | constante / catálogo | `prototipo:799` |
+| `PROCED` | constante / catálogo | `prototipo:800` |
+| `MEDIOS` | constante / catálogo | `prototipo:801` |
+| `RESULT_CTC` | constante / catálogo | `prototipo:802` |
+| `DISCIPLINAS` | constante / catálogo | `prototipo:803` |
+| `EXAMS` | constante / catálogo | `prototipo:805` |
+| `EX` | función | `prototipo:815` |
+| `FREQ_TXT` | constante / catálogo | `prototipo:816` |
+| `ANCHOR_DEF` | constante / catálogo | `prototipo:818` |
+| `META_DEF` | constante / catálogo | `prototipo:819` |
+| `CFG_DEF` | constante / catálogo | `prototipo:820` |
+| `MUN_DANE` | constante / catálogo | `prototipo:828` |
+| `AEE` | constante / catálogo | `prototipo:830` |
+| `SH` | constante / catálogo | `prototipo:833` |
+| `BOOK_KEYS` | constante / catálogo | `prototipo:858` |
+| `DATE_F` | constante / catálogo | `prototipo:859` |
+| `NUM_F` | constante / catálogo | `prototipo:860` |
+| `cacStart` | función | `prototipo:863` |
+| `newBook` | función | `prototipo:865` |
+| `readSheet` | función | `prototipo:866` |
+| `fromRow` | función | `prototipo:867` |
+| `isToolBook` | función | `prototipo:868` |
+| `isDashboard` | función | `prototipo:869` |
+| `parseToolBook` | función | `prototipo:870` |
+| `live` | función | `prototipo:903` |
+| `IDX` | constante / catálogo | `prototipo:906` |
+| `reindex` | función | `prototipo:907` |
+| `ensureIdx` | función | `prototipo:927` |
+| `nombre` | función | `prototipo:928` |
+| `activeAt` | función | `prototipo:929` |
+| `activeDays` | función | `prototipo:930` |
+| `overlaps` | función | `prototipo:931` |
+| `ageAt` | función | `prototipo:932` |
+| `adult` | función | `prototipo:933` |
+| `ninety` | función | `prototipo:934` |
+| `epsOk` | función | `prototipo:935` |
+| `turnoDias` | función | `prototipo:936` |
+| `absentOn` | función | `prototipo:937` |
+| `progDays` | función | `prototipo:938` |
+| `sesIn` | función | `prototipo:939` |
+| `lastLab` | función | `prototipo:940` |
+| `labsIn` | función | `prototipo:941` |
+| `accessAt` | función | `prototipo:942` |
+| `lastSes` | función | `prototipo:948` |
+| `gidStats` | función | `prototipo:950` |
+| `taStats` | función | `prototipo:954` |
+| `glucoStats` | función | `prototipo:956` |
+| `ktvOnline` | función | `prototipo:958` |
+| `fmtTA` | función | `prototipo:959` |
+| `parseTA` | función | `prototipo:960` |
+| `ktvDaugirdas` | función | `prototipo:962` |
+| `metasDe` | función | `prototipo:963` |
+| `CAC_H_FOMAG` | constante / catálogo | `prototipo:965` |
+| `CAC_H_ERC` | constante / catálogo | `prototipo:966` |
+| `CAC_SHEET_FOMAG` | constante / catálogo | `prototipo:967` |
+| `CAC_SHEET_ERC` | constante / catálogo | `prototipo:968` |
+| `pacs` | función | `prototipo:971` |
+| `popCut` | función | `prototipo:972` |
+| `popPer` | función | `prototipo:973` |
+| `popInc` | función | `prototipo:974` |
+| `ctxFor` | función | `prototipo:975` |
+| `pv` | función | `prototipo:979` |
+| `propLab` | función | `prototipo:980` |
+| `IND` | constante / catálogo | `prototipo:981` |
+| `INDM` | función | `prototipo:1029` |
+| `progUpTo` | función | `prototipo:1030` |
+| `evalInd` | función | `prototipo:1031` |
+| `statusOf` | función | `prototipo:1038` |
+| `STATUS_TXT` | constante / catálogo | `prototipo:1042` |
+| `fmtVal` | función | `prototipo:1043` |
+| `trendPoints` | función | `prototipo:1044` |
+| `semaforo` | función | `prototipo:1047` |
+| `alertas` | función | `prototipo:1059` |
+| `calidad` | función | `prototipo:1085` |
+| `tarifaFor` | función | `prototipo:1108` |
+| `conciliar` | función | `prototipo:1109` |
+| `freqOf` | función | `prototipo:1123` |
+| `schedMonths` | función | `prototipo:1124` |
+| `susceptibleVHB` | función | `prototipo:1126` |
+| `examApplies` | función | `prototipo:1127` |
+| `examsForMonth` | función | `prototipo:1129` |
+| `labDue` | función | `prototipo:1137` |
+| `CAL_DOM` | constante / catálogo | `prototipo:1149` |
+| `CAL_OPC` | constante / catálogo | `prototipo:1161` |
+| `calidadAuto` | función | `prototipo:1163` |
+| `calidadScore` | función | `prototipo:1170` |
+| `CAL_CLASS` | constante / catálogo | `prototipo:1186` |
+| `ultimaValoracion` | función | `prototipo:1187` |
+| `calidadDe` | función | `prototipo:1188` |
+| `D1800, D1845, D1811` | constante / catálogo | `prototipo:1747` |
+| `isoOr` | función | `prototipo:1748` |
+| `cacVals` | función | `prototipo:1749` |
+| `ufCalc` | función | `prototipo:2074` |
+| `sesUF` | función | `prototipo:2075` |
+| `EST_TIPOS` | constante / catálogo | `prototipo:2081` |
+| `EST_NOM` | constante / catálogo | `prototipo:2082` |
+| `estRelevantes` | función | `prototipo:2083` |
+| `estVencidos` | función | `prototipo:2084` |
+| `vacEsquemas` | función | `prototipo:2091` |
+| `vacMeses` | función | `prototipo:2092` |
+| `vacDoses` | función | `prototipo:2093` |
+| `labTxt` | función | `prototipo:2094` |
+| `vacStatus` | función | `prototipo:2095` |
+| `VAC_GRUPOS` | constante / catálogo | `prototipo:2120` |
+| `vacGrupo` | función | `prototipo:2121` |
+| `vacNextDefaults` | función | `prototipo:2122` |
+| `vacEtiqueta` | función | `prototipo:2142` |
+| `TX_EST` | constante / catálogo | `prototipo:2148` |
+| `txItems` | función | `prototipo:2149` |
+| `txState` | función | `prototipo:2150` |
+| `TX_EN_PROCESO` | constante / catálogo | `prototipo:2153` |
+| `tenerPresente` | función | `prototipo:2181` |
+| `SOL_EST` | constante / catálogo | `prototipo:2188` |
+| `solRecs` | función | `prototipo:2190` |
+| `solPropuesta` | función | `prototipo:2191` |
+| `` | constante / catálogo | `prototipo:2425` |
+| `` | constante / catálogo | `prototipo:2426` |
+| `` | constante / catálogo | `prototipo:2427` |
+| `` | constante / catálogo | `prototipo:2428` |
+| `` | constante / catálogo | `prototipo:2429` |
+| `` | función | `prototipo:2430` |
+| `` | constante / catálogo | `prototipo:2431` |
+| `` | constante / catálogo | `prototipo:2432` |
+| `` | constante / catálogo | `prototipo:2433` |
+| `` | constante / catálogo | `prototipo:2434` |
+| `lv` | función | `prototipo:5413` |
+| `hdOn` | función | `prototipo:5414` |
+| `DSP_TIPOS` | constante / catálogo | `prototipo:5431` |
+| `DSP_SITIOS` | constante / catálogo | `prototipo:5432` |
+| `DSP_RETIRO` | constante / catálogo | `prototipo:5433` |
+| `DSP_LUGAR` | constante / catálogo | `prototipo:5434` |
+| `dspAll` | función | `prototipo:5435` |
+| `dspOf` | función | `prototipo:5436` |
+| `dspCVC` | función | `prototipo:5437` |
+| `dspFind` | función | `prototipo:5438` |
+| `dspOpen` | función | `prototipo:5439` |
+| `cdMet` | función | `prototipo:5440` |
+| `dspCovers` | función | `prototipo:5441` |
+| `hospOn` | función | `prototipo:5442` |
+| `cdCalc` | función | `prototipo:5446` |
+| `dspPropuestas` | función | `prototipo:5468` |
+| `MIC_MUESTRAS` | constante / catálogo | `prototipo:5481` |
+| `MIC_SANGRE` | constante / catálogo | `prototipo:5482` |
+| `MIC_EST` | constante / catálogo | `prototipo:5483` |
+| `MIC_RES` | constante / catálogo | `prototipo:5484` |
+| `MIC_FEN` | constante / catálogo | `prototipo:5485` |
+| `MIC_FEN_ALERTA` | constante / catálogo | `prototipo:5486` |
+| `micAll` | función | `prototipo:5489` |
+| `micOfEp` | función | `prototipo:5490` |
+| `micOfPac` | función | `prototipo:5491` |
+| `micPos` | función | `prototipo:5492` |
+| `micAB` | función | `prototipo:5493` |
+| `itsConf` | función | `prototipo:5495` |
+| `v6Its` | función | `prototipo:5569` |
+| `v6Calidad` | función | `prototipo:5704` |
+| `catDays` | función | `prototipo:7411` |
 
-## VIH · `crearMotorVIH(ctx)` (139 definiciones)
-
-| Definición | Tipo | Origen |
-|---|---|---|
-| `esc` | función | `hd.js:5` |
-| `pad` | función | `hd.js:6` |
-| `iso` | función | `hd.js:7` |
-| `fd` | función | `hd.js:8` |
-| `ym` | función | `hd.js:9` |
-| `addDays` | función | `hd.js:11` |
-| `addMonths` | función | `hd.js:12` |
-| `monthStart` | función | `hd.js:13` |
-| `monthEnd` | función | `hd.js:14` |
-| `dayDiff` | función | `hd.js:15` |
-| `nowTs` | función | `hd.js:16` |
-| `pdate` | función | `hd.js:17` |
-| `num` | función | `hd.js:25` |
-| `norm` | función | `hd.js:26` |
-| `f1` | función | `hd.js:27` |
-| `pct` | función | `hd.js:28` |
-| `money` | función | `hd.js:29` |
-| `VX_CAC_COLS` | constante / catálogo | `vih.js:2` |
-| `VXS` | constante / catálogo | `vih.js:9` |
-| `VXK` | constante / catálogo | `vih.js:26` |
-| `VX_EPS` | constante / catálogo | `vih.js:29` |
-| `VX_EPSCODE_DEF` | constante / catálogo | `vih.js:30` |
-| `VX_REG` | constante / catálogo | `vih.js:31` |
-| `VX_MUN` | constante / catálogo | `vih.js:33` |
-| `VX_MUN_ALIAS` | constante / catálogo | `vih.js:34` |
-| `VX_PCLAVE` | constante / catálogo | `vih.js:35` |
-| `VX_TINGR` | constante / catálogo | `vih.js:36` |
-| `VX_ESTADO` | constante / catálogo | `vih.js:37` |
-| `VX_MODAL` | constante / catálogo | `vih.js:38` |
-| `VX_DISC` | constante / catálogo | `vih.js:39` |
-| `VX_DISC_ACT` | constante / catálogo | `vih.js:40` |
-| `VX_CITEST` | constante / catálogo | `vih.js:41` |
-| `VX_CITTIPO` | constante / catálogo | `vih.js:42` |
-| `VX_MOTINAS` | constante / catálogo | `vih.js:43` |
-| `VX_NOV` | constante / catálogo | `vih.js:44` |
-| `VX_PRC` | constante / catálogo | `vih.js:45` |
-| `VX_PRF` | constante / catálogo | `vih.js:46` |
-| `VX_EX` | constante / catálogo | `vih.js:48` |
-| `VXE` | función | `vih.js:63` |
-| `VX_CONTRATO_DEF` | constante / catálogo | `vih.js:65` |
-| `VX_GUIA_DIF` | constante / catálogo | `vih.js:78` |
-| `VX_MED` | constante / catálogo | `vih.js:80` |
-| `VX_CLASES` | constante / catálogo | `vih.js:81` |
-| `VX_ESQ` | constante / catálogo | `vih.js:82` |
-| `VXQ` | función | `vih.js:99` |
-| `VX_GPC_PREF` | constante / catálogo | `vih.js:102` |
-| `VX_VAC` | constante / catálogo | `vih.js:104` |
-| `VXV` | función | `vih.js:111` |
-| `VX_VACEST` | constante / catálogo | `vih.js:112` |
-| `vxLive` | función | `vih.js:115` |
-| `vxD` | función | `vih.js:116` |
-| `vxNom` | función | `vih.js:117` |
-| `vxCorte` | función | `vih.js:119` |
-| `vxMunCode` | función | `vih.js:120` |
-| `vxMunName` | función | `vih.js:121` |
-| `vxCfg` | función | `vih.js:122` |
-| `vxNewBook` | función | `vih.js:124` |
-| `vxEdad` | función | `vih.js:131` |
-| `vxGrupoEtario` | función | `vih.js:132` |
-| `vxF` | función | `vih.js:133` |
-| `vxPct` | función | `vih.js:134` |
-| `vxIdx` | función | `vih.js:137` |
-| `vxPacs` | función | `vih.js:146` |
-| `vxP` | función | `vih.js:147` |
-| `vxL` | función | `vih.js:148` |
-| `vxLast` | función | `vih.js:150` |
-| `vxFirst` | función | `vih.js:151` |
-| `vxVal` | función | `vih.js:152` |
-| `vxPos` | función | `vih.js:153` |
-| `vxCVind` | función | `vih.js:154` |
-| `vxFmtLab` | función | `vih.js:155` |
-| `vxPeriodo` | función | `vih.js:158` |
-| `vxActivo` | función | `vih.js:159` |
-| `vxTarAt` | función | `vih.js:160` |
-| `vxTarIni` | función | `vih.js:161` |
-| `vxUltEnt` | función | `vih.js:162` |
-| `vxCobertura` | función | `vih.js:163` |
-| `vxUltAtencion` | función | `vih.js:164` |
-| `vxNovAt` | función | `vih.js:165` |
-| `vxSt` | función | `vih.js:166` |
-| `vxVacEstado` | función | `vih.js:194` |
-| `vxVacCompleta` | función | `vih.js:209` |
-| `vxContrato` | función | `vih.js:212` |
-| `vxHSH` | función | `vih.js:214` |
-| `vxSolRecs` | función | `vih.js:215` |
-| `vxSolTieneRes` | función | `vih.js:217` |
-| `vxAlertas` | función | `vih.js:220` |
-| `vxTFG` | función | `vih.js:242` |
-| `VX_GPC14` | constante / catálogo | `vih.js:246` |
-| `vxEnRango` | función | `vih.js:247` |
-| `vxLabIn` | función | `vih.js:248` |
-| `vxPrcIn` | función | `vih.js:249` |
-| `vxPrfIn` | función | `vih.js:250` |
-| `vxHospVIH` | función | `vih.js:251` |
-| `vxFalla` | función | `vih.js:252` |
-| `vxR` | función | `vih.js:253` |
-| `vxUP, vxDOWN, vxLB` | función | `vih.js:254` |
-| `vxSemRng` | función | `vih.js:255` |
-| `VX_IND` | constante / catálogo | `vih.js:256` |
-| `VXI` | función | `vih.js:306` |
-| `vxRng` | función | `vih.js:307` |
-| `vxNivel` | función | `vih.js:308` |
-| `vxRngTxt` | función | `vih.js:311` |
-| `vxFiltro` | función | `vih.js:313` |
-| `vxPer` | función | `vih.js:314` |
-| `vxCalc` | función | `vih.js:315` |
-| `vxCalcBy` | función | `vih.js:319` |
-| `VX_PAQ_DEF` | constante / catálogo | `vih.js:525` |
-| `vxPaq` | función | `vih.js:526` |
-| `vxFactMes` | función | `vih.js:527` |
-| `vxProdMes` | función | `vih.js:528` |
-| `vxDiscMes` | función | `vih.js:529` |
-| `VX_NOM_COLS` | constante / catálogo | `vih.js:738` |
-| `vxNominalRows` | función | `vih.js:739` |
-| `vxNomRow` | función | `vih.js:741` |
-| `vxNominalValidar` | función | `vih.js:758` |
-| `vxCACRows` | función | `vih.js:774` |
-| `vxCACRow` | función | `vih.js:776` |
-| `vxPcCAC` | función | `vih.js:795` |
-| `vxCACValidar` | función | `vih.js:796` |
-| `VX_CAC_LBL` | constante / catálogo | `vih.js:871` |
-| `vxCacCod` | función | `vih.js:872` |
-| `vxCacNum` | función | `vih.js:873` |
-| `vxCacLbl` | función | `vih.js:874` |
-| `VX_AGFREQ_DEF` | constante / catálogo | `vih.js:881` |
-| `vxAgFreq` | función | `vih.js:882` |
-| `vxCitProg` | función | `vih.js:884` |
-| `vxAgEstado` | función | `vih.js:886` |
-| `vxPuedeAgendar` | función | `vih.js:893` |
-| `VX_SMAQ` | constante / catálogo | `vih.js:933` |
-| `vxSmaqRes` | función | `vih.js:934` |
-| `VX_TARCHK` | constante / catálogo | `vih.js:937` |
-| `vxTarChkApl` | función | `vih.js:938` |
-| `VX_FTXT` | constante / catálogo | `vih.js:1070` |
-| `vxLabPlan` | función | `vih.js:1071` |
-| `vxDue` | función | `vih.js:1092` |
-| `vxPPD` | función | `vih.js:1108` |
-| `vxCit` | función | `vih.js:1116` |
-| `vxPrcPend` | función | `vih.js:1128` |
-
-## NEFRO · `crearMotorNefro(ctx)` (3 definiciones)
+## VIH · `crearMotorVIH(ctx)` (137 definiciones)
 
 | Definición | Tipo | Origen |
 |---|---|---|
+| `esc` | función | `prototipo:740` |
+| `pad` | función | `prototipo:741` |
+| `iso` | función | `prototipo:742` |
+| `fd` | función | `prototipo:743` |
+| `ym` | función | `prototipo:744` |
+| `addDays` | función | `prototipo:746` |
+| `addMonths` | función | `prototipo:747` |
+| `monthStart` | función | `prototipo:748` |
+| `monthEnd` | función | `prototipo:749` |
+| `dayDiff` | función | `prototipo:750` |
+| `nowTs` | función | `prototipo:751` |
+| `pdate` | función | `prototipo:752` |
+| `num` | función | `prototipo:760` |
+| `norm` | función | `prototipo:761` |
+| `f1` | función | `prototipo:762` |
+| `pct` | función | `prototipo:763` |
+| `money` | función | `prototipo:764` |
+| `VX_CAC_COLS` | constante / catálogo | `prototipo:3149` |
+| `VXS` | constante / catálogo | `prototipo:3438` |
+| `VXK` | constante / catálogo | `prototipo:3455` |
+| `VX_EPS` | constante / catálogo | `prototipo:3458` |
+| `VX_EPSCODE_DEF` | constante / catálogo | `prototipo:3459` |
+| `VX_REG` | constante / catálogo | `prototipo:3460` |
+| `VX_MUN` | constante / catálogo | `prototipo:3462` |
+| `VX_MUN_ALIAS` | constante / catálogo | `prototipo:3463` |
+| `VX_PCLAVE` | constante / catálogo | `prototipo:3464` |
+| `VX_TINGR` | constante / catálogo | `prototipo:3465` |
+| `VX_ESTADO` | constante / catálogo | `prototipo:3466` |
+| `VX_MODAL` | constante / catálogo | `prototipo:3467` |
+| `VX_DISC` | constante / catálogo | `prototipo:3468` |
+| `VX_DISC_ACT` | constante / catálogo | `prototipo:3469` |
+| `VX_CITTIPO` | constante / catálogo | `prototipo:3470` |
+| `VX_MOTINAS` | constante / catálogo | `prototipo:3471` |
+| `VX_NOV` | constante / catálogo | `prototipo:3472` |
+| `VX_PRC` | constante / catálogo | `prototipo:3473` |
+| `VX_PRF` | constante / catálogo | `prototipo:3474` |
+| `VX_EX` | constante / catálogo | `prototipo:3476` |
+| `VXE` | función | `prototipo:3491` |
+| `VX_CONTRATO_DEF` | constante / catálogo | `prototipo:3493` |
+| `VX_GUIA_DIF` | constante / catálogo | `prototipo:3506` |
+| `VX_MED` | constante / catálogo | `prototipo:3508` |
+| `VX_CLASES` | constante / catálogo | `prototipo:3509` |
+| `VX_ESQ` | constante / catálogo | `prototipo:3510` |
+| `VXQ` | función | `prototipo:3527` |
+| `VX_GPC_PREF` | constante / catálogo | `prototipo:3530` |
+| `VX_VAC` | constante / catálogo | `prototipo:3532` |
+| `VXV` | función | `prototipo:3539` |
+| `VX_VACEST` | constante / catálogo | `prototipo:3540` |
+| `vxLive` | función | `prototipo:3543` |
+| `vxD` | función | `prototipo:3544` |
+| `vxNom` | función | `prototipo:3545` |
+| `vxCorte` | función | `prototipo:3547` |
+| `vxMunCode` | función | `prototipo:3548` |
+| `vxMunName` | función | `prototipo:3549` |
+| `vxCfg` | función | `prototipo:3550` |
+| `vxNewBook` | función | `prototipo:3551` |
+| `vxEdad` | función | `prototipo:3558` |
+| `vxGrupoEtario` | función | `prototipo:3559` |
+| `vxF` | función | `prototipo:3560` |
+| `vxIdx` | función | `prototipo:3563` |
+| `vxPacs` | función | `prototipo:3572` |
+| `vxP` | función | `prototipo:3573` |
+| `vxL` | función | `prototipo:3574` |
+| `vxLast` | función | `prototipo:3576` |
+| `vxFirst` | función | `prototipo:3577` |
+| `vxVal` | función | `prototipo:3578` |
+| `vxPos` | función | `prototipo:3579` |
+| `vxCVind` | función | `prototipo:3580` |
+| `vxFmtLab` | función | `prototipo:3581` |
+| `vxPeriodo` | función | `prototipo:3584` |
+| `vxActivo` | función | `prototipo:3585` |
+| `vxTarAt` | función | `prototipo:3586` |
+| `vxTarIni` | función | `prototipo:3587` |
+| `vxUltEnt` | función | `prototipo:3588` |
+| `vxCobertura` | función | `prototipo:3589` |
+| `vxUltAtencion` | función | `prototipo:3590` |
+| `vxNovAt` | función | `prototipo:3591` |
+| `vxSt` | función | `prototipo:3592` |
+| `vxVacEstado` | función | `prototipo:3620` |
+| `vxVacCompleta` | función | `prototipo:3635` |
+| `vxContrato` | función | `prototipo:3638` |
+| `vxHSH` | función | `prototipo:3640` |
+| `vxSolRecs` | función | `prototipo:3641` |
+| `vxSolTieneRes` | función | `prototipo:3643` |
+| `vxAlertas` | función | `prototipo:3646` |
+| `vxTFG` | función | `prototipo:3668` |
+| `VX_GPC14` | constante / catálogo | `prototipo:3672` |
+| `vxEnRango` | función | `prototipo:3673` |
+| `vxLabIn` | función | `prototipo:3674` |
+| `vxPrcIn` | función | `prototipo:3675` |
+| `vxPrfIn` | función | `prototipo:3676` |
+| `vxHospVIH` | función | `prototipo:3677` |
+| `vxFalla` | función | `prototipo:3678` |
+| `vxR` | función | `prototipo:3679` |
+| `vxUP, vxDOWN, vxLB` | función | `prototipo:3680` |
+| `vxSemRng` | función | `prototipo:3681` |
+| `VX_IND` | constante / catálogo | `prototipo:3682` |
+| `VXI` | función | `prototipo:3732` |
+| `vxRng` | función | `prototipo:3733` |
+| `vxNivel` | función | `prototipo:3734` |
+| `vxRngTxt` | función | `prototipo:3737` |
+| `vxFiltro` | función | `prototipo:3739` |
+| `vxPer` | función | `prototipo:3740` |
+| `vxCalc` | función | `prototipo:3741` |
+| `vxCalcBy` | función | `prototipo:3745` |
+| `VX_PAQ_DEF` | constante / catálogo | `prototipo:3963` |
+| `vxPaq` | función | `prototipo:3964` |
+| `vxFactMes` | función | `prototipo:3965` |
+| `vxProdMes` | función | `prototipo:3966` |
+| `vxDiscMes` | función | `prototipo:3967` |
+| `VX_NOM_COLS` | constante / catálogo | `prototipo:4176` |
+| `vxNominalRows` | función | `prototipo:4177` |
+| `vxNomRow` | función | `prototipo:4179` |
+| `vxNominalValidar` | función | `prototipo:4196` |
+| `vxCACRows` | función | `prototipo:4212` |
+| `vxCACRow` | función | `prototipo:4214` |
+| `vxPcCAC` | función | `prototipo:4233` |
+| `vxCACValidar` | función | `prototipo:4234` |
+| `VX_CAC_LBL` | constante / catálogo | `prototipo:4308` |
+| `vxCacCod` | función | `prototipo:4309` |
+| `vxCacNum` | función | `prototipo:4310` |
+| `vxCacLbl` | función | `prototipo:4311` |
+| `VX_AGFREQ_DEF` | constante / catálogo | `prototipo:4318` |
+| `vxAgFreq` | función | `prototipo:4319` |
+| `vxCitProg` | función | `prototipo:4321` |
+| `vxAgEstado` | función | `prototipo:4323` |
+| `vxPuedeAgendar` | función | `prototipo:4330` |
+| `VX_SMAQ` | constante / catálogo | `prototipo:4370` |
+| `vxSmaqRes` | función | `prototipo:4371` |
+| `VX_TARCHK` | constante / catálogo | `prototipo:4374` |
+| `vxTarChkApl` | función | `prototipo:4375` |
+| `VX_FTXT` | constante / catálogo | `prototipo:4507` |
+| `vxLabPlan` | función | `prototipo:4508` |
+| `vxDue` | función | `prototipo:4529` |
+| `vxPPD` | función | `prototipo:4545` |
+| `vxCit` | función | `prototipo:4553` |
+| `vxPrcPend` | función | `prototipo:4565` |
+
+## NEFRO · `crearMotorNefro(ctx)` (4 definiciones)
+
+| Definición | Tipo | Origen |
+|---|---|---|
+| `RCV` | función | `nefroproteccion/riesgo_cv.js:17` |
 | `NP` | función | `nefroproteccion/motor_clinico.js:3` |
-| `EPSMODEL_DEF` | constante / catálogo | `nefroproteccion/motor_clinico.js:428` |
+| `EPSMODEL_DEF` | constante / catálogo | `nefroproteccion/motor_clinico.js:430` |
 | `COH` | función | `nefroproteccion/motor_cohorte.js:3` |
 

@@ -47,7 +47,7 @@
 
   /**
    * o.ruta            "/hd", "/vih"
-   * o.hojas           [[hoja, columnaClave], …]
+   * o.hojas           [[hoja, columnaClave | (registro) => clave], …]
    * o.libro()         libro en memoria del módulo original
    * o.plano(r)        registro sin campos internos, listo para enviar
    * o.cfgLeer()       { clave: valor } de la configuración del libro
@@ -62,25 +62,30 @@
     const S = { estado: "Conectando…", hayNuevos: false, version: 0, bloqueado: false };
     let base = null, enCurso = false, pendiente = false, temporizador = null, avisado = 0;
     let rechazos = [];
+    const claveDe = (c, r) => (typeof c === "function" ? c(r) : r[c]);
+    const tieneClave = (c, r) => {
+      const k = r && claveDe(c, r);
+      return k != null && k !== "";
+    };
 
     S.tomarBase = function () {
-      const L = o.libro();
+      const L = o.libro() || {};
       base = { hojas: {}, cfg: {}, fin: o.finLeer ? json(o.finLeer()) : null };
-      for (const [k, c] of o.hojas) base.hojas[k] = new Map((L[k] || []).filter((r) => r && r[c] != null && r[c] !== "").map((r) => [String(r[c]), json(o.plano(r))]));
+      for (const [k, c] of o.hojas) base.hojas[k] = new Map((L[k] || []).filter((r) => tieneClave(c, r)).map((r) => [String(claveDe(c, r)), json(o.plano(r))]));
       const cfg = o.cfgLeer();
       for (const k of Object.keys(cfg)) base.cfg[k] = json(cfg[k]);
     };
     S.listo = () => !!base;
 
     S.diferencias = function () {
-      const L = o.libro();
+      const L = o.libro() || {};
       const cambios = {};
       let n = 0;
       for (const [k, c] of o.hojas) {
         const B = base.hojas[k];
         for (const r of L[k] || []) {
-          if (!r || r[c] == null || r[c] === "") continue;
-          const p = o.plano(r), s = json(p), prev = B.get(String(r[c]));
+          if (!tieneClave(c, r)) continue;
+          const p = o.plano(r), s = json(p), prev = B.get(String(claveDe(c, r)));
           if (prev === s) continue;
           const ch = (cambios[k] = cambios[k] || { nuevos: [], modificados: [] });
           if (prev === undefined) ch.nuevos.push(p);
@@ -134,7 +139,7 @@
         if (d.cfg) cuerpo.cfg = d.cfg;
         if (d.fin !== undefined) cuerpo.finBlob = d.fin;
         const r = await pedir("POST", o.ruta + "/sincronizar", cuerpo);
-        const L = o.libro();
+        const L = o.libro() || {};
         // Lo enviado pasa a ser la nueva base; si el usuario siguió editando, la próxima pasada lo detecta.
         for (const [k, c] of o.hojas) {
           const ch = d.cambios[k];
@@ -142,10 +147,10 @@
           for (const p of ch.nuevos.concat(ch.modificados)) {
             const s = Object.assign({}, p);
             delete s._ts;
-            base.hojas[k].set(String(p[c]), json(s));
+            base.hojas[k].set(String(claveDe(c, p)), json(s));
           }
           const ts = (r.ts && r.ts[k]) || {};
-          for (const rec of L[k] || []) if (rec && ts[rec[c]]) rec._ts = ts[rec[c]];
+          for (const rec of L[k] || []) if (rec && ts[claveDe(c, rec)]) rec._ts = ts[claveDe(c, rec)];
         }
         if (d.cfg) for (const k of Object.keys(d.cfg)) base.cfg[k] = json(d.cfg[k]);
         if (d.fin !== undefined) base.fin = json(d.fin);
@@ -203,8 +208,14 @@
     };
 
     S.arrancar = function () {
+      // Red de seguridad para cambios sin aviso: compara el libro completo solo si el usuario interactuó desde la última
+      // pasada (comparar miles de registros cada 5 s sin que nadie toque nada gastaba CPU en equipos modestos).
+      let tocado = true;
+      for (const ev of ["click", "input", "change", "keydown", "drop"]) document.addEventListener(ev, () => (tocado = true), true);
       setInterval(() => {
-        if (!enCurso && base && !S.bloqueado && S.diferencias().n) S.sincronizar(); // red de seguridad para cambios sin aviso
+        if (!tocado || enCurso || !base || S.bloqueado) return;
+        tocado = false;
+        if (S.diferencias().n) S.sincronizar();
       }, 5000);
       setInterval(S.revisarVersion, 45000);
       document.addEventListener("visibilitychange", () => {
