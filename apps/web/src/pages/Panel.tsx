@@ -36,7 +36,7 @@ export function Panel() {
         <section className="pxgroup" key={g}>
           <h3>{GRUPOS[g]}</h3>
           <div className="pxcards">
-            {PROGRAMAS.filter((p) => p.grupo === g).map((p) => {
+            {PROGRAMAS.filter((p) => p.grupo === g && (!p.soloAdmin || usuario.rol === "ADMIN")).map((p) => {
               const ok = acceso(p);
               return (
                 <button

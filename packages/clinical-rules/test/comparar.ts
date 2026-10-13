@@ -15,6 +15,8 @@ export function normalizar(v: unknown, vistos = new WeakSet<object>(), prof = 0)
   if (prof > 0 && ("_ses" in o || "_iv" in o) && "ID" in o) return { $paciente: o.ID };
   if (prof > 0 && "ID" in o && "PrimerNombre" in o && "FechaDx" in o) return { $paciente: o.ID }; // VIH
   if (prof > 0 && "codigo" in o && "fnac" in o && "terapia" in o) return { $paciente: o.codigo }; // Nefroprotección
+  if (prof > 0 && "ID" in o && "Nombres" in o && "FechaInicioDP" in o) return { $paciente: o.ID }; // Diálisis peritoneal
+  if (prof > 0 && "ID" in o && "PrimerNombre" in o && "Telefono2" in o) return { $paciente: o.ID }; // Consulta externa
   if (prof > 0 && typeof o.f === "function" && typeof o.c === "string") return { $indicador: o.c };
   if (prof > 0 && typeof o.f === "function" && typeof o.id === "string") return { $indicador: o.id };
   if (vistos.has(o)) return { $ciclo: true };

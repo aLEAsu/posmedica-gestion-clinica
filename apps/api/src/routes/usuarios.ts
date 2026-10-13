@@ -108,6 +108,9 @@ usuarios.put(
   h(async (req, res) => {
     const id = z.string().uuid().parse(req.params.id);
     const lista = Permisos.parse(req.body?.permisos).filter((p) => p.ver);
+    // Programas solo para administradores (Tablero gerencial): no se asignan a otros usuarios.
+    const soloAdmin = lista.find((p) => PROGRAMA_POR_CLAVE[p.programa]?.soloAdmin);
+    if (soloAdmin) throw new HttpError(400, `«${PROGRAMA_POR_CLAVE[soloAdmin.programa].nombre}» es solo para administradores.`, "VALIDACION");
     const u = await prisma.usuario.findUnique({ where: { id }, include: { permisos: true } });
     if (!u) throw noEncontrado("No existe ese usuario.");
     const antes = u.permisos.map(({ programaClave, ver, registrar, anular, exportar }) => ({ programa: programaClave, ver, registrar, anular, exportar }));

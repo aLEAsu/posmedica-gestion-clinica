@@ -1,6 +1,7 @@
 /* Configuración del libro del programa VIH para el motor genérico (modulos/libro). */
 import { crearMotorVIH } from "@posmedica/clinical-rules";
 import type { ConfigLibro, Fila, HojaDef } from "../libro/servicio.js";
+import { sexoCodigo, sexoEtiqueta } from "../libro/persona.js";
 import { escrituraConTransversales, leeProgramaOTransversal } from "../libro/transversal.js";
 import { CAMPOS_PERSONA_VIH, ETNIA_VIH, MODELOS_VIH, ZONA_VIH } from "./hojas.js";
 
@@ -31,13 +32,13 @@ export const CONFIG_VIH: ConfigLibro = {
     campoIngreso: "FechaIngresoIPS",
     aPersona: (r: Fila) => ({
       tipoDoc: r.TipoDoc, documento: r.Documento, primerNombre: r.PrimerNombre, segundoNombre: r.SegundoNombre,
-      primerApellido: r.PrimerApellido, segundoApellido: r.SegundoApellido, fechaNacimiento: r.FechaNac, sexo: r.Sexo, eps: r.EPS,
+      primerApellido: r.PrimerApellido, segundoApellido: r.SegundoApellido, fechaNacimiento: r.FechaNac, sexo: sexoEtiqueta(r.Sexo), eps: r.EPS,
       regimen: r.Regimen, fechaAfiliacion: r.FechaAfiliacion, municipio: r.Municipio, municipioDane: r.CodMunicipio,
       zona: aCodigo(ZONA_COD, r.Zona), direccion: r.Direccion, telefono: r.Telefono, etnia: aCodigo(ETNIA_COD, r.Etnia),
     }),
     desdePersona: (p, fecha) => ({
       TipoDoc: p.tipoDoc, Documento: p.documento, PrimerNombre: p.primerNombre || null, SegundoNombre: p.segundoNombre,
-      PrimerApellido: p.primerApellido || null, SegundoApellido: p.segundoApellido, FechaNac: fecha(p.fechaNacimiento), Sexo: p.sexo,
+      PrimerApellido: p.primerApellido || null, SegundoApellido: p.segundoApellido, FechaNac: fecha(p.fechaNacimiento), Sexo: sexoCodigo(p.sexo),
       EPS: p.eps?.nombre ?? null, Regimen: p.regimen, FechaAfiliacion: fecha(p.fechaAfiliacion), Municipio: p.municipio,
       CodMunicipio: p.municipioDane, Zona: p.zona ? (ZONA_VIH[p.zona] ?? p.zona) : null, Direccion: p.direccion, Telefono: p.telefono,
       Etnia: p.etnia ? (ETNIA_VIH[p.etnia] ?? p.etnia) : null,

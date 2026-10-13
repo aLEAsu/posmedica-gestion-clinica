@@ -26,6 +26,8 @@ export interface ContextoHD {
   eps?: string;
   /** «Hoy» para los cálculos que dependen de la fecha actual (por defecto, la fecha del sistema). */
   hoy?: Fecha;
+  /** Libro institucional del portal: Hemodiálisis lee su hoja «mic» (Microbiología) para confirmar las ITS-CVC. */
+  portal?: Record<string, any> | null;
   /** Tarifas y valores facturados (solo administrador): { tarifas: [...], facturado: { "AAAA-MM|ID": valor } }. */
   facturacion?: Record<string, any> | null;
   /** Librería SheetJS, solo para leer o escribir libros de Excel. */

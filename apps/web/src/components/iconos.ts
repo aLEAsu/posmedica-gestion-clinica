@@ -1,5 +1,6 @@
-/* Íconos de los programas (PIC del prototipo, portal_nucleo.js). */
+/* Íconos de los programas (PIC del prototipo, versión 0.8). */
 export const ICONOS: Record<string, string> = {
+  "ger": "<path d=\"M12 3l8.5 6.2-3.2 10H6.7L3.5 9.2z\"/><path d=\"M12 8l4 3-1.6 4.6H9.6L8 11z\"/><path d=\"M12 3v5M20.5 9.2 16 11M17.3 19.2l-2.9-3.6M6.7 19.2l2.9-3.6M3.5 9.2 8 11\"/>",
   "cal": "<rect x=\"3.5\" y=\"5\" width=\"17\" height=\"15\" rx=\"2\"/><path d=\"M3.5 10h17M8 3v4M16 3v4\"/><path d=\"M8 14h3v3H8z\"/>",
   "nefro": "<path d=\"M9 4c-3 0-5 3-5 7s2 9 5 9 3-3 3-6-2-4-2-6 1-4-1-4z\"/><path d=\"M15 4c3 0 5 3 5 7s-2 9-5 9\"/>",
   "hd": "<path d=\"M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11z\"/>",

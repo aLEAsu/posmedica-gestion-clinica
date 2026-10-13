@@ -9,7 +9,7 @@ import { HttpError } from "../../http/errors.js";
 
 export type Tx = Prisma.TransactionClient;
 export type Fila = Record<string, unknown>;
-type Db = Tx | typeof prisma;
+export type Db = Tx | typeof prisma;
 type Delegado = {
   findMany: (a?: object) => Promise<Fila[]>;
   findUnique: (a: object) => Promise<Fila | null>;
@@ -32,6 +32,9 @@ export interface HojaDef {
   columnas: string[]; // columnas de la hoja del prototipo
   clave: string; // columna que identifica el registro ("ID", o "Paciente" en el arrastre CAC de VIH)
   nombre: string; // nombre de la hoja en el prototipo
+  /** Hojas sin columna única (p. ej. el detalle de un corte CAC: corte + paciente): la clave se arma con estas columnas
+      y se guarda en la columna «clave» de la tabla, que no forma parte de la hoja. */
+  compuesta?: string[];
 }
 
 export interface ConfigLibro {
@@ -46,7 +49,7 @@ export interface ConfigLibro {
   /** Libro con pacientes (identidad en «persona»). El libro institucional no tiene. */
   paciente?: {
     hoja: string;
-    relacionPersona: "hdPaciente" | "vihPaciente";
+    relacionPersona: "hdPaciente" | "vihPaciente" | "dpPaciente" | "cePaciente";
     camposPersona: string[];
     aPersona: (r: Fila) => PersonaCruda;
     desdePersona: (p: PersonaConEps, fecha: (d: Date | null) => string | null) => Fila;
@@ -54,13 +57,24 @@ export interface ConfigLibro {
   };
   /** Quién puede leer el libro. Por defecto: «ver» en el programa. */
   puedeLeer?: (u: UsuarioSesion) => boolean;
+  /** Datos que las reglas de acceso necesitan consultar en la base (p. ej. el rol del usuario dentro del módulo).
+      Se calcula una vez por lectura o sincronización y llega como último argumento a leeHoja, leeFila y escribe. */
+  contexto?: (db: Db, u: UsuarioSesion) => Promise<unknown>;
   /** Qué filas de una hoja ve el usuario (p. ej. mensajes propios). Por defecto: todas las hojas, todas las filas. */
-  leeHoja?: (hoja: string, u: UsuarioSesion) => boolean;
-  leeFila?: (hoja: string, fila: Fila, u: UsuarioSesion) => boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  leeHoja?: (hoja: string, u: UsuarioSesion, ctx?: any) => boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  leeFila?: (hoja: string, fila: Fila, u: UsuarioSesion, ctx?: any) => boolean;
   /** Quién puede guardar algo en este libro (filtro de entrada). Por defecto: «registrar» en el programa. */
   puedeEscribir?: (u: UsuarioSesion) => boolean;
   /** Quién puede crear o modificar registros de una hoja. Por defecto: «registrar» en el programa. */
-  escribe?: (hoja: string, u: UsuarioSesion, tipo: "nuevo" | "modificado", fila: Fila) => boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  escribe?: (hoja: string, u: UsuarioSesion, tipo: "nuevo" | "modificado", fila: Fila, ctx?: any) => boolean;
+  /** Mensaje cuando la base rechaza un registro nuevo por un índice único. */
+  duplicado?: Record<string, string>;
+  /** Regla que se verifica en la base antes de crear un registro (dentro de la transacción serializable: si dos usuarios
+      guardan a la vez, PostgreSQL aborta uno y el servidor responde 409). Devuelve el mensaje de rechazo o null. */
+  validarNuevo?: (tx: Tx, hoja: string, datos: Fila) => Promise<string | null>;
   /** Valores que el servidor fija en los registros nuevos (p. ej. el remitente de un mensaje). */
   fijarNuevo?: (hoja: string, datos: Fila, u: UsuarioSesion) => void;
   /** Claves de configuración que solo recibe el administrador (p. ej. valores de producción cifrados). */
@@ -143,9 +157,16 @@ export function crearServicioLibro(C: ConfigLibro) {
   const vacio = <T>(v: T | null | undefined) => (v == null ? C.vacio : v);
   const fechaOVacio = (d: Date | null) => (d ? fechaTexto(d) : C.vacio);
   const permiso = (u: UsuarioSesion, a: Accion) => puede(u, C.programa, a);
-  const leeHoja = (h: string, u: UsuarioSesion) => (C.leeHoja ? C.leeHoja(h, u) : true);
-  const leeFila = (h: string, f: Fila, u: UsuarioSesion) => leeHoja(h, u) && (C.leeFila ? C.leeFila(h, f, u) : true);
-  const escribe = (h: string, u: UsuarioSesion, t: "nuevo" | "modificado", f: Fila) => (C.escribe ? C.escribe(h, u, t, f) : permiso(u, "registrar"));
+  const leeHoja = (h: string, u: UsuarioSesion, ctx?: unknown) => (C.leeHoja ? C.leeHoja(h, u, ctx) : true);
+  const leeFila = (h: string, f: Fila, u: UsuarioSesion, ctx?: unknown) => leeHoja(h, u, ctx) && (C.leeFila ? C.leeFila(h, f, u, ctx) : true);
+  const escribe = (h: string, u: UsuarioSesion, t: "nuevo" | "modificado", f: Fila, ctx?: unknown) => (C.escribe ? C.escribe(h, u, t, f, ctx) : permiso(u, "registrar"));
+  /** Identificador del registro: su columna clave o, en las hojas con clave compuesta, sus columnas unidas por «|». */
+  const idDe = (h: string, r: Fila) => {
+    const comp = C.hojas[h].compuesta;
+    if (!comp) return aTexto(r[C.hojas[h].clave], C.hojas[h].clave);
+    const partes = comp.map((c) => aTexto(r[c] instanceof Date ? fechaTexto(r[c] as Date) : r[c], c) ?? "");
+    return partes.some((x) => x) ? partes.join("|") : null;
+  };
 
   /** Registro del cliente → datos de la tabla (solo columnas de la hoja; las demás se ignoran, como al guardar el libro). */
   function datosTabla(hoja: string, r: Fila) {
@@ -196,7 +217,10 @@ export function crearServicioLibro(C: ConfigLibro) {
         const otro = (existente as unknown as Record<string, Fila | null>)[P!.relacionPersona];
         if (otro && otro[hojaP!.clave] !== propioId) return { id: "", conflicto: String(otro[hojaP!.clave]) };
         // La identidad es compartida entre programas: un campo vacío en un programa no borra lo que otro registró.
-        const fusion = Object.fromEntries(Object.entries(d).filter(([, v]) => v != null && v !== ""));
+        // Cuando un programa INSCRIBE a una persona que ya existe, solo completa lo que falta: no reescribe la identidad
+        // que registró otro programa (p. ej. nombres en mayúsculas de Consulta externa). Al EDITAR su propio paciente sí.
+        const actualP = existente as unknown as Record<string, unknown>;
+        const fusion = Object.fromEntries(Object.entries(d).filter(([k, v]) => v != null && v !== "" && (propioId !== undefined || actualP[k] == null || actualP[k] === "")));
         await tx.persona.update({ where: { id: existente.id }, data: fusion });
         return { id: existente.id };
       }
@@ -251,19 +275,20 @@ export function crearServicioLibro(C: ConfigLibro) {
 
   async function leerLibro(u: UsuarioSesion) {
     const esAdmin = u.rol === "ADMIN";
-    const hojas: Record<string, Fila[]> = {};
-    for (const h of HOJAS) {
-      if (!leeHoja(h, u)) {
-        hojas[h] = [];
-        continue;
-      }
-      const D = delegado(prisma, h);
-      const orden = { [C.hojas[h].clave]: "asc" };
-      const filas = esHojaP(h)
-        ? (await D.findMany({ include: { persona: { include: { eps: true } } }, orderBy: orden })).map((f) => aRegistroPaciente(f as Fila & { persona: PersonaConEps }))
-        : (await D.findMany({ orderBy: orden })).map((f) => aRegistro(h, f));
-      hojas[h] = C.leeFila ? filas.filter((f) => leeFila(h, f, u)) : filas;
-    }
+    const ctx = C.contexto ? await C.contexto(prisma, u) : undefined;
+    // Las hojas se leen en paralelo (cada una es una consulta independiente).
+    const leidas = await Promise.all(
+      HOJAS.map(async (h): Promise<Fila[]> => {
+        if (!leeHoja(h, u, ctx)) return [];
+        const D = delegado(prisma, h);
+        const orden = { [C.hojas[h].clave]: "asc" };
+        const filas = esHojaP(h)
+          ? (await D.findMany({ include: { persona: { include: { eps: true } } }, orderBy: orden })).map((f) => aRegistroPaciente(f as Fila & { persona: PersonaConEps }))
+          : (await D.findMany({ orderBy: orden })).map((f) => aRegistro(h, f));
+        return C.leeFila ? filas.filter((f) => leeFila(h, f, u, ctx)) : filas;
+      }),
+    );
+    const hojas: Record<string, Fila[]> = Object.fromEntries(HOJAS.map((h, i) => [h, leidas[i]]));
     const params = await prisma.parametro.findMany({ where: { programa: C.programa } });
     const cfg = Object.fromEntries(params.filter((p) => !p.clave.startsWith("__") && (esAdmin || !C.cfgPrivada?.has(p.clave))).map((p) => [p.clave, p.valor]));
     const fin = params.find((p) => p.clave === "__finBlob");
@@ -272,6 +297,7 @@ export function crearServicioLibro(C: ConfigLibro) {
 
   async function sincronizar(tx: Tx, actor: Actor, body: Cambios, auditar: (e: EventoAud) => Promise<void>) {
     const u = actor.u;
+    const ctx = C.contexto ? await C.contexto(tx, u) : undefined;
     const puedeAnular = permiso(u, "anular");
     const ts: Record<string, Record<string, string>> = {};
     const marcar = (h: string, id: string, f: Fila) => ((ts[h] ??= {})[id] = (f.actualizadoEn as Date).toISOString());
@@ -289,8 +315,8 @@ export function crearServicioLibro(C: ConfigLibro) {
       const tienePaciente = !!P && !esHojaP(h) && C.hojas[h].columnas.includes("Paciente");
 
       for (const r of c.nuevos ?? []) {
-        if (!escribe(h, u, "nuevo", r)) throw sinPermiso(h);
-        const id = aTexto(r[clave], clave);
+        if (!escribe(h, u, "nuevo", r, ctx)) throw sinPermiso(h);
+        const id = idDe(h, r);
         if (!id) throw new HttpError(400, `Registro sin ${clave} en ${C.hojas[h].nombre}.`, "VALIDACION");
         if (await D.findUnique({ where: { [clave]: id } })) throw conflicto(`Otro usuario registró ${id} al mismo tiempo. Se recargaron los datos: repita la acción.`);
         if (tienePaciente && r.Paciente && !(await existePaciente(String(r.Paciente)))) throw new HttpError(400, `El paciente ${r.Paciente} no existe.`, "VALIDACION");
@@ -299,17 +325,27 @@ export function crearServicioLibro(C: ConfigLibro) {
         if ("Usuario" in datos) datos.Usuario = actor.nombre;
         if ("Registrado" in datos && !datos.Registrado) datos.Registrado = ahoraTexto();
         C.fijarNuevo?.(h, datos, u);
-        const creado = esHojaP(h) ? await crearPaciente(tx, actor, id, r, datos) : await D.create({ data: { [clave]: id, ...datos, creadoPor: actor.id, actualizadoPor: actor.id } });
+        if (C.validarNuevo) {
+          const motivo = await C.validarNuevo(tx, h, datos);
+          if (motivo) throw conflicto(motivo);
+        }
+        let creado: Fila;
+        try {
+          creado = esHojaP(h) ? await crearPaciente(tx, actor, id, r, datos) : await D.create({ data: { [clave]: id, ...datos, creadoPor: actor.id, actualizadoPor: actor.id } });
+        } catch (e) {
+          if ((e as { code?: string }).code === "P2002" && C.duplicado?.[h]) throw conflicto(C.duplicado[h]);
+          throw e;
+        }
         marcar(h, id, creado);
         await auditar({ accion: "CREA", entidad: `${C.programa}.${h}`, registroId: id, despues: { ...r, _ts: undefined } });
       }
 
       for (const r of c.modificados ?? []) {
-        const id = String(r[clave] ?? "");
+        const id = idDe(h, r) ?? "";
         const actual = esHojaP(h) ? await D.findUnique({ where: { [clave]: id }, include: { persona: { include: { eps: true } } } }) : await D.findUnique({ where: { [clave]: id } });
         if (!actual) throw conflicto(`El registro ${id} ya no existe en la base de datos. Se recargaron los datos.`);
         const antesReg = esHojaP(h) ? aRegistroPaciente(actual as Fila & { persona: PersonaConEps }) : aRegistro(h, actual);
-        if (!leeFila(h, antesReg, u) || !escribe(h, u, "modificado", antesReg)) throw sinPermiso(h);
+        if (!leeFila(h, antesReg, u, ctx) || !escribe(h, u, "modificado", antesReg, ctx)) throw sinPermiso(h);
         if (r._ts && (actual.actualizadoEn as Date).toISOString() !== r._ts) {
           throw conflicto(`Otro usuario modificó ${id} mientras usted trabajaba. Se recargaron los datos: revise y repita su cambio.`);
         }
@@ -389,7 +425,7 @@ export function crearServicioLibro(C: ConfigLibro) {
       } else {
         const data: Fila[] = [];
         for (const r of L) {
-          const id = aTexto(r[clave], clave);
+          const id = idDe(h, r);
           if (!id) continue;
           if (ids.has(id)) {
             if (clave === "ID") throw new HttpError(400, `ID repetido en la hoja ${C.hojas[h].nombre}: ${id}.`, "VALIDACION");

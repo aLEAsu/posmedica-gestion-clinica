@@ -35,6 +35,11 @@ export const manejadorErrores: ErrorRequestHandler = (err, req, res, _next) => {
     res.status(409).json({ error: "Ya existe un registro con esos datos.", codigo: "DUPLICADO" });
     return;
   }
+  // Dos guardados simultáneos sobre los mismos datos (transacción serializable): el segundo se repite.
+  if (err?.code === "P2034") {
+    res.status(409).json({ error: "Otro usuario guardó cambios al mismo tiempo. Se recargaron los datos: repita la acción.", codigo: "CONFLICTO" });
+    return;
+  }
   if (err?.type === "entity.too.large") {
     res.status(413).json({ error: "El contenido enviado es demasiado grande.", codigo: "MUY_GRANDE" });
     return;

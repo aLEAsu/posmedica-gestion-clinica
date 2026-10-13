@@ -22,6 +22,8 @@ export const MODELOS_HD = {
   vac: { modelo: "HdVacuna", tabla: "hd_vacuna" },
   txs: { modelo: "HdTrasplanteItem", tabla: "hd_trasplante_item" },
   sol: { modelo: "HdSolicitudLab", tabla: "hd_solicitud_lab" },
+  dsp: { modelo: "HdDispositivo", tabla: "hd_dispositivo" },
+  lim: { modelo: "HdLimpieza", tabla: "hd_limpieza" },
   cor: { modelo: "HdCorte", tabla: "hd_corte" },
 };
 

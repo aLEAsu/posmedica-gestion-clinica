@@ -13,7 +13,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as acorn from "acorn";
 import * as walk from "acorn-walk";
-import { MARCAS, leerPrototipo, seccion } from "./fuente.mjs";
+import { ETIQUETA, leerPrototipo } from "./fuente.mjs";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const SALIDA = process.env.SALIDA_REGLAS ? resolve(process.env.SALIDA_REGLAS) : resolve(aqui, "../src/generado");
@@ -32,7 +32,8 @@ function definiciones(codigo, lineaBase, archivo) {
       n.type === "FunctionDeclaration" ? [n.id.name] : n.type === "VariableDeclaration" ? n.declarations.flatMap((d) => (d.id.type === "Identifier" ? [d.id.name] : [])) : [];
     const texto = codigo.slice(n.start, n.end);
     if (!nombres.length) {
-      otras.push({ linea: lineaBase + n.loc.start.line, texto: texto.slice(0, 80) });
+      // Sentencias sueltas (p. ej. «SH.dsp=[…]» o «CFG_DEF.cdMet={…}»): el prototipo amplía con ellas sus catálogos.
+      otras.push({ nombres: [], texto, linea: lineaBase + n.loc.start.line, archivo, refs: referencias(n) });
       continue;
     }
     const info = { nombres, texto, linea: lineaBase + n.loc.start.line, archivo, refs: referencias(n) };
@@ -84,7 +85,7 @@ const GLOBALES_PERMITIDOS = new Set([
   "Uint8Array", "TextEncoder", "TextDecoder", "encodeURIComponent", "decodeURIComponent",
 ]);
 
-function generar({ archivo, funcion, cabecera, fuentes, incluir, preludio, provistos, exportar }) {
+function generar({ archivo, funcion, cabecera, fuentes, incluir, sentencias, preludio, provistos, exportar }) {
   const todas = new Map();
   for (const f of fuentes) for (const [k, v] of f.defs) if (!todas.has(k)) todas.set(k, v);
   const elegidas = new Set();
@@ -93,6 +94,8 @@ function generar({ archivo, funcion, cabecera, fuentes, incluir, preludio, provi
     if (!d) throw new Error(`${archivo}: «${n}» no existe en el prototipo.`);
     elegidas.add(d);
   }
+  // Sentencias sueltas que solo amplían catálogos ya incluidos (sin tocar la pantalla): se copian en su lugar.
+  if (sentencias) for (const f of fuentes) for (const o of f.otras) if ([...o.refs].length && [...o.refs].every((r) => sentencias.has(r) || GLOBALES_PERMITIDOS.has(r))) elegidas.add(o);
   // Verificación de dependencias: toda referencia a una definición del prototipo debe estar incluida o provista.
   const nombresIncluidos = new Set([...elegidas].flatMap((d) => d.nombres));
   const faltan = new Map();
@@ -114,7 +117,7 @@ function generar({ archivo, funcion, cabecera, fuentes, incluir, preludio, provi
   const nombresExport = exportar ?? [...nombresIncluidos, ...[...provistos].filter((x) => x !== "XLSX")];
   const js = `// GENERADO por packages/clinical-rules/scripts/extraer-reglas.mjs a partir de «Gestión Clínica POSMÉDICA (1).html».
 // NO EDITAR A MANO: cualquier cambio de regla se hace en el prototipo validado por la coordinación médica y se vuelve a extraer.
-// Las referencias «archivo:línea» apuntan a los archivos de _analisis/.
+// Las referencias «prototipo:línea» son líneas del archivo HTML del prototipo; las de Nefroprotección, de _analisis/.
 ${cabecera}
 export function ${funcion}(ctx) {
 "use strict";
@@ -131,12 +134,10 @@ return { ${nombresExport.join(", ")} };
 
 /* ---------- fuentes ---------- */
 
-const hdSec = seccion(P.lineas, ...MARCAS.hd);
-const vihSec = seccion(P.lineas, ...MARCAS.vih);
-const trozo = (s) => P.lineas.slice(s.desde, s.hasta).join("\n");
-// Las líneas de _analisis/hemodialisis/hd.js empiezan en la línea 1 del script principal; las de vih.js en la del marcador.
-const HD = { archivo: "hd.js", ...definiciones(trozo(hdSec), hdSec.desde, "hd.js") };
-const VIH = { archivo: "vih.js", ...definiciones(trozo(vihSec), 0, "vih.js") };
+// Todo el script principal del prototipo (Hemodiálisis, portal, VIH, Consulta externa, DP, IAAS/PROA…) es una sola
+// fuente: el prototipo no repite nombres de primer nivel, y Hemodiálisis usa definiciones que viven más abajo
+// (dispositivos, microbiología). El origen se cita con la línea del archivo HTML.
+const PRINCIPAL = { archivo: ETIQUETA, ...definiciones(P.principal, P.lineaBase, ETIQUETA) };
 
 /* Utilidades de fecha y número del prototipo (hd.js) que también usa VIH. */
 const UTIL = ["esc", "pad", "iso", "fd", "ym", "addDays", "addMonths", "monthStart", "monthEnd", "dayDiff", "nowTs", "pdate", "num", "norm", "f1", "pct", "money"];
@@ -150,13 +151,13 @@ const XLSX = ctx && ctx.XLSX;`;
 const HD_INCLUIR = [
   ...UTIL,
   // catálogos
-  "EPS_L", "epsList", "TURNOS_DEF", "turnosCfg", "turnoNames", "DIAS_L", "ESTADOS_SES", "MOTIVOS", "MOT_RESP", "CAUSA_HOSP", "ATRIB", "TIPO_SES", "MOT_EXTRA", "RESP",
+  "EPS_L", "epsList", "TURNOS_DEF", "turnosCfg", "turnoNames", "DIAS_L", "ESTADOS_SES", "MOTIVOS", "MOT_RESP", "CAUSA_HOSP", "ATRIB", "MOT_EXTRA",
   "ACCESOS", "isCVC", "ITS", "EVENTOS", "SEV", "RESUELTO", "HEMOC", "NOV_TIPOS", "MOV_EGRESO", "MOV_TIPOS", "EGRESO_ESTADO", "RUTA", "RUTA_EXCL", "ACC_NOV", "ACC_NOV_RES",
-  "TX", "PROCED", "MEDIOS", "RESULT_CTC", "DISCIPLINAS", "EXAMS", "EX", "FREQ_TXT", "ANCHOR_DEF", "META_DEF", "CFG_DEF", "MUN_DANE", "MEDS", "AEE",
+  "TX", "PROCED", "MEDIOS", "RESULT_CTC", "DISCIPLINAS", "EXAMS", "EX", "FREQ_TXT", "ANCHOR_DEF", "META_DEF", "CFG_DEF", "MUN_DANE", "AEE",
   // libro (lectura de los libros existentes, para la migración)
   "SH", "BOOK_KEYS", "DATE_F", "NUM_F", "cacStart", "newBook", "readSheet", "fromRow", "isToolBook", "isDashboard", "parseToolBook",
   // índice y poblaciones
-  "live", "IDX", "reindex", "ensureIdx", "nombre", "activeAt", "activeDays", "overlaps", "ageAt", "adult", "ninety", "epsOk", "turnoDias", "turnoJor", "absentOn", "progDays",
+  "live", "IDX", "reindex", "ensureIdx", "nombre", "activeAt", "activeDays", "overlaps", "ageAt", "adult", "ninety", "epsOk", "turnoDias", "absentOn", "progDays",
   "sesIn", "lastLab", "labsIn", "accessAt", "lastSes", "pacs", "popCut", "popPer", "popInc", "ctxFor",
   // métricas de sesión y fórmulas
   "gidStats", "taStats", "glucoStats", "ktvOnline", "fmtTA", "parseTA", "ktvDaugirdas", "metasDe", "ufCalc", "sesUF",
@@ -171,6 +172,9 @@ const HD_INCLUIR = [
   // estudios, vacunación VHB, trasplante, tener presente
   "EST_TIPOS", "EST_NOM", "estRelevantes", "estVencidos", "vacEsquemas", "vacMeses", "vacDoses", "labTxt", "vacStatus", "VAC_GRUPOS", "vacGrupo", "vacNextDefaults", "vacEtiqueta",
   "TX_EST", "txItems", "txState", "TX_EN_PROCESO", "tenerPresente",
+  // v0.6: registro de dispositivos (días-catéter), confirmación de ITS-CVC por Microbiología, calidad del dato de dispositivos
+  "lv", "hdOn", "DSP_TIPOS", "DSP_SITIOS", "DSP_RETIRO", "DSP_LUGAR", "dspAll", "dspOf", "dspCVC", "dspFind", "dspOpen", "cdMet", "dspCovers", "hospOn", "cdCalc", "dspPropuestas",
+  "MIC_MUESTRAS", "MIC_SANGRE", "MIC_EST", "MIC_RES", "MIC_FEN", "MIC_FEN_ALERTA", "micAll", "micOfEp", "micOfPac", "micPos", "micAB", "itsConf", "v6Its", "v6Calidad",
   // reportes CAC (matrices)
   "CAC_H_FOMAG", "CAC_H_ERC", "CAC_SHEET_FOMAG", "CAC_SHEET_ERC", "D1800", "isoOr", "cacVals",
 ];
@@ -179,21 +183,24 @@ generar({
   archivo: "hd.js",
   funcion: "crearMotorHD",
   cabecera: "// Hemodiálisis: índice por paciente, indicadores CAC e institucionales, semáforo, alertas, calidad del dato y de diálisis,\n// calendario de laboratorios, vacunación VHB, trasplante, facturación y valores de la matriz CAC.",
-  fuentes: [HD],
+  fuentes: [PRINCIPAL],
   incluir: HD_INCLUIR,
+  sentencias: new Set(["SH", "BOOK_KEYS", "DATE_F", "NUM_F", "CFG_DEF"]),
   preludio: `${PRELUDIO_HOY}
 /* Estado que en el prototipo vivía en la pantalla. ctx.libro: el libro de hemodiálisis (mismas hojas y columnas). */
 const ST = { book: ctx.libro, corte: ctx.corte ? new Date(ctx.corte) : TODAY(), ps: null, eps: ctx.eps || "", ui: {}, fin: { data: ctx.facturacion || null } };
+/* Libro institucional (ctx.portal): Hemodiálisis lee de él la hoja Microbiología para confirmar las ITS-CVC. */
+const PX = { book: ctx.portal || null };
 ST.ps = ctx.inicioPeriodo ? new Date(ctx.inicioPeriodo) : cacStart(ST.corte); // cacStart es una declaración de función (se eleva)`,
-  provistos: new Set(["ST", "TODAY", "XLSX"]),
+  provistos: new Set(["ST", "PX", "TODAY", "XLSX"]),
 });
 
 /* ---------- VIH ---------- */
 const VIH_INCLUIR = [
   "VX_CAC_COLS", "VXS", "VXK", "VX_EPS", "VX_EPSCODE_DEF", "VX_REG", "VX_MUN", "VX_MUN_ALIAS", "VX_PCLAVE", "VX_TINGR", "VX_ESTADO", "VX_MODAL", "VX_DISC", "VX_DISC_ACT",
-  "VX_CITEST", "VX_CITTIPO", "VX_MOTINAS", "VX_NOV", "VX_PRC", "VX_PRF", "VX_EX", "VXE", "VX_CONTRATO_DEF", "VX_GUIA_DIF", "VX_MED", "VX_CLASES", "VX_ESQ", "VXQ",
+  "VX_CITTIPO", "VX_MOTINAS", "VX_NOV", "VX_PRC", "VX_PRF", "VX_EX", "VXE", "VX_CONTRATO_DEF", "VX_GUIA_DIF", "VX_MED", "VX_CLASES", "VX_ESQ", "VXQ",
   "VX_GPC_PREF", "VX_VAC", "VXV", "VX_VACEST",
-  "vxLive", "vxD", "vxNom", "vxCorte", "vxMunCode", "vxMunName", "vxCfg", "vxNewBook", "vxEdad", "vxGrupoEtario", "vxF", "vxPct",
+  "vxLive", "vxD", "vxNom", "vxCorte", "vxMunCode", "vxMunName", "vxCfg", "vxNewBook", "vxEdad", "vxGrupoEtario", "vxF",
   "vxIdx", "vxPacs", "vxP", "vxL", "vxLast", "vxFirst", "vxVal", "vxPos", "vxCVind", "vxFmtLab", "vxPeriodo", "vxActivo", "vxTarAt", "vxTarIni", "vxUltEnt", "vxCobertura",
   "vxUltAtencion", "vxNovAt", "vxSt", "vxVacEstado", "vxVacCompleta", "vxContrato", "vxHSH", "vxSolRecs", "vxSolTieneRes", "vxAlertas", "vxTFG",
   // indicadores
@@ -211,7 +218,7 @@ generar({
   archivo: "vih.js",
   funcion: "crearMotorVIH",
   cabecera: "// Programa VIH: estado del paciente al corte, alertas, carné de vacunas, contrato de laboratorios, indicadores CAC y Nueva EPS,\n// agenda por disciplina, adherencia (SMAQ), TAR, producción y filas de la cohorte nominal y del reporte CAC.",
-  fuentes: [HD, VIH], // utilidades de hd.js primero: VIH las usa al definir sus constantes
+  fuentes: [PRINCIPAL],
   incluir: [...UTIL, ...VIH_INCLUIR],
   preludio: `${PRELUDIO_HOY}
 /* Estado que en el prototipo vivía en la pantalla. ctx.libro: el libro del programa VIH (mismas hojas y columnas). */
@@ -223,24 +230,28 @@ const VX = { book: ctx.libro, ui: Object.assign({ tab: "tab" }, ctx.ui || {}), d
 {
   const clinico = P.nefroScripts.find((s) => s.includes("MOTOR CLÍNICO (sin DOM)"));
   const cohorte = P.nefroScripts.find((s) => s.includes("MOTOR DE COHORTE"));
-  if (!clinico || !cohorte) throw new Error("No se encontraron los motores de Nefroprotección.");
+  const riesgo = P.nefroScripts.find((s) => s.includes("RIESGO CARDIOVASCULAR Y FUNCIÓN RENAL"));
+  if (!clinico || !cohorte || !riesgo) throw new Error("No se encontraron los motores de Nefroprotección.");
+  const N0 = { archivo: "riesgo_cv.js", ...definiciones(riesgo, 0, "nefroproteccion/riesgo_cv.js") };
   const N1 = { archivo: "motor_clinico.js", ...definiciones(clinico, 0, "nefroproteccion/motor_clinico.js") };
   const N2 = { archivo: "motor_cohorte.js", ...definiciones(cohorte, 0, "nefroproteccion/motor_cohorte.js") };
+  // Los demás scripts de la Ruta (interfaz, gestión, v8) solo sirven para detectar dependencias no incluidas.
+  const resto = P.nefroScripts.filter((s) => ![riesgo, clinico, cohorte].includes(s)).map((s, i) => ({ archivo: `interfaz-${i + 1}`, ...definiciones(s, 0, `nefroproteccion/interfaz-${i + 1}`) }));
   // Las sentencias que tocan window/localStorage (modelo por EPS guardado en el navegador) se omiten: el modelo llega en ctx.
-  const omitidas = [...N1.otras, ...N2.otras].map((o) => `${o.linea}: ${o.texto}`);
+  const omitidas = [...N0.otras, ...N1.otras, ...N2.otras].map((o) => `${o.linea}: ${o.texto.slice(0, 80)}`);
   console.log("Nefro: sentencias omitidas (estado del navegador):\n  " + omitidas.join("\n  "));
   generar({
     archivo: "nefro.js",
     funcion: "crearMotorNefro",
-    cabecera: "// Ruta de Nefroprotección v7.2: motor clínico (clasificación, metas, medicamentos, plan) y motor de cohorte (fichas e indicadores).",
-    fuentes: [N1, N2],
-    incluir: ["NP", "EPSMODEL_DEF", "COH"],
+    cabecera: "// Ruta de Nefroprotección v8: riesgo cardiovascular y función renal (RCV), motor clínico (clasificación, metas, medicamentos,\n// plan) y motor de cohorte (fichas e indicadores).",
+    fuentes: [N0, N1, N2, ...resto],
+    incluir: ["RCV", "NP", "EPSMODEL_DEF", "COH"],
     preludio: `/* El modelo de atención por EPS vivía en window.EPSMODEL (y localStorage). Aquí llega en ctx.modeloEps. */
 let __modelo = ctx && ctx.modeloEps ? JSON.parse(JSON.stringify(ctx.modeloEps)) : null;
 const window = { get EPSMODEL() { return __modelo || (__modelo = JSON.parse(JSON.stringify(EPSMODEL_DEF))); } };
 const XLSX = ctx && ctx.XLSX;`,
     provistos: new Set(["window", "XLSX"]),
-    exportar: ["NP", "COH", "EPSMODEL_DEF", "window"],
+    exportar: ["RCV", "NP", "COH", "EPSMODEL_DEF", "window"],
   });
 }
 

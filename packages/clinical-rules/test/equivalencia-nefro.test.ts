@@ -1,4 +1,4 @@
-/* Equivalencia Nefroprotección: Ruta v7.2 original (oráculo, documento aparte como el iframe) frente a crearMotorNefro,
+/* Equivalencia Nefroprotección: Ruta v8 original (oráculo, documento aparte como el iframe) frente a crearMotorNefro,
    con la cohorte ficticia amplia del prototipo (100 pacientes por EPS con 6 meses de agenda simulada). */
 import { describe, expect, it } from "vitest";
 import * as XLSX from "xlsx";

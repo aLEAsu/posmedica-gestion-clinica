@@ -1,6 +1,6 @@
 // GENERADO por packages/clinical-rules/scripts/extraer-reglas.mjs a partir de «Gestión Clínica POSMÉDICA (1).html».
 // NO EDITAR A MANO: cualquier cambio de regla se hace en el prototipo validado por la coordinación médica y se vuelve a extraer.
-// Las referencias «archivo:línea» apuntan a los archivos de _analisis/.
+// Las referencias «prototipo:línea» son líneas del archivo HTML del prototipo; las de Nefroprotección, de _analisis/.
 // Hemodiálisis: índice por paciente, indicadores CAC e institucionales, semáforo, alertas, calidad del dato y de diálisis,
 // calendario de laboratorios, vacunación VHB, trasplante, facturación y valores de la matriz CAC.
 export function crearMotorHD(ctx) {
@@ -10,30 +10,32 @@ const TODAY = () => new Date(__hoy.getFullYear(), __hoy.getMonth(), __hoy.getDat
 const XLSX = ctx && ctx.XLSX;
 /* Estado que en el prototipo vivía en la pantalla. ctx.libro: el libro de hemodiálisis (mismas hojas y columnas). */
 const ST = { book: ctx.libro, corte: ctx.corte ? new Date(ctx.corte) : TODAY(), ps: null, eps: ctx.eps || "", ui: {}, fin: { data: ctx.facturacion || null } };
+/* Libro institucional (ctx.portal): Hemodiálisis lee de él la hoja Microbiología para confirmar las ITS-CVC. */
+const PX = { book: ctx.portal || null };
 ST.ps = ctx.inicioPeriodo ? new Date(ctx.inicioPeriodo) : cacStart(ST.corte); // cacStart es una declaración de función (se eleva)
-/* hd.js:5 */
+/* prototipo:740 */
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-/* hd.js:6 */
+/* prototipo:741 */
 const pad=n=>String(n).padStart(2,"0");
-/* hd.js:7 */
+/* prototipo:742 */
 const iso=d=>d?d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()):"";
-/* hd.js:8 */
+/* prototipo:743 */
 const fd=d=>d?pad(d.getDate())+"/"+pad(d.getMonth()+1)+"/"+d.getFullYear():"";
-/* hd.js:9 */
+/* prototipo:744 */
 const ym=d=>d.getFullYear()+"-"+pad(d.getMonth()+1);
-/* hd.js:11 */
+/* prototipo:746 */
 const addDays=(d,k)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+k);
-/* hd.js:12 */
+/* prototipo:747 */
 function addMonths(d,m){const t=new Date(d.getFullYear(),d.getMonth()+m,1);const last=new Date(t.getFullYear(),t.getMonth()+1,0).getDate();return new Date(t.getFullYear(),t.getMonth(),Math.min(d.getDate(),last));}
-/* hd.js:13 */
+/* prototipo:748 */
 const monthStart=d=>new Date(d.getFullYear(),d.getMonth(),1);
-/* hd.js:14 */
+/* prototipo:749 */
 const monthEnd=d=>new Date(d.getFullYear(),d.getMonth()+1,0);
-/* hd.js:15 */
+/* prototipo:750 */
 const dayDiff=(a,b)=>Math.round((b-a)/864e5);
-/* hd.js:16 */
+/* prototipo:751 */
 const nowTs=()=>{const d=new Date();return iso(d)+" "+pad(d.getHours())+":"+pad(d.getMinutes());};
-/* hd.js:17 */
+/* prototipo:752 */
 function pdate(v){
   if(v==null||v==="")return null;
   if(v instanceof Date)return isNaN(v)?null:new Date(v.getFullYear(),v.getMonth(),v.getDate());
@@ -42,85 +44,81 @@ function pdate(v){
   m=/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/.exec(s);if(m){let d=+m[1],mo=+m[2];if(mo>12&&d<=12){const t=d;d=mo;mo=t;}if(mo<1||mo>12||d<1||d>31)return null;return new Date(+m[3],mo-1,d);}
   return null;
 }
-/* hd.js:25 */
+/* prototipo:760 */
 function num(v){if(v==null||v==="")return null;if(typeof v==="number")return isFinite(v)?v:null;const s=String(v).replace(",",".").replace(/[^\d.\-]/g,"");if(s===""||s==="-"||s===".")return null;const n=parseFloat(s);return isFinite(n)?n:null;}
-/* hd.js:26 */
+/* prototipo:761 */
 const norm=s=>String(s==null?"":s).normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase().replace(/\s+/g," ").trim();
-/* hd.js:27 */
+/* prototipo:762 */
 const f1=(v,n)=>v==null||isNaN(v)?"—":Number(v).toLocaleString("es-CO",{minimumFractionDigits:n==null?1:n,maximumFractionDigits:n==null?1:n});
-/* hd.js:28 */
+/* prototipo:763 */
 const pct=v=>v==null||isNaN(v)?"—":f1(v*100)+" %";
-/* hd.js:29 */
+/* prototipo:764 */
 const money=v=>v==null||isNaN(v)?"—":"$ "+Math.round(v).toLocaleString("es-CO");
-/* hd.js:36 */
+/* prototipo:771 */
 const EPS_L=["NUEVA EPS","MALLAMAS","FOMAG","FAMILIAR DE COLOMBIA","EMSSANAR","OTRA"];
-/* hd.js:37 */
+/* prototipo:772 */
 function epsList(){const s=new Set(EPS_L);if(ST&&ST.book)ST.book.pac.forEach(p=>{if(p.EPS)s.add(p.EPS);});return[...s];}
-/* hd.js:38 */
+/* prototipo:773 */
 const TURNOS_DEF=[{n:"L-M-V Mañana",d:[1,3,5],j:"Mañana"},{n:"L-M-V Tarde",d:[1,3,5],j:"Tarde"},{n:"M-J-S Mañana",d:[2,4,6],j:"Mañana"},{n:"M-J-S Tarde",d:[2,4,6],j:"Tarde"},{n:"M-J-V Mañana",d:[2,4,5],j:"Mañana"},{n:"M-J-V Tarde",d:[2,4,5],j:"Tarde"}];
-/* hd.js:39 */
+/* prototipo:774 */
 function turnosCfg(){return(ST.book&&ST.book.cfgv.turnos)||TURNOS_DEF;}
-/* hd.js:40 */
+/* prototipo:775 */
 function turnoNames(){return turnosCfg().map(t=>t.n);}
-/* hd.js:41 */
+/* prototipo:776 */
 const DIAS_L=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
-/* hd.js:42 */
+/* prototipo:777 */
 const ESTADOS_SES=[["Realizada","Realizada","e-r"],["No asistió","No asistió","e-n"],["Canceló con aviso","Canceló","e-c"],["Suspendida","Suspendida","e-s"]];
-/* hd.js:44 */
+/* prototipo:779 */
 const MOTIVOS=[["Hospitalización","Clínico"],["Enfermedad intercurrente sin hospitalización","Clínico"],["Falleció","Clínico"],["Viaje o diálisis en otra unidad","Paciente"],["Sin transporte","Paciente"],["Calamidad o problema familiar","Paciente"],["No informa / no contactado","Paciente"],["Decide no asistir","Paciente"],["Cita médica externa","Paciente"],["Autorización de la EPS vencida o negada","EPS"],["Transporte a cargo de la EPS no disponible","EPS"],["Falla de máquina o planta de agua","IPS"],["Falta de insumo","IPS"],["Falta de personal","IPS"],["Otro","Otro"]];
-/* hd.js:45 */
+/* prototipo:780 */
 const MOT_RESP=Object.fromEntries(MOTIVOS);
-/* hd.js:46 */
+/* prototipo:781 */
 const CAUSA_HOSP=["Infección del acceso / ITS-CVC","Otra infección","Sobrecarga hídrica / edema pulmonar","Hiperpotasemia u otro trastorno metabólico","Síndrome coronario / falla cardiaca","Arritmia","Evento cerebrovascular","Sangrado digestivo","Disfunción o trombosis del acceso","Fractura o trauma","Cirugía programada","Otra"];
-/* hd.js:47 */
+/* prototipo:782 */
 const ATRIB=["Sí","No","En estudio"];
-/* hd.js:48 */
-const TIPO_SES=["Programada","Extra","Reprogramada"];
-/* hd.js:49 */
+/* prototipo:783 */
 const MOT_EXTRA=["Sobrecarga hídrica","Hiperpotasemia","Sesión previa incompleta","Prescripción de más de 3 sesiones por semana","Reposición de sesión perdida","Otro"];
-/* hd.js:50 */
-const RESP=["Paciente","EPS","IPS","Clínico","Otro"];
-/* hd.js:51 */
+/* prototipo:784 */
 const ACCESOS=["FAV","Injerto","CVC tunelizado","CVC temporal"];
-/* hd.js:52 */
+/* prototipo:785 */
 const isCVC=a=>/^CVC/.test(a||"");
-/* hd.js:53 */
+/* prototipo:786 */
 const ITS="Bacteriemia asociada a catéter (ITS-CVC)";
-/* hd.js:54 */
+/* prototipo:787 */
 const EVENTOS=["Hipotensión intradialítica","Hipertensión intradialítica","Calambres musculares","Náuseas / vómitos","Cefalea","Hipoglucemia","Hiperpotasemia","Reacción al dializador","Coagulación del circuito","Sangrado del acceso vascular","Disfunción del acceso (flujo bajo)",ITS,"Infección del sitio de salida o túnel","Infección de FAV o injerto","Arritmia","Dolor torácico","Fiebre / escalofríos","Síndrome de desequilibrio","Embolismo aéreo","Prurito","Síncope","Caída","Error de medicación","Otro"];
-/* hd.js:55 */
+/* prototipo:788 */
 const SEV=["Leve","Moderada","Severa"];
-/* hd.js:56 */
+/* prototipo:789 */
 const RESUELTO=["Sí","No","En seguimiento"];
-/* hd.js:57 */
+/* prototipo:790 */
 const HEMOC=["Positivo","Negativo","Pendiente","No tomado"];
-/* hd.js:58 */
+/* prototipo:791 */
 const NOV_TIPOS=["Hospitalización","Viaje / traslado temporal","Otra"];
-/* hd.js:59 */
+/* prototipo:792 */
 const MOV_EGRESO=["Fallecimiento","Trasplante","Traslado a otra unidad","Cambio a DP","Abandono","Recuperación de función","Otro egreso"];
-/* hd.js:60 */
+/* prototipo:793 */
 const MOV_TIPOS=MOV_EGRESO.concat(["Reingreso"]);
-/* hd.js:61 */
+/* prototipo:794 */
 const EGRESO_ESTADO={"Fallecimiento":"Fallecido","Trasplante":"Trasplantado","Traslado a otra unidad":"Trasladado","Cambio a DP":"Cambio a DP","Abandono":"Abandono","Recuperación de función":"Recuperación de función","Otro egreso":"Inactivo"};
-/* hd.js:62 */
+/* prototipo:795 */
 const RUTA=["Sin valorar","Remitido a cirugía vascular","Doppler o mapeo vascular","FAV creada, en maduración","FAV lista, pendiente de punción","No factible (concepto especializado)","Desistimiento firmado","Cuidados paliativos"];
-/* hd.js:63 */
+/* prototipo:796 */
 const RUTA_EXCL=["No factible (concepto especializado)","Desistimiento firmado","Cuidados paliativos"];
-/* hd.js:64 */
+/* prototipo:797 */
 const ACC_NOV=["Disfunción / bajo flujo","Trombosis","Infección del sitio de salida","Infección del túnel","Sangrado del acceso","Inserción de catéter tunelizado","Inserción de catéter temporal","Recambio de catéter","Retiro de catéter","Creación de FAV","Primera punción de FAV","Angioplastia o trombectomía","Pérdida de FAV","Remisión a cirugía vascular","Otro"];
-/* hd.js:65 */
+/* prototipo:798 */
 const ACC_NOV_RES={"Inserción de catéter tunelizado":"CVC tunelizado","Inserción de catéter temporal":"CVC temporal","Primera punción de FAV":"FAV"};
-/* hd.js:66 */
+/* prototipo:799 */
 const TX=["Sin evaluar","No idóneo (contraindicación con soporte)","Disentimiento","Cuidados paliativos","Idóneo, en estudio","En lista de espera","Trasplantado"];
-/* hd.js:67 */
+/* prototipo:800 */
 const PROCED=["Prediálisis de la IPS","Urgencia","Traslado de otra unidad","Otra"];
-/* hd.js:68 */
+/* prototipo:801 */
 const MEDIOS=["Llamada","Mensaje","Visita","Acudiente","SIAU","Notificación a EPS"];
-/* hd.js:69 */
+/* prototipo:802 */
 const RESULT_CTC=["Contactado, asistirá","Contactado, no asistirá","No contesta","Número errado","Hospitalizado","Falleció","Otro"];
-/* hd.js:70 */
+/* prototipo:803 */
 const DISCIPLINAS=["Nefrología","Medicina general o experto","Medicina interna","Enfermería","Nutrición","Psicología","Trabajo social","Química farmacéutica","Endocrinología","Oftalmología"];
-/* hd.js:72 */
+/* prototipo:805 */
 const EXAMS=[
  {k:"Hb",l:"Hemoglobina",u:"g/dL",lo:3,hi:20,f:"M"},{k:"Hto",l:"Hematocrito",u:"%",lo:9,hi:65,f:"M"},{k:"BUNpre",l:"BUN pre-diálisis",u:"mg/dL",lo:5,hi:250,f:"M"},{k:"BUNpost",l:"BUN post-diálisis",u:"mg/dL",lo:1,hi:150,f:"M"},
  {k:"KtV",l:"Kt/V (spKt/V)",u:"",lo:0.3,hi:3.5,f:""},{k:"URR",l:"PRU (URR)",u:"%",lo:10,hi:95,f:""},{k:"Creat",l:"Creatinina",u:"mg/dL",lo:0.3,hi:30,f:"M"},
@@ -131,15 +129,15 @@ const EXAMS=[
  {k:"AcUrico",l:"Ácido úrico",u:"mg/dL",lo:0.5,hi:20,f:""},{k:"PO",l:"Parcial de orina",txt:["Normal","Alterado","Anuria"],f:""},{k:"EKG",l:"Electrocardiograma",txt:["Normal","Alterado"],f:"A"},
  {k:"CVVHC",l:"Carga viral VHC",txt:["No detectable","Detectable"],f:""},{k:"TAS",l:"TA sistólica de consulta",u:"mmHg",lo:60,hi:260,f:""},{k:"EscalaCV",l:"Escala de calidad de vida",u:"puntaje",lo:0,hi:1000,f:"A"}
 ];
-/* hd.js:82 */
+/* prototipo:815 */
 const EX=Object.fromEntries(EXAMS.map(e=>[e.k,e]));
-/* hd.js:83 */
+/* prototipo:816 */
 const FREQ_TXT={M:"Mensual",T:"Trimestral",S:"Semestral",A:"Anual",I:"Al ingreso","":"A demanda"};
-/* hd.js:85 */
+/* prototipo:818 */
 const ANCHOR_DEF={T:1,S:10,A:4};
-/* hd.js:86 */
+/* prototipo:819 */
 const META_DEF={hbLo:10,hbHi:11.5,pLo:2.5,pHi:5.5,caHi:10.2,pthLo:130,pthHi:600,ktv:1.2,ktvObj:1.4,alb:4,kLo:3.5,kHi:5.5,a1c:7.5,gidPct:4,tasHi:140,ferrHi:500,tsatLo:20,tsatHi:30};
-/* hd.js:87 */
+/* prototipo:820 */
 const CFG_DEF={puestos:13,durDefault:240,minSes:{"NUEVA EPS":10,"MALLAMAS":8,"FOMAG":8,"FAMILIAR DE COLOMBIA":8,"EMSSANAR":8,"OTRA":8},maxSes:{"NUEVA EPS":15,"MALLAMAS":12,"FOMAG":12,"FAMILIAR DE COLOMBIA":15,"EMSSANAR":12,"OTRA":13},freq:{},anchor:ANCHOR_DEF,ktvMetodo:"Daugirdas II (spKt/V)",turnos:null,metas:{},metaPac:META_DEF,
   ips:{codigo:"860010090801",nombre:"POSMEDICA GROUP S.A.S.",depto:"PUTUMAYO"},epsCod:{"FOMAG":"RES004"},
   vacEsq:[{n:"Engerix-B 40 µg (2 × 20 µg) · meses 0-1-2-6",m:[0,1,2,6]},{n:"Recombivax HB 40 µg, formulación diálisis · meses 0-1-6",m:[0,1,6]}],
@@ -148,13 +146,11 @@ const CFG_DEF={puestos:13,durDefault:240,minSes:{"NUEVA EPS":10,"MALLAMAS":8,"FO
    "Infecciones · VIH","Infecciones · VHB: HBsAg, anti-HBc y anti-HBs","Infecciones · VHC","Infecciones · CMV IgG","Infecciones · Epstein-Barr IgG","Infecciones · Varicela zóster IgG","Infecciones · Sífilis","Infecciones · Tuberculosis latente (tamizaje)","Infecciones · Strongyloides y Chagas (zona endémica)","Infecciones · Vacunación completa antes del trasplante",
    "Cardiovascular · Electrocardiograma","Cardiovascular · Ecocardiograma (2 años o más en diálisis o riesgo de hipertensión pulmonar)","Cardiovascular · Prueba no invasiva de isquemia (alto riesgo)","Cardiovascular · Evaluación de enfermedad arterial periférica",
    "Otros · Radiografía de tórax (TAC si fumador pesado)","Otros · Tamización de cáncer según edad y sexo","Otros · Valoración psicosocial","Otros · PTH y perfil hepático","Otros · Valoración odontológica (según la IPS trasplantadora)","Otros · Valoración urológica (según la IPS trasplantadora)"]};
-/* hd.js:95 */
+/* prototipo:828 */
 const MUN_DANE={"MOCOA":"86001","COLON":"86219","ORITO":"86320","PUERTO ASIS":"86568","PUERTO CAICEDO":"86569","PUERTO GUZMAN":"86571","PUERTO LEGUIZAMO":"86573","LEGUIZAMO":"86573","SIBUNDOY":"86749","SAN FRANCISCO":"86755","SAN MIGUEL":"86757","SANTIAGO":"86760","VALLE DEL GUAMUEZ":"86865","VILLAGARZON":"86885"};
-/* hd.js:97 */
-const MEDS=["Eritropoyetina alfa","Darbepoetina alfa","Hierro sacarosa IV","Calcitriol","Paricalcitol","Cinacalcet","Sevelamer","Carbonato de calcio","Acetato de calcio","Colecalciferol","Ácido fólico","Complejo B","Losartán","Enalapril","Amlodipino","Carvedilol","Metoprolol","Clonidina","Minoxidil","Insulina glargina","Insulina cristalina","Atorvastatina","Omeprazol","Otro"];
-/* hd.js:98 */
+/* prototipo:830 */
 const AEE=["Eritropoyetina alfa","Darbepoetina alfa"];
-/* hd.js:101 */
+/* prototipo:833 */
 const SH={
  pac:["Pacientes",["ID","TipoDoc","Documento","Apellidos","Nombres","FechaNac","Sexo","EPS","Regimen","Afiliacion","FechaAfiliacion","Municipio","MunicipioDANE","Zona","Direccion","Barrio","Telefono","Acudiente","TelAcudiente","Etnia","GrupoPob","Discapacidad","HTA","FechaDxHTA","DM","DMTipo","FechaDxDM","Dislipidemia","Etiologia","Talla","FechaDxERC5","TFGInicio","ModoInicio","InicioTRR","IngresoUnidad","IngresoPrograma","Procedencia","AccesoInicial","Estado","FechaEstado","CausaMuerte","Turno","Puesto","SesSemana","DuracionMin","PesoSeco","AccesoActual","AccesoDesde","RutaAcceso","SoporteRuta","FechaRuta","TxEstado","TxFecha","TxIPS","TxContra","VacunaVHB","VHBNoRespondedor","Paratiroidectomia","BDUA","NovedadCAC","Metas","Obs","Usuario","Actualizado"]],
  mov:["Movimientos",["ID","Paciente","Fecha","Tipo","Detalle","Usuario","Registrado","Anulado","MotivoAnulacion"]],
@@ -180,25 +176,25 @@ const SH={
  cfg:["Config",["Clave","Valor"]],
  fin:["Fin_cifrado",["Clave","Valor"]]
 };
-/* hd.js:126 */
+/* prototipo:858 */
 const BOOK_KEYS=["pac","ses","evt","lab","nov","mov","ctc","acn","ate","val","est","vac","txs","sol","seg","atb","aud","med","dis","cor","log"];
-/* hd.js:127 */
+/* prototipo:859 */
 const DATE_F=new Set(["FechaNac","InicioTRR","IngresoUnidad","IngresoPrograma","FechaEstado","AccesoDesde","FechaRuta","TxFecha","Fecha","FechaToma","Inicio","Fin","FechaCierre","FechaCorte","InicioPeriodo","FechaAfiliacion","FechaDxHTA","FechaDxDM","FechaDxERC5","Reprograma","ProximoControl"]);
-/* hd.js:128 */
+/* prototipo:860 */
 const NUM_F=new Set(["Puesto","SesSemana","DuracionMin","PesoPre","PesoPost","TASPre","TADPre","TASPost","TADPost","Gluco","KtVOCM","PesoSeco","Talla","TFGInicio","Diuresis","CalidadPuntaje","Observadas","Cumplidas","Prescrita","Entregada","CantidadMes","UFNeta","UFR","UFMaquina","NumDosis"]);
-/* hd.js:131 */
+/* prototipo:863 */
 function cacStart(d){return d.getMonth()>=6?new Date(d.getFullYear(),6,1):new Date(d.getFullYear()-1,6,1);}
-/* hd.js:133 */
+/* prototipo:865 */
 function newBook(){const b={};Object.keys(SH).forEach(k=>b[k]=[]);b.cfgv=JSON.parse(JSON.stringify(CFG_DEF));b.finBlob=null;return b;}
-/* hd.js:134 */
+/* prototipo:866 */
 function readSheet(wb,name){const sn=wb.SheetNames.find(n=>norm(n)===norm(name));if(!sn)return null;return XLSX.utils.sheet_to_json(wb.Sheets[sn],{raw:true,defval:null});}
-/* hd.js:135 */
+/* prototipo:867 */
 function fromRow(r){const o={};for(const k in r){let v=r[k];if(DATE_F.has(k))v=pdate(v);else if(NUM_F.has(k))v=num(v);else if(v!=null)v=typeof v==="string"?v.trim():v;o[k]=v;}return o;}
-/* hd.js:136 */
+/* prototipo:868 */
 function isToolBook(wb){return!!wb.SheetNames.find(n=>norm(n)==="SESIONES")&&!!wb.SheetNames.find(n=>norm(n)==="PACIENTES");}
-/* hd.js:137 */
+/* prototipo:869 */
 function isDashboard(wb){return!!wb.SheetNames.find(n=>norm(n)==="2.PACIENTES");}
-/* hd.js:138 */
+/* prototipo:870 */
 function parseToolBook(wb){
   const b=newBook();
   for(const k in SH){if(k==="cfg"||k==="fin")continue;const rows=readSheet(wb,SH[k][0])||[];b[k]=rows.map(fromRow).filter(o=>Object.values(o).some(v=>v!=null&&v!==""));}
@@ -207,11 +203,11 @@ function parseToolBook(wb){
   const fin=readSheet(wb,SH.fin[0])||[];if(fin.length){const m={};fin.forEach(r=>{m[r.Clave]=r.Valor;});const parts=Object.keys(m).filter(k=>/^Datos\d+$/.test(k)).sort((a,b)=>+a.slice(5)-+b.slice(5)).map(k=>m[k]).join("");if(m.Sal&&m.IV&&parts)b.finBlob={salt:m.Sal,iv:m.IV,ct:parts};}
   return b;
 }
-/* hd.js:171 */
+/* prototipo:903 */
 const live=o=>o.Anulado!=="SI";
-/* hd.js:174 */
+/* prototipo:906 */
 const IDX={dirty:true,pac:new Map()};
-/* hd.js:175 */
+/* prototipo:907 */
 function reindex(){
   const B=ST.book;IDX.pac=new Map();
   B.pac.forEach(p=>{p._ses=[];p._evt=[];p._lab={};p._nov=[];p._ctc=[];p._mov=[];p._acn=[];p._ate=[];p._val=[];p._med=[];p._dis=[];p._seg=[];p._atb=[];p._est=[];p._vac=[];p._txs=[];p._sol=[];IDX.pac.set(p.ID,p);});
@@ -232,88 +228,86 @@ function reindex(){
   });
   IDX.dirty=false;
 }
-/* hd.js:195 */
+/* prototipo:927 */
 function ensureIdx(){if(IDX.dirty)reindex();}
-/* hd.js:196 */
+/* prototipo:928 */
 const nombre=p=>p?((p.Nombres||"")+" "+(p.Apellidos||"")).trim()||p.ID:"";
-/* hd.js:197 */
+/* prototipo:929 */
 function activeAt(p,d){return p._iv.some(([a,b])=>a<=d&&(!b||d<=b));}
-/* hd.js:198 */
+/* prototipo:930 */
 function activeDays(p,a,b){let n=0;p._iv.forEach(([s,e])=>{const x=s>a?s:a,y=(e&&e<b)?e:b;if(y>=x)n+=dayDiff(x,y)+1;});return n;}
-/* hd.js:199 */
+/* prototipo:931 */
 function overlaps(p,a,b){return p._iv.some(([s,e])=>s<=b&&(!e||e>=a));}
-/* hd.js:200 */
+/* prototipo:932 */
 function ageAt(p,d){if(!p.FechaNac)return null;let a=d.getFullYear()-p.FechaNac.getFullYear();if(d<new Date(d.getFullYear(),p.FechaNac.getMonth(),p.FechaNac.getDate()))a--;return a;}
-/* hd.js:201 */
+/* prototipo:933 */
 const adult=(p,d)=>{const a=ageAt(p,d);return a==null||a>=18;};
-/* hd.js:202 */
+/* prototipo:934 */
 const ninety=(p,d)=>{const s=p.InicioTRR||p.IngresoUnidad;return!s||dayDiff(s,d)>=90;};
-/* hd.js:203 */
+/* prototipo:935 */
 const epsOk=p=>!ST.eps||p.EPS===ST.eps;
-/* hd.js:204 */
+/* prototipo:936 */
 function turnoDias(t){const c=turnosCfg().find(x=>x.n===t);if(c)return c.d;t=t||"";return/^L-M-V/.test(t)?[1,3,5]:/^M-J-S/.test(t)?[2,4,6]:/^M-J-V/.test(t)?[2,4,5]:[];}
-/* hd.js:205 */
-function turnoJor(t){const c=turnosCfg().find(x=>x.n===t);return c?c.j:(/Tarde/i.test(t||"")?"Tarde":"Mañana");}
-/* hd.js:206 */
+/* prototipo:937 */
 function absentOn(p,d){return p._nov.some(n=>(n.Tipo==="Hospitalización"||n.Tipo==="Viaje / traslado temporal")&&n.Inicio<=d&&(!n.Fin||d<=n.Fin));}
-/* hd.js:207 */
+/* prototipo:938 */
 function progDays(p,a,b){const out=[];const dias=turnoDias(p.Turno);if(!dias.length)return out;for(let d=new Date(a);d<=b;d=addDays(d,1)){if(dias.includes(d.getDay())&&activeAt(p,d)&&!absentOn(p,d))out.push(d);}return out;}
-/* hd.js:208 */
+/* prototipo:939 */
 function sesIn(p,a,b,est){return p._ses.filter(s=>s.Fecha>=a&&s.Fecha<=b&&(!est||s.Estado===est));}
-/* hd.js:209 */
+/* prototipo:940 */
 function lastLab(p,k,a,b){const L=p._lab[k];if(!L)return null;for(let i=L.length-1;i>=0;i--){const l=L[i];if(l.FechaToma<=b&&(!a||l.FechaToma>a))return l;}return null;}
-/* hd.js:210 */
+/* prototipo:941 */
 function labsIn(p,k,a,b){return(p._lab[k]||[]).filter(l=>l.FechaToma>a&&l.FechaToma<=b);}
-/* hd.js:211 */
+/* prototipo:942 */
 function accessAt(p,d){let s=null;for(let i=p._ses.length-1;i>=0;i--){const x=p._ses[i];if(x.Fecha<=d&&x.Acceso&&x.Estado==="Realizada"){s=x;break;}}
   if(p.AccesoActual&&p.AccesoDesde&&p.AccesoDesde<=d&&(!s||p.AccesoDesde>=s.Fecha))return p.AccesoActual;if(s)return s.Acceso;
   if(p.AccesoActual&&(!p.AccesoDesde||p.AccesoDesde<=d))return p.AccesoActual;return p.AccesoInicial||null;}
-/* hd.js:217 */
+/* prototipo:948 */
 function lastSes(p,d,n){const out=[];for(let i=p._ses.length-1;i>=0&&out.length<n;i--){const s=p._ses[i];if(s.Fecha<=d&&s.Estado==="Realizada")out.push(s);}return out.reverse();}
-/* hd.js:219 */
+/* prototipo:950 */
 function gidStats(p,d,n){n=n||8;const R=p._ses.filter(s=>s.Fecha<=d&&s.Estado==="Realizada");const g=[];for(let i=R.length-1;i>0&&g.length<n;i--){const a=R[i-1],b=R[i];const pre=num(b.PesoPre),post=num(a.PesoPost);if(pre!=null&&post!=null&&dayDiff(a.Fecha,b.Fecha)<=4){const ref=num(p.PesoSeco)||post;g.push({d:b.Fecha,kg:pre-post,pct:(pre-post)/ref*100,gap:dayDiff(a.Fecha,b.Fecha)});}}
   const L=lastSes(p,d,n);const uf=L.map(s=>{const a=num(s.PesoPre),b=num(s.PesoPost),m=num(s.DuracionMin);if(a==null||b==null)return null;return{uf:a-b,ufr:m&&b?(a-b)*1000/b/(m/60):null};}).filter(Boolean);
   const av=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
   return{n:g.length,kg:av(g.map(x=>x.kg)),pct:av(g.map(x=>x.pct)),max:g.length?Math.max(...g.map(x=>x.kg)):null,uf:av(uf.map(x=>x.uf)),ufrMax:uf.filter(x=>x.ufr!=null).length?Math.max(...uf.filter(x=>x.ufr!=null).map(x=>x.ufr)):null,list:g};}
-/* hd.js:223 */
+/* prototipo:954 */
 function taStats(p,d,n){n=n||8;const L=lastSes(p,d,n);const v=k=>L.map(s=>num(s[k])).filter(x=>x!=null);const av=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
   const sp=v("TASPre"),dp=v("TADPre"),sq=v("TASPost"),dq=v("TADPost");return{n:sp.length,sPre:av(sp),dPre:av(dp),sPost:av(sq),dPost:av(dq),min:sp.concat(sq).length?Math.min(...sp.concat(sq)):null};}
-/* hd.js:225 */
+/* prototipo:956 */
 function glucoStats(p,a,b){const v=p._ses.filter(s=>s.Fecha>a&&s.Fecha<=b&&num(s.Gluco)!=null).map(s=>({d:s.Fecha,v:num(s.Gluco)}));const av=v.length?v.reduce((x,y)=>x+y.v,0)/v.length:null;
   return{n:v.length,avg:av,hipo:v.filter(x=>x.v<70).length,baja:v.filter(x=>x.v>=70&&x.v<80).length,meta:v.filter(x=>x.v>=80&&x.v<=180).length,hiper:v.filter(x=>x.v>180).length,list:v};}
-/* hd.js:227 */
+/* prototipo:958 */
 function ktvOnline(p,d,n){const L=lastSes(p,d,n||8).map(s=>num(s.KtVOCM)).filter(x=>x!=null);return L.length?{n:L.length,avg:L.reduce((a,b)=>a+b,0)/L.length,last:L[L.length-1]}:null;}
-/* hd.js:228 */
+/* prototipo:959 */
 function fmtTA(s,d){return s==null?"—":Math.round(s)+"/"+(d==null?"—":Math.round(d));}
-/* hd.js:229 */
+/* prototipo:960 */
 function parseTA(v){const m=/^\s*(\d{2,3})\s*[\/\-]\s*(\d{2,3})\s*$/.exec(String(v||""));return m?[+m[1],+m[2]]:null;}
-/* hd.js:231 */
+/* prototipo:962 */
 function ktvDaugirdas(pre,post,tMin,uf,w){if(!pre||!post||post>=pre||!tMin||!w)return null;const R=post/pre,t=tMin/60;const x=R-0.008*t;if(x<=0)return null;return -Math.log(x)+(4-3.5*R)*(uf||0)/w;}
-/* hd.js:232 */
+/* prototipo:963 */
 function metasDe(p){let m={};try{m=p.Metas?JSON.parse(p.Metas):{};}catch(e){}return Object.assign({},META_DEF,ST.book.cfgv.metaPac||{},m);}
-/* hd.js:234 */
+/* prototipo:965 */
 const CAC_H_FOMAG=["MES DE REPORTE", "Var1 Primer nombre del usuario", "Var2 Segundo nombre del usuario\n(En caso de un tercer nombre, escríbalo separado por un espacio. Registre \"NONE\", en mayúscula sostenida, cuando el usuario no tiene segundo nombre (NONE=\"Ningún Otro Nombre Escrito\").)", "Var3 Primer apellido del usuario", "Var4 Segundo apellido del usuario\n(Registre \"NOAP\", en mayúscula sostenida, cuando el usuario no tiene segundo apellido (NOAP=Ningún Otro Apellido\").)", "Var5 Tipo de Identificación del usuario\n(RC = Registro Civil, TI = Tarjeta Identidad, CC = Cédula de Ciudadanía, CE = Cédula Extranjería, PA = Pasaporte, MS = Menor sin Identificación, AS = Adulto sin Identificación, CD = Carnet Diplomático, SC = Salvoconducto de permanencia, PE = Permiso especial, PT = Permiso de protección temporal, SI = Sin identificación, DE = Documento extranjero, CN= Certificado nacido vivo)", "Var6 Número de Identificación del usuario\n(Para MS y AS registre el consecutivo interno del afiliado según lo dispuesto en la Resolución 4622/2016.)", "Var7 Fecha de nacimiento (formato AAAA-MM-DD)", "Edad", "Curso de Vida", "Var8 Sexo\n(Registre\nF = Femenino\nM = Masculino)", "Var9 Régimen de afiliación AL SGSS\nP = Regímenes de excepción\nN = No asegurado)", "Var10 Código de la EPS o de la entidad territorial\n(Registre el código de la EAPB/Ente territorial que reporta (los códigos autorizados están disponibles en la plataforma SISCAC, ruta cargue de archivo plano – pestaña de archivos operativos).)", "Var11 Código pertenencia étnica\n(1 = Indígena\n2 = ROM (gitano)\n3 = Raizal del archipiélago de San Andrés y Providencia\n4 = Palenquero de San Basilio\n5 = Negro(a), mulato(a), afro colombiano(a) o afro descendiente\n6 = Ninguna de las anteriores)", "Var12 Grupo poblacional\n(1 = Indigentes, 2 = Población infantil a cargo del ICBF, 3 = Madres comunitarias, 4 = Artistas, autores, compositores, 5 = Otro grupo poblacional, 6 = Recién nacidos, 7= Discapacitados, 8 = Desmovilizados, 9 = Desplazados, 10 = Población ROM, 11 = Población raizal, 12 = Población en centros psiquiátricos, 13 = Migratorio, 14 = Población en centros carcelarios, 15 = Población rural no migratoria, 16 = Afrocolombiano, 31 = Adulto mayor, 32 = Cabeza de familia, 33 = Mujer embarazada, 34 = Mujer lactante, 35 = Trabajador urbano, 36 = Trabajador rural, 37 = Víctima de violencia armada, 38 = Jóvenes vulnerables rurales, 39 = Jóvenes vulnerables urbanos, 50 = Discapacitado del sistema nervioso, 51 = Discapacitado de los ojos, 52 = Discapacitado de los oídos, 53 = Discapacitado de los demás órganos de los sentidos (olfato, tacto y gusto), 54 = Discapacitado de la voz y el habla, 55 = Discapacitado del sistema cardiorrespiratorio y las defensas, 56 = Discapacitado de la digestión, el metabolismo, las hormonas, 57 = Discapacitado del sistema genital y reproductivo, 58 = Discapacitado del movimiento del cuerpo, manos, brazos, piernas, 59 = Discapacitado de la piel, 60 = Discapacitado de otro tipo, 61 = No definido, 62 = Comunidad indígena, 63 = Comunidad migrante de la República de Venezuela)", "Tipo Discapacidad\nRegistra:\n1=Física\n2=Visual\n3=Auditiva\n4=Intelectual\n5=Sicosocial\n6=Sordoceguera\n7=Múltiple\n8=Sin discapacidad", "Región", "Departamento", "Zona Territorial\nRegistrar;\n1= Urbano\n2= Rural", "Var13 Municipio de residencia (Registre codigo DIVIPOLA - DANE)", "Dirección de residencia", "Barrio de Residencia", "Var14 número telefónico del paciente (Si no se tiene el número telefónico diligencie 0)", "Var15 Fecha de afiliación a la EPS que registra (formato AAAA-MM-DD)", "Var16 Código de la IPS donde se hace seguimiento al usuario\n \n(En los pacientes en diálisis se debe reportar la IPS que realiza la TRR.\nEn los pacientes con trasplante, TMND y aquellos con diagnóstico confirmado de HTA, DM o ERC se debe reportar la IPS que realiza el seguimiento.\nEn pacientes con abandono o alta voluntaria, registre el código de la IPS donde se le hizo el último seguimiento al usuario.)", "Var18 Diagnóstico confirmado de Hipertensión Arterial\n(CIE10 I10- I159, I674, O10, O100-O109, P292\n1 = Si\n2 = No)", "Var19 Fecha de diagnostico de la Hipertension Arterial \n(Si se conoce la fecha registrese en formato AAAA-MM-DD. Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\n1800-01-01 = Desconocida\n1845-01-01 = No aplica, paciente sin diagnóstico de HTA)", "Var20 Diagnóstico confirmado de Diabetes Mellitus- DM \n(CIE-10 con códigos entre E10-E149; O240-O243; P702\n1 = Tipo 1\n2 = No tiene DM\n3 = Tipo 2\n4= Otros (Posquirúrgica, postrasplante, secundaria a medicamentos, MODY))", "Var21 Fecha de diagnostico de la Diabetes Mellitus\n(Si se conoce la fecha registrese en formato AAAA-MM-DD. Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\n1800-01-01 = Desconocida\n1845-01-01 = No aplica, paciente sin diagnóstico de HTA)", "FECHA DE DIAGNOSTICO ERC 1 a 4\nFecha con formato AAAA-MM-DD\n1800-01-01 = Cuando el paciente esta en abandono.\n1845-01-01 = No aplica, paciente en TRR \nSí reporta una fecha válida, debe cargar el soporte del programa", "Var23 Peso con 2 decimales maximo.\n(Para los pacientes que en la variable 35 reportan TFG (Trasplante, TMND, HTA, DM y ERC sin diálisis), el dato reportado debe ser con el que se calculó la TFG registrada por el médico tratante en la historia clínica o en su defecto, con el que se calculó la TFG cuando no se dispuso de este dato.)", "Var24 Talla en cm", "IMC", "Clasificación IMC", "Perimetro Abdominal En CM", "Presenta Dislipidemia\n1= SI\n2= NO", "FECHA DE DIAGNOSTICO(Si se conoce la fecha registrese en formato AAAA-MM-DD. Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\n1800-01-01 = Desconocida\n1845-01-01 = No aplica, paciente sin diagnóstico de Dislipidemia", "Var25 Tensión arterial sistólica\n(999 = Si no tiene valor de TAS dentro del periodo de reporte)", "Var26 Tensión arterial diastólica\n(999 = Si no tiene valor de TAD dentro del periodo de reporte)", "Var27 Creatinina con maximo 2 decimales \n(98 = No aplica, paciente en diálisis\n99 = No se realizó el laboratorio.)", "Var27_1 Fecha de última Creatinina\n(1845-01-01 = No aplica, paciente en diálisis\n1800-01-01 = No se realizó el laboratorio)", "Var28 Hemoglobina Glicosilada\n(98 = No aplica, paciente sin diagnóstico de DM\n99 = No se realizó el laboratorio)", "Var28_1 Fecha de última Hemoglobina Glicosilada\n(1845-01-01= No aplica, paciente sin diagnóstico de DM\n1800-01-01= No se realizó el laboratorio)", "Var29 Albuminuria\n(9888 = No aplica, paciente en TRR\n9999 = No se realizó el laboratorio)", "Var29_1 Fecha de la última Albuminuria\n(1845-01-01= No aplica, paciente en TRR\n1800-01-01 = No se realizó el laboratorio)", "Relación Albuminuria/Creatinuria (mg/g)\n(9888 = No aplica, paciente en TRR\n9999 = No se realizó el laboratorio)", "Var30_1 Fecha de la última Albuminuria/Creatinuria \n(1845-01-01 = No aplica, paciente en TRR\n1800-01-01 = No se realizó el laboratorio)", "Var31 Colesterol total \n(999 = No se realizó el laboratorio)", "Var31_1 Fecha de la último Colesterol total\n(1845-01-01= No se realizó el laboratorio)", "Var32 HDL \n(999 = No se realizó el laboratorio)\n", "Var32_1 Fecha de la último HDL\n(1845-01-01= No se realizó el laboratorio)", "Var33 LDL \n(999 = No se realizó el laboratorio)", "Var33_1 Fecha del último LDL\n(1845-01-01= No se realizó el laboratorio.)", "RESULTADO ULTIMO TRIGLICERIDOS \n(999 = No se realizó el laboratorio)", "FECHA ULTIMO TRIGLICERIDOS\n(1845-01-01 = No aplica, paciente sin ERC o con ERC estadios 1 o 2 (aplica para pacientes no estudiados o indeterminados)\n1800-01-01 = No se realizó el laboratorio)", "Var34 PTH\n(9988 = No aplica, paciente sin ERC o con ERC estadios 1 o 2 (aplica para pacientes no estudiados o indeterminados).\n9999 = No se realizó el laboratorio (en pacientes con ERC 3 a 5))", "Var34_1 Fecha de la última PTH \n(1845-01-01 = No aplica, paciente sin ERC o con ERC estadios 1 o 2 (aplica para pacientes no estudiados o indeterminados)\n1800-01-01 = No se realizó el laboratorio)", "Var35 Tasa de filtración glomerular\n(999 = Paciente sin creatinina vigente\n988 = Paciente en diálisis con diuresis en el periodo de recolección < 250 ml\n777 = Paciente en diálisis con diuresis en el periodo de recolección >= 250 ml)", "Fecha de la ultima TFG", "RESULTADO DE SODIO\n(999 = No se realizó el laboratorio). ", "RESULTADO DE SODIO\nRegistre la fecha en el formato \nAAAA-MM-DD.  \n1845-01-01= No se realizó el laboratorio. ", "RESULTADO DE POTASIO (999 = No se realizó el laboratorio)\n", "RESULTADO DE POTASIO\nRegistre la fecha en el formato \nAAAA-MM-DD.  \n1845-01-01= No se realizó el laboratorio. ", "RESULTADO DE ACIDO URICO (999 = No se realizó el laboratorio)\n", "RESULTADO DE ACIDO URICO\nRegistre la fecha en el formato \nAAAA-MM-DD.  \n1845-01-01= No se realizó el laboratorio. ", "RESULTADO DE UROANALISIS (999 = No se realizó el laboratorio)\n", "RESULTADO DE UROANALISIS\nRegistre la fecha en el formato \nAAAA-MM-DD.  \n1845-01-01= No se realizó el laboratorio. ", "RESULTADO DE EKG\nRegistre,\n1= NORMAL\n2= ALTERADO\n3= NO SE REALIZO", "FECHA ULTIMO EKG\nRegistre la fecha en el formato \nAAAA-MM-DD.  \n1845-01-01= No se realizó el laboratorio. ", "FECHA VALORACIÓN POR POR MEDICINA GENERAL Y/O EXPERTO", "FECHA VALORACIÓN POR POR NEFROLOGIA", "FECHA VALORACIÓN POR POR ENDOCRINOLOGIA", "FECHA VALORACIÓN POR POR MEDICINA INTERNA", "FECHA VALORACIÓN POR PSICOLOGIA\nRegistre la fecha en el formato \nAAAA-MM-DD. ", "FECHA VALORACIÓN POR NUTRICIONISTA\nRegistre la fecha en el formato \nAAAA-MM-DD. ", "FECHA VALORACIÓN POR TRABAJO SOCIAL\nRegistre la fecha en el formato \nAAAA-MM-DD. ", "Var38 Tiene diagnóstico de enfermedad renal crónica en cualquier de sus estadios\n(Página 20 de 47\n0 = No presenta ERC\n1 = Si presenta ERC\n2 = Indeterminado\n3= Paciente no estudiado para ERC en el periodo de reporte)", "Var39 Estadio de ERC\n(1 = Paciente con TFGe igual o mayor a 90 ml/min y pruebas complementarias que soportan daño renal\n2 = Paciente con TFGe entre 60 y menor de 90 ml/min y pruebas complementarias que soportan daño renal\n3 = Paciente con TFGe entre 30 y menor de 60 ml/min\n4 = Paciente con TFGe entre 15 y menor de 30 ml/min\n5 = Paciente con TFGe menor de 15 ml/min o paciente en diálisis\n98 = No aplica, no hay enfermedad renal crónica (Debe tener 0 en la variable 38)\n99 = Desconocido (paciente indeterminado o no estudiado para ERC en el periodo de reporte, también aplica para pacientes con ERC confirmada sin seguimiento de TFGe de acuerdo con Guía de Práctica clínica).\nSi esta variable tiene valores entre 1 y 5, la variable 38 debe ser igual a 1. Todos los pacientes reportados en diálisis deben reportar la opción 5, así tengan una TFGe >15.)", "Var40 Fecha de diagnóstico de ERC estadio 5\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\n1800-01-01 = Desconocida\n1845-01-01 = No aplica, el paciente nunca ha sido diagnosticado con ERC estadio 5)", "TRATAMIENTO ACTUAL ERC", "\nCÓDIGO DE HABILITACIÓN DEL PRESTADOR DE ATENCION DE ERC\n", "NOMBRE DEL PRESTADOR", "Var41 Se encuentra en un programa de atención de ERC\n(1 = Si\n2 = No se encuentra en un programa de atención renal o paciente en abandono\n98 = No aplica, paciente en TRR\n99 = Sin dato en la historia clínica)", "Var42 TFG medida cuando el usuario inició la primera TRR:\n(Se debe reportar la TFG registrada en la historia clínica por el médico tratante, con máximo 2 decimales sin aproximación.\n98 = No aplica, paciente sin inicio de TRR.\n99 = Sin dato, no se conoce porque el paciente inicio la TRR en una EPS diferente a la que reporta o por urgencia dialítica o paciente en abandono.)", "Var43 Modo de Inicio de la TRR\n(1 = Paciente que inició la TRR diálisis en hospitalización\n2 = Paciente que inició la TRR diálisis ambulatoria\n3 = Sin dato, el paciente inicio la TRR en otra EPS diferente a la que reporta\n4 = Paciente que inició la TRR con trasplante renal o TMND\n97 = No aplica, paciente que nunca ha recibido TRR\n98 = No aplica, el usuario a la fecha de corte no recibe ninguna de las terapias de reemplazo renal.\n99 = Paciente que inició la TRR en la EPS que reporta, pero no hay información en la historia clínica o paciente en abandono)", "Var44 Fecha en que se inicio la TRR\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\n1800-01-01 = Desconocida\n1845-01-01 = No aplica, paciente sin TRR a la fecha de corte.\nTambién es válida para pacientes que han firmado alta voluntaria o paciente en abandono)", "Var45 Fecha de Ingreso a la Unidad Renal Actual\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre01 como mes y 01 como día.\n1800-01-01 = Desconocida\n1845-01-01 = No aplica, el paciente no recibe terapia dialítica o paciente en abandono\nVerifique que si registra una fecha diferente a 1845-01-01 en esta variable, debe registrar en alguna de las variables 46(HD) o 49(DP), opciones diferentes a 98.)", "Var46 Hemodiálisis\n(1 = Paciente en hemodiálisis por fístula arteriovenosa\n3 = Paciente en hemodiafiltración en línea de alto volumen o diálisis expandida.\n4 = Pacientes en hemodiálisis por catéter tunelizado\n5 = Paciente en hemodiálisis por catéter transitorio\n6 = Pacientes en hemodiálisis por injerto.\n98 = No aplica, el paciente no recibe hemodiálisis a la fecha de corte o paciente en abandono)", "Var47 Dosis de diálisis Kt_V single pool\n(Registre el resultado del último Kt/V realizado en el último trimestre del periodo de reporte, con máximo 2 decimales sin aproximación.\n98 = No aplica, el paciente no está en hemodiálisis o paciente en abandono)", "Var48 Costo total de la hemodiálisis\n(Registre exclusivamente el costo de la hemodiálisis. Excluya otros costos que no están relacionados con esta terapia.\n98= No aplica, el paciente no ha recibido hemodiálisis durante el periodo de reporte o paciente en abandono.)", "Var49 Diálisis peritoneal\n(1 = Paciente en diálisis peritoneal manual\n2 = Paciente en diálisis peritoneal automatizada\n98 = No aplica, el paciente no está en diálisis peritoneal o paciente en abandono)", "Var50 Dosis de diálisis Kt_V dpd\n(Registre la última dosis de diálisis consignada en la historia clínica, con máximo 2 decimales sin aproximación. El valor debe ser tomado en los últimos 6 meses del periodo de corte (enero a junio de 2024).\n98 = No aplica, usuario no está en diálisis peritoneal o paciente en abandono)", "Var51 Numero de horas de dialisis\n(Registre el promedio de horas/sesión de las hemodiálisis realizadas al paciente en los últimos 3 meses del periodo de reporte (abril a junio de 2024), con máximo 2 decimales sin aproximación.\n98 = No aplica, el paciente no está en hemodiálisis o paciente en abandono)", "Var52 Peritonitis\n(Registre el número de episodios de peritonitis infecciosa relacionada con la diálisis peritoneal que sufrió el paciente durante el periodo de reporte:\n98 = No aplica, el paciente no ha recibido diálisis peritoneal durante el periodo de reporte o paciente en abandono.)", "Tiempo (meses) en el que estuvo recibiendo tratamiento para la peritonitis en diálisis peritoneal\n", "Var53 Costo DP\n(Registre exclusivamente el costo de la diálisis peritoneal. Excluya otros costos que no están relacionados con esta terapia.\n98= No aplica, el paciente no ha recibido diálisis peritoneal durante el periodo de reporte o paciente en abandono\nPara pacientes reportados por ente territorial por prestación de servicios no incluidos en el plan de beneficios, registre la opción 98.)", "Var54 Vacuna Hepatitis B\n(1 = Tiene esquema completo sin títulos\n2 = Tiene esquema incompleto sin títulos\n3 = No ha recibido vacunación para hepatitis B\n4 = Títulos >10\n5 = Títulos <10\n6 = Sin respuesta a la vacunación (dos esquemas completos de vacunación y títulos <10)\n7 = Infección por VHB\n98 = No aplica, el paciente no recibe HD, DP ni ha sido trasplantado\n99 = Sin dato en la historia clínica o paciente en abandono)", "Var55 Fecha de diagnóstico de la infección por Hepatitis B\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\n1800-01-01= Sin dato en la historia clínica o paciente en abandono\n1811-01-01 = No aplica, el paciente no ha presentado infección por Hepatitis B o el paciente no recibe HD, DP ni ha sido trasplantado.)", "Var56 Fecha de diagnóstico de la infección por Hepatitis C\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre01 como mes y 01 como día.\n1800-01-01 = Sin dato en la historia clínica o paciente en abandono\n1811-01-01 = No aplica, el paciente no ha presentado infección por Hepatitis C o el paciente no recibe HD, DP ni ha sido trasplantado.)", "Var57 Terapia no Dialítica para ERC estadio 5\n(1 = Si, paciente que recibe solamente tratamiento médico especial y multidisciplinario sin diálisis\n2 = No recibe esta terapia o paciente en abandono)", "Var58 Costo de la terapia ERC estadio 5 con tratamiento médico\n(Registre exclusivamente el costo del tratamiento médico no dialítico. Excluya otros costos que no están relacionados con esta terapia.\n98= No aplica, el paciente no ha recibido TMND durante el periodo de reporte o paciente en abandono)", "Var59 Hemoglobina\n(Registre el valor de la última hemoglobina tomada durante el periodo de reporte en personas con ERC en estadios 3 a 5, con máximo 2 decimales sin aproximación, teniendo en cuenta que:\n98 = No aplica (pacientes sin ERC o ERC estadios 1 y 2. También aplica para pacientes indeterminados o no estudiados para ERC).\n99= No se realizó el laboratorio dentro del periodo establecido para los pacientes con ERC 3 a 5 (también aplica para diálisis).)", "Var60 Albúmina Sérica\n(Registre el valor de la albumina sérica tomado durante el periodo de reporte en personas con ERC en estadios 3 a 5, con máximo 2 decimales sin aproximación teniendo en cuenta que:\n98 = No aplica (pacientes sin ERC o ERC estadios 1 y 2. También aplica para pacientes indeterminados o no estudiados para ERC).\n99= No se realizó el laboratorio dentro del periodo establecido para los pacientes con ERC 3 a 5 (también aplica para diálisis).)", "Var61 Fósforo\n(Registre el valor del fósforo sérico tomado durante el periodo de reporte en personas con ERC en estadios 3 a 5, teniendo en cuenta que:\n98 = No aplica (pacientes sin ERC o ERC estadios 1 y 2. También aplica para pacientes indeterminados o no estudiados para ERC).\n99= No se realizó el laboratorio dentro del periodo establecido para los pacientes con ERC 3 a 5 (también aplica para diálisis).)", "Var62 Valoración Clínica inicial por nefrología\n(Registre el concepto de la valoración clínica realizada por el nefrólogo:\n1 = Indicado\n2 = Contraindicado\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante\nSi marca la opción 2 “Contraindicado”, debe marcar la opción 1 “Si” en alguna de las opciones descritas en las variables 62.1 a 62.11, y en las demás debe marcar la opción 2 “No”. Si el trasplante está indicado “opción 1”, marque la opción “No” en las variables de 62.1 a 62.11.\nLas contraindicaciones para trasplante renal deben ser descritas claramente en la historia clínica.)", "Var62_1 Contraindicacion por Cáncer activo en los últimos 12 meses\n(1 = Si\n2 = No\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante)", "Var62_2 Contraindicacion por infección crónica o activa no tratada o no controlada\n(1 = Si\n2 = No\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante)", "Var62_3 Contraindicacion porque NO ha manifestado su deseo de trasplantarse\n(1 = Si\n2 = No\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante)", "Var62_4 Contraindicacion por esperanza de vida menor o igual a 6 meses\n(1 = Si\n2 = No\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante)", "Var62_5 Contraindicacion potencial limitacion autocuidado y adherencia al tratamiento posttrasplante\n(1 = Si\n2 = No\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante)", "Var62_6 Contraindicacion por enfermedad cardiaca cerebrovascular o vascular periférica\n(1 = Si\n2 = No\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante)", "Var62_7 Contraindicacion por infección por el VIH\n(1 = Si\n2 = No\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante)", "Var62_8 Contraindicacion por infección por el VHC\n(1 = Si\n2 = No\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante)", "Var62_9 Contraindicacion por enfermedad inmunológica activa\n(1 = Si\n2 = No\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante)", "Var62_10 Contraindicacion por enfermedad pulmonar crónica\n(1 = Si\n2 = No\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante)", "Var62_11 Contraindicacion por otras enfermedades crónicas\n(1 = Si\n2 = No\n97 = No aplica, paciente que no tiene ERC estadio 5 (tiene ERC estadio 1 a 4) o ya tiene trasplante funcional\n98 = No aplica, el paciente no tiene ERC o paciente en abandono\n99 = No ha sido valorado por nefrólogo para la posibilidad de trasplante)", "Var63 Fecha de Ingreso a lista de espera para la realización del trasplante\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\n1800-01-01 = Está indicado el trasplante, pero a la fecha de corte no ha ingresado a la lista de espera\n1845-01-01 = No Aplica, el trasplante está contraindicado o paciente en abandono o paciente con trasplante funcional o el paciente no ha sido valorado por nefrólogo en relación a la posibilidad de trasplante.)", "Var63_1 IPS donde está en lista de espera\n(Registre el código válido de habilitación (disponible en la página web REPS – código de 12 dígitos incluido el cero inicial – IPS trasplantadoras).\n98= No Aplica, el trasplante está contraindicado o paciente en abandono o paciente con trasplante funcional o el paciente no ha sido valorado por nefrólogo en relación con la posibilidad de trasplante.\n99 = Está indicado el trasplante, pero a la fecha de corte no ha ingresado a la lista de espera)", "Var64 Ha recibido trasplante renal\n(1 = SI, el paciente recibió trasplante renal en la EAPB/Ente territorial que reporta (y está funcional)\n2 = SI, el paciente recibió trasplante renal, en otra EAPB/Ente territorial diferente a la que reporta (y está funcional)\n3 = SI, el paciente recibió trasplante renal en la EAPB/Ente territorial que reporta (y no está funcional)\n4 = SI, el paciente recibió trasplante renal, en otra EAPB/Ente territorial diferente a la que reporta (y no está funcional)\n5 = NO, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var65 EPS que realizó el trasplante\n(Registre el código de la EAPB/Ente territorial en la que el paciente recibió el último trasplante renal (sea este funcional o no, al momento del corte). Recuerde que el paciente puede haber recibido uno o más trasplantes renales\n98 = No aplica, el paciente no ha recibido trasplante renal\n99 = Sin dato (solamente cuando el trasplante renal no haya sido realizado por la EAPB/Ente territorial que reporta el usuario y no se dispone de esta información -indicada por el usuario))", "Var66 IPS o Grupo de trasplante que realizó el trasplante\n(Registre el código de habilitación de la IPS que realizó el último trasplante (disponible en la página web REPS – código de 12 dígitos incluido el cero inicial -grupo de trasplante). Recuerde que el paciente puede haber recibido uno o más trasplantes renales.\n98 = No aplica, el paciente no ha recibido trasplante renal\n99 = Sin dato, (solamente cuando el trasplante renal no haya sido realizado por la EAPB/Ente territorial que reporta el usuario y no se dispone de esta información))", "Var67 Tipo de donante\n(Recuerde que el paciente puede haber recibido uno o más trasplantes renales\n1 = Fallecido\n2 = Vivo\n98 = No aplica, el paciente no ha recibido trasplante renal\n99 = Sin dato en la historia clínica)", "Var68 Costo del trasplante\n(Registre el costo total del trasplante incluyendo todos los gastos por servicios POS asociados al procedimiento de trasplante que fueron cubiertos por la EPS/EOC, tales como la obtención o rescate del componente anatómico, su preservación y almacenamiento, así como el transporte tanto del órgano como del usuario.\n97 = No aplica, el paciente recibió trasplante renal en la EAPB/Ente territorial que reporta, pero el procedimiento no se realizó durante el período de reporte.\n98 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono\n99 = Sin dato, cuando el paciente recibió trasplante renal, pero en una EAPB/Ente territorial diferente a la EAPB/Ente territorial que reporta el usuario)", "Var69 Ha presentado alguna complicación relacionada con el trasplante\n(1 = Si\n2 = No\n98 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono\nSi marca la opción 1 “Si”. Debe colocar una fecha válida en alguna de las variables de 69.1 a 69.7. Y en las demás variables marcar 1800-01-01.\nSi marca la opción 2 “No”, en las demás variables marque 1800-01-01. Si el paciente no ha sido trasplantado marque 98 “No aplica”, y en las demás variables 1845-01-01.)", "Var69_1 Fecha de diagnóstico si ha presentado infección por Citomegalovirus\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre e incluya 01 como mes y 01 como día. Tener en cuenta que los pacientes con trasplante renal pueden recibir tratamiento antiviral para CMV como profilaxis, sin tener infección.\n1800-01-01 = No ha tenido esta complicación\n1845-01-01 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var69_2 Fecha de diagnóstico si ha presentado infección por hongos\n(1800-01-01 = No ha tenido esta complicación\n1845-01-01 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var69_3 Fecha de diagnóstico si ha presentado infección por tuberculosis\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día. Tener en cuenta que incluye la infección activa por tuberculosos pulmonar y extrapulmonar. No incluye la tuberculosis latente.\n1800-01-01 = No ha tenido esta complicación\n1845-01-01 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var69_4 Fecha de diagnóstico si ha presentado alguna complicación vascular\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01.\nSi conoce solamente el año registre 01 como mes y 01 como día. Tener en cuenta que las complicaciones vasculares incluyen:\n• Trombosis, pseudoaneurisma o estenosis de la arterial renal, de la arteria iliaca o del injerto.\n• Estenosis de la arteria renal.\n• Trombosis de la vena renal o de la vena iliaca.\nNo se deben registrar en esta variable:\n• Trombosis de la fístula\n• Trombosis venosa profunda de miembros inferiores\n1800-01-01 = No ha tenido esta complicación\n1845-01-01 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var69_5 Fecha de diagnóstico si ha presentado alguna complicación urológica\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\nTener en cuenta que las complicaciones urológicas incluyen: uropatia obstructiva, urinoma y fístula del uréter. No se debe registrar en esta variable las infecciones urinarias.\n1800-01-01 = No ha tenido esta complicación\n1845-01-01 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var69_6 Fecha de diagnóstico si ha presentado alguna complicación herida quirúrgica\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\nTener en cuenta que las complicaciones de la herida quirúrgica, incluyen: dehiscencia cutánea, colección subcutánea, sobreinfección de la herida quirúrgica, infecciones superficiales, celulitis, infección supra o infra aponeurótica, hernia incisional, infección del sitio operatorio y seroma.\n1800-01-01 = No ha tenido esta complicación\n1845-01-01 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var69_7 Fecha del primer diagnóstico de cáncer\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\n1800-01-01= No ha tenido esta complicación\n1845-01-01=No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var70 Cuantos médicamentos inmunosupresores se formularon\n(Escriba el número de medicamentos inmunosupresores formulados en la última consulta de nefrología realizada en el periodo en el periodo de reporte\n98= No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var70_1 Ha recibido metilprednisolona\n(1 = Si\n2 = No\n98 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var70_2 Ha recibido azatioprina\n(1 = Si\n2 = No\n98 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var70_3 Ha recibido ciclosporina\n(1 = Si\n2 = No\n98 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var70_4 Ha recibido micofenolato\n(1 = Si\n2 = No\n98 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var70_5 Ha recibido tacrolimus\n(1 = Si\n2 = No\n98 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var70_6 Ha recibido prednisona\n(En caso de que el paciente haya recibido manejo para trasplante renal con prednisolona debe reportarse en esta variable.\n1 = Si\n2 = No\n98 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono\nLos pacientes del régimen subsidiado reportados por el ente territorial deben reportar códigos CUMS de inmunosupresores para manejo de trasplante renal no incluidos en el plan de beneficios en salud en las variables 70.7 a la 70.9.)", "Var70_7 Ha recibido Medicamento NO POS 01\n(Registre el código CUM del medicamento usado en este caso (códigos CUM disponibles en la plataforma SISCAC, ruta cargue de archivo plano – pestaña de archivos operativos).\n97 = No aplica, paciente con trasplante renal que no recibió medicamento inmunosupresor no POS\n98 = No Aplica el paciente no ha recibido trasplante renal o paciente en abandono)", "Var70_8 Ha recibido Medicamento NO POS 02\n(Registre el código CUM del medicamento usado en este caso (códigos CUM disponibles en la plataforma SISCAC, ruta cargue de archivo plano – pestaña de archivos operativos).\n97 = No aplica, paciente con trasplante renal que no recibió medicamento inmunosupresor no POS\n98 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var70_9 Ha recibido Medicamento NO POS 03\n(Registre el código CUM del medicamento usado en este caso (códigos CUM disponibles en la plataforma SISCAC, ruta cargue de archivo plano – pestaña de archivos operativos).\n97 = No aplica, paciente con trasplante renal que no recibió medicamento inmunosupresor no POS\n98 = No aplica, el paciente no ha recibido trasplante renal o paciente en abandono)", "Var71 Cuantos episodios de rechazo agudo ha presentado el usuario\n(Registre el número de rechazos agudos confirmados por biopsia en los primeros 12 meses posteriores al trasplante\n98 = No aplica, el paciente nunca ha recibido trasplante renal o el paciente no ha presentado episodios de rechazo agudo o paciente en abandono)", "Var72 Fecha del primer rechazo del injerto\n(Registre la fecha en el formato AAAA-MM-DD. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\n1800-01-01 = Desconocida\n1845-01-01 = No aplica, el paciente nunca ha recibido trasplante renal o el paciente no ha presentado episodios de rechazo agudo o paciente en abandono)", "Var73 Fecha de retorno a diálisis\n(Registre la fecha en el formato AAAA-MM-DD. Si conoce sólo el año y el mes, registre el día 01. Verifique que el orden de los números sea AÑO-MES-DÍA y el separador sea guion (-). Si conoce solamente el año registre 01 como mes y 01 como día. Registre:\n1800-01-01= desconocida.\n1845-01-01=No aplica, el paciente nunca ha recibido trasplante renal o el paciente con trasplante funcional o paciente en abandono)", "Var74 Número de trasplantes renales que ha recibido\n(Registre el número de trasplantes recibidos.\n98= No aplica, el paciente nunca ha recibido trasplante renal o paciente en abandono)", "Var75 Costo de la terapia postrasplante\n(Registre costo total de la terapia postrasplante del usuario durante el período de reporte (1 de julio de 2023 a 30 de junio de 2024). Esta variable aplica para los pacientes trasplantados que tengan funcional el trasplante (V64= 1 o 2). En este costo se deben incluir solamente los costos de los medicamentos incluidos en el plan de beneficios para el tratamiento de inmunosupresión.\n98= No aplica, el paciente nunca ha recibido trasplante renal o trasplante renal no funcional o paciente en abandono.)", "Var76 Meses de prestación de servicios\n(Número de meses en los que el usuario efectivamente recibió servicios relacionadas con HTA, DM o ERC a cargo de la EPS que reporta (del periodo comprendido entre 1 de julio del 2024 a 30 de junio de 2025).\nEsta información será validada con los soportes de las consultas que apliquen y las fórmulas, cargados en el repositorio.)", "Var77 Costo Total\n(Costo total acumulado de la atención del usuario a la fecha de reporte (1 de julio de 2024 a 30 de junio de 2025). En este campo se deben agregar todos los costos en el usuario, relacionados con los diagnósticos registrados, incluyendo, entre otros, los costos de citas de control, medicamentos, costos de diálisis, trasplante y atención de complicaciones.\n98= Paciente en abandono)", "Var78 EPS de origen\n(Registre el código de la EAPB/Ente territorial donde estaba afiliado el usuario antes de trasladarse a la EAPB/Ente territorial que reporta.\n98 = No aplica\n99 = Sin dato)", "Var79 Novedad con respecto al reporte anterior\n(Las novedades administrativas a reportar en este campo corresponderán a eventos ocurridos respecto al reporte anterior.\n1 = Persona que falleció (esta novedad también aplica a los casos de personas que iniciaron TRR crónica dentro del periodo de reporte pero que a la fecha de corte están fallecidas), 2 = Persona que ingresó a la EPS y traía el diagnóstico de ERC o HTA o DM, 3 = Persona antigua en la EPS y se le realizó nuevo diagnóstico de ERC o HTA o DM., 4 = Persona antigua en la EPS con diagnóstico antiguo de ERC o HTA o DM que ingresa a la BD para reporte de la CAC, 5 = Persona que firmó alta voluntaria del tratamiento prescrito, 6 = Persona que se desafilió (esta novedad también aplica a los casos de personas que iniciaron TRR crónica dentro del periodo de reporte pero que a la fecha de corte están desafiliadas), 7 = Persona que abandona la terapia y no es posible de ubicar, 8 = Persona que se elimina de la BD por corrección de la EPS (auditoría interna o auditoría de la CAC porque el caso reportado no tiene diagnóstico de ERC, HTA ni DM), 9 = Persona que regresa a terapia, 10 = El usuario que cambio de tipo y/o número de identificación respecto al reporte anterior, 12 = Población migrante de la república de Venezuela, 13 = Usuario identificado por fuentes externas con diagnóstico (ERC-HTA-DM) descartado por la entidad o fallecido/desafiliado no gestionado por la entidad sin diagnóstico confirmado de ERC, HTA ni DM, 14 = Usuario identificado por fuentes externas con diagnóstico ERC o HTA o DM, no gestionado por la entidad., 15= Paciente trasladado de EAPB, que fue glosado en periodo anterior y no fue gestionado por la entidad (receptora) en el periodo., 98 = No hay novedad respecto al reporte anterior)", "Var80 Causa Muerte\n(1 = Enfermedad renal crónica\n2 = Enfermedad cardiovascular\n3 = Cáncer\n4 = Infección\n5 = Por causa diferente a las descritas en 1, 2, 3 y 4\n6 = Causa Externa\n98 = No aplica, el usuario no ha fallecido\n99 = Paciente que fallece, pero no hay información sobre la causa de muerte en la historia clínica)", "Var80_1 Fecha Muerte\n(Registre la fecha en el formato AAAA-MM-DD. Si conoce sólo el año y el mes, registre el día 01. Si conoce solamente el año registre 01 como mes y 01 como día.\n1845-01-01=No aplica, el usuario no ha fallecido.)", "Var81_CodigoSerial\n(Registre el código único serial de identificación (BDUA, BDEX, PVS asignado al paciente por el Ministerio de Salud y Protección social. Los Entes Territoriales deben registrar 0 en esta variable.)", "Var82_FechaCorte", "FECHA DE PROXIMA CONSULTA", "FECHA DE HOSPITALIZACION ", "HOSPITALIZACION EVITABLE (SI/ NO)", "SEGUIMIENTO"];
-/* hd.js:235 */
+/* prototipo:966 */
 const CAC_H_ERC=["Campo 1 Primer nombre del usuario", "Campo 2 Segundo nombre del usuario", "Campo 3 Primer apellido del usuario", "Campo 4 Segundo apellido del usuario", "Campo 5 Tipo de Identificación del usuario", "Campo 6 Número de Identificación del usuario", "Campo 7 Fecha de nacimiento", "Campo 8 Sexo", "Campo 9 Régimen de afiliación AL SGSS", "Campo 10 Código de la EPS o de la entidad territorial", "Campo 11 Código pertenencia étnica", "Campo 12 Grupo poblacional", "Campo 13 Municipio de residencia", "Campo 14 número telefónico del paciente (incluyendo a familiares y cuidadores)", "Campo 15 Fecha de afiliación a la EPS que registra", "Campo 16 Código de la IPS donde se hace seguimiento al usuario", "Campo 17 Fecha de ingreso al programa de atención renal (renoprotección, nefroprotección, protección renal, prediálisis) dentro de la EAPB/Ente territorial que reporta", "Campo 18 El usuario tiene diagnóstico confirmado de Hipertensión Arterial -HTA (CIE-10 con códigos entre I10-I159)", "Campo 19 Fecha de diagnostico de la Hipertension Arterial", "Campo 19.1 Costo HTA durante el período de reporte", "Campo 20 El usuario tiene diagnóstico confirmado de Diabetes Mellitus- DM (CIE-10 con códigos entre E10-E149; O24-O249; P702)", "Campo 21 Fecha de diagnostico de la Diabetes Mellitus", "Campo 21.1 Costo DM durante el período de reporte", "Campo 22 Etiología de la ERC", "Campo 23 Peso (kg)", "Campo 24 Talla (cm)", "Campo 25 Tensión arterial sistólica (mm de Hg)", "Campo 26 Tensión arterial diastólica (mm de Hg)", "Campo 27 Creatinina (mg/dl)", "Campo 27.1 Fecha de última Creatinina", "Campo 28 Hemoglobina Glicosilada", "Campo 28.1 Fecha de última Hemoglobina Glicosilada", "Campo 29 Albuminuria", "Campo 29.1 Fecha de la última Albuminuria", "Campo 30 Relación Albuminuria/Creatinuria", "Campo 30.1 Fecha de la última Creatinuria", "Campo 31 Colesterol total", "Campo 31.1 Fecha de la último Colesterol total", "Campo 32 HDL", "Campo 32.1 Fecha de la último HDL", "Campo 33 LDL", "Campo 33.1 Fecha del último LDL", "Campo 34 PTH", "Campo 34.1 Fecha de la última PTH", "Campo 35 Tasa de filtración glomerular (TFGe) según Cockroft-Gault (en adultos) y Swhartz (en menores de 18 años) o FRR estimada mediante el cálculo del Kru, dentro del periodo del reporte", "Campo 36 El usuario recibe Inhibidor de la Enzima convertidora de angiotensina (IECA)", "Campo 37 El usuario recibe Inhibidor de la Enzima convertidora de angiotensina (IECA)", "Campo 38 El usuario tiene diagnóstico de enfermedad renal crónica en cualquier de sus estadios", "Campo 39 Estadio de ERC (Enfermedad Renal: Ver las notas finales numeral V)", "Campo 40 Fecha de diagnóstico de ERC estadio 5 (Solo aplica si marco la opción 5 de la pregunta anterior)", "Campo 41 La persona se encuentra en un programa de atención de ERC (renoprotección, nefroprotección, protección renal, prediálisis)", "Campo 42 TFG a la fecha, en que el usuario inicio la primera terapia de reemplazo renal -TRR", "Campo 43 Modo de Inicio de la Terapia de Reemplazo Renal (primera TRR)", "Campo 44 Fecha en que se inicio la terapia de reemplazo renal que recibe el usuario en el momento de la fecha de corte. Sí el Trasplante es la terapia reportada, esta Fecha se refiere a la Fecha de trasplante", "Campo 45 Fecha de Ingreso a la Unidad Renal Actual que le presta el servicio en el momento de la fecha de corte, en cualquier modalidad de terapia dialítica (Unidad Actual)", "Campo 46 Hemodiálisis (HD)", "Campo 47 Dosis de diálisis (Kt/V) single pool", "Campo 48 Costo total de la hemodiálisis HD durante el período de reporte", "Campo 49 Diálisis peritoneal (DP)", "Campo 50 Dosis de diálisis (Kt/V) dpd. KTV/dpd: de máximo cuatro meses de antigüedad contados a partir de la fecha de corte", "Campo 51 Numero de horas de hemodiálisis", "Campo 52 Peritonitis", "Campo 53 Costo DP durante el período de reporte", "Campo 54 Vacuna Hepatitis B", "Campo 55 Registre la fecha de diagnóstico de la infección por Hepatitis B, si el usuario la ha presentado", "Campo 56 Registre la fecha de diagnóstico de la infección por Hepatitis C, si el usuario la ha presentado", "Campo 57 Terapia no Dialítica para ERC estadio 5 (también llamada tratamiento médico de nefroproteción)", "Campo 58 Costo de la terapia ERC estadio 5 con tratamiento médico", "Campo 59 Hemoglobina. (aplica solo cuando el usuario está en diálisis). Las hemoglobinas deben ser del último trimestre contado a partir de la fecha de corte y sus tomas debieron ser pre-diálisis en personas en hemodiálisis", "Campo 60 Albúmina Sérica (aplica solo cuando el usuario está en diálisis). La albúmina debe tener máximo tres meses de antigüedad a partir de la fecha de corte y su toma debió ser pre-diálisis en personas en hemodiálisis", "Campo 61 Fósforo (P) (aplica solo cuando el usuario está en diálisis). Los niveles séricos de fósforo deben ser del último trimestre contado a partir de la fecha de corte y sus tomas debieron ser pre-diálisis en personas en hemodiálisis", "Campo 62 Última valoración clínica por nefrología dentro del periodo de reporte de pacientes con ERC estadio 5 en diálisis o con TMND,en relación con la posibilidad de trasplante renal", "Campo 62.1 ¿Se reportó cáncer activo en los últimos 12 meses, como contraindicación para el transplante renal, en la valoración de nefrología?", "Campo 62.2 ¿Se reportó infección crónica o activa no tratada o no controlada hasta en los últimos tres meses antes de la fecha de corte, como contraindicación para el transplante renal, en la valoración de nefrología?", "Campo 62.3 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología que el paciente NO ha manifestado su deseo de trasplantarse?", "Campo 62.4 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología que el paciente presenta esperanza de vida menor o igual a 6 meses?", "Campo 62.5 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología que el paciente presenta potenciales limitaciones al autocuidado y adherencia al tratamiento post trasplante?", "Campo 62.6 ¿Se reportó enfermedad cardiaca, cerebrovascular o vascular periférica, como contraindicación para el transplante renal, en la valoración de nefrología?", "Campo 62.7 ¿Se reportó infección por el VIH, como contraindicación para el transplante renal, en la valoración de nefrología?", "Campo 62.8 ¿Se reportó infección por el VHC, como contraindicación para el transplante renal, en la valoración de nefrología?", "Campo 62.9 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología, que el paciente presenta enfermedad inmunológica activa los últimos tres meses antes de la fecha de corte?", "Campo 62.10 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología, que el paciente presenta enfermedad pulmonar crónica?", "Campo 62.11 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología, que el paciente presenta otras enfermedades crónicas?", "Campo 63 Fecha de Ingreso a lista de espera para la realización del trasplante", "Campo 63.1 Registre el código de la IPS donde está en lista de espera", "Campo 64 ¿El usuario ha recibido trasplante renal?", "Campo 65 Código de la EPS que realizó el trasplante", "Campo 66 Código de la IPS o Grupo de trasplante, que realizó el último trasplante renal", "Campo 67 Tipo de donante", "Campo 68 Costo del trasplante", "Campo 69 ¿El usuario ha presentado alguna complicación relacionada con el trasplante renal?", "Campo 69.1 Fecha de diagnóstico si ha presentado infección por Citomegalovirus", "Campo 69.2 Fecha de diagnóstico si ha presentado infección por hongos", "Campo 69.3 Fecha de diagnóstico si ha presentado infección por tuberculosis", "Campo 69.4 Fecha de diagnóstico si ha presentado alguna complicación vascular", "Campo 69.5 Fecha de diagnóstico si ha presentado alguna complicación urológica", "Campo 69.6 Fecha de diagnóstico si ha presentado alguna complicación herida quirúrgica", "Campo 69.7 Fecha del primer diagnóstico de cáncer", "Campo 70 Cuantos médicamentos inmunosupresores se formularon para el manejo en este último corte", "Campo 70.1 En algún momento, desde el último reporte hasta el reporte actual ha recibido metilprednisolona", "Campo 70.2 En algún momento, desde el último reporte hasta el reporte actual ha recibido azatioprina", "Campo 70.3 En algún momento, desde el último reporte hasta el reporte actual ha recibido ciclosporina", "Campo 70.4 En algún momento, desde el último reporte hasta el reporte actual ha recibido micofenolato", "Campo 70.5 En algún momento, desde el último reporte hasta el reporte actual ha recibido tacrolimus", "Campo 70.6 En algún momento, desde el último reporte hasta el reporte actual ha recibido prednisona", "Campo 70.7 En el periodo del reporte, el paciente ha recibido para el manejo de trasplante renal, medicamentos inmunosupresores no incluidos en las Campo iables 70.1 a 70.6 o no incluidos en el plan de beneficios (medicamento 1)", "Campo 70.8 En el periodo del reporte, el paciente ha recibido para el manejo de trasplante renal, medicamentos inmunosupresores no incluidos en las Campo iables 70.1 a 70.6 o no incluidos en el plan de beneficios (medicamento 2)", "Campo 70.9 En el periodo del reporte, el paciente ha recibido para el manejo de trasplante renal, medicamentos inmunosupresores no incluidos en las Campo iables 70.1 a 70.6 o no incluidos en el plan de beneficios (medicamento 3)", "Campo 71 ¿Cuantos episodios de rechazo agudo en los últimos 12 meses al trasplante, confirmado por biopsia, ha presentado el usuario?", "Campo 72 Fecha del primer rechazo del injerto", "Campo 73 Fecha de retorno a diálisis", "Campo 74 Número de trasplantes renales que ha recibido", "Campo 75 Costo de la terapia postrasplante", "Campo 76 Tiempo de prestación de servicios", "Campo 77 Costo Total", "Campo 78 Código de la EPS de origen", "Campo 79 Novedad con respecto al reporte anterior", "Campo 80 Causa de Muerte", "Campo 80.1 Fecha de muerte", "Campo 81 Código único de identificación BDUA", "Campo 82 Fecha de Corte", "Fecha de ultimo peso", "Fecha ultima talla", "Fecha de ultimos trigliceridos", "Resultado de ultimos trigliceridos", "Fecha de ultima TFG calculada y registrada en HC", "Fecha de diagnostico de ERC (1-4)", "Fecha ultima Hemoglobina", "Fecha ultima Albúmina Sérica", "Fecha ultima Fósforo", "Fecha de ultima Valoración Clínica por nefrología", "Fecha de ultima valoración médica del programa", "Valoración Ultima Especialidad médica del programa", "Fecha de ultima valoración médica Endocrinología", "Fecha de ultima valoración médica Oftalmología o foto de retina", "Fecha de ultima valoración Enfermería", "Fecha de ultima valoración Nutrición", "Fecha de ultima valoración Trabajo Social", "Fecha de ultima valoración QF", "Fecha de ultima valoración psicología", "Fecha de ultimo parcial de orina", "Resultado de ultimo parcial de orina", "Circunferencia de cintura"];
-/* hd.js:236 */
+/* prototipo:967 */
 const CAC_SHEET_FOMAG="BD ERC-TRR";
-/* hd.js:237 */
+/* prototipo:968 */
 const CAC_SHEET_ERC="860010090801_31072026_ERC_DIALI";
-/* hd.js:240 */
+/* prototipo:971 */
 function pacs(){ensureIdx();return ST.book.pac.filter(p=>p.ID);}
-/* hd.js:241 */
+/* prototipo:972 */
 function popCut(c,eps){return pacs().filter(p=>(!eps||p.EPS===eps)&&activeAt(p,c)&&adult(p,c)&&ninety(p,c));}
-/* hd.js:242 */
+/* prototipo:973 */
 function popPer(a,c,eps){return pacs().filter(p=>(!eps||p.EPS===eps)&&overlaps(p,a,c)&&adult(p,c));}
-/* hd.js:243 */
+/* prototipo:974 */
 function popInc(a,c,eps){return pacs().filter(p=>(!eps||p.EPS===eps)&&p.InicioTRR&&p.InicioTRR>=a&&p.InicioTRR<=c&&adult(p,p.InicioTRR));}
-/* hd.js:244 */
+/* prototipo:975 */
 function ctxFor(c,ps,eps){return{c,ps,eps,tri:addMonths(c,-3),sem:addMonths(c,-6),mes:addMonths(c,-1),ms:monthStart(c)};}
-/* hd.js:248 */
+/* prototipo:979 */
 const pv=(p,v)=>({p,v});
-/* hd.js:249 */
+/* prototipo:980 */
 function propLab(x,k,win,test,fmt){const r={num:[],den:[],excl:[],sd:[]};popCut(x.c,x.eps).forEach(p=>{const l=lastLab(p,k,win==="sem"?x.sem:x.tri,x.c);const v=l?num(l.Valor):null;r.den.push(pv(p,v==null?"sin dato":(fmt?fmt(v):v)+" · "+fd(l.FechaToma)));if(v==null)r.sd.push(p);else if(test(v))r.num.push(pv(p,v));});return r;}
-/* hd.js:250 */
+/* prototipo:981 */
 const IND=[
  {c:"dia_10_adul",n:"Adultos en HD con CVC como acceso vascular",t:"pct",dir:"down",cuts:[10,20],win:"Al corte",src:"Acceso de la última sesión realizada o acceso actual del paciente",ex:"No factibilidad de FAV con concepto, desistimiento firmado, cuidados paliativos (con soporte en Acceso vascular).",
   f:x=>{const r={num:[],den:[],excl:[],sd:[]};popCut(x.c,x.eps).forEach(p=>{if(RUTA_EXCL.includes(p.RutaAcceso)){r.excl.push({p,why:p.RutaAcceso+(p.SoporteRuta?" · "+p.SoporteRuta:" · SIN SOPORTE")});return;}const a=accessAt(p,x.c);r.den.push(pv(p,a||"sin dato"));if(!a)r.sd.push(p);else if(isCVC(a))r.num.push(pv(p,a));});return r;}},
@@ -324,7 +318,7 @@ const IND=[
  {c:"dia_20_adul",n:"Adultos en HD con sesiones de 4 horas o más",t:"pct",dir:"up",cuts:[90,10],win:"Promedio de las sesiones del último mes",src:"Turno del día · duración de cada sesión realizada",
   f:x=>{const r={num:[],den:[],excl:[],sd:[]};popCut(x.c,x.eps).forEach(p=>{if((num(p.SesSemana)||3)<3){r.excl.push({p,why:"Prescripción menor de 3 sesiones por semana"});return;}const S=sesIn(p,addDays(x.mes,1),x.c,"Realizada").filter(s=>num(s.DuracionMin)!=null);if(!S.length){r.den.push(pv(p,"sin dato"));r.sd.push(p);return;}const m=S.reduce((a,s)=>a+num(s.DuracionMin),0)/S.length;r.den.push(pv(p,f1(m,0)+" min ("+S.length+" ses.)"));if(m>=240)r.num.push(pv(p,m));});return r;}},
  {c:"dia_21_adul",n:"Adultos en HD incluidos en lista de espera de trasplante",t:"pct",dir:"up",cuts:null,win:"Periodo",src:"Pacientes · estado de trasplante",ex:"Disentimiento, cuidados paliativos, contraindicación con soporte.",
-  f:x=>{const r={num:[],den:[],excl:[],sd:[]};popPer(x.ps,x.c,x.eps).forEach(p=>{const t=p.TxEstado||"Sin evaluar";if(["Disentimiento","Cuidados paliativos","No idóneo (contraindicación con soporte)"].includes(t)){r.excl.push({p,why:t});return;}if(t==="Sin evaluar"){r.sd.push(p);return;}r.den.push(pv(p,t));if(t==="En lista de espera"||t==="Trasplantado")r.num.push(pv(p,t));});return r;},nota:"Los «Sin evaluar» no entran al denominador: aparecen como sin dato porque no tienen concepto de idoneidad."},
+  f:x=>{const r={num:[],den:[],excl:[],sd:[]};popPer(x.ps,x.c,x.eps).forEach(p=>{const t=p.TxEstado||"Sin evaluar";if(["Disentimiento","Cuidados paliativos","No idóneo (contraindicación con soporte)"].includes(t)){r.excl.push({p,why:t});return;}r.den.push(pv(p,t==="Sin evaluar"?"Sin evaluar (no cumple)":t));if(t==="Sin evaluar"){r.sd.push(p);return;}if(t==="En lista de espera"||t==="Trasplantado")r.num.push(pv(p,t));});return r;},nota:"Regla D5 (8 oct 2026): los «Sin evaluar» entran al denominador y cuentan como no cumplimiento; se listan también como sin dato para gestionar el concepto de idoneidad. Los no candidatos a trasplante (contraindicación con soporte), el disentimiento y los cuidados paliativos se excluyen."},
  {c:"dia_23_adul",n:"Adultos en HD que abandonan el tratamiento",t:"pct",dir:"down",cuts:null,win:"Periodo",src:"Movimientos tipo Abandono (requiere desistimiento o búsqueda activa documentada)",
   f:x=>{const r={num:[],den:[],excl:[],sd:[]};popPer(x.ps,x.c,x.eps).forEach(p=>{const m=p._mov.find(m=>m.Tipo==="Abandono"&&m.Fecha>=x.ps&&m.Fecha<=x.c);r.den.push(pv(p,m?"Abandono "+fd(m.Fecha):""));if(m)r.num.push(pv(p,m.Detalle||""));});return r;}},
  {c:"dia_25_adul",n:"Adultos en HD con hepatitis C confirmada",t:"pct",dir:"down",cuts:null,win:"Periodo",src:"Paraclínicos · carga viral VHC detectable",
@@ -337,16 +331,16 @@ const IND=[
   f:x=>{const r={num:[],den:[],excl:[],sd:[]};popCut(x.c,x.eps).forEach(p=>{const L=labsIn(p,"Ca",x.tri,x.c).map(l=>num(l.Valor)).filter(v=>v!=null);if(!L.length){r.den.push(pv(p,"sin dato"));r.sd.push(p);return;}const m=L.reduce((a,b)=>a+b,0)/L.length;r.den.push(pv(p,f1(m)));if(m>10.5)r.num.push(pv(p,m));});return r;}},
  {c:"dia_31_adul",n:"Hospitalización por todas las causas en HD",t:"rate",unit:"por 12 meses-paciente",dir:"down",cuts:null,win:"Periodo · meses de exposición",src:"Novedades · hospitalización con fecha de ingreso y egreso",
   f:x=>{let ev=0,days=0;const list=[];popPer(x.ps,x.c,x.eps).forEach(p=>{days+=activeDays(p,x.ps,x.c);p._nov.filter(n=>n.Tipo==="Hospitalización"&&n.Inicio>=x.ps&&n.Inicio<=x.c).forEach(n=>{const dur=n.Fin?dayDiff(n.Inicio,n.Fin):null;const ok=dur==null?dayDiff(n.Inicio,x.c)>=1:dur>=1;if(ok){ev++;list.push(pv(p,fd(n.Inicio)+(n.Fin?" a "+fd(n.Fin):" (sin egreso)")));}});});const meses=days/30.4375;return{ev,exp:meses,val:meses?ev/meses*12:null,list,expl:ev+" hospitalizaciones / "+f1(meses)+" meses de exposición"};}},
- {c:"dia_33_adul",n:"Infección del torrente sanguíneo asociada a CVC",t:"rate",unit:"por 1.000 días-catéter",dir:"down",cuts:[1.5],win:"Periodo · días-catéter",src:"Eventos con hemocultivo positivo · acceso por sesión",
-  f:x=>{let ev=0,cd=0,sus=0;const list=[];popPer(x.ps,x.c,x.eps).forEach(p=>{cd+=catDays(p,x.ps,x.c);p._evt.filter(e=>e.Tipo===ITS&&e.Fecha>=x.ps&&e.Fecha<=x.c).forEach(e=>{if(e.Hemocultivo==="Positivo"){ev++;list.push(pv(p,fd(e.Fecha)+" · confirmada"));}else{sus++;list.push(pv(p,fd(e.Fecha)+" · hemocultivo "+(e.Hemocultivo||"sin dato")+" (no cuenta)"));}});});return{ev,exp:cd,val:cd?ev/cd*1000:null,list,expl:ev+" confirmadas / "+cd.toLocaleString("es-CO")+" días-catéter"+(sus?" · "+sus+" sin confirmar":"")};}},
+ {c:"dia_33_adul",n:"Infección del torrente sanguíneo asociada a CVC",t:"rate",unit:"por 1.000 días-catéter",dir:"down",cuts:[1.5],win:"Periodo · días-catéter",src:"Eventos ITS-CVC confirmados por Laboratorio (o dato heredado) · días-catéter del registro de dispositivos",
+  f:x=>v6Its(x,true)},
  {c:"dia_34_adul",n:"Adultos que inician HD con FAV madura",t:"pct",dir:"up",cuts:null,win:"Incidentes del periodo menores de 80 años",src:"Pacientes · acceso al inicio",nota:"La síntesis CAC pide verificar la fórmula final contra el instructivo operativo antes de reportar.",
   f:x=>{const r={num:[],den:[],excl:[],sd:[]};popInc(x.ps,x.c,x.eps).forEach(p=>{const a=ageAt(p,p.InicioTRR);if(a!=null&&a>=80){r.excl.push({p,why:"80 años o más al inicio"});return;}r.den.push(pv(p,p.AccesoInicial||"sin dato"));if(!p.AccesoInicial)r.sd.push(p);else if(p.AccesoInicial==="FAV")r.num.push(pv(p,"FAV"));});return r;}},
  {c:"dia_35_adul",n:"Incidentes evaluados con escala de calidad de vida",t:"pct",dir:"up",cuts:null,win:"Del inicio a 90 días",src:"Paraclínicos · escala de calidad de vida",
   f:x=>{const r={num:[],den:[],excl:[],sd:[]};popInc(x.ps,x.c,x.eps).forEach(p=>{const l=lastLab(p,"EscalaCV",addDays(p.InicioTRR,-31),addDays(p.InicioTRR,90));r.den.push(pv(p,l?(l.Metodo||"escala")+" "+fd(l.FechaToma):"sin escala"));if(l)r.num.push(pv(p,l.Valor));});return r;}},
  {c:"dia_36_adul",n:"Prevalentes evaluados con escala de calidad de vida",t:"pct",dir:"up",cuts:null,win:"Periodo",src:"Paraclínicos · escala de calidad de vida",
   f:x=>{const r={num:[],den:[],excl:[],sd:[]};popPer(x.ps,x.c,x.eps).forEach(p=>{const l=lastLab(p,"EscalaCV",addDays(x.ps,-1),x.c);r.den.push(pv(p,l?(l.Metodo||"escala")+" "+fd(l.FechaToma):"sin escala"));if(l)r.num.push(pv(p,l.Valor));});return r;}},
- {c:"ins_its",inst:true,n:"ITS-CVC confirmadas y sospechas (sin hemocultivo positivo)",t:"rate",unit:"por 1.000 días-catéter",dir:"down",cuts:null,win:"Periodo · días-catéter",src:"Eventos ITS-CVC de cualquier estado de hemocultivo",nota:"Sirve para no perder de vista las sospechas mientras se confirman. El indicador CAC (dia_33) cuenta solo las confirmadas.",
-  f:x=>{let ev=0,cd=0;const list=[];popPer(x.ps,x.c,x.eps).forEach(p=>{cd+=catDays(p,x.ps,x.c);p._evt.filter(e=>e.Tipo===ITS&&e.Fecha>=x.ps&&e.Fecha<=x.c).forEach(e=>{ev++;list.push(pv(p,fd(e.Fecha)+" · hemocultivo "+(e.Hemocultivo||"sin dato")));});});return{ev,exp:cd,val:cd?ev/cd*1000:null,list,expl:ev+" episodios / "+cd.toLocaleString("es-CO")+" días-catéter"};}},
+ {c:"ins_its",inst:true,n:"ITS-CVC confirmadas y sospechas (sin hemocultivo positivo)",t:"rate",unit:"por 1.000 días-catéter",dir:"down",cuts:null,win:"Periodo · días-catéter",src:"Eventos ITS-CVC en cualquier estado de confirmación · días-catéter del registro de dispositivos",nota:"Sirve para no perder de vista las sospechas mientras se confirman. El indicador CAC (dia_33) cuenta solo las confirmadas.",
+  f:x=>v6Its(x,false)},
  {c:"ins_hosp_atr",inst:true,n:"Hospitalización atribuible a la ERC o a la diálisis",t:"rate",unit:"por 12 meses-paciente",dir:"down",cuts:null,win:"Periodo · meses de exposición",src:"Novedades de hospitalización con «atribuible = Sí»",
   f:x=>{let ev=0,days=0;const list=[];popPer(x.ps,x.c,x.eps).forEach(p=>{days+=activeDays(p,x.ps,x.c);p._nov.filter(n=>n.Tipo==="Hospitalización"&&n.Inicio>=x.ps&&n.Inicio<=x.c&&n.Atribuible==="Sí").forEach(n=>{ev++;list.push(pv(p,fd(n.Inicio)+" · "+(n.Causa||n.Descripcion||"")));});});const m=days/30.4375;return{ev,exp:m,val:m?ev/m*12:null,list,expl:ev+" atribuibles / "+f1(m)+" meses"};}},
  {c:"ins_glu",inst:true,n:"Glucometrías en sesión en rango 80-180 mg/dL",t:"pct",dir:"up",cuts:null,meta:70,win:"Mes del corte",src:"Turno del día · glucometría de pacientes con DM",
@@ -362,17 +356,11 @@ const IND=[
  {c:"ins_evt",inst:true,n:"Eventos en sesión por cada 100 sesiones",t:"rate",unit:"por 100 sesiones",dir:"down",cuts:null,win:"Mes del corte hasta la fecha de corte",src:"Turno del día · eventos",
   f:x=>{let ev=0,ss=0;const list=[];popPer(x.ms,x.c,x.eps).forEach(p=>{ss+=sesIn(p,x.ms,x.c,"Realizada").length;p._evt.filter(e=>e.Fecha>=x.ms&&e.Fecha<=x.c).forEach(e=>{ev++;list.push(pv(p,fd(e.Fecha)+" · "+e.Tipo+" · "+(e.Severidad||"")));});});return{ev,exp:ss,val:ss?ev/ss*100:null,list,expl:ev+" eventos / "+ss+" sesiones"};}}
 ];
-/* hd.js:298 */
+/* prototipo:1029 */
 const INDM=Object.fromEntries(IND.map(i=>[i.c,i]));
-/* hd.js:299 */
+/* prototipo:1030 */
 function progUpTo(p,a,c){const t=TODAY();return progDays(p,a,c).filter(d=>d<t||p._ses.some(s=>s.Fecha.getTime()===d.getTime()));}
-/* hd.js:300 */
-function catDays(p,a,b){let n=0;if(!overlaps(p,a,b))return 0;
-  const S=p._ses.filter(s=>s.Estado==="Realizada"&&s.Acceso);let j=-1;let cur=null;
-  for(let d=new Date(a);d<=b;d=addDays(d,1)){while(j+1<S.length&&S[j+1].Fecha<=d){j++;cur=S[j].Acceso;}if(!activeAt(p,d))continue;let acc=cur;
-    if(p.AccesoActual&&p.AccesoDesde&&p.AccesoDesde<=d&&(j<0||p.AccesoDesde>=S[j].Fecha))acc=p.AccesoActual;if(acc==null)acc=(p.AccesoDesde&&p.AccesoDesde>d)?p.AccesoInicial:(p.AccesoActual||p.AccesoInicial);if(isCVC(acc))n++;}
-  return n;}
-/* hd.js:305 */
+/* prototipo:1031 */
 function evalInd(def,x){
   const r=def.f(x);let val,num_,den_;
   if(def.t==="rate"){val=r.val;num_=r.ev;den_=r.exp;}
@@ -380,18 +368,18 @@ function evalInd(def,x){
   else{num_=r.num.length;den_=r.den.length;val=den_?num_/den_:null;}
   return Object.assign({def,val,n:num_,d:den_,status:statusOf(def,val)},r);
 }
-/* hd.js:312 */
+/* prototipo:1038 */
 function statusOf(def,v){if(v==null)return"na";if(!def.cuts)return"base";const x=def.t==="pct"?v*100:v;
   if(def.t==="rate")return x<def.cuts[0]?"alto":"bajo";
   if(def.dir==="down"){const[lo,hi]=def.cuts;return x<lo?"alto":x<=hi?"medio":"bajo";}
   const[hi,lo]=def.cuts;return x>hi?"alto":x>=lo?"medio":"bajo";}
-/* hd.js:316 */
+/* prototipo:1042 */
 const STATUS_TXT={alto:"Cumplimiento alto",medio:"Cumplimiento medio",bajo:"Cumplimiento bajo",base:"Línea de base",na:"Sin datos"};
-/* hd.js:317 */
+/* prototipo:1043 */
 function fmtVal(def,v){if(v==null)return"—";return def.t==="pct"?pct(v):f1(v,def.c==="dia_33_adul"?2:1);}
-/* hd.js:318 */
+/* prototipo:1044 */
 function trendPoints(def,n){const out=[];const c=ST.corte;for(let i=n-1;i>=0;i--){const ce=i===0?c:monthEnd(addMonths(monthStart(c),-i));const x=ctxFor(ce,addDays(addMonths(ce,-12),1),ST.eps);if(def.inst)x.ms=monthStart(ce);const r=evalInd(def,x);out.push({d:ce,v:r.val,n:r.n,dd:r.d});}return out;}
-/* hd.js:321 */
+/* prototipo:1047 */
 function semaforo(p,c){
   const tri=addMonths(c,-3);const g=k=>{const l=lastLab(p,k,tri,c);return l?num(l.Valor):null;};
   const hb=g("Hb"),alb=g("Alb"),P=g("P");const a1c=p.DM==="SI"?(()=>{const l=lastLab(p,"HbA1c",addMonths(c,-6),c);return l?num(l.Valor):null;})():null;
@@ -402,7 +390,7 @@ function semaforo(p,c){
   const al=[];if(alb!=null&&alb<3)al.push("Desnutrición severa (albúmina < 3)");if(hb!=null&&hb<8)al.push("Anemia severa (Hb < 8)");if(hb!=null&&hb>13)al.push("Hb > 13: revisar dosis de AEE");if(tas!=null&&tas>160)al.push("TA sistólica > 160");if(P!=null&&P>7.5)al.push("Fósforo > 7,5");if(P!=null&&P<2.5)al.push("Fósforo < 2,5");if(a1c!=null&&a1c>9)al.push("HbA1c > 9");if(acc==="CVC temporal")al.push("Catéter temporal");if(alb!=null&&hb!=null&&alb<3.5&&hb<9)al.push("Posible complejo malnutrición-inflamación");
   return{hb,alb,P,tas,a1c,acc,sc,tot,lvl,sd,al};
 }
-/* hd.js:333 */
+/* prototipo:1059 */
 function alertas(){
   ensureIdx();const c=ST.corte;const A={busq:[],sinses:[],minimo:[],hb13:[],cvcplan:[],evab:[],its:[],hosp:[],gid:[],hipo:[],val:[],vac:[],est:[],venc:0};
   const act=pacs().filter(p=>epsOk(p)&&activeAt(p,c));
@@ -410,13 +398,13 @@ function alertas(){
     const na=p._ses.filter(s=>s.Estado==="No asistió"&&s.Fecha<=c&&dayDiff(s.Fecha,c)<=14);
     na.forEach(s=>{const ct=p._ctc.find(k=>k.Fecha>=s.Fecha);if(!ct)A.busq.push({p,s});});
     if(!absentOn(p,c)){const last=[...p._ses].reverse().find(s=>s.Estado==="Realizada"&&s.Fecha<=c);const ref=last?last.Fecha:(p.IngresoUnidad||p.InicioTRR);if(ref&&dayDiff(ref,c)>=7)A.sinses.push({p,last:last?last.Fecha:null,dias:dayDiff(ref,c)});}
-    const ms=monthStart(c),me=monthEnd(c);const min=ST.book.cfgv.minSes[p.EPS]??ST.book.cfgv.minSes.OTRA??8;if(p.EPS==="FOMAG"&&false){}const real=sesIn(p,ms,c,"Realizada").length;const rest=progDays(p,addDays(c,1),me).length;
+    const ms=monthStart(c),me=monthEnd(c);const min=ST.book.cfgv.minSes[p.EPS]??ST.book.cfgv.minSes.OTRA??8;const real=sesIn(p,ms,c,"Realizada").length;const rest=progDays(p,addDays(c,1),me).length;
     if(real+rest<min)A.minimo.push({p,real,rest,min,tipo:"No alcanza el mínimo aunque asista a todas"});else if(real+rest-min<=1)A.minimo.push({p,real,rest,min,tipo:"Sin margen: una inasistencia más lo deja por debajo"});
     const hb=lastLab(p,"Hb",addMonths(c,-3),c);if(hb&&num(hb.Valor)>13)A.hb13.push({p,v:num(hb.Valor),d:hb.FechaToma});
     const acc=accessAt(p,c);if(isCVC(acc)&&(!p.RutaAcceso||p.RutaAcceso==="Sin valorar"))A.cvcplan.push({p,acc});
     if(isCVC(acc)&&RUTA_EXCL.includes(p.RutaAcceso)&&!p.SoporteRuta)A.cvcplan.push({p,acc,sop:true});
     p._evt.filter(e=>e.Resuelto!=="Sí").forEach(e=>A.evab.push({p,e}));
-    p._evt.filter(e=>e.Tipo===ITS&&(!e.Hemocultivo||e.Hemocultivo==="Pendiente"||e.Hemocultivo==="No tomado")).forEach(e=>A.its.push({p,e}));
+    p._evt.filter(e=>e.Tipo===ITS&&["Cultivo sin registro en laboratorio","Cultivo en proceso","Sin cultivo"].includes(itsConf(e).st)).forEach(e=>A.its.push({p,e}));
     p._nov.filter(n=>n.Tipo==="Hospitalización"&&!n.Fin).forEach(n=>A.hosp.push({p,n}));
     A.venc+=labDue(p,c).filter(x=>x.st==="vencido").length;
     const g=gidStats(p,c,8);if(g.n>=3&&g.pct>4)A.gid.push({p,g});
@@ -427,7 +415,7 @@ function alertas(){
   A.total=A.busq.length+A.sinses.length+A.minimo.filter(m=>m.tipo[0]==="N").length+A.hb13.length+A.cvcplan.length+A.its.length+A.hipo.length+A.vac.filter(x=>x.s.lvl==="bad").length;
   return A;
 }
-/* hd.js:359 */
+/* prototipo:1085 */
 function calidad(){
   ensureIdx();const c=ST.corte;const B=ST.book;const Q=[];const add=(g,p,t,lvl)=>Q.push({g,p,t,lvl:lvl||"warn"});
   const ids={},docs={};B.pac.forEach(p=>{(ids[p.ID]=ids[p.ID]||[]).push(p);if(p.Documento)(docs[p.Documento]=docs[p.Documento]||[]).push(p);});
@@ -446,11 +434,12 @@ function calidad(){
   B.lab.filter(live).forEach(l=>{const e=EX[l.Examen];const p=IDX.pac.get(l.Paciente)||{ID:l.Paciente||"?"};if(l.FechaToma&&l.FechaToma>TODAY())add("Paraclínicos",p,l.Examen+" con fecha futura ("+fd(l.FechaToma)+")","bad");if(e&&!e.txt){const v=num(l.Valor);if(v!=null&&(v<e.lo||v>e.hi))add("Paraclínicos",p,e.l+" = "+l.Valor+" fuera de rango plausible ("+fd(l.FechaToma)+")","bad");}if(l.Examen==="KtV"&&!l.Metodo)add("Paraclínicos",p,"Kt/V del "+fd(l.FechaToma)+" sin método de cálculo");});
   B.nov.filter(live).forEach(n=>{if(n.Fin&&n.Inicio&&n.Fin<n.Inicio)add("Novedades",IDX.pac.get(n.Paciente)||{ID:"?"},"Novedad con egreso antes del ingreso","bad");});
   B.pac.filter(p=>p._noStart).forEach(p=>add("Maestro incompleto",p,"Sin fecha de ingreso a la unidad ni de inicio de diálisis: no se puede saber desde cuándo está activo","bad"));
+  try{v6Calidad(add,c);}catch(e){console.error(e);}
   return Q;
 }
-/* hd.js:381 */
+/* prototipo:1108 */
 function tarifaFor(eps,d){const T=(ST.fin.data&&ST.fin.data.tarifas)||[];const c=T.filter(t=>t.eps===eps&&(!t.desde||pdate(t.desde)<=d)).sort((a,b)=>(pdate(b.desde)||0)-(pdate(a.desde)||0));return c[0]||null;}
-/* hd.js:382 */
+/* prototipo:1109 */
 function conciliar(mes){
   ensureIdx();const ms=pdate(mes+"-01"),me=monthEnd(ms);const lim=me<ST.corte?me:ST.corte;const rows=[];
   pacs().filter(p=>epsOk(p)&&overlaps(p,ms,me)).forEach(p=>{
@@ -463,16 +452,16 @@ function conciliar(mes){
   });
   return{rows,ms,me,lim};
 }
-/* hd.js:396 */
+/* prototipo:1123 */
 function freqOf(k){const f=ST.book.cfgv.freq||{};return f[k]!==undefined?f[k]:(EX[k]?EX[k].f:"");}
-/* hd.js:397 */
+/* prototipo:1124 */
 function schedMonths(f){const A=Object.assign({},ANCHOR_DEF,ST.book.cfgv.anchor||{});if(f==="M")return[1,2,3,4,5,6,7,8,9,10,11,12];
   const step=f==="T"?3:f==="S"?6:f==="A"?12:0;if(!step)return[];const a=A[f]||1;const out=[];for(let i=0;i<12;i+=step)out.push(((a-1+i)%12)+1);return out.sort((x,y)=>x-y);}
-/* hd.js:399 */
+/* prototipo:1126 */
 const susceptibleVHB=p=>{const L=p._lab.AntiHBs||[];const last=L.length?num(L[L.length-1].Valor):null;const hbs=p._lab.HBsAg||[];const pos=hbs.length&&/^react/i.test(hbs[hbs.length-1].Valor);return!pos&&(last==null||last<10);};
-/* hd.js:400 */
+/* prototipo:1127 */
 function examApplies(p,k){const e=EX[k];if(!e)return false;if(e.dm&&p.DM!=="SI")return false;return true;}
-/* hd.js:402 */
+/* prototipo:1129 */
 function examsForMonth(p,y,m){const out=[];const ms=new Date(y,m-1,1);
   const isNew=(p.IngresoUnidad&&dayDiff(p.IngresoUnidad,ms)<=60);
   EXAMS.forEach(e=>{const k=e.k;if(!examApplies(p,k))return;let f=freqOf(k);let why=FREQ_TXT[f]||"";
@@ -480,7 +469,7 @@ function examsForMonth(p,y,m){const out=[];const ms=new Date(y,m-1,1);
     if(isNew&&f&&!(p._lab[k]||[]).length){out.push({k,why:"Paquete de ingreso (sin resultado previo)"});return;}
     if(f&&schedMonths(f).includes(m))out.push({k,why});});
   return out;}
-/* hd.js:410 */
+/* prototipo:1137 */
 function labDue(p,c){const out=[];const y=c.getFullYear(),m=c.getMonth()+1;
   EXAMS.forEach(e=>{const k=e.k;if(!examApplies(p,k))return;let f=freqOf(k);if(k==="HBsAg"&&susceptibleVHB(p))f="M";if(!f)return;const months=schedMonths(f);if(!months.length)return;
     const L=p._lab[k];const last=L&&L.length?L[L.length-1]:null;
@@ -490,7 +479,7 @@ function labDue(p,c){const out=[];const y=c.getFullYear(),m=c.getMonth()+1;
     let st="al día";if(since&&!inIv)st="vencido";else if(thisMonth&&!(last&&last.FechaToma>=monthStart(c)))st="este mes";else if(nextMonth)st="próximo mes";
     out.push({k,last,st,f,due:st==="próximo mes"?nm:st==="este mes"?monthStart(c):prev});});
   return out;}
-/* hd.js:422 */
+/* prototipo:1149 */
 const CAL_DOM=[
  ["ktv","Depuración (Kt/V)","≥ 1,4 · 1,2-1,39 · < 1,2 (KDOQI 2015: objetivo 1,4, mínimo 1,2)"],
  ["gid","Ganancia interdialítica","< 3 % · 3-4 % · > 4 % del peso seco"],
@@ -503,10 +492,10 @@ const CAL_DOM=[
  ["fat","Fatiga pos-HD (0-10)","0-3 · 4-6 · 7-10"],
  ["adh","Adherencia","sin pérdidas · 1 perdida o ≥ 2 acortadas · ≥ 2 perdidas"]
 ];
-/* hd.js:434 */
+/* prototipo:1161 */
 const CAL_OPC={sint_pred:["Ninguno","Calambres","Mareo/presíncope","Náusea/vómito","Cefalea","Dolor torácico","Disnea","Prurito","Otro"],sint_frec:["Nunca","1 sesión","2 sesiones","≥3 sesiones"],cong:["No","Ocasional","Frecuente","No valorada"],
  acc:["Sin hallazgos","Dificultad de punción","Bajo flujo/presiones anormales","Sangrado prolongado","Signos de infección","Dolor/infiltración","Otro"],rec:["<2 h","2–6 h","6–12 h","12–24 h",">24 h","No sabe/no valorado"]};
-/* hd.js:436 */
+/* prototipo:1163 */
 function calidadAuto(p,c){const a=addDays(c,-28);const R=sesIn(p,addDays(a,1),c);const real=R.filter(s=>s.Estado==="Realizada");
   const g=gidStats(p,c,8);const ta=taStats(p,c,12);const k=lastLab(p,"KtV",addMonths(c,-3),c);const ko=ktvOnline(p,c,8);
   const hipo=p._evt.filter(e=>e.Tipo==="Hipotensión intradialítica"&&e.Fecha>a&&e.Fecha<=c).length;
@@ -514,7 +503,7 @@ function calidadAuto(p,c){const a=addDays(c,-28);const R=sesIn(p,addDays(a,1),c)
   const presc=num(p.DuracionMin)||ST.book.cfgv.durDefault;
   return{ktv:k?num(k.Valor):(ko?ko.avg:null),ktvSrc:k?"laboratorio "+fd(k.FechaToma):(ko?"en línea, promedio "+ko.n+" ses.":""),gidPct:g.pct,gidKg:g.kg,ufrMax:g.ufrMax,pasMin:ta.min,hipo,
     evSes:evS,perdidas:R.filter(s=>s.Estado==="No asistió").length,acortadas:real.filter(s=>num(s.DuracionMin)!=null&&num(s.DuracionMin)<presc-15).length,real:real.length};}
-/* hd.js:443 */
+/* prototipo:1170 */
 function calidadScore(auto,man){man=man||{};const pt={},sd=[];const S=(k,v)=>{if(v==null){sd.push(k);pt[k]=null;}else pt[k]=v;};
   S("ktv",auto.ktv==null?null:auto.ktv>=1.4?0:auto.ktv>=1.2?1:2);
   S("gid",auto.gidPct==null?null:auto.gidPct<3?0:auto.gidPct<=4?1:2);
@@ -531,17 +520,17 @@ function calidadScore(auto,man){man=man||{};const pt={},sd=[];const S=(k,v)=>{if
   if(sd.length>=4)cat="Sin datos suficientes";
   const worst=CAL_DOM.filter(([k])=>pt[k]===2).map(([,l])=>l);
   return{pt,tot,cat,sd,revision:twos>0?"Sí":"No",motivo:worst[0]||"No aplica",worst};}
-/* hd.js:459 */
+/* prototipo:1186 */
 const CAL_CLASS={"Excelente":"ok","Bueno":"ok","Regular":"warn","Malo":"bad","Sin datos suficientes":"base"};
-/* hd.js:460 */
+/* prototipo:1187 */
 function ultimaValoracion(p,c){for(let i=p._val.length-1;i>=0;i--){const v=p._val[i];if(v.Fecha<=c)return v;}return null;}
-/* hd.js:461 */
+/* prototipo:1188 */
 function calidadDe(p,c){const auto=calidadAuto(p,c);const v=ultimaValoracion(p,c);let man={};if(v&&dayDiff(v.Fecha,c)<=45){try{man=(JSON.parse(v.Datos||"{}").cal)||{};}catch(e){}}return Object.assign(calidadScore(auto,man),{auto,man,val:v});}
-/* hd.js:1100 */
+/* prototipo:1747 */
 const D1800="1800-01-01",D1845="1845-01-01",D1811="1811-01-01";
-/* hd.js:1101 */
+/* prototipo:1748 */
 const isoOr=(d,alt)=>d?iso(d):alt;
-/* hd.js:1102 */
+/* prototipo:1749 */
 function cacVals(p,c,ps){const per=addDays(addMonths(c,-12),1);const tri=addMonths(c,-3);const L=(k,a)=>lastLab(p,k,a||per,c);const C=ST.book.cfgv;const miss=[];const need=(k,v,lbl)=>{if(v==null||v==="")miss.push(lbl);return v==null?"":v;};
   const nm=String(p.Nombres||"").trim().split(/\s+/),ap=String(p.Apellidos||"").trim().split(/\s+/);
   const lastS=[...p._ses].reverse().find(s=>s.Fecha<=c&&s.Estado==="Realizada"&&num(s.PesoPost)!=null);const lastTA=[...p._ses].reverse().find(s=>s.Fecha<=c&&s.Fecha>=per&&num(s.TASPre)!=null);
@@ -586,27 +575,27 @@ function cacVals(p,c,ps){const per=addDays(addMonths(c,-12),1);const tri=addMont
   v.v79=p.NovedadCAC||(fall?1:aband?7:98);v.v80=fall?(p.CausaMuerte||99):98;const fm=p._mov.find(m=>m.Tipo==="Fallecimiento");v.v80_1=fall?isoOr(fm?fm.Fecha:p.FechaEstado,D1800):D1845;v.v81=need("v81",p.BDUA,"Código BDUA (var 81)");v.v82=iso(c);
   const nx=val?(()=>{try{return JSON.parse(val.Datos).f.proxCtrl;}catch(e){return"";}})():"";v.fprox=nx||D1800;const ho=p._nov.filter(n=>n.Tipo==="Hospitalización"&&n.Inicio>=per&&n.Inicio<=c).pop();v.fhosp=ho?iso(ho.Inicio):D1845;v.hospev=ho?(ho.Evitable==="Sí"?"SI":ho.Evitable==="No"?"NO":""):98;v.seguim="";v.mesrep=ym(c);
   v.cintura="";v._miss=miss;return v;}
-/* hd.js:1427 */
+/* prototipo:2074 */
 function ufCalc(pre,post,min){if(pre==null||post==null)return null;const kg=pre-post;const ml=kg*1000;return{kg,ml,ufr:min&&post?ml/post/(min/60):null};}
-/* hd.js:1428 */
+/* prototipo:2075 */
 function sesUF(s){const u=ufCalc(num(s.PesoPre),num(s.PesoPost),num(s.DuracionMin));if(!u)return null;return{kg:num(s.UFNeta)!=null?num(s.UFNeta):u.kg,ufr:num(s.UFR)!=null?num(s.UFR):u.ufr,maq:num(s.UFMaquina)};}
-/* hd.js:1434 */
+/* prototipo:2081 */
 const EST_TIPOS=["Imagen diagnóstica","Procedimiento","Examen especializado","Concepto de especialista"];
-/* hd.js:1435 */
+/* prototipo:2082 */
 const EST_NOM=["Ecocardiograma","Electrocardiograma","Holter de 24 horas","Prueba de esfuerzo o perfusión miocárdica","Radiografía de tórax","Ecografía renal y de vías urinarias","Ecografía abdominal","Doppler de miembros superiores (mapeo vascular)","Doppler de la FAV","Fistulografía","Endoscopia digestiva alta","Colonoscopia","Densitometría ósea","Fondo de ojo","Mamografía","Citología cervicovaginal","Tomografía","Resonancia magnética","Biopsia","Valoración por cardiología","Valoración por cirugía vascular"];
-/* hd.js:1436 */
+/* prototipo:2083 */
 function estRelevantes(p){return(p._est||[]).filter(e=>e.Relevante==="Sí").slice().reverse();}
-/* hd.js:1437 */
+/* prototipo:2084 */
 function estVencidos(p,c){return(p._est||[]).filter(e=>e.ProximoControl&&e.ProximoControl<=c&&!(p._est||[]).some(x=>x!==e&&x.Nombre===e.Nombre&&x.Fecha>e.Fecha));}
-/* hd.js:1444 */
+/* prototipo:2091 */
 function vacEsquemas(){const E=(ST.book&&ST.book.cfgv.vacEsq)||CFG_DEF.vacEsq;return E.filter(e=>e&&e.n&&Array.isArray(e.m)&&e.m.length);}
-/* hd.js:1445 */
+/* prototipo:2092 */
 function vacMeses(nom){const e=vacEsquemas().find(x=>x.n===nom);return e?e.m:(vacEsquemas()[0]||{m:[0,1,2,6]}).m;}
-/* hd.js:1446 */
+/* prototipo:2093 */
 function vacDoses(p,c){return(p._vac||[]).filter(v=>(v.Vacuna||"VHB")==="VHB"&&v.Fecha&&(!c||v.Fecha<=c)).slice().sort((a,b)=>a.Fecha-b.Fecha||String(a.ID).localeCompare(b.ID));}
-/* hd.js:1447 */
+/* prototipo:2094 */
 function labTxt(l){return l?(EX[l.Examen]&&EX[l.Examen].txt?l.Valor:f1(num(l.Valor),0))+" · "+fd(l.FechaToma):"sin dato";}
-/* hd.js:1448 */
+/* prototipo:2095 */
 function vacStatus(p,c){c=c||ST.corte;const D=vacDoses(p,c);const hb=lastLab(p,"HBsAg",null,c),ab=lastLab(p,"AntiHBc",null,c),as=lastLab(p,"AntiHBs",null,c);const asv=as?num(as.Valor):null;
   const o={D,hb,ab,as,next:null,lvl:"base",code:"",txt:"",accion:false};const R=(code,lvl,txt,extra)=>Object.assign(o,{code,lvl,txt,accion:["esq_venc","post_pend","nr1","resp_anual","resp_ref","susc","abc_ais","anti_sin_dosis","ficha"].includes(code)},extra||{});
   if(hb&&/^react/i.test(hb.Valor))return R("hbs","bad","HBsAg reactivo ("+fd(hb.FechaToma)+"): no vacunar; máquina, sala y personal dedicados (CDC 2001; GSH-PT-001).");
@@ -632,36 +621,163 @@ function vacStatus(p,c){c=c||ST.corte;const D=vacDoses(p,c);const hb=lastLab(p,"
   if(la!=null&&la<10&&!refAfter.length)return R("resp_ref","warn","Respondedor con anti-HBs "+f1(la,0)+" el "+fd(lastA.FechaToma)+": aplicar dosis de refuerzo (CDC 2001).",{next:c});
   const nxt=addMonths(lastA.FechaToma,12);if(nxt<=c)return R("resp_anual","warn","Respondedor (anti-HBs "+f1(pv,0)+" posvacunación). Anti-HBs anual vencido desde "+fd(nxt)+".",{next:nxt});
   return R("resp","ok","Respondedor (anti-HBs "+f1(pv,0)+" el "+fd(post[0].FechaToma)+"). Próximo anti-HBs anual: "+fd(nxt)+(refAfter.length?" · refuerzo "+fd(refAfter[refAfter.length-1].Fecha):"")+".",{next:nxt});}
-/* hd.js:1473 */
+/* prototipo:2120 */
 const VAC_GRUPOS=[["accion","Requieren acción"],["esq","En esquema"],["prot","Protegidos"],["hbs","HBsAg reactivo"],["nr","No respondedores"],["all","Todos"]];
-/* hd.js:1474 */
+/* prototipo:2121 */
 function vacGrupo(s){return s.accion?"accion":s.code==="esq"||s.code==="post_esp"?"esq":["resp","inm_inf"].includes(s.code)?"prot":s.code==="hbs"?"hbs":s.code==="nr2"?"nr":"otro";}
-/* hd.js:1475 */
+/* prototipo:2122 */
 function vacNextDefaults(p){const D=vacDoses(p,null);const s=vacStatus(p,TODAY());let serie="1";if(s.code==="nr1")serie=String((s.cur?s.cur.n:1)+1);else if(s.code==="resp_ref")serie="Refuerzo";else if(s.cur&&!s.cur.comp)serie=String(s.cur.n);
   const esq=serie==="Refuerzo"?"":(s.cur&&String(s.cur.n)===serie?s.cur.L[0].Esquema:(vacEsquemas()[0]||{}).n);const n=serie==="Refuerzo"?1:D.filter(d=>(d.Serie||"1")===serie).length+1;return{serie,esq,n};}
-/* hd.js:1495 */
+/* prototipo:2142 */
 function vacEtiqueta(c){return({hbs:"HBsAg +",inm_inf:"Inmune",resp:"Respondedor",resp_anual:"Anti-HBs anual",resp_ref:"Refuerzo",esq:"En esquema",esq_venc:"Dosis vencida",post_esp:"Esperar control",post_pend:"Control pendiente",nr1:"Revacunar",nr2:"No respondedor",abc_ais:"Anti-HBc aislado",anti_sin_dosis:"Sin dosis",ficha:"Sin dosis",susc:"Susceptible"})[c]||c;}
-/* hd.js:1501 */
+/* prototipo:2148 */
 const TX_EST=["Pendiente","Solicitado","Realizado","No aplica"];
-/* hd.js:1502 */
+/* prototipo:2149 */
 function txItems(){return((ST.book&&ST.book.cfgv.txItems)||CFG_DEF.txItems).filter(Boolean);}
-/* hd.js:1503 */
+/* prototipo:2150 */
 function txState(p){const last={};(p._txs||[]).forEach(r=>{last[r.Item]=r;});const items=txItems().map(it=>({it,r:last[it]||null,e:last[it]?last[it].Estado:"Pendiente"}));
   const hecho=items.filter(x=>x.e==="Realizado").length,na=items.filter(x=>x.e==="No aplica").length,sol=items.filter(x=>x.e==="Solicitado").length;const falta=items.filter(x=>x.e!=="Realizado"&&x.e!=="No aplica");
   const ult=(p._txs||[]).slice(-1)[0]||null;return{items,hecho,na,sol,apl:items.length-na,falta,ult};}
-/* hd.js:1506 */
+/* prototipo:2153 */
 const TX_EN_PROCESO=["Idóneo, en estudio","En lista de espera"];
-/* hd.js:1534 */
+/* prototipo:2181 */
 function tenerPresente(p,c){c=c||ST.corte;const o=[];estRelevantes(p).forEach(e=>o.push({lvl:"info",t:e.Nombre+" ("+fd(e.Fecha)+")",d:e.Resultado+(e.Seguimiento?" · Seguimiento: "+e.Seguimiento:"")+(e.ProximoControl?" · Próximo control "+fd(e.ProximoControl):""),id:e.ID,venc:e.ProximoControl&&e.ProximoControl<=c}));
   const v=vacStatus(p,c);if(v.lvl!=="ok"&&v.code!=="nr2")o.push({lvl:v.lvl==="bad"?"bad":"warn",t:"Vacunación VHB",d:v.txt});else if(v.code==="nr2")o.push({lvl:"info",t:"Vacunación VHB",d:v.txt});
   if(TX_EN_PROCESO.includes(p.TxEstado)){const t=txState(p);if(t.falta.length)o.push({lvl:"info",t:"Trasplante · "+p.TxEstado,d:"Faltan "+t.falta.length+": "+t.falta.slice(0,4).map(x=>x.it.split(" · ").pop()).join("; ")+(t.falta.length>4?"…":"")});}
   return o;}
-/* hd.js:1541 */
+/* prototipo:2188 */
 const SOL_EST=["Pendiente","Muestra tomada","No tomada"];
-/* hd.js:1543 */
+/* prototipo:2190 */
 function solRecs(mes,prog){prog=prog||"hd";return ST.book.sol.filter(live).filter(r=>r.Mes===mes&&(r.Programa||"hd")===prog);}
-/* hd.js:1544 */
+/* prototipo:2191 */
 function solPropuesta(mes){ensureIdx();const[y,mm]=mes.split("-").map(Number);const ms=new Date(y,mm-1,1);const ref=ST.corte>ms?ST.corte:ms;
   return ST.book.pac.filter(p=>activeAt(p,ST.corte)||activeAt(p,ms)).sort((a,b)=>String(a.ID).localeCompare(b.ID)).map(p=>{const ex=examsForMonth(p,y,mm).map(e=>({k:e.k,why:e.why}));labDue(p,ST.corte).filter(v=>v.st==="vencido"&&!ex.some(e=>e.k===v.k)).forEach(v=>ex.push({k:v.k,why:"Vencido"}));const NO_LAB=["EscalaCV","EKG","TAS","KtV","URR"];return{p,ex:ex.filter(e=>!NO_LAB.includes(e.k))};}).filter(x=>x.ex.length);}
-return { esc, pad, iso, fd, ym, addDays, addMonths, monthStart, monthEnd, dayDiff, nowTs, pdate, num, norm, f1, pct, money, EPS_L, epsList, TURNOS_DEF, turnosCfg, turnoNames, DIAS_L, ESTADOS_SES, MOTIVOS, MOT_RESP, CAUSA_HOSP, ATRIB, TIPO_SES, MOT_EXTRA, RESP, ACCESOS, isCVC, ITS, EVENTOS, SEV, RESUELTO, HEMOC, NOV_TIPOS, MOV_EGRESO, MOV_TIPOS, EGRESO_ESTADO, RUTA, RUTA_EXCL, ACC_NOV, ACC_NOV_RES, TX, PROCED, MEDIOS, RESULT_CTC, DISCIPLINAS, EXAMS, EX, FREQ_TXT, ANCHOR_DEF, META_DEF, CFG_DEF, MUN_DANE, MEDS, AEE, SH, BOOK_KEYS, DATE_F, NUM_F, cacStart, newBook, readSheet, fromRow, isToolBook, isDashboard, parseToolBook, live, IDX, reindex, ensureIdx, nombre, activeAt, activeDays, overlaps, ageAt, adult, ninety, epsOk, turnoDias, turnoJor, absentOn, progDays, sesIn, lastLab, labsIn, accessAt, lastSes, pacs, popCut, popPer, popInc, ctxFor, gidStats, taStats, glucoStats, ktvOnline, fmtTA, parseTA, ktvDaugirdas, metasDe, ufCalc, sesUF, pv, propLab, IND, INDM, progUpTo, catDays, evalInd, statusOf, STATUS_TXT, fmtVal, trendPoints, semaforo, alertas, calidad, tarifaFor, conciliar, freqOf, schedMonths, susceptibleVHB, examApplies, examsForMonth, labDue, SOL_EST, solRecs, solPropuesta, CAL_DOM, CAL_OPC, calidadAuto, calidadScore, CAL_CLASS, ultimaValoracion, calidadDe, EST_TIPOS, EST_NOM, estRelevantes, estVencidos, vacEsquemas, vacMeses, vacDoses, labTxt, vacStatus, VAC_GRUPOS, vacGrupo, vacNextDefaults, vacEtiqueta, TX_EST, txItems, txState, TX_EN_PROCESO, tenerPresente, CAC_H_FOMAG, CAC_H_ERC, CAC_SHEET_FOMAG, CAC_SHEET_ERC, D1800, D1845, D1811, isoOr, cacVals, ST, TODAY };
+/* prototipo:2425 */
+SH.dsp=["Dispositivos",["ID","Paciente","Tipo","Sitio","FechaInsercion","LugarInsercion","FechaRetiro","MotivoRetiro","Estado","Reemplaza","Novedad","Origen","Validado","ValidadoPor","ValidadoFecha","Nota","Usuario","Registrado","Anulado","MotivoAnulacion"]];
+/* prototipo:2426 */
+SH.lim=["Limpieza",["ID","Proceso","Fecha","Turno","Maquina","Area","FechaProgramada","Ejecuto","Cargo","Actividades","Producto","Concentracion","TiempoContacto","Parametros","Observacion","Evidencia","SupResultado","SupItems","SupPor","SupFecha","SupObs","Usuario","Registrado","Anulado","MotivoAnulacion"]];
+/* prototipo:2427 */
+BOOK_KEYS.splice(BOOK_KEYS.indexOf("cor"),0,"dsp","lim");
+/* prototipo:2428 */
+SH.ses[1].splice(SH.ses[1].indexOf("Usuario"),0,"LimpiezaPuesto");
+/* prototipo:2429 */
+SH.atb[1].splice(SH.atb[1].indexOf("Nota"),0,"DuracionPrevista","Prescriptor");
+/* prototipo:2430 */
+["FechaInsercion","FechaRetiro","FechaProgramada","SupFecha","ValidadoFecha"].forEach(f=>DATE_F.add(f));
+/* prototipo:2431 */
+NUM_F.add("DuracionPrevista");
+/* prototipo:2432 */
+CFG_DEF.maquinas=null;
+/* prototipo:2433 */
+CFG_DEF.limTer={inicio:"",cada:15,tol:0,validado:"NO",por:"",fecha:""};
+/* prototipo:2434 */
+CFG_DEF.cdMet={retiro:"incluye",hosp:"cuenta",ver:"CD-2026.10-v1",por:"",fecha:""};
+/* prototipo:5413 */
+const lv=o=>!!o&&o.Anulado!=="SI";
+/* prototipo:5414 */
+const hdOn=()=>typeof ST!=="undefined"&&!!ST.book;
+/* prototipo:5431 */
+const DSP_TIPOS=["CVC tunelizado","CVC temporal","FAV","Injerto"];
+/* prototipo:5432 */
+const DSP_SITIOS=["Yugular interna derecha","Yugular interna izquierda","Subclavia derecha","Subclavia izquierda","Femoral derecha","Femoral izquierda","Antebrazo izquierdo","Antebrazo derecho","Brazo izquierdo","Brazo derecho","Otro"];
+/* prototipo:5433 */
+const DSP_RETIRO=["Cambio de acceso","Disfunción","Infección","Trombosis","Fin de uso (FAV o injerto funcional)","Salida accidental","Egreso de la unidad","Otro"];
+/* prototipo:5434 */
+const DSP_LUGAR=["UNO-P (sala de procedimientos)","Otra institución","Desconocido"];
+/* prototipo:5435 */
+function dspAll(){return hdOn()&&ST.book.dsp?ST.book.dsp.filter(lv):[];}
+/* prototipo:5436 */
+function dspOf(pid){return dspAll().filter(d=>d.Paciente===pid).sort((a,b)=>(a.FechaInsercion||0)-(b.FechaInsercion||0));}
+/* prototipo:5437 */
+function dspCVC(pid){return dspOf(pid).filter(d=>isCVC(d.Tipo));}
+/* prototipo:5438 */
+function dspFind(id){return id?dspAll().find(d=>d.ID===id):null;}
+/* prototipo:5439 */
+const dspOpen=d=>!d.FechaRetiro&&d.Estado!=="Retirado";
+/* prototipo:5440 */
+function cdMet(){return Object.assign({},CFG_DEF.cdMet,(ST.book&&ST.book.cfgv.cdMet)||{});}
+/* prototipo:5441 */
+function dspCovers(d,day,met){if(!d.FechaInsercion||d.FechaInsercion>day)return false;if(!d.FechaRetiro)return d.Estado!=="Retirado";return met&&met.retiro==="excluye"?day<d.FechaRetiro:day<=d.FechaRetiro;}
+/* prototipo:5442 */
+function hospOn(p,d){return p._nov.some(n=>n.Tipo==="Hospitalización"&&n.Inicio<=d&&(!n.Fin||d<=n.Fin));}
+/* prototipo:5446 */
+function cdCalc(a,b,eps,onlyPid){
+  const met=cdMet();const R={days:0,per:[],block:[],warn:[],pend:[],recs:[],met,a,b,complete:true};
+  if(!hdOn())return R;ensureIdx();
+  pacs().filter(p=>(!onlyPid||p.ID===onlyPid)&&(!eps||p.EPS===eps)&&overlaps(p,a,b)).forEach(p=>{
+    const D=dspCVC(p.ID);let n=0,dup=0;const used=new Set();
+    D.forEach(d=>{const inP=(!d.FechaInsercion||d.FechaInsercion<=b)&&(!d.FechaRetiro||d.FechaRetiro>=a);if(!inP)return;
+      if(!d.FechaInsercion)R.block.push({p,d,t:"Catéter "+d.ID+" ("+d.Tipo+") sin fecha de inserción",fix:"Registrar la fecha de inserción (o la primera fecha documentada) en el registro de dispositivos"});
+      else if(d.Estado==="Retirado"&&!d.FechaRetiro)R.block.push({p,d,t:"Catéter "+d.ID+" marcado como retirado sin fecha de retiro",fix:"Registrar la fecha de retiro"});
+      else if(d.FechaRetiro&&d.FechaRetiro<d.FechaInsercion)R.block.push({p,d,t:"Catéter "+d.ID+" con retiro anterior a la inserción",fix:"Corregir las fechas"});
+      if(d.Validado!=="SI")R.pend.push({p,d});});
+    const valid=D.filter(d=>d.FechaInsercion&&!(d.Estado==="Retirado"&&!d.FechaRetiro)&&!(d.FechaRetiro&&d.FechaRetiro<d.FechaInsercion));
+    for(let d=new Date(a);d<=b;d=addDays(d,1)){if(!activeAt(p,d))continue;if(met.hosp==="excluye"&&hospOn(p,d))continue;const c=valid.filter(x=>dspCovers(x,d,met));if(c.length){n++;c.forEach(x=>used.add(x.ID));const real=c.filter(x=>!(x.FechaRetiro&&iso(x.FechaRetiro)===iso(d)&&c.some(y=>y!==x&&y.FechaInsercion&&iso(y.FechaInsercion)===iso(d))));if(real.length>1)dup++;}}
+    if(dup)R.warn.push({p,t:dup+(dup===1?" día":" días")+" con dos catéteres activos a la vez (se cuentan una vez); revise si falta registrar un retiro"});
+    const S=p._ses.filter(s=>s.Estado==="Realizada"&&s.Fecha>=a&&s.Fecha<=b&&isCVC(s.Acceso));
+    const sinD=S.filter(s=>!D.some(x=>x.FechaInsercion&&dspCovers(x,s.Fecha,{retiro:"incluye"})));
+    if(sinD.length)R.block.push({p,t:sinD.length+" sesiones con catéter sin un dispositivo registrado que las cubra (primera: "+fd(sinD[0].Fecha)+")",fix:"Registrar el catéter con su fecha de inserción, o corregir el acceso de la sesión en el Turno",ses:sinD.map(s=>s.ID)});
+    const favS=p._ses.filter(s=>s.Estado==="Realizada"&&s.Fecha>=a&&s.Fecha<=b&&s.Acceso&&!isCVC(s.Acceso));
+    const cvcOnFav=favS.filter(s=>valid.some(x=>dspCovers(x,s.Fecha,met)));
+    if(cvcOnFav.length)R.warn.push({p,t:cvcOnFav.length+" sesiones por FAV/injerto mientras figura un catéter activo: confirme si el catéter sigue in situ (se cuentan sus días)"});
+    if(n||D.length||S.length)R.per.push({p,days:n,devs:[...used],ses:S.length});R.days+=n;used.forEach(id=>R.recs.push(id));});
+  R.complete=!R.block.length;return R;}
+/* prototipo:5468 */
+function dspPropuestas(){if(!hdOn())return[];ensureIdx();const out=[];
+  pacs().forEach(p=>{if(dspOf(p.ID).length)return;const pts=[];const st=p.IngresoUnidad||p.InicioTRR;
+    if(st&&p.AccesoInicial)pts.push({d:st,a:p.AccesoInicial,w:"acceso al ingreso"});
+    p._ses.filter(s=>s.Estado==="Realizada"&&s.Acceso).forEach(s=>pts.push({d:s.Fecha,a:s.Acceso,w:"sesión"}));
+    if(p.AccesoActual&&p.AccesoDesde)pts.push({d:p.AccesoDesde,a:p.AccesoActual,w:"acceso actual desde"});
+    p._acn.forEach(n=>{if(n.AccesoResultante)pts.push({d:n.Fecha,a:n.AccesoResultante,w:"novedad "+n.Tipo});if(n.Tipo==="Recambio de catéter")pts.push({d:n.Fecha,a:"__REC__",w:"recambio"});});
+    pts.sort((x,y)=>x.d-y.d);const seg=[];
+    pts.forEach(x=>{const cur=seg[seg.length-1];if(x.a==="__REC__"){if(cur&&isCVC(cur.a)){cur.fin=x.d;cur.finW="recambio "+fd(x.d);seg.push({a:cur.a,ini:x.d,iniW:"recambio "+fd(x.d),fin:null});}return;}
+      if(!cur||cur.a!==x.a){if(cur&&!cur.fin){cur.fin=x.d;cur.finW="primera evidencia de "+x.a+" ("+x.w+") "+fd(x.d);}seg.push({a:x.a,ini:x.d,iniW:x.w+" "+fd(x.d),fin:null});}});
+    seg.forEach(s=>{if(!DSP_TIPOS.includes(s.a))return;out.push({Paciente:p.ID,Tipo:s.a,FechaInsercion:s.ini,FechaRetiro:s.fin,Estado:s.fin?"Retirado":"Activo",MotivoRetiro:s.fin?"Cambio de acceso":"",Origen:"Propuesto desde el historial",Validado:"NO",Nota:"Inserción aproximada: "+s.iniW+(s.fin?" · retiro aproximado: "+s.finW:"")+". Confirmar contra la historia clínica."});});});
+  return out;}
+/* prototipo:5481 */
+const MIC_MUESTRAS=["Hemocultivo periférico","Hemocultivo de catéter","Líquido peritoneal (efluente)","Secreción del orificio de salida","Punta de catéter","Urocultivo","Otra"];
+/* prototipo:5482 */
+const MIC_SANGRE=["Hemocultivo periférico","Hemocultivo de catéter"];
+/* prototipo:5483 */
+const MIC_EST=["Solicitado","Tomado","En proceso","Preliminar","Final","No procesado","Rechazado"];
+/* prototipo:5484 */
+const MIC_RES=["Pendiente","Positivo","Negativo","Contaminado"];
+/* prototipo:5485 */
+const MIC_FEN=["Ninguno detectado","SAMR","BLEE","Carbapenemasa","Otro multirresistente","Sin antibiograma"];
+/* prototipo:5486 */
+const MIC_FEN_ALERTA=["SAMR","BLEE","Carbapenemasa","Otro multirresistente"];
+/* prototipo:5489 */
+function micAll(){return typeof PX!=="undefined"&&PX.book&&PX.book.mic?PX.book.mic.filter(lv):[];}
+/* prototipo:5490 */
+function micOfEp(ref){return micAll().filter(m=>m.Episodio===ref);}
+/* prototipo:5491 */
+function micOfPac(prog,pid){return micAll().filter(m=>m.Programa===prog&&m.Paciente===pid);}
+/* prototipo:5492 */
+const micPos=m=>m.Resultado==="Positivo"&&["Preliminar","Final"].includes(m.Estado);
+/* prototipo:5493 */
+function micAB(m){try{const a=JSON.parse(m.Antibiograma||"[]");return Array.isArray(a)?a:[];}catch(e){return[];}}
+/* prototipo:5495 */
+function itsConf(e){const M=micOfEp("HD:"+e.ID).filter(m=>MIC_SANGRE.includes(m.Muestra));const pos=M.filter(micPos);
+  if(pos.length)return{st:"Confirmada",src:"lab",m:M,org:[...new Set(pos.map(m=>m.Microorganismo).filter(Boolean))].join(", ")};
+  const fin=M.filter(m=>["Final","No procesado","Rechazado"].includes(m.Estado));
+  if(M.length&&fin.length===M.length){const proc=M.filter(m=>m.Estado==="Final");return{st:proc.length?"No confirmada":"Muestra no procesada",src:"lab",m:M};}
+  if(M.length)return{st:"Cultivo en proceso",src:"lab",m:M};
+  if(e.Hemocultivo==="Positivo")return{st:"Confirmada",src:"heredado",m:[],org:e.Microorganismo||""};
+  if(e.Hemocultivo==="Negativo")return{st:"No confirmada",src:"heredado",m:[]};
+  if(e.Hemocultivo==="No tomado")return{st:"Sin cultivo",src:"hd",m:[]};
+  return{st:"Cultivo sin registro en laboratorio",src:"hd",m:[]};}
+/* prototipo:5569 */
+function v6Its(x,soloConf){const C=cdCalc(x.ps,x.c,x.eps);let ev=0,sus=0;const list=[];
+  popPer(x.ps,x.c,x.eps).forEach(p=>p._evt.filter(e=>e.Tipo===ITS&&e.Fecha>=x.ps&&e.Fecha<=x.c).forEach(e=>{const k=itsConf(e);
+    if(k.st==="Confirmada"){ev++;list.push(pv(p,fd(e.Fecha)+" · confirmada"+(k.src==="heredado"?" (dato heredado del evento, sin cultivo en Laboratorio)":" por Laboratorio")+(k.org?" · "+k.org:"")));}
+    else{if(!soloConf)ev++;else sus++;list.push(pv(p,fd(e.Fecha)+" · "+k.st.toLowerCase()+(soloConf?" (no cuenta)":"")));}}));
+  if(!C.complete)return{ev,exp:C.days,val:null,list,nc:true,cd:C,expl:"Indicador no calculable: información de exposición a catéter incompleta ("+C.block.length+" pendiente"+(C.block.length===1?"":"s")+" en Acceso vascular → Registro de dispositivos)."};
+  return{ev,exp:C.days,val:C.days?ev/C.days*1000:null,list,cd:C,expl:(C.days?ev+(soloConf?" confirmadas":" episodios")+" / "+C.days.toLocaleString("es-CO")+" días-catéter":"Sin exposición a catéter en el periodo")+(C.pend.length?" · provisional: "+C.pend.length+" catéter"+(C.pend.length===1?"":"es")+" sin validar":"")+(sus?" · "+sus+" sin confirmar":"")+" · método "+C.met.ver};}
+/* prototipo:5704 */
+function v6Calidad(add,c){const C=cdCalc(ST.ps,c,"");C.block.forEach(b=>add("Dispositivos",b.p,b.t+". "+(b.fix||""),"bad"));C.warn.forEach(b=>add("Dispositivos",b.p,b.t,"warn"));
+  dspAll().filter(d=>d.Validado!=="SI").forEach(d=>add("Dispositivos",IDX.pac.get(d.Paciente)||{ID:d.Paciente},"Dispositivo "+d.ID+" ("+d.Tipo+") sin validar contra la historia clínica","warn"));
+  ST.book.evt.filter(lv).filter(e=>e.Tipo===ITS&&e.Hemocultivo==="Positivo").forEach(e=>{const k=itsConf(e);if(k.src==="lab"&&k.st!=="Confirmada")add("Eventos",IDX.pac.get(e.Paciente)||{ID:e.Paciente},"ITS-CVC del "+fd(e.Fecha)+": el evento dice hemocultivo positivo y Laboratorio registra «"+k.st+"». Prevalece Laboratorio; revise.","bad");});}
+/* prototipo:7411 */
+function catDays(p,a,b){const C=cdCalc(a,b,"",p.ID);if(C.block.some(x=>x.p.ID===p.ID))return null;const r=C.per.find(x=>x.p.ID===p.ID);return r?r.days:0;}
+return { esc, pad, iso, fd, ym, addDays, addMonths, monthStart, monthEnd, dayDiff, nowTs, pdate, num, norm, f1, pct, money, EPS_L, epsList, TURNOS_DEF, turnosCfg, turnoNames, DIAS_L, ESTADOS_SES, MOTIVOS, MOT_RESP, CAUSA_HOSP, ATRIB, MOT_EXTRA, ACCESOS, isCVC, ITS, EVENTOS, SEV, RESUELTO, HEMOC, NOV_TIPOS, MOV_EGRESO, MOV_TIPOS, EGRESO_ESTADO, RUTA, RUTA_EXCL, ACC_NOV, ACC_NOV_RES, TX, PROCED, MEDIOS, RESULT_CTC, DISCIPLINAS, EXAMS, EX, FREQ_TXT, ANCHOR_DEF, META_DEF, CFG_DEF, MUN_DANE, AEE, SH, BOOK_KEYS, DATE_F, NUM_F, cacStart, newBook, readSheet, fromRow, isToolBook, isDashboard, parseToolBook, live, IDX, reindex, ensureIdx, nombre, activeAt, activeDays, overlaps, ageAt, adult, ninety, epsOk, turnoDias, absentOn, progDays, sesIn, lastLab, labsIn, accessAt, lastSes, pacs, popCut, popPer, popInc, ctxFor, gidStats, taStats, glucoStats, ktvOnline, fmtTA, parseTA, ktvDaugirdas, metasDe, ufCalc, sesUF, pv, propLab, IND, INDM, progUpTo, catDays, evalInd, statusOf, STATUS_TXT, fmtVal, trendPoints, semaforo, alertas, calidad, tarifaFor, conciliar, freqOf, schedMonths, susceptibleVHB, examApplies, examsForMonth, labDue, SOL_EST, solRecs, solPropuesta, CAL_DOM, CAL_OPC, calidadAuto, calidadScore, CAL_CLASS, ultimaValoracion, calidadDe, EST_TIPOS, EST_NOM, estRelevantes, estVencidos, vacEsquemas, vacMeses, vacDoses, labTxt, vacStatus, VAC_GRUPOS, vacGrupo, vacNextDefaults, vacEtiqueta, TX_EST, txItems, txState, TX_EN_PROCESO, tenerPresente, lv, hdOn, DSP_TIPOS, DSP_SITIOS, DSP_RETIRO, DSP_LUGAR, dspAll, dspOf, dspCVC, dspFind, dspOpen, cdMet, dspCovers, hospOn, cdCalc, dspPropuestas, MIC_MUESTRAS, MIC_SANGRE, MIC_EST, MIC_RES, MIC_FEN, MIC_FEN_ALERTA, micAll, micOfEp, micOfPac, micPos, micAB, itsConf, v6Its, v6Calidad, CAC_H_FOMAG, CAC_H_ERC, CAC_SHEET_FOMAG, CAC_SHEET_ERC, D1800, D1845, D1811, isoOr, cacVals, ST, PX, TODAY };
 }

@@ -1,6 +1,7 @@
-/* Agenda de la Ruta de Nefroprotección (jornadas, citas, bitácora de citas y contactos). El prototipo aún no la
-   guardaba en su base de datos («descargue las hojas de agenda»); aquí se guarda fila por fila, con las mismas
-   columnas de sus hojas de Excel, para que la Ruta la vuelva a leer con su propio lector (COH.parseRows). */
+/* Hojas de la Ruta de Nefroprotección que su «modo base de datos» aún no guardaba: la agenda (jornadas, citas, bitácora
+   de citas y contactos) y, desde la v8, la auditoría de adherencia a guías (Auditoria_GPC), el arrastre de la nominal
+   por EPS (Arrastre_nominal) y su configuración (Config_nominal). Se guardan fila por fila, con las mismas columnas de
+   sus hojas de Excel, para que la Ruta las vuelva a leer con su propio lector. */
 import { Router } from "express";
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
@@ -10,7 +11,9 @@ import { HttpError, h, prohibido } from "../../http/errors.js";
 import { requiereAdmin, requiereSesion } from "../../http/middleware.js";
 import { auditar } from "../../services/auditoria.js";
 
-export const HOJAS_AGENDA = ["Jornadas", "Citas", "Citas_log", "Contactos"] as const;
+export const HOJAS_AGENDA = ["Jornadas", "Citas", "Citas_log", "Contactos", "Auditoria_GPC", "Arrastre_nominal", "Config_nominal"] as const;
+/** La configuración de la nominal (códigos de la IPS ante la EPS) solo la cambia el administrador. */
+const SOLO_ADMIN = new Set(["Config_nominal"]);
 const PROGRAMA = "nefro";
 
 const Fila = z.object({ clave: z.string().min(1).max(500), datos: z.record(z.unknown()), _ts: z.string().nullable().optional() });
@@ -42,6 +45,7 @@ nefroAgenda.post(
   h(async (req, res) => {
     if (!puede(req.usuario, PROGRAMA, "registrar")) throw prohibido("Su usuario no tiene permiso para registrar en la agenda de Nefroprotección.");
     const { cambios } = Sync.parse(req.body);
+    if (req.usuario!.rol !== "ADMIN" && Object.keys(cambios).some((x) => SOLO_ADMIN.has(x))) throw prohibido("Solo el administrador puede cambiar la configuración de la nominal.");
     const uid = req.usuario!.id;
     const out = await prisma.$transaction(
       async (tx) => {

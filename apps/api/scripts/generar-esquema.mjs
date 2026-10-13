@@ -9,6 +9,8 @@ import { crearMotorHD, crearMotorVIH } from "@posmedica/clinical-rules";
 import { CAMPOS_PERSONA, MODELOS_HD } from "../src/modulos/hd/hojas.ts";
 import { CAMPOS_PERSONA_VIH, MODELOS_VIH } from "../src/modulos/vih/hojas.ts";
 import { HOJAS_PORTAL } from "../src/modulos/portal/hojas.ts";
+import { CAMPOS_PERSONA_DP, FECHAS_DP, HOJAS_DP, NUMEROS_DP } from "../src/modulos/dp/hojas.ts";
+import { CAMPOS_PERSONA_CE, HOJAS_CE } from "../src/modulos/ce/hojas.ts";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const RUTA = resolve(aqui, "../prisma/schema.prisma");
@@ -16,9 +18,11 @@ const snake = (s) => s.replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/([A-Z])([
 
 function modelos({ hojas, modelosPorHoja, camposPersona, tipo, relacionPersona, etiquetaLibro }) {
   const bloques = [];
-  for (const [hoja, { modelo, tabla, clave = "ID" }] of Object.entries(modelosPorHoja)) {
+  for (const [hoja, { modelo, tabla, clave = "ID", compuesta }] of Object.entries(modelosPorHoja)) {
     const [nombreHoja, columnas] = hojas[hoja];
     const L = [`/// Hoja «${nombreHoja}» del ${etiquetaLibro} del prototipo.`, `model ${modelo} {`];
+    // Hoja sin columna única: la clave se arma con varias columnas y vive en «clave», fuera de la hoja.
+    if (compuesta) L.push(`  ${clave.padEnd(18)} ${"String".padEnd(10)} @id @map("clave")`);
     for (const c of columnas) {
       if (hoja === "pac" && camposPersona.includes(c)) continue; // la identidad vive en «persona» (maestro único, D1)
       const t = c === clave ? "String" : tipo(c) === "fecha" ? "DateTime?" : tipo(c) === "numero" ? "Float?" : "String?";
@@ -34,7 +38,7 @@ function modelos({ hojas, modelosPorHoja, camposPersona, tipo, relacionPersona, 
       "",
     );
     if (columnas.includes("Paciente") && clave !== "Paciente") L.push(`  @@index([Paciente])`);
-    for (const f of ["Fecha", "FechaToma", "Mes", "Inicio"]) if (columnas.includes(f)) L.push(`  @@index([${f}])`);
+    for (const f of ["Fecha", "FechaToma", "Mes", "Inicio", "Solicitud", "Jornada", "Cupo"]) if (columnas.includes(f)) L.push(`  @@index([${f}])`);
     L.push(`  @@map("${tabla}")`, "}");
     bloques.push(L.join("\n"));
   }
@@ -71,4 +75,15 @@ escribir(
     etiquetaLibro: "libro institucional",
   }),
 );
-console.log("Modelos generados: hemodiálisis", Object.keys(MODELOS_HD).length, "· VIH", Object.keys(MODELOS_VIH).length, "· portal", Object.keys(HOJAS_PORTAL).length);
+const sinBitacora = (H) => Object.fromEntries(Object.entries(H).map(([k, h]) => [k, [h.nombre, h.columnas]]));
+escribir(
+  "// <<< DIALISIS PERITONEAL (GENERADO por scripts/generar-esquema.mjs: no editar a mano)",
+  "// >>> DIALISIS PERITONEAL",
+  modelos({ hojas: sinBitacora(HOJAS_DP), modelosPorHoja: HOJAS_DP, camposPersona: CAMPOS_PERSONA_DP, tipo: (c) => (FECHAS_DP.has(c) ? "fecha" : NUMEROS_DP.has(c) ? "numero" : "texto"), etiquetaLibro: "libro de Diálisis peritoneal" }),
+);
+escribir(
+  "// <<< CONSULTA EXTERNA (GENERADO por scripts/generar-esquema.mjs: no editar a mano)",
+  "// >>> CONSULTA EXTERNA",
+  modelos({ hojas: sinBitacora(HOJAS_CE), modelosPorHoja: HOJAS_CE, camposPersona: CAMPOS_PERSONA_CE, tipo: () => "texto", etiquetaLibro: "libro de Consulta externa" }),
+);
+console.log("Modelos generados: hemodiálisis", Object.keys(MODELOS_HD).length, "· VIH", Object.keys(MODELOS_VIH).length, "· portal", Object.keys(HOJAS_PORTAL).length, "· DP", Object.keys(HOJAS_DP).length, "· CE", Object.keys(HOJAS_CE).length);
