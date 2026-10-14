@@ -45,6 +45,20 @@ export async function auditar(req: Request, ev: EventoAuditoria, db: Cliente = p
   });
 }
 
+/* Consultas de un libro completo: se registran una vez por sesión y por programa (más una nueva si pasaron 30 minutos),
+   no en cada recarga ni en cada guardado ajeno. Así la auditoría conserva quién consultó qué programa y cuándo, sin crecer
+   con miles de filas idénticas por día. */
+const consultasRegistradas = new Map<string, number>();
+export async function auditarConsulta(req: Request, programa: string, entidad: string, detalle: string) {
+  const clave = `${req.sesionId ?? req.usuario?.id ?? "?"}|${entidad}`;
+  const ahora = Date.now();
+  const previa = consultasRegistradas.get(clave);
+  if (previa && ahora - previa < 30 * 60_000) return;
+  consultasRegistradas.set(clave, ahora);
+  if (consultasRegistradas.size > 5000) for (const [k, t] of consultasRegistradas) if (ahora - t > 12 * 3_600_000) consultasRegistradas.delete(k);
+  await auditar(req, { accion: "CONSULTA", entidad, programa, detalle });
+}
+
 /** Diferencias campo a campo «antes → después», como la bitácora del prototipo (updRec). */
 export function diferencias<T extends Record<string, unknown>>(antes: T, cambios: Partial<T>) {
   const a: Record<string, unknown> = {};

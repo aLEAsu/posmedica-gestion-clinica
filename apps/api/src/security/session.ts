@@ -38,7 +38,7 @@ export function borrarCookie(res: Response) {
 }
 
 /** Devuelve la sesión vigente (y renueva la última actividad) o null si no existe, expiró o estuvo inactiva demasiado tiempo. */
-export async function sesionVigente(token: string | undefined) {
+export async function sesionVigente(token: string | undefined, opts: { renovar?: boolean } = {}) {
   if (!token || token.length > 100) return null;
   const s = await prisma.sesion.findUnique({ where: { tokenHash: hashToken(token) }, include: { usuario: { include: { permisos: true } } } });
   if (!s || s.revocadaEn) return null;
@@ -48,7 +48,7 @@ export async function sesionVigente(token: string | undefined) {
     return null;
   }
   // Renovar como máximo una vez por minuto para no escribir en cada petición.
-  if (ahora - s.ultimaActividad.getTime() > 60_000) {
+  if (opts.renovar !== false && ahora - s.ultimaActividad.getTime() > 60_000) {
     await prisma.sesion.update({ where: { id: s.id }, data: { ultimaActividad: new Date() } });
   }
   return s;
@@ -59,4 +59,12 @@ export async function revocarSesiones(usuarioId: string, exceptoId?: string) {
     where: { usuarioId, revocadaEn: null, ...(exceptoId ? { NOT: { id: exceptoId } } : {}) },
     data: { revocadaEn: new Date() },
   });
+}
+
+/** Borra las sesiones vencidas o revocadas hace más de 30 días (solo los tokens; la auditoría de ingresos y salidas se
+    conserva intacta). Se ejecuta al arrancar el servidor y una vez al día. */
+export async function purgarSesiones() {
+  const limite = new Date(Date.now() - 30 * 86_400_000);
+  const r = await prisma.sesion.deleteMany({ where: { OR: [{ expiraEn: { lt: limite } }, { revocadaEn: { lt: limite } }] } });
+  return r.count;
 }

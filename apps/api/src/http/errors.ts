@@ -19,6 +19,13 @@ export const h =
     fn(req, res, next).catch(next);
 
 export const manejadorErrores: ErrorRequestHandler = (err, req, res, _next) => {
+  // Si la respuesta ya empezó (p. ej. una descarga en flujo), no se puede enviar el error: se corta la conexión para que
+  // el cliente no reciba una respuesta incompleta como si estuviera completa.
+  if (res.headersSent) {
+    console.error(JSON.stringify({ nivel: "error", id: req.id, ruta: req.path, metodo: req.method, error: err?.name, mensaje: err?.message, nota: "respuesta ya iniciada" }));
+    res.destroy(err instanceof Error ? err : undefined);
+    return;
+  }
   if (err instanceof ZodError) {
     res.status(400).json({ error: "Datos inválidos.", codigo: "VALIDACION", campos: err.issues.map((i) => ({ campo: i.path.join("."), mensaje: i.message })) });
     return;

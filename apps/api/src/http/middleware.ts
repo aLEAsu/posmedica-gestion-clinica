@@ -51,7 +51,9 @@ export function aUsuarioSesion(u: {
 /** Carga el usuario de la sesión si hay cookie válida. No exige sesión. */
 export async function cargarSesion(req: Request, _res: Response, next: NextFunction) {
   try {
-    const s = await sesionVigente(req.cookies?.[config.cookieName]);
+    // El sondeo automático de versión no cuenta como actividad, salvo que el navegador informe interacción reciente.
+    const sondeo = req.method === "GET" && req.path.endsWith("/version") && req.get("x-actividad") !== "1";
+    const s = await sesionVigente(req.cookies?.[config.cookieName], { renovar: !sondeo });
     if (s) {
       req.usuario = aUsuarioSesion(s.usuario);
       req.sesionId = s.id;

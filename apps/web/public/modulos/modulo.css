@@ -31,3 +31,7 @@ body.no-admin #prodf { display: none !important; }
 [data-p="dpexp"], [data-p="dpclose"], [data-p="dpnew"], [data-p="dpdemo"],
 [data-ce="demo"], [data-ce="exp"], [data-ce="new"], [data-ce="unload"] { display: none !important; }
 .carga-inicial-panel { margin-bottom: 12px; }
+
+/* Cambio que el servidor no guardó: aviso persistente hasta que el usuario lo cierre. */
+.estado-modulo .rechazo { margin-top: 4px; color: var(--bad); }
+.estado-modulo { position: sticky; top: 0; z-index: 20; background: var(--bg); }

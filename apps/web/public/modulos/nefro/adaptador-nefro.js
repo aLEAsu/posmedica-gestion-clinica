@@ -231,6 +231,18 @@
     }
   }
 
+  /* ---------- actividad del usuario ----------
+     La Ruta se abre dentro del portal (iframe), que cierra la sesión tras 15 minutos sin clics ni teclas en SU página.
+     Los clics dentro de la Ruta no le llegan: se le avisan (como máximo cada 30 s) para que no cierre la sesión de
+     quien está trabajando aquí. */
+  let ultimoAviso = 0;
+  const actividad = () => {
+    if (Date.now() - ultimoAviso < 30000) return;
+    ultimoAviso = Date.now();
+    window.POSMEDICA.avisarPortal("actividad");
+  };
+  for (const ev of ["click", "keydown", "input", "wheel", "touchstart"]) document.addEventListener(ev, actividad, { capture: true, passive: true });
+
   /* ---------- arranque ---------- */
   async function iniciar() {
     try {

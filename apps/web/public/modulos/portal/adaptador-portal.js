@@ -72,7 +72,7 @@
   const S_HD = crearSincronizador(
     Object.assign(
       {
-        ruta: "/hd", hojas: HHOJAS.map((k) => [k, "ID"]), libro: () => ST.book, plano: planoHD, recargar: () => cargarHd({ conservarBorradores: false }),
+        ruta: "/hd", hojas: HHOJAS.map((k) => [k, "ID"]), libro: () => ST.book, plano: planoHD, recargar: (op) => cargarHd(op),
         cfgLeer: () => ST.book.cfgv, cfgRevertir: (k, v) => { ST.book.cfgv[k] = v; },
         finLeer: () => ST.book.finBlob || null, finRevertir: (v) => { ST.book.finBlob = v; },
       },
@@ -115,13 +115,24 @@
   );
   const motores = () => [S_PORTAL, S_VIH, S_HD, S_DP, S_CE].filter((s) => s.listo());
 
+  let ultimosPendientes = 0;
   function pintarEstado() {
     const M = motores();
     const peor = M.find((s) => /rechazado|Sin guardar|detenido/.test(s.estado)) || M.find((s) => /Guardando|Cargando/.test(s.estado)) || M.find((s) => /Guardado/.test(s.estado)) || M[0];
     const txt = peor ? peor.estado : "Cargando…";
     estadoEl.className = "estado-modulo " + (/rechazado|Sin guardar|detenido/.test(txt) ? "bad" : /Guardando|Cargando/.test(txt) ? "warn" : "ok");
-    estadoEl.innerHTML = "<strong>" + esc(txt) + "</strong>" + (M.some((s) => s.hayNuevos) ? ' · <button type="button" class="lnk" id="portalrecargar">Hay datos nuevos de otros usuarios: actualizar</button>' : "");
+    const rech = M.filter((s) => s.ultimoRechazo);
+    estadoEl.innerHTML =
+      "<strong>" + esc(txt) + "</strong>" + (M.some((s) => s.hayNuevos) ? ' · <button type="button" class="lnk" id="portalrecargar">Hay datos nuevos de otros usuarios: actualizar</button>' : "") +
+      rech.map((s) => '<div class="rechazo" role="alert"><strong>No se guardó un cambio (' + esc(s.ultimoRechazo.hora) + "):</strong> " + esc(s.ultimoRechazo.mensaje) + ' <button type="button" class="lnk" data-rechazo-ok>Entendido</button></div>').join("");
+    if (rech.length) estadoEl.className = "estado-modulo bad";
     if (PX.book) PX.dirty = M.some((s) => /Guardando|Sin guardar/.test(s.estado));
+    // El portal nuevo pide confirmación antes de salir mientras haya cambios guardándose o sin guardar.
+    const pendientes = M.filter((s) => s.programado || /Guardando|Sin guardar/.test(s.estado)).length;
+    if (pendientes !== ultimosPendientes) {
+      ultimosPendientes = pendientes;
+      avisarPortal("pendiente", { n: pendientes });
+    }
   }
 
   /* ---------- carga desde la base de datos ---------- */
@@ -198,10 +209,27 @@
     pintarEstado();
   }
 
+  // Jornadas de Nefroprotección (solo ocupación) para que CE no cruce a un profesional entre programas aunque la Ruta no
+  // esté abierta en esta sesión. Mismo formato que lee ceNefroJor del prototipo (jornadas de la Ruta: COH.parseRows).
+  let ocupacionNefro = null;
+  async function cargarOcupacionNefro() {
+    try {
+      const { jornadas } = await pedir("GET", "/nefro/agenda/ocupacion");
+      const hm = (v) => (v == null ? "" : String(v).slice(0, 5));
+      ocupacionNefro = jornadas.map((j) => ({ fecha: pdate(j.fecha), prof: String(j.profesional || ""), hIni: hm(j.hora_inicio) || "07:00", hFin: hm(j.hora_fin) || "12:00", estado: norm(j.estado) || "ABIERTA" }));
+    } catch (e) {
+      ocupacionNefro = null; // sin permiso o sin conexión: queda como en el prototipo (solo si la Ruta está abierta)
+    }
+  }
+  const _ceNefroJor = window.ceNefroJor;
+  window.ceNefroJor = function () {
+    return _ceNefroJor.apply(this, arguments) || ocupacionNefro;
+  };
+
   async function cargarCe() {
     if (!leeLibro("ce")) return;
     S_CE.estado = "Cargando…";
-    const r = await pedir("GET", "/ce/libro");
+    const [r] = await Promise.all([pedir("GET", "/ce/libro"), cargarOcupacionNefro()]);
     const b = {};
     CEK.forEach((k) => (b[k] = []));
     for (const k of CHOJAS) b[k] = (r.hojas[k] || []).map((x) => Object.assign({}, x));
@@ -639,6 +667,10 @@
     const f = document.getElementById("nefroframe");
     if (e.origin !== location.origin || !f || e.source !== f.contentWindow || !e.data) return;
     if (e.data.tipo === "posmedica:sesion-perdida") avisarPortal("sesion-perdida");
+    if (e.data.tipo === "posmedica:actividad") {
+      PX.last = Date.now(); // trabajo dentro de la Ruta = actividad
+      window.POSMEDICA.marcarActividad();
+    }
   });
   window.pxBack = function () {
     avisarPortal("navegar", { ruta: "/" });
@@ -733,6 +765,7 @@
       document.addEventListener("click", (e) => {
         if (e.target && e.target.id === "portalrecargar") Promise.all([cargarPortal(), cargarVih(), cargarHd({ conservarBorradores: true }), cargarDp(), cargarCe()]).catch((x) => toast(x.message));
         if (e.target && e.target.id === "hdrecargar") cargarHd({ conservarBorradores: true }).catch((x) => toast(x.message));
+        if (e.target && e.target.hasAttribute && e.target.hasAttribute("data-rechazo-ok")) motores().forEach((s) => s.descartarRechazo());
       });
       const main = $("pxmain");
       main.parentNode.insertBefore(estadoEl, main);

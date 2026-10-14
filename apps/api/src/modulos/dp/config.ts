@@ -7,7 +7,7 @@
 import { puede, type UsuarioSesion } from "@posmedica/shared";
 import type { ConfigLibro, Fila, HojaDef } from "../libro/servicio.js";
 import { sexoEtiqueta } from "../libro/persona.js";
-import { leeProgramaOTransversal } from "../libro/transversal.js";
+import { leeHojaProgramaOTransversal, leeProgramaOTransversal } from "../libro/transversal.js";
 import { CAMPOS_PERSONA_DP, FECHAS_DP, HOJAS_DP, NUMEROS_DP } from "./hojas.js";
 
 /** Roles y acciones del módulo (DP_ROLES y DP_PERM del prototipo; la prueba verifica que sean idénticos). */
@@ -50,6 +50,7 @@ export const CONFIG_DP: ConfigLibro = {
   vacio: null, // el prototipo lee el libro DP con readSheet (celdas vacías = null), como Hemodiálisis
   textoNumerico: new Set(["lab.Valor"]), // el valor de un laboratorio puede ser 3.2 o «Reactivo» (como en Hemodiálisis)
   puedeLeer: leeProgramaOTransversal("dp"),
+  leeHoja: leeHojaProgramaOTransversal("dp"), // los módulos transversales reciben solo las hojas que usan
   // Rol del usuario en RolesDP (el administrador es Dirección Médica).
   contexto: async (db, u: UsuarioSesion) => {
     if (u.rol === "ADMIN") return "dir";

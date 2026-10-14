@@ -9,7 +9,8 @@ import { puede } from "@posmedica/shared";
 import { prisma } from "../../db.js";
 import { HttpError, h, prohibido } from "../../http/errors.js";
 import { requiereAdmin, requiereSesion } from "../../http/middleware.js";
-import { auditar } from "../../services/auditoria.js";
+import { auditar, auditarConsulta } from "../../services/auditoria.js";
+import { conReintentos, subirVersion } from "../../services/version.js";
 
 export const HOJAS_AGENDA = ["Jornadas", "Citas", "Citas_log", "Contactos", "Auditoria_GPC", "Arrastre_nominal", "Config_nominal"] as const;
 /** La configuración de la nominal (códigos de la IPS ante la EPS) solo la cambia el administrador. */
@@ -34,9 +35,27 @@ nefroAgenda.get(
   h(async (req, res) => {
     if (!puede(req.usuario, PROGRAMA, "ver")) throw prohibido();
     const filas = await prisma.nefroAgendaFila.findMany({ orderBy: [{ hoja: "asc" }, { creadoEn: "asc" }] });
+    await auditarConsulta(req, PROGRAMA, "nefro.agenda", `${filas.length} filas (agenda, auditoría GPC, nominal)`);
     const hojas: Record<string, unknown[]> = Object.fromEntries(HOJAS_AGENDA.map((x) => [x, []]));
     for (const f of filas) hojas[f.hoja]?.push({ clave: f.clave, datos: f.datos, _ts: f.actualizadoEn.toISOString() });
     res.json({ version: await version(), hojas });
+  }),
+);
+
+/** Ocupación de los profesionales en la agenda de la Ruta (sin datos de pacientes): fecha, profesional, horario y estado
+    de cada jornada desde ayer. La usa Consulta externa para no cruzar a un profesional entre programas (ceNefroJor del
+    prototipo, que solo funcionaba si la Ruta estaba abierta en la misma sesión). */
+nefroAgenda.get(
+  "/agenda/ocupacion",
+  h(async (req, res) => {
+    if (!puede(req.usuario, PROGRAMA, "ver") && !puede(req.usuario, "ce", "ver")) throw prohibido();
+    const desde = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    const filas = await prisma.nefroAgendaFila.findMany({ where: { hoja: "Jornadas" } });
+    const jornadas = filas
+      .map((f) => f.datos as Record<string, unknown>)
+      .filter((d) => String(d.fecha ?? "") >= desde)
+      .map((d) => ({ fecha: d.fecha, profesional: d.profesional, hora_inicio: d.hora_inicio, hora_fin: d.hora_fin, estado: d.estado }));
+    res.json({ jornadas });
   }),
 );
 
@@ -47,7 +66,7 @@ nefroAgenda.post(
     const { cambios } = Sync.parse(req.body);
     if (req.usuario!.rol !== "ADMIN" && Object.keys(cambios).some((x) => SOLO_ADMIN.has(x))) throw prohibido("Solo el administrador puede cambiar la configuración de la nominal.");
     const uid = req.usuario!.id;
-    const out = await prisma.$transaction(
+    const out = await conReintentos(() => prisma.$transaction(
       async (tx) => {
         const ts: Record<string, Record<string, string>> = {};
         for (const [hoja, c] of Object.entries(cambios)) {
@@ -72,17 +91,12 @@ nefroAgenda.post(
             }
           }
         }
-        const v = (await version()) + 1;
-        await tx.parametro.upsert({
-          where: { programa_clave: { programa: PROGRAMA, clave: "__version_agenda" } },
-          create: { programa: PROGRAMA, clave: "__version_agenda", valor: v, actualizadoPor: uid },
-          update: { valor: v, actualizadoPor: uid },
-        });
-        return { version: v, ts };
+        return { ts };
       },
       { timeout: 60_000, isolationLevel: "Serializable" },
-    );
-    res.json(out);
+    ));
+    // La versión de la agenda se sube después de confirmar (services/version.ts): dos guardados distintos no chocan.
+    res.json({ ...out, version: await subirVersion(PROGRAMA, "__version_agenda", uid) });
   }),
 );
 

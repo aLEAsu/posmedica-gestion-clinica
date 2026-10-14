@@ -39,18 +39,21 @@ interface CtxCe {
 }
 
 async function contexto(db: Db, u: UsuarioSesion): Promise<CtxCe> {
-  const [roles, esp, sol] = await Promise.all([
+  const [roles, esp] = await Promise.all([
     db.ceRol.findMany({ where: { Usuario: { equals: u.usuario, mode: "insensitive" } } }),
     db.ceEspecialidad.findMany({ select: { Codigo: true, Reservada: true } }),
-    db.ceSolicitud.findMany({ select: { ID: true, Especialidad: true } }),
   ]);
   const r = roles.find((x) => x.Rol && ROLES_CE[x.Rol]);
+  const veReservadas = u.rol === "ADMIN" ? !r || r.VeReservadas === "SI" : r?.VeReservadas === "SI";
+  const reservadas = new Set(esp.filter((e) => e.Reservada === "SI").map((e) => e.Codigo));
+  // La especialidad de cada solicitud solo hace falta para ocultar lo reservado a quien no lo ve.
+  const sol = veReservadas || !reservadas.size ? [] : await db.ceSolicitud.findMany({ select: { ID: true, Especialidad: true } });
   return {
     // Igual que ceRol/ceVeRes del prototipo: sin fila en RolesCE, el administrador es Coordinación y los demás Solo consulta.
     // El administrador siempre puede registrar (aunque su fila en RolesCE diga otra cosa, para no quedar bloqueado).
     rol: u.rol === "ADMIN" ? "coordinacion" : (r?.Rol ?? "consulta"),
-    veReservadas: u.rol === "ADMIN" ? !r || r.VeReservadas === "SI" : r?.VeReservadas === "SI",
-    reservadas: new Set(esp.filter((e) => e.Reservada === "SI").map((e) => e.Codigo)),
+    veReservadas,
+    reservadas,
     especialidadDe: new Map(sol.map((s) => [s.ID, s.Especialidad ?? ""])),
   };
 }
@@ -80,10 +83,36 @@ export const CONFIG_CE: ConfigLibro = {
   fijarNuevo: (_h, datos, u) => {
     if ("Usuario" in datos) datos.Usuario = u.usuario;
   },
+  // Reglas críticas de la agenda verificadas también en el servidor (el prototipo las valida en ceAsignar, ceIncompat y
+  // ceBloquearCupo). Las hojas se guardan en orden (solicitudes y cupos antes que citas), así que lo creado en el mismo
+  // guardado ya está en la base cuando se valida la cita.
   validarNuevo: async (tx, h, d) => {
-    if (h !== "cit" || !d.Cupo) return null;
+    if (h !== "cit") return null;
+    if (!d.Cupo || !d.Solicitud) return { validacion: "La cita necesita cupo y solicitud." };
+    const cupo = await tx.ceCupo.findUnique({ where: { ID: String(d.Cupo) } });
+    if (!cupo) return "El cupo no existe. Se recargaron los datos.";
+    if (cupo.Estado === "BLOQUEADO") return "El cupo está bloqueado: elija otro.";
+    const jor = cupo.Jornada ? await tx.ceJornada.findUnique({ where: { ID: cupo.Jornada } }) : null;
+    if (!jor || jor.Estado !== "ABIERTA") return "La jornada de ese cupo no está abierta.";
+    const sol = await tx.ceSolicitud.findUnique({ where: { ID: String(d.Solicitud) } });
+    if (!sol) return "La solicitud no existe. Se recargaron los datos.";
+    if (sol.Estado === "CERRADA") return "La solicitud está cerrada.";
+    if (d.Paciente && sol.Paciente !== d.Paciente) return { validacion: "La cita no corresponde al paciente de la solicitud." };
     const otra = await tx.ceCita.findFirst({ where: { Cupo: String(d.Cupo), OR: [{ Estado: null }, { Estado: { notIn: ["CANCELADA", "REPROGRAMADA"] } }] }, select: { ID: true } });
     return otra ? "Otro usuario asignó este cupo. La solicitud sigue en la lista de espera." : null;
+  },
+  validarModificado: async (tx, h, antes, d, lote) => {
+    // Una solicitud pasa a «Con cita» solo por la asignación (regla 6 del prototipo): debe existir su cita.
+    if (h === "sol" && d.Estado === "CON_CITA" && antes.Estado !== "CON_CITA") {
+      const enLote = (lote?.cit?.nuevos ?? []).some((c) => c.Solicitud === antes.ID);
+      if (!enLote && !(await tx.ceCita.findFirst({ where: { Solicitud: String(antes.ID) }, select: { ID: true } }))) return "La solicitud solo pasa a «Con cita» cuando se le asigna una cita.";
+    }
+    // Un cupo con cita no se bloquea: primero se gestiona la cita (Fase 2 del prototipo).
+    if (h === "cup" && d.Estado === "BLOQUEADO" && antes.Estado !== "BLOQUEADO") {
+      const cita = await tx.ceCita.findFirst({ where: { Cupo: String(antes.ID), OR: [{ Estado: null }, { Estado: { notIn: ["CANCELADA", "REPROGRAMADA"] } }] }, select: { ID: true } });
+      if (cita) return "El cupo tiene una cita: no se puede bloquear.";
+    }
+    return null;
   },
   paciente: {
     hoja: "pac",

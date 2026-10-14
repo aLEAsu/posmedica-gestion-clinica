@@ -12,7 +12,7 @@ import { puede } from "@posmedica/shared";
 import { prisma } from "../../db.js";
 import { HttpError } from "../../http/errors.js";
 import { requiereSesion } from "../../http/middleware.js";
-import { auditar } from "../../services/auditoria.js";
+import { auditar, auditarConsulta } from "../../services/auditoria.js";
 import { aFecha, fechaTexto } from "../libro/servicio.js";
 
 type Tx = Prisma.TransactionClient;
@@ -88,7 +88,11 @@ async function persona(tx: Tx, P: Obj, usuarioId: string, propioId?: string) {
     const ex = await tx.persona.findFirst({ where: { documento: datos.documento, ...(datos.tipoDoc ? { tipoDoc: datos.tipoDoc } : {}) }, include: { nefroPaciente: true } });
     if (ex) {
       if (ex.nefroPaciente && ex.nefroPaciente.id !== propioId) throw err(409, `Ya existe un paciente con ese documento (${ex.nefroPaciente.codigo}).`);
-      await tx.persona.update({ where: { id: ex.id }, data: Object.fromEntries(Object.entries(datos).filter(([, v]) => v != null && v !== "")) });
+      // Al inscribir en la Ruta a una persona que ya existe en otro programa solo se completa lo que falta (misma regla del
+      // motor de libros); al editar su propio paciente de la Ruta sí se actualiza.
+      const actual = ex as unknown as Record<string, unknown>;
+      const fusion = Object.entries(datos).filter(([k, v]) => v != null && v !== "" && (propioId !== undefined || actual[k] == null || actual[k] === ""));
+      if (fusion.length) await tx.persona.update({ where: { id: ex.id }, data: Object.fromEntries(fusion) });
       return ex.id;
     }
   }
@@ -152,6 +156,8 @@ nefroPg.get(
       case "eps":
         return res.json((await prisma.eps.findMany({ where: { activo: true }, orderBy: { id: "asc" } })).map((e) => ({ id: e.id, nombre: aNombreRuta(e.nombre) })));
       case "paciente":
+        // La Ruta pide primero los pacientes al cargar: ahí se registra la consulta del programa (una vez por sesión).
+        await auditarConsulta(req, PROGRAMA, "nefro.libro", "Ruta de Nefroprotección (pacientes, laboratorios, valoraciones, atenciones, novedades)");
         return res.json((await prisma.nefroPaciente.findMany({ include: { persona: true }, orderBy: { codigo: "asc" } })).map(aFilaPaciente));
       case "laboratorio":
         return res.json((await prisma.nefroLaboratorio.findMany({ where: { anulado: false }, orderBy: { fechaToma: "asc" } })).map((l) => ({ id: l.id, paciente_id: l.pacienteId, fecha_toma: f(l.fechaToma), examen: l.examen, valor: l.valor })));

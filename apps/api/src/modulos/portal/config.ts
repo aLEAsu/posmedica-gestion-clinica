@@ -62,6 +62,13 @@ export const CONFIG_PORTAL: ConfigLibro = {
         return algun(u, ESCRITURA[h] ?? LECTURA[h] ?? [], "registrar");
     }
   },
+  // Quien no es el autor solo cambia el estado de lectura y cierre de un mensaje; el responsable de un compromiso (sin ser
+  // del comité) solo reporta su ejecución, evidencia y cierre. Lo demás queda como lo guardó su autor.
+  inmutables: (h, antes, u) => {
+    if (h === "msg" && antes.De !== u.id) return HOJAS_PORTAL.msg.columnas.filter((c) => !["Estado", "LeidoEn", "LeidoPor", "CerradoEn"].includes(c));
+    if (h === "cmp" && !algun(u, ["sogcs", ...IAAS_PROA], "registrar")) return HOJAS_PORTAL.cmp.columnas.filter((c) => !["Estado", "EstadoReportado", "Evidencia", "FechaCierre", "Historial"].includes(c));
+    return [];
+  },
   fijarNuevo: (h, datos, u) => {
     if ("Usuario" in datos) datos.Usuario = u.usuario; // el portal del prototipo guarda el nombre de usuario (pxAdd)
     if (h === "msg") {
