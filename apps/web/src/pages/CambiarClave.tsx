@@ -9,15 +9,16 @@ export function CambiarClave() {
   const { usuario, actualizar, salir } = useSesion();
   const aviso = useAviso();
   const nav = useNavigate();
-  const [actual, setActual] = useState("");
-  const [nueva, setNueva] = useState("");
-  const [repetir, setRepetir] = useState("");
+  // Campos de clave NO controlados: se leen del formulario al enviarlo, para que React no copie la clave al atributo
+  // value del HTML (visible en texto plano con el inspector del navegador).
   const [msg, setMsg] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const obligatorio = !!usuario?.debeCambiarClave;
 
-  async function enviar(e: FormEvent) {
+  async function enviar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const campo = (n: string) => e.currentTarget.elements.namedItem(n) as HTMLInputElement;
+    const actual = campo("actual").value, nueva = campo("nueva").value, repetir = campo("repetir").value;
     if (nueva !== repetir) return setMsg("La clave nueva y su confirmación no coinciden.");
     setOcupado(true);
     setMsg("");
@@ -44,15 +45,15 @@ export function CambiarClave() {
         <form className="form1" onSubmit={enviar}>
           <label className="f">
             Clave actual
-            <input type="password" autoComplete="current-password" value={actual} onChange={(e) => setActual(e.target.value)} required />
+            <input type="password" name="actual" autoComplete="current-password" required />
           </label>
           <label className="f">
             Clave nueva
-            <input type="password" autoComplete="new-password" value={nueva} onChange={(e) => setNueva(e.target.value)} required minLength={10} />
+            <input type="password" name="nueva" autoComplete="new-password" required minLength={10} />
           </label>
           <label className="f">
             Repita la clave nueva
-            <input type="password" autoComplete="new-password" value={repetir} onChange={(e) => setRepetir(e.target.value)} required minLength={10} />
+            <input type="password" name="repetir" autoComplete="new-password" required minLength={10} />
           </label>
           <p className="note" role="alert" style={{ color: "var(--bad)" }}>
             {msg}
