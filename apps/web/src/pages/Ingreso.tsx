@@ -2,16 +2,19 @@ import { useState, type FormEvent } from "react";
 import { ErrorApi } from "../api";
 import { useSesion } from "../sesion";
 
-/* Portada e ingreso (pxLogin del prototipo), sin la demostración ni la carga de libros: ahora hay servidor. */
+/* Portada e ingreso (pxLogin del prototipo), sin la demostración ni la carga de libros: ahora hay servidor.
+   La clave es un campo NO controlado: se lee del formulario al enviarlo. Un campo controlado (value={…}) hace que React
+   copie lo escrito al atributo value del HTML, donde cualquiera con el inspector la vería en texto plano. */
 export function Ingreso() {
   const { ingresar } = useSesion();
   const [usuario, setUsuario] = useState("");
-  const [clave, setClave] = useState("");
   const [msg, setMsg] = useState("");
   const [ocupado, setOcupado] = useState(false);
 
-  async function enviar(e: FormEvent) {
+  async function enviar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const campoClave = e.currentTarget.elements.namedItem("clave") as HTMLInputElement;
+    const clave = campoClave.value;
     if (!usuario.trim() || !clave) {
       setMsg("Escriba usuario y clave.");
       return;
@@ -22,7 +25,7 @@ export function Ingreso() {
       await ingresar(usuario.trim(), clave);
     } catch (err) {
       setMsg(err instanceof ErrorApi ? err.message : "No hay conexión con el servidor.");
-      setClave("");
+      campoClave.value = "";
     } finally {
       setOcupado(false);
     }
@@ -51,7 +54,7 @@ export function Ingreso() {
             </label>
             <label className="f">
               Clave
-              <input type="password" autoComplete="current-password" value={clave} onChange={(e) => setClave(e.target.value)} />
+              <input type="password" name="clave" autoComplete="current-password" />
             </label>
             <p className="note" role="alert" style={{ color: msg === "Verificando…" ? "var(--muted)" : "var(--bad)" }}>
               {msg}
