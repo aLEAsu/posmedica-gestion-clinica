@@ -348,3 +348,41 @@ El prototipo se reemplazó por la versión 0.8, que es la base de cómo debe que
 | V8 | Sexo en el maestro único | La persona guarda la etiqueta (Femenino, Masculino, Indeterminado), como HD, DP y Nefro; VIH y CE traducen su código F/M/I. Al inscribir a una persona que ya existe, un programa solo completa lo que falta |
 | V9 | Optimización sin cambiar reglas ni vistas | Compresión gzip, lecturas en paralelo, carga paralela de libros, guardado de seguridad solo tras interacción, archivos de los módulos con huella para caché larga, conflictos de concurrencia como 409 |
 | V10 | Tablero gerencial con la Ruta en el servidor | La Ruta se carga oculta en segundo plano para calcular sus indicadores (el prototipo solo lo hacía en la demostración) |
+
+## 11. Auditoría técnica (13 de octubre de 2026): correcciones aplicadas
+
+| Hallazgo | Corrección | Prueba |
+|---|---|---|
+| H1 compression vulnerable | compression 1.8.2 | npm audit sin hallazgos |
+| H2 transversales leían libros completos | `libro/transversal.ts`: hojas mínimas por módulo, medidas con el prototipo | `transversal.test.ts` (vistas idénticas + API) |
+| H3 cierre de sesión trabajando en la Ruta | La Ruta avisa su actividad al portal | navegador |
+| H4 pérdida del turno ante conflicto | Recarga conservando borradores en 409 | navegador |
+| H5 autoría alterable | El servidor conserva «Registrado» y fija «Usuario» con quien modifica; mensajes y compromisos con campos editables limitados | `correcciones.test.ts` |
+| H6 reglas de CE solo en el cliente | Cita: cupo, jornada, solicitud y paciente válidos; «Con cita» solo con cita; cupo con cita no se bloquea | `correcciones.test.ts` |
+| H7 paciente inexistente al modificar | Validado también al modificar | `correcciones.test.ts` |
+| H8 respaldo y crecimiento de la auditoría | Excel reparte tablas grandes en varias hojas; JSON en flujo; consulta auditada una vez por sesión | `correcciones.test.ts` |
+| H9 lecturas de Nefro sin auditoría | Auditadas (una vez por sesión) | `correcciones.test.ts` |
+| H10 salir con cambios pendientes | Confirmación en el portal | navegador |
+| H11 «guardado» que no se guardó | Aviso persistente con el motivo | navegador |
+| H12 modificación sin sello | Sello obligatorio | `correcciones.test.ts` |
+| H13 el sondeo mantenía la sesión | Solo renueva con actividad reciente | `correcciones.test.ts` |
+| H14 sesiones sin purgar | Purga diaria de tokens viejos (no la auditoría) | `correcciones.test.ts` |
+| H15 clave de ejemplo | Vacía en `.env.example` | — |
+| H16 cabeceras manuales | Verificación con curl en la guía | — |
+| Integración CE ↔ Nefro | `GET /nefro/agenda/ocupacion` (sin datos de pacientes) para detectar cruces de profesionales | `integracion.test.ts` |
+| Integración persona ↔ Nefro | Al inscribir en la Ruta solo se completa lo vacío | `integracion.test.ts` |
+| Áreas con efecto | Sugerencias en Usuarios («Coordinación asistencial», «Calidad») | navegador |
+
+### 11.1 Revisión de código y auditoría de integración, lógica y base de datos (13–14 oct 2026)
+
+| Hallazgo | Corrección | Prueba |
+|---|---|---|
+| R1 Respaldo JSON sin contrapresión (memoria) | Espera «drain» (o cierre de la conexión) antes de seguir escribiendo | `correcciones.test.ts` |
+| R2 Respaldo truncado que parecía completo | Si falla a mitad de la descarga se corta la conexión; el manejador de errores no responde sobre una respuesta ya iniciada | revisión de código |
+| R3 Bitácora DP sin índice | Migración `20261014090000_auditoria_indice_programa` (solo un índice) | `prisma migrate diff`: sin diferencias |
+| R4 Lecturas paralelas vs. pool de conexiones | Máximo 4 consultas simultáneas por libro; `connection_limit` y `pool_timeout` documentados para Render | suite completa |
+| R5 Validación respondida como conflicto | Los ganchos distinguen validación (400) de conflicto (409) | `correcciones.test.ts` |
+| R6 Contexto de CE leía todas las solicitudes | Solo cuando el usuario no ve especialidades reservadas | suite completa |
+| R7 Ventana sin aviso de pendientes | El guardado programado cuenta como pendiente | revisión de código |
+| Regresión de H2: Laboratorio sin su rol de DP | RolesDP y Config llegan a los módulos transversales (sin datos de pacientes) | `transversal.test.ts` |
+| Dos guardados de registros DISTINTOS chocaban (1 de cada 2 con 409) | Versión del libro fuera de la transacción (sentencia atómica) y reintento automático de transacciones abortadas por serialización | `correcciones.test.ts` (0 fallos en 20 guardados simultáneos) |

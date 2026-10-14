@@ -74,7 +74,12 @@ export interface ConfigLibro {
   duplicado?: Record<string, string>;
   /** Regla que se verifica en la base antes de crear un registro (dentro de la transacción serializable: si dos usuarios
       guardan a la vez, PostgreSQL aborta uno y el servidor responde 409). Devuelve el mensaje de rechazo o null. */
-  validarNuevo?: (tx: Tx, hoja: string, datos: Fila) => Promise<string | null>;
+  validarNuevo?: (tx: Tx, hoja: string, datos: Fila, lote: Cambios["cambios"]) => Promise<Rechazo | null>;
+  /** Igual, para un registro existente que se modifica (antes: como estaba guardado; datos: como quedará). */
+  validarModificado?: (tx: Tx, hoja: string, antes: Fila, datos: Fila, lote: Cambios["cambios"]) => Promise<Rechazo | null>;
+  /** Columnas que un usuario no puede cambiar en un registro existente (se conservan las guardadas). Además de estas,
+      el motor protege siempre «Registrado» y fija «Usuario» con quien modifica (nunca con el nombre de otra persona). */
+  inmutables?: (hoja: string, antes: Fila, u: UsuarioSesion) => string[];
   /** Valores que el servidor fija en los registros nuevos (p. ej. el remitente de un mensaje). */
   fijarNuevo?: (hoja: string, datos: Fila, u: UsuarioSesion) => void;
   /** Claves de configuración que solo recibe el administrador (p. ej. valores de producción cifrados). */
@@ -82,6 +87,23 @@ export interface ConfigLibro {
 }
 
 const MAX_TEXTO = 50_000;
+/** Consultas simultáneas por lectura de un libro: en paralelo para ganar tiempo, pero limitadas para no agotar el pool de
+    conexiones (pequeño en Render) cuando el portal pide varios libros a la vez. */
+const LECTURAS_SIMULTANEAS = 4;
+
+/** Ejecuta las tareas con a lo sumo «limite» en curso a la vez y devuelve los resultados en el mismo orden. */
+async function conLimite<T>(tareas: (() => Promise<T>)[], limite: number): Promise<T[]> {
+  const out: T[] = new Array(tareas.length);
+  let i = 0;
+  const trabajador = async () => {
+    while (i < tareas.length) {
+      const k = i++;
+      out[k] = await tareas[k]();
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limite, tareas.length) }, trabajador));
+  return out;
+}
 const pad = (n: number) => String(n).padStart(2, "0");
 /** Fecha DATE de PostgreSQL (medianoche UTC) → «AAAA-MM-DD». */
 export const fechaTexto = (d: Date) => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
@@ -116,6 +138,11 @@ const ES_NUMERO = /^-?\d+(\.\d+)?$/;
 const conflicto = (m: string) => new HttpError(409, m, "CONFLICTO");
 const prohibido = (m: string) => new HttpError(403, m, "PROHIBIDO");
 const esAnulado = (v: unknown) => v === "SI";
+
+/** Rechazo de una regla: texto = conflicto con lo guardado por otro usuario (409, el cliente recarga y conserva lo
+    digitado); { validacion } = datos inválidos (400). */
+export type Rechazo = string | { validacion: string };
+const rechazar = (r: Rechazo) => (typeof r === "string" ? conflicto(r) : new HttpError(400, r.validacion, "VALIDACION"));
 
 export interface Actor {
   id: string;
@@ -276,9 +303,9 @@ export function crearServicioLibro(C: ConfigLibro) {
   async function leerLibro(u: UsuarioSesion) {
     const esAdmin = u.rol === "ADMIN";
     const ctx = C.contexto ? await C.contexto(prisma, u) : undefined;
-    // Las hojas se leen en paralelo (cada una es una consulta independiente).
-    const leidas = await Promise.all(
-      HOJAS.map(async (h): Promise<Fila[]> => {
+    // Las hojas se leen en paralelo (cada una es una consulta independiente), con un límite de consultas simultáneas.
+    const leidas = await conLimite(
+      HOJAS.map((h) => async (): Promise<Fila[]> => {
         if (!leeHoja(h, u, ctx)) return [];
         const D = delegado(prisma, h);
         const orden = { [C.hojas[h].clave]: "asc" };
@@ -287,6 +314,7 @@ export function crearServicioLibro(C: ConfigLibro) {
           : (await D.findMany({ orderBy: orden })).map((f) => aRegistro(h, f));
         return C.leeFila ? filas.filter((f) => leeFila(h, f, u, ctx)) : filas;
       }),
+      LECTURAS_SIMULTANEAS,
     );
     const hojas: Record<string, Fila[]> = Object.fromEntries(HOJAS.map((h, i) => [h, leidas[i]]));
     const params = await prisma.parametro.findMany({ where: { programa: C.programa } });
@@ -326,8 +354,8 @@ export function crearServicioLibro(C: ConfigLibro) {
         if ("Registrado" in datos && !datos.Registrado) datos.Registrado = ahoraTexto();
         C.fijarNuevo?.(h, datos, u);
         if (C.validarNuevo) {
-          const motivo = await C.validarNuevo(tx, h, datos);
-          if (motivo) throw conflicto(motivo);
+          const motivo = await C.validarNuevo(tx, h, datos, cambios);
+          if (motivo) throw rechazar(motivo);
         }
         let creado: Fila;
         try {
@@ -346,15 +374,33 @@ export function crearServicioLibro(C: ConfigLibro) {
         if (!actual) throw conflicto(`El registro ${id} ya no existe en la base de datos. Se recargaron los datos.`);
         const antesReg = esHojaP(h) ? aRegistroPaciente(actual as Fila & { persona: PersonaConEps }) : aRegistro(h, actual);
         if (!leeFila(h, antesReg, u, ctx) || !escribe(h, u, "modificado", antesReg, ctx)) throw sinPermiso(h);
-        if (r._ts && (actual.actualizadoEn as Date).toISOString() !== r._ts) {
+        // Control de concurrencia obligatorio: toda modificación trae el sello del registro que el usuario tenía en pantalla.
+        if (!r._ts || (actual.actualizadoEn as Date).toISOString() !== r._ts) {
           throw conflicto(`Otro usuario modificó ${id} mientras usted trabajaba. Se recargaron los datos: revise y repita su cambio.`);
         }
         const datos = datosTabla(h, r);
+        // Autoría: «Registrado» no cambia; «Usuario», si el cliente lo cambia, queda con quien modifica (así lo hace el
+        // prototipo al editar un paciente) y nunca con el nombre de otra persona.
+        const guardado = (col: string) => (actual as Fila)[col];
+        if ("Registrado" in datos) datos.Registrado = guardado("Registrado") ?? null;
+        if ("Usuario" in datos && JSON.stringify(datos.Usuario ?? null) !== JSON.stringify(guardado("Usuario") ?? null)) {
+          const yo: Fila = { Usuario: actor.nombre };
+          C.fijarNuevo?.(h, yo, u);
+          datos.Usuario = yo.Usuario;
+        }
+        for (const col of C.inmutables?.(h, antesReg, u) ?? []) if (col in datos) datos[col] = guardado(col) ?? null;
+        if (tienePaciente && datos.Paciente !== guardado("Paciente") && datos.Paciente && !(await existePaciente(String(datos.Paciente)))) {
+          throw new HttpError(400, `El paciente ${datos.Paciente} no existe.`, "VALIDACION");
+        }
+        if (C.validarModificado) {
+          const motivo = await C.validarModificado(tx, h, actual as Fila, datos, cambios);
+          if (motivo) throw rechazar(motivo);
+        }
         const dif: { antes: Fila; despues: Fila } = { antes: {}, despues: {} };
         for (const col of C.hojas[h].columnas) {
           if (col === clave) continue;
           const a = antesReg[col] ?? C.vacio;
-          const n = col in datos ? (datos[col] instanceof Date ? fechaTexto(datos[col] as Date) : datos[col]) : r[col];
+          const n = col in datos ? (datos[col] instanceof Date ? fechaTexto(datos[col] as Date) : datos[col]) : esHojaP(h) ? r[col] : a;
           const norm = (x: unknown) => JSON.stringify(x === "" || x === undefined || x === null ? null : x);
           if (norm(a) !== norm(n)) {
             dif.antes[col] = a;
@@ -394,7 +440,8 @@ export function crearServicioLibro(C: ConfigLibro) {
       await auditar({ accion: "FACTURACION", entidad: `${C.programa}.facturacion`, detalle: "Tarifas o valores facturados actualizados (cifrados con la clave de facturación)" });
     }
 
-    return { version: await subirVersion(tx, actor.id), ts };
+    // La versión del libro la sube la ruta DESPUÉS de confirmar la transacción (services/version.ts).
+    return { ts };
   }
 
   /** Importación inicial de un libro existente (solo administrador, con el programa vacío). */

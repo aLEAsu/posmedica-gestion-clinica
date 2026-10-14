@@ -2,7 +2,7 @@
 import { crearMotorVIH } from "@posmedica/clinical-rules";
 import type { ConfigLibro, Fila, HojaDef } from "../libro/servicio.js";
 import { sexoCodigo, sexoEtiqueta } from "../libro/persona.js";
-import { escrituraConTransversales, leeProgramaOTransversal } from "../libro/transversal.js";
+import { escrituraConTransversales, leeHojaProgramaOTransversal, leeProgramaOTransversal } from "../libro/transversal.js";
 import { CAMPOS_PERSONA_VIH, ETNIA_VIH, MODELOS_VIH, ZONA_VIH } from "./hojas.js";
 
 const { VXS } = crearMotorVIH({ libro: { pac: [] } }) as unknown as { VXS: Record<string, [string, string[]]> };
@@ -23,6 +23,7 @@ export const CONFIG_VIH: ConfigLibro = {
   tipo: () => "texto",
   vacio: "", // vxParse devuelve "" para las celdas vacías
   puedeLeer: leeProgramaOTransversal("vih"),
+  leeHoja: leeHojaProgramaOTransversal("vih"), // los módulos transversales reciben solo las hojas que usan (dato sensible)
   // Laboratorio valida la solicitud del mes y carga resultados en el libro VIH.
   ...escrituraConTransversales("vih", { sol: ["lab"], lab: ["lab"] }),
   paciente: {

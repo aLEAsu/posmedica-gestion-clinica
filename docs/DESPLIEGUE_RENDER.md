@@ -91,7 +91,7 @@ En **Advanced → Health Check Path** escriba `/api/health`.
 |---|---|
 | `NODE_VERSION` | `22` |
 | `NODE_ENV` | `production` |
-| `DATABASE_URL` | La **Internal Database URL** del paso 2 |
+| `DATABASE_URL` | La **Internal Database URL** del paso 2, agregando al final `?connection_limit=10&pool_timeout=20` (si la URL ya tiene `?`, use `&connection_limit=10&pool_timeout=20`). Así el servidor abre hasta 10 conexiones y espera hasta 20 s por una libre cuando varios usuarios cargan a la vez; el plan gratuito de PostgreSQL admite unas 100. |
 | `SESSION_SECRET` | Use **Generate** (botón de Render) o un texto aleatorio de 40 caracteres o más |
 | `ALLOWED_ORIGINS` | La URL del frontend del paso 4, p. ej. `https://posmedica-web.onrender.com` (sin barra final). Si aún no la conoce, póngala después y redespliegue. |
 | `TRUST_PROXY_HOPS` | `2` |
@@ -164,6 +164,15 @@ Agregue también estas cabeceras de caché (rendimiento):
 | `/modulos/c/*` | `Cache-Control` | `public, max-age=31536000, immutable` | Código de los módulos con huella en el nombre (`portal.3f9a1c2b.js`). El navegador lo descarga una sola vez y vuelve a descargarlo solo cuando cambia. |
 
 Las páginas `/modulos/portal/index.html` y `/modulos/nefro/index.html` no llevan caché larga: así cada despliegue llega de inmediato.
+
+**Compruebe las cabeceras después de cada cambio de configuración** (sin ellas el sitio funciona, pero queda sin la política de seguridad de contenido):
+```bash
+curl -sI https://posmedica-web.onrender.com/ | grep -iE "content-security-policy|x-frame-options|strict-transport|x-content-type"
+```
+```bash
+curl -sI https://posmedica-web.onrender.com/modulos/portal/index.html | grep -iE "cache-control|content-security-policy"
+```
+Deben aparecer las cuatro cabeceras de seguridad en la primera y `content-security-policy` (sin caché larga) en la segunda. Cambie la URL por la de su Static Site.
 
 ---
 

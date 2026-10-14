@@ -25,7 +25,9 @@ Frontend React, backend Node.js y base de datos PostgreSQL, desplegados en Rende
 
 Quimioterapia y Servicio farmacéutico siguen «en desarrollo», igual que en el prototipo.
 
-**Pruebas automáticas:** 66 de integración del backend y 164 de equivalencia de reglas clínicas, todas en verde.
+**Pruebas automáticas:** 89 de integración del backend y 164 de equivalencia de reglas clínicas, todas en verde.
+
+**Auditoría técnica (13 oct 2026):** se corrigieron sus hallazgos y se agregaron pruebas para cada uno (`apps/api/test/correcciones.test.ts`, `transversal.test.ts`, `integracion.test.ts`). Entre ellos: los módulos transversales reciben solo las hojas que usan (Ley 1581), el servidor protege la autoría y exige el sello de concurrencia, las reglas críticas de la agenda de CE se validan también en el servidor, el turno digitado se conserva ante un conflicto, avisos persistentes de lo que no se guardó, confirmación antes de salir con cambios pendientes, la sesión no se cierra mientras se trabaja dentro de la Ruta, y CE detecta cruces con la agenda de Nefroprotección. Ver docs/ANALISIS.md §11.
 
 ## Estructura
 

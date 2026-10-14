@@ -4,7 +4,8 @@ import { puede } from "@posmedica/shared";
 import { prisma } from "../../db.js";
 import { h, prohibido } from "../../http/errors.js";
 import { requiereAdmin, requiereSesion } from "../../http/middleware.js";
-import { auditar } from "../../services/auditoria.js";
+import { auditar, auditarConsulta } from "../../services/auditoria.js";
+import { conReintentos, subirVersion } from "../../services/version.js";
 import { actorDe, crearServicioLibro, type Cambios, type ConfigLibro } from "./servicio.js";
 
 const Lote = z.array(z.record(z.unknown())).max(20_000).optional();
@@ -35,7 +36,7 @@ export function crearRutasLibro(C: ConfigLibro) {
     h(async (req, res) => {
       const libro = await S.leerLibro(req.usuario!);
       const total = Object.values(libro.hojas).reduce((a, L) => a + L.length, 0);
-      await auditar(req, { accion: "CONSULTA", entidad: `${C.programa}.libro`, programa: C.programa, detalle: `${total} registros` });
+      await auditarConsulta(req, C.programa, `${C.programa}.libro`, `${total} registros`);
       res.json(libro);
     }),
   );
@@ -54,11 +55,13 @@ export function crearRutasLibro(C: ConfigLibro) {
     h(async (req, res) => {
       if (!S.puedeEscribir(req.usuario!)) throw prohibido(`Su usuario no tiene permiso para registrar en ${C.nombre}.`);
       const body = Sincronizacion.parse(req.body) as Cambios;
-      const out = await prisma.$transaction(
-        (tx) => S.sincronizar(tx, actorDe(req.usuario!), body, (e) => auditar(req, { ...e, programa: C.programa }, tx)),
-        { timeout: 60_000, isolationLevel: "Serializable" },
+      const out = await conReintentos(() =>
+        prisma.$transaction(
+          (tx) => S.sincronizar(tx, actorDe(req.usuario!), body, (e) => auditar(req, { ...e, programa: C.programa }, tx)),
+          { timeout: 60_000, isolationLevel: "Serializable" },
+        ),
       );
-      res.json(out);
+      res.json({ ...out, version: await subirVersion(C.programa, "__version", req.usuario!.id) });
     }),
   );
 

@@ -116,7 +116,7 @@ export function Usuarios() {
       </div>
 
       {dlg?.tipo === "nuevo" && (
-        <DlgDatos
+        <DlgDatos areas={[...new Set((lista ?? []).map((x) => x.area).filter((x): x is string => !!x))]}
           onCerrar={() => setDlg(null)}
           onGuardar={async (d) => {
             const r = await api.post<{ usuario: UsuarioFila; claveTemporal?: string }>("/usuarios", d);
@@ -126,7 +126,7 @@ export function Usuarios() {
         />
       )}
       {dlg?.tipo === "editar" && (
-        <DlgDatos
+        <DlgDatos areas={[...new Set((lista ?? []).map((x) => x.area).filter((x): x is string => !!x))]}
           u={dlg.u}
           esYo={dlg.u.id === yo?.id}
           onCerrar={() => setDlg(null)}
@@ -187,7 +187,10 @@ function ClaveTemporal({ clave }: { clave?: string }) {
   );
 }
 
-function DlgDatos(props: { u?: UsuarioFila; esYo?: boolean; onCerrar: () => void; onGuardar: (d: Record<string, unknown>) => Promise<void> }) {
+/** Áreas con efecto en el sistema (deben escribirse exactamente así): reciben las novedades del servicio o editan Documentos. */
+const AREAS_CON_EFECTO = ["Coordinación asistencial", "Calidad"];
+
+function DlgDatos(props: { u?: UsuarioFila; esYo?: boolean; areas?: string[]; onCerrar: () => void; onGuardar: (d: Record<string, unknown>) => Promise<void> }) {
   const u = props.u;
   const [d, setD] = useState({ usuario: u?.usuario ?? "", nombre: u?.nombre ?? "", cargo: u?.cargo ?? "", area: u?.area ?? "", email: u?.email ?? "", rol: (u?.rol ?? "MEDICO") as Rol, activo: u?.activo ?? true });
   const set = (k: keyof typeof d) => (e: { target: { value: string } }) => setD({ ...d, [k]: e.target.value });
@@ -215,7 +218,14 @@ function DlgDatos(props: { u?: UsuarioFila; esYo?: boolean; onCerrar: () => void
         )}
         <label className="f">Nombre completo<input type="text" value={d.nombre} onChange={set("nombre")} /></label>
         <label className="f">Cargo<input type="text" value={d.cargo} onChange={set("cargo")} placeholder="p. ej. Médica nefróloga" /></label>
-        <label className="f">Área<input type="text" value={d.area} onChange={set("area")} /></label>
+        <label className="f">
+          Área
+          <input type="text" value={d.area} onChange={set("area")} list="areas-usuarios" />
+          <datalist id="areas-usuarios">
+            {[...new Set([...AREAS_CON_EFECTO, ...(props.areas ?? [])])].map((a) => <option key={a} value={a} />)}
+          </datalist>
+          <span className="note">«Coordinación asistencial» recibe las novedades del servicio; «Calidad» edita Documentos y guías.</span>
+        </label>
         <label className="f">Correo (opcional)<input type="email" value={d.email} onChange={set("email")} /></label>
         <label className="f">
           Rol

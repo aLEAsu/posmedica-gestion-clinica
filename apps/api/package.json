@@ -27,7 +27,7 @@
     "@posmedica/clinical-rules": "0.2.0",
     "@posmedica/shared": "0.1.0",
     "@prisma/client": "6.19.3",
-    "compression": "^1.8.1",
+    "compression": "^1.8.2",
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.0",

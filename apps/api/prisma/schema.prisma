@@ -112,6 +112,7 @@ model Auditoria {
   @@index([fecha])
   @@index([entidad, registroId])
   @@index([usuarioId])
+  @@index([programa, id])
   @@map("auditoria")
 }
 

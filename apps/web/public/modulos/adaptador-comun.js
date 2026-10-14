@@ -14,13 +14,21 @@
     }
   }
 
-  async function pedir(metodo, ruta, cuerpo) {
+  /* Última interacción del usuario (clics o teclas en esta página o, en el portal, dentro de la Ruta). El sondeo de
+     /version solo mantiene viva la sesión del servidor si hubo actividad reciente: así una pantalla abierta sin nadie
+     enfrente sí se cierra por inactividad. */
+  let ultimaInteraccion = Date.now();
+  const marcarActividad = () => (ultimaInteraccion = Date.now());
+  for (const ev of ["click", "keydown", "input", "wheel", "touchstart"]) document.addEventListener(ev, marcarActividad, { capture: true, passive: true });
+  const activo = () => Date.now() - ultimaInteraccion < 60000;
+
+  async function pedir(metodo, ruta, cuerpo, cabeceras) {
     let r;
     try {
       r = await fetch(API + ruta, {
         method: metodo,
         credentials: "same-origin",
-        headers: Object.assign({ Accept: "application/json", "X-Posmedica": "1" }, cuerpo !== undefined ? { "Content-Type": "application/json" } : {}),
+        headers: Object.assign({ Accept: "application/json", "X-Posmedica": "1" }, cuerpo !== undefined ? { "Content-Type": "application/json" } : {}, cabeceras || {}),
         body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
       });
     } catch (e) {
@@ -59,7 +67,13 @@
    * o.toast(texto)
    */
   function crearSincronizador(o) {
-    const S = { estado: "Conectando…", hayNuevos: false, version: 0, bloqueado: false };
+    // ultimoRechazo: el último cambio que el servidor NO guardó (motivo y hora). Se muestra hasta que el usuario lo cierre,
+    // para que nadie crea que guardó algo que fue rechazado.
+    const S = { estado: "Conectando…", hayNuevos: false, version: 0, bloqueado: false, ultimoRechazo: null };
+    S.descartarRechazo = () => {
+      S.ultimoRechazo = null;
+      o.alCambiar();
+    };
     let base = null, enCurso = false, pendiente = false, temporizador = null, avisado = 0;
     let rechazos = [];
     const claveDe = (c, r) => (typeof c === "function" ? c(r) : r[c]);
@@ -116,14 +130,24 @@
       return { n, cambios, cfg, fin };
     };
 
+    // programado: hay un guardado en espera (los 400 ms tras un cambio). Cuenta como pendiente para el aviso al salir.
+    S.programado = false;
     S.programar = function (ms) {
       clearTimeout(temporizador);
       temporizador = setTimeout(S.sincronizar, ms == null ? 400 : ms);
+      if (!S.programado) {
+        S.programado = true;
+        o.alCambiar();
+      }
     };
 
     S.pendiente = () => (base && !S.bloqueado ? S.diferencias().n : 0);
 
     S.sincronizar = async function () {
+      if (S.programado) {
+        S.programado = false;
+        o.alCambiar();
+      }
       if (!base || S.bloqueado) return;
       if (enCurso) {
         pendiente = true;
@@ -165,13 +189,16 @@
         } else {
           o.toast(e.message);
           S.estado = "Cambio rechazado";
+          S.ultimoRechazo = { mensaje: e.message, hora: hora() };
           rechazos = rechazos.filter((t) => Date.now() - t < 60000).concat(Date.now());
           if (rechazos.length > 3) {
             S.estado = "Guardado detenido: el servidor rechazó varios cambios seguidos. Recargue la página o informe al administrador.";
             base = null;
           } else {
             try {
-              await o.recargar({ conservarBorradores: false });
+              // Conflicto con otro usuario (409): se recargan los datos conservando lo que se estaba digitando (p. ej. el
+              // turno de hemodiálisis), para repetir el guardado sin volver a escribirlo todo.
+              await o.recargar({ conservarBorradores: e.status === 409 });
             } catch (x) {
               o.toast(x.message);
             }
@@ -190,7 +217,7 @@
     S.revisarVersion = async function () {
       if (!base || enCurso || S.bloqueado || document.hidden || S.hayNuevos) return;
       try {
-        const r = await pedir("GET", o.ruta + "/version");
+        const r = await pedir("GET", o.ruta + "/version", undefined, activo() ? { "X-Actividad": "1" } : undefined);
         if (r.version !== S.version) {
           S.hayNuevos = true;
           o.alCambiar();
@@ -226,5 +253,5 @@
     return S;
   }
 
-  window.POSMEDICA = { pedir, avisarPortal, crearSincronizador, hora };
+  window.POSMEDICA = { pedir, avisarPortal, crearSincronizador, hora, marcarActividad };
 })();

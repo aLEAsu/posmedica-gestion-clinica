@@ -162,6 +162,17 @@ Observaciones: ______________________________________________
 
 ---
 
+## 8.1 Robustez (después de la auditoría técnica)
+
+- [ ] Si el servidor rechaza un cambio (por ejemplo, dos personas editan lo mismo), arriba del módulo aparece en rojo «No se guardó un cambio» con el motivo, hasta pulsar **Entendido**.
+- [ ] Sin conexión, el estado dice «Sin guardar»; al intentar salir del módulo o cerrar la pestaña, el sistema pide confirmación. Al volver la conexión, el cambio se guarda solo.
+- [ ] Dos enfermeras guardan el turno de hemodiálisis al mismo tiempo: la segunda recibe el aviso y su turno sigue digitado en pantalla para guardarlo de nuevo.
+- [ ] Trabajando más de 15 minutos solo dentro de Nefroprotección, la sesión NO se cierra. Sin tocar nada durante 15 minutos, sí.
+- [ ] Un usuario solo de Producción, IAAS, PROA o SP no ve el TAR, las valoraciones ni los antecedentes del programa VIH; sus vistas muestran lo mismo que antes.
+- [ ] En Consulta externa, al abrir agenda para un profesional que ya tiene jornada en Nefroprotección a esa hora, aparece el cruce (aunque Nefroprotección no se haya abierto).
+
+---
+
 ## 9. Programas sin módulo propio
 
 - [ ] Quimioterapia y Servicio farmacéutico muestran su ficha «en desarrollo», como en el prototipo.

@@ -22,9 +22,37 @@ export function ModuloOriginal({ pagina, vista, titulo }: { pagina: string; vist
     }
   }
 
+  // Cambios del módulo que aún se están guardando (o que no se pudieron guardar por falta de conexión): mientras existan,
+  // salir de la página o pasar a otra pantalla del portal pide confirmación, para no perderlos.
+  const pendientes = useRef(0);
+  useEffect(() => {
+    const MSG = "Hay cambios que todavía se están guardando o no se pudieron guardar. Si sale ahora, se pueden perder. ¿Salir de todas formas?";
+    const alSalir = (e: BeforeUnloadEvent) => {
+      if (!pendientes.current) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    // Clics en la barra del portal (Atrás, Panel, Usuarios, Salir…) mientras el módulo está abierto. Los clics dentro del
+    // módulo no llegan aquí (son de su propia página).
+    const alClic = (e: MouseEvent) => {
+      if (!pendientes.current || !(e.target as Element)?.closest?.("a, button")) return;
+      if (!window.confirm(MSG)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener("beforeunload", alSalir);
+    document.addEventListener("click", alClic, true);
+    return () => {
+      window.removeEventListener("beforeunload", alSalir);
+      document.removeEventListener("click", alClic, true);
+    };
+  }, []);
+
   useEffect(() => {
     const oir = (e: MessageEvent) => {
       if (e.origin !== window.location.origin || e.source !== ref.current?.contentWindow) return;
+      if (e.data?.tipo === "posmedica:pendiente") pendientes.current = Number(e.data.n) || 0;
       if (e.data?.tipo === "posmedica:sesion-perdida") actualizar(null);
       // El módulo pide abrir otro programa, el panel o Usuarios (solo rutas internas del portal).
       if (e.data?.tipo === "posmedica:navegar" && typeof e.data.ruta === "string" && /^\/((programa\/[a-z]+)|usuarios)?$/.test(e.data.ruta)) {

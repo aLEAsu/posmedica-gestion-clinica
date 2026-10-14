@@ -1,6 +1,7 @@
 /* Respaldo completo descargable (respuesta a P6, 8 oct 2026): el administrador puede bajar toda la información
    para conservarla también en local o en físico. Recorre todos los modelos de Prisma, así que los módulos que se
    agreguen en las fases siguientes quedan incluidos sin tocar este archivo. */
+import { once } from "node:events";
 import { Router } from "express";
 import { Prisma } from "@prisma/client";
 import * as XLSX from "xlsx";
@@ -17,6 +18,7 @@ const MODELOS_EXCLUIDOS = new Set(["Sesion"]);
 const CAMPOS_EXCLUIDOS = new Set(["claveHash", "tokenHash"]);
 const LOTE = 5000;
 const MAX_CELDA = 32_000; // Excel admite 32.767 caracteres por celda
+const MAX_FILAS_HOJA = 1_000_000; // Excel admite 1.048.576 filas por hoja: una tabla más grande se reparte en varias hojas
 
 function modelos() {
   return Prisma.dmmf.datamodel.models.filter((m) => !MODELOS_EXCLUIDOS.has(m.name));
@@ -27,18 +29,28 @@ function delegado(nombre: string) {
   return (prisma as unknown as Record<string, { findMany: (a: object) => Promise<Record<string, unknown>[]> }>)[k];
 }
 
-async function leerTodo(m: (typeof Prisma.dmmf.datamodel.models)[number]) {
+function consulta(m: (typeof Prisma.dmmf.datamodel.models)[number]) {
   const escalares = m.fields.filter((f) => f.kind === "scalar" || f.kind === "enum");
   const select = Object.fromEntries(escalares.filter((f) => !CAMPOS_EXCLUIDOS.has(f.name)).map((f) => [f.name, true]));
   // Orden estable por la clave primaria (simple o compuesta) para que la paginación por lotes no repita ni salte filas.
   const orden = (m.primaryKey ? m.primaryKey.fields : [escalares.find((f) => f.isId)!.name]).map((f) => ({ [f]: "asc" }));
-  const filas: Record<string, unknown>[] = [];
+  return { select, orden };
+}
+
+/** Recorre una tabla por lotes (sin cargarla entera de una vez en la consulta). */
+async function* lotes(m: (typeof Prisma.dmmf.datamodel.models)[number]) {
+  const { select, orden } = consulta(m);
   for (let skip = 0; ; skip += LOTE) {
     const L = await delegado(m.name).findMany({ select, orderBy: orden, skip, take: LOTE });
-    filas.push(...L);
+    yield L;
     if (L.length < LOTE) break;
   }
-  return { columnas: Object.keys(select), filas };
+}
+
+async function leerTodo(m: (typeof Prisma.dmmf.datamodel.models)[number]) {
+  const filas: Record<string, unknown>[] = [];
+  for await (const L of lotes(m)) filas.push(...L);
+  return { columnas: Object.keys(consulta(m).select), filas };
 }
 
 const valor = (v: unknown) =>
@@ -69,9 +81,19 @@ respaldo.get(
           }),
         );
       }
-      const hoja = (m.dbName ?? m.name).slice(0, 31);
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), hoja);
-      resumen.push([m.name, hoja, filas.length]);
+      const base = (m.dbName ?? m.name).slice(0, 28);
+      if (aoa.length - 1 <= MAX_FILAS_HOJA) {
+        const hoja = (m.dbName ?? m.name).slice(0, 31);
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), hoja);
+        resumen.push([m.name, hoja, filas.length]);
+      } else {
+        // Tabla más grande que una hoja de Excel: se reparte en base_1, base_2… (cada una con su encabezado).
+        for (let i = 1, parte = 1; i < aoa.length; i += MAX_FILAS_HOJA, parte++) {
+          const hoja = `${base}_${parte}`;
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([columnas, ...aoa.slice(i, i + MAX_FILAS_HOJA)]), hoja);
+          resumen.push([m.name, hoja, Math.min(MAX_FILAS_HOJA, aoa.length - i)]);
+        }
+      }
     }
     const leeme = [
       ["Respaldo completo · Sistema de gestión clínica POSMÉDICA"],
@@ -99,14 +121,39 @@ respaldo.get(
 respaldo.get(
   "/json",
   h(async (req, res) => {
-    const tablas: Record<string, unknown[]> = {};
-    for (const m of modelos()) {
-      const { filas } = await leerTodo(m);
-      tablas[m.dbName ?? m.name] = filas.map((f) => Object.fromEntries(Object.entries(f).map(([k, v]) => [k, typeof v === "bigint" ? v.toString() : v])));
-    }
-    await auditar(req, { accion: "RESPALDO", entidad: "sistema", detalle: `JSON · ${Object.entries(tablas).map(([k, v]) => `${k}=${v.length}`).join(", ")}` });
+    // Se escribe en flujo, tabla por tabla y lote por lote: la memoria del servidor no crece con el tamaño de la base.
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Content-Disposition", `attachment; filename="POSMEDICA_respaldo_${marcaArchivo()}.json"`);
     res.setHeader("Cache-Control", "no-store");
-    res.json({ sistema: "POSMEDICA gestión clínica", generado: new Date().toISOString(), por: req.usuario!.usuario, tablas });
+    const json = (v: unknown) => JSON.stringify(v, (_k, x) => (typeof x === "bigint" ? x.toString() : x));
+    // Contrapresión: si el navegador descarga más lento de lo que lee la base, se espera a que el búfer se vacíe, para
+    // que la memoria del servidor no acumule el respaldo completo.
+    const escribir = async (trozo: string) => {
+      if (!res.write(trozo)) await Promise.race([once(res, "drain"), once(res, "close")]);
+      if (res.destroyed) throw new Error("La descarga se canceló o se cortó la conexión.");
+    };
+    try {
+      await escribir(`{"sistema":"POSMEDICA gestión clínica","generado":${json(new Date().toISOString())},"por":${json(req.usuario!.usuario)},"tablas":{`);
+      const conteo: string[] = [];
+      let primeraTabla = true;
+      for (const m of modelos()) {
+        await escribir(`${primeraTabla ? "" : ","}${json(m.dbName ?? m.name)}:[`);
+        primeraTabla = false;
+        let n = 0;
+        for await (const L of lotes(m)) {
+          if (L.length) await escribir(L.map((f) => (n++ ? "," : "") + json(f)).join(""));
+        }
+        await escribir("]");
+        conteo.push(`${m.dbName ?? m.name}=${n}`);
+      }
+      await escribir("}}");
+      await auditar(req, { accion: "RESPALDO", entidad: "sistema", detalle: `JSON · ${conteo.join(", ")}` });
+      res.end();
+    } catch (e) {
+      // Las cabeceras ya salieron: no se puede responder un error. Se corta la conexión para que la descarga FALLE de forma
+      // visible en el navegador, en lugar de dejar un archivo incompleto que parezca un respaldo válido.
+      console.error(JSON.stringify({ nivel: "error", id: req.id, ruta: req.path, mensaje: "Respaldo JSON interrumpido", error: (e as Error)?.message }));
+      res.destroy(e as Error);
+    }
   }),
 );
