@@ -46,6 +46,8 @@ export const CONFIG_DP: ConfigLibro = {
   tipo: (_h, c) => (FECHAS_DP.has(c) ? "fecha" : NUMEROS_DP.has(c) ? "numero" : "texto"),
   vacio: null, // el prototipo lee el libro DP con readSheet (celdas vacías = null), como Hemodiálisis
   textoNumerico: new Set(["lab.Valor"]), // el valor de un laboratorio puede ser 3.2 o «Reactivo» (como en Hemodiálisis)
+  // RolesDP usa el nombre de usuario como clave, igual que RolesCE (ver ce/config.ts): se normaliza a minúsculas.
+  normalizarClave: (h, v) => (h === "rol" ? v.toLowerCase() : v),
   puedeLeer: leeProgramaOTransversal("dp"),
   leeHoja: leeHojaProgramaOTransversal("dp"), // los módulos transversales reciben solo las hojas que usan
   // Rol del usuario en RolesDP (el administrador es Dirección Médica).
@@ -65,6 +67,8 @@ export const CONFIG_DP: ConfigLibro = {
     relacionPersona: "dpPaciente",
     camposPersona: CAMPOS_PERSONA_DP,
     campoIngreso: "FechaIngresoPrograma",
+    // DP no tiene columna «Estado»: su estado de programa es «EstadoPrograma» (auditoría A9, 19 oct 2026).
+    estadoDe: (datos) => datos.EstadoPrograma as string | undefined,
     // DP guarda «Nombres» y «Apellidos» completos: se parten en el primer espacio (como Hemodiálisis).
     aPersona: (r: Fila) => {
       const [n1, n2] = partir(r.Nombres);

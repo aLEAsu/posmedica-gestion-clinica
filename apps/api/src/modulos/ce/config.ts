@@ -72,6 +72,9 @@ export const CONFIG_CE: ConfigLibro = {
   // El prototipo lee el libro de Consulta externa todo como texto (ceParse con raw:false y "" en las celdas vacías).
   tipo: () => "texto",
   vacio: "",
+  // RolesCE usa el nombre de usuario como clave, y en «usuario» siempre es minúsculas: sin esto, un admin que escriba
+  // una variante con mayúsculas desde dentro del módulo podría crear una fila de rol ambigua para el mismo usuario.
+  normalizarClave: (h, v) => (h === "rol" ? v.toLowerCase() : v),
   contexto,
   leeFila: (h, f, _u, c: CtxCe) => c.veReservadas || !reservada(h, f, c),
   escribe: (h, u, tipo, f, c: CtxCe) => {
@@ -119,6 +122,9 @@ export const CONFIG_CE: ConfigLibro = {
     relacionPersona: "cePaciente",
     camposPersona: CAMPOS_PERSONA_CE,
     campoIngreso: "Registrado",
+    // CE no tiene un estado de paciente propio (no aplica, decisión de la auditoría A9, 19 oct 2026): su inscripción
+    // queda en «Activo» a propósito; el estado real de cada caso vive en Solicitudes/Citas, no en el paciente.
+
     aPersona: (r: Fila) => ({
       tipoDoc: r.TipoDoc, documento: r.Documento, primerNombre: r.PrimerNombre, segundoNombre: r.SegundoNombre, primerApellido: r.PrimerApellido,
       segundoApellido: r.SegundoApellido, fechaNacimiento: r.FechaNac, sexo: sexoEtiqueta(r.Sexo), eps: r.EPS, municipio: r.Municipio, telefono: r.Telefono,

@@ -80,7 +80,9 @@ function aFilaPaciente(p: PacConPersona) {
   };
 }
 
-/** Busca o crea la persona; un documento de otro paciente de la Ruta no se mezcla; un campo vacío no borra lo que otro programa registró. */
+/** Busca o crea la persona; un documento de otro paciente de la Ruta no se mezcla; un campo vacío no borra lo que otro
+    programa registró. Se fusiona por el número de documento SOLO (A5 de la auditoría, 19 oct 2026; igual que
+    resolverPersona del motor genérico): el tipo de documento no entra en la búsqueda. */
 async function persona(tx: Tx, P: Obj, usuarioId: string, propioId?: string) {
   const sexo = txt(P.sexo);
   const datos = {
@@ -89,7 +91,7 @@ async function persona(tx: Tx, P: Obj, usuarioId: string, propioId?: string) {
     municipio: txt(P.municipio), telefono: txt(P.telefono_1), direccion: txt(P.direccion),
   };
   if (datos.documento) {
-    const ex = await tx.persona.findFirst({ where: { documento: datos.documento, ...(datos.tipoDoc ? { tipoDoc: datos.tipoDoc } : {}) }, include: { nefroPaciente: true } });
+    const ex = await tx.persona.findFirst({ where: { documento: datos.documento }, include: { nefroPaciente: true } });
     if (ex) {
       if (ex.nefroPaciente && ex.nefroPaciente.id !== propioId) throw err(409, `Ya existe un paciente con ese documento (${ex.nefroPaciente.codigo}).`);
       // Al inscribir en la Ruta a una persona que ya existe en otro programa solo se completa lo que falta (misma regla del

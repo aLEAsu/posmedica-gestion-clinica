@@ -54,6 +54,10 @@ export interface ConfigLibro {
     aPersona: (r: Fila) => PersonaCruda;
     desdePersona: (p: PersonaConEps, fecha: (d: Date | null) => string | null) => Fila;
     campoIngreso: string; // columna con la fecha de ingreso al programa (para la inscripción)
+    /** Columna de la hoja de pacientes que refleja su estado en el programa (para `inscripcion_programa.estado`).
+        Por defecto lee «Estado» (como HD y VIH); un programa sin ese concepto (p. ej. DP tiene «EstadoPrograma» y CE
+        no tiene ninguno) la define aquí. Si devuelve undefined, la inscripción queda en «Activo». */
+    estadoDe?: (datos: Fila) => string | undefined;
   };
   /** Quién puede leer el libro. Por defecto: «ver» en el programa. */
   puedeLeer?: (u: UsuarioSesion) => boolean;
@@ -84,6 +88,10 @@ export interface ConfigLibro {
   fijarNuevo?: (hoja: string, datos: Fila, u: UsuarioSesion) => void;
   /** Claves de configuración que solo recibe el administrador (p. ej. valores de producción cifrados). */
   cfgPrivada?: Set<string>;
+  /** Normaliza el identificador de una fila antes de usarlo como clave (p. ej. RolesCE/RolesDP: su clave es el nombre de
+      usuario, que en la tabla `usuario` siempre es minúsculas; sin esto, dos mayúsculas distintas del mismo usuario
+      podrían guardarse como dos filas de rol ambiguas). No cambia filas ya guardadas con otra variante. */
+  normalizarClave?: (hoja: string, valor: string) => string;
 }
 
 const MAX_TEXTO = 50_000;
@@ -176,6 +184,8 @@ export function crearServicioLibro(C: ConfigLibro) {
     return (db as unknown as Record<string, Delegado>)[m.charAt(0).toLowerCase() + m.slice(1)];
   };
   const esHojaP = (h: string) => !!P && h === P.hoja;
+  /** Estado de la inscripción del paciente en el programa (ver `paciente.estadoDe` en ConfigLibro). */
+  const estadoInscripcion = (datos: Fila) => String((P?.estadoDe ? P.estadoDe(datos) : (datos.Estado as string | undefined)) ?? "Activo");
   const columnasTabla = (hoja: string) => C.hojas[hoja].columnas.filter((c) => !(esHojaP(hoja) && P!.camposPersona.includes(c)));
   const valor = (hoja: string, c: string, v: unknown) => {
     const t = C.tipo(hoja, c);
@@ -190,9 +200,13 @@ export function crearServicioLibro(C: ConfigLibro) {
   /** Identificador del registro: su columna clave o, en las hojas con clave compuesta, sus columnas unidas por «|». */
   const idDe = (h: string, r: Fila) => {
     const comp = C.hojas[h].compuesta;
-    if (!comp) return aTexto(r[C.hojas[h].clave], C.hojas[h].clave);
-    const partes = comp.map((c) => aTexto(r[c] instanceof Date ? fechaTexto(r[c] as Date) : r[c], c) ?? "");
-    return partes.some((x) => x) ? partes.join("|") : null;
+    const id = comp
+      ? (() => {
+          const partes = comp.map((c) => aTexto(r[c] instanceof Date ? fechaTexto(r[c] as Date) : r[c], c) ?? "");
+          return partes.some((x) => x) ? partes.join("|") : null;
+        })()
+      : aTexto(r[C.hojas[h].clave], C.hojas[h].clave);
+    return id != null && C.normalizarClave ? C.normalizarClave(h, id) : id;
   };
 
   /** Registro del cliente → datos de la tabla (solo columnas de la hoja; las demás se ignoran, como al guardar el libro). */
@@ -235,11 +249,14 @@ export function crearServicioLibro(C: ConfigLibro) {
     };
   }
 
-  /** Busca o crea la persona. Si el documento ya pertenece a otro paciente de ESTE programa, no se mezcla. */
+  /** Busca o crea la persona. Si el documento ya pertenece a otro paciente de ESTE programa, no se mezcla.
+      La identidad se fusiona por el número de documento SOLO (decisión de la auditoría, A5, 19 oct 2026): el tipo de
+      documento no entra en la búsqueda, porque antes dos registros con el mismo número pero el tipo vacío en uno de
+      los dos (en vez de «CC», por ejemplo) no se encontraban entre sí y duplicaban a la misma persona. */
   async function resolverPersona(tx: Tx, r: Fila, usuarioId: string, propioId?: string): Promise<{ id: string; conflicto?: string }> {
     const d = await datosPersona(tx, r);
     if (d.documento) {
-      const existente = await tx.persona.findFirst({ where: { documento: d.documento, ...(d.tipoDoc ? { tipoDoc: d.tipoDoc } : {}) }, include: { [P!.relacionPersona]: true } });
+      const existente = await tx.persona.findFirst({ where: { documento: d.documento }, include: { [P!.relacionPersona]: true } });
       if (existente) {
         const otro = (existente as unknown as Record<string, Fila | null>)[P!.relacionPersona];
         if (otro && otro[hojaP!.clave] !== propioId) return { id: "", conflicto: String(otro[hojaP!.clave]) };
@@ -293,7 +310,7 @@ export function crearServicioLibro(C: ConfigLibro) {
       fechaIngreso = null;
     }
     await tx.inscripcionPrograma.create({
-      data: { personaId: p.id, programaClave: C.programa, codigoInterno: id, estado: String(datos.Estado ?? "Activo"), fechaIngreso, creadoPor: actor.id },
+      data: { personaId: p.id, programaClave: C.programa, codigoInterno: id, estado: estadoInscripcion(datos), fechaIngreso, creadoPor: actor.id },
     });
     return creado;
   }
@@ -413,7 +430,7 @@ export function crearServicioLibro(C: ConfigLibro) {
           const p = await resolverPersona(tx, r, actor.id, id);
           if (p.conflicto) throw conflicto(`El documento ${r.Documento} ya está registrado en ${C.nombre} como ${p.conflicto}.`);
           if (p.id !== (actual as { personaId: string }).personaId) await D.update({ where: { [clave]: id }, data: { personaId: p.id } });
-          await tx.inscripcionPrograma.updateMany({ where: { programaClave: C.programa, codigoInterno: id }, data: { estado: String(datos.Estado ?? "Activo"), personaId: p.id } });
+          await tx.inscripcionPrograma.updateMany({ where: { programaClave: C.programa, codigoInterno: id }, data: { estado: estadoInscripcion(datos), personaId: p.id } });
         }
         const act = await D.update({ where: { [clave]: id }, data: { ...datos, actualizadoPor: actor.id } });
         marcar(h, id, act);
