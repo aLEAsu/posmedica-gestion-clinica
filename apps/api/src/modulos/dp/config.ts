@@ -4,17 +4,14 @@
    2. El rol dentro del módulo (hoja RolesDP del prototipo): qué hojas registra cada rol, igual que dpGuard/dpCan.
    El administrador del sistema es «Dirección Médica»; un usuario sin rol en RolesDP es «Solo consulta», como en el
    prototipo (dpRole). Laboratorio también registra resultados y solicitudes de DP si su rol en RolesDP lo permite. */
-import { puede, type UsuarioSesion } from "@posmedica/shared";
+import { puede, ROLES_DP, type UsuarioSesion } from "@posmedica/shared";
 import type { ConfigLibro, Fila, HojaDef } from "../libro/servicio.js";
 import { sexoEtiqueta } from "../libro/persona.js";
 import { leeHojaProgramaOTransversal, leeProgramaOTransversal } from "../libro/transversal.js";
 import { CAMPOS_PERSONA_DP, FECHAS_DP, HOJAS_DP, NUMEROS_DP } from "./hojas.js";
 
 /** Roles y acciones del módulo (DP_ROLES y DP_PERM del prototipo; la prueba verifica que sean idénticos). */
-export const ROLES_DP: Record<string, string> = {
-  dir: "Dirección Médica", coord: "Coordinación de Unidad Renal", nefro: "Nefrología", med: "Médico autorizado", enf: "Enfermería profesional",
-  aux: "Auxiliar de enfermería", multi: "Nutrición, psicología o trabajo social", lab: "Laboratorio", adm: "Administrativo y logística", cons: "Solo consulta o auditoría",
-};
+export { ROLES_DP };
 export const PERMISOS_DP: Record<string, string> = {
   dir: "*", coord: "pac val valfin lab labval age seg ins imp apr exp cfg", nefro: "pac val valfin pre lab labval age seg exp", med: "val valfin lab age seg exp",
   enf: "pac val valfin lab age seg ins exp", aux: "age ins lab", multi: "val valfin age", lab: "lab", adm: "pac age ins exp", cons: "exp",

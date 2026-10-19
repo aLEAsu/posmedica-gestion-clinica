@@ -95,7 +95,12 @@ copyFileSync(require.resolve("xlsx/dist/xlsx.full.min.js"), resolve(PUBLICO, "ve
    publica como página aparte) y el marcado completo del cuerpo; el adaptador lo conecta con la base de datos. */
 {
   mkdirSync(resolve(PUBLICO, "portal"), { recursive: true });
-  const codigo = P.lineas.map((l) => (l.startsWith("const NEFRO_HTML=") ? 'const NEFRO_HTML=""; /* Nefroprotección se migra como módulo aparte */' : l)).join("\n");
+  let codigo = P.lineas.map((l) => (l.startsWith("const NEFRO_HTML=") ? 'const NEFRO_HTML=""; /* Nefroprotección se migra como módulo aparte */' : l)).join("\n");
+  // ÚNICO cambio de texto: el aviso de Consulta externa sin rol indica dónde lo asigna el administrador en esta versión
+  // (Usuarios → Programas y permisos; Consulta externa → Administración → Roles sigue disponible para él).
+  const AVISO_SIN_ROL = "Coordinación lo asigna en Administración → Roles.";
+  if (codigo.split(AVISO_SIN_ROL).length !== 2) throw new Error("El aviso de Consulta externa sin rol cambió en el prototipo: revise extraer-modulos.mjs.");
+  codigo = codigo.replace(AVISO_SIN_ROL, "Pida al administrador del sistema que se lo asigne en Usuarios → Programas y permisos.");
   writeFileSync(resolve(PUBLICO, "portal/portal.js"), CABECERA + codigo + "\n");
   // Del primer <body> al ÚLTIMO </body> (dentro del código hay cadenas con "</body>"), sin scripts ni estilos.
   const ini = P.html.indexOf(">", P.html.indexOf("<body")) + 1;

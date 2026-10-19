@@ -8,13 +8,13 @@
    cupos sí llegan (no tienen datos del paciente) para que la apertura de agenda detecte los cruces de horario.
    Un cupo no puede tener dos citas activas: se verifica en la base dentro de la transacción serializable del guardado
    (el prototipo lo dejaba para la base de datos: «el control simultáneo real llega con la base de datos»). */
-import { puede, type UsuarioSesion } from "@posmedica/shared";
+import { puede, ROLES_CE, type UsuarioSesion } from "@posmedica/shared";
 import type { ConfigLibro, Db, Fila, HojaDef } from "../libro/servicio.js";
 import { sexoCodigo, sexoEtiqueta } from "../libro/persona.js";
 import { CAMPOS_PERSONA_CE, HOJAS_CE } from "./hojas.js";
 
 /** Roles y acciones del módulo (CE_ROLES y CE_PUEDE del prototipo; la prueba verifica que sean idénticos). */
-export const ROLES_CE: Record<string, string> = { coordinacion: "Coordinación", admisiones: "Admisiones", autorizaciones: "Autorizaciones", profesional: "Profesional", calidad: "Calidad", consulta: "Solo consulta" };
+export { ROLES_CE };
 export const PUEDE_CE: Record<string, string[]> = {
   registrar: ["admisiones", "coordinacion"], asignar: ["admisiones", "coordinacion"], abrir: ["admisiones", "coordinacion"], bloquear: ["admisiones", "coordinacion"], bloquearJornada: ["coordinacion"],
   gestion: ["admisiones", "autorizaciones", "coordinacion"], estado: ["admisiones", "autorizaciones", "coordinacion"], priorizar: ["admisiones", "coordinacion", "profesional"], prioClinica: ["coordinacion", "profesional"],

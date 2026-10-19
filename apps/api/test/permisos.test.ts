@@ -70,6 +70,37 @@ describe("el administrador asigna, amplía y quita; rige de inmediato", () => {
     expect((await permisos([{ programa: "ger" }])).status).toBe(400);
   });
 
+  it("el rol dentro de Consulta externa y Diálisis peritoneal se asigna en el mismo panel y rige de inmediato", async () => {
+    const pacCe = { ID: "CEP-8001", TipoDoc: "CC", Documento: "880100003", PrimerNombre: "Ficticia", PrimerApellido: "Roles" };
+    const conRol = (rolesModulo?: object) =>
+      admin.put(`/api/v1/usuarios/${medId}/permisos`, { permisos: [{ programa: "ce", ver: true, registrar: true, anular: false, exportar: false }, { programa: "dp", ver: true, registrar: true, anular: false, exportar: false }], rolesModulo });
+    const fila = async () => (await admin.get("/api/v1/usuarios")).body.usuarios.find((x: { id: string }) => x.id === medId).rolesModulo;
+
+    // Con «Registrar» pero sin rol en el módulo: Solo consulta, el servidor no deja guardar.
+    expect((await conRol()).status).toBe(200);
+    expect(await fila()).toEqual({ ce: null, dp: null });
+    expect((await med.post("/api/v1/ce/sincronizar", { cambios: { pac: { nuevos: [pacCe] } } })).status).toBe(403);
+
+    // El rol exige motivo y debe existir en el catálogo del prototipo.
+    expect((await conRol({ ce: { rol: "admisiones", veReservadas: false } })).status).toBe(400);
+    expect((await conRol({ ce: { rol: "jefe", veReservadas: false }, motivo: "agenda de citas" })).status).toBe(400);
+    const v0 = (await admin.get("/api/v1/ce/version")).body.version;
+    expect((await conRol({ ce: { rol: "admisiones", veReservadas: true }, dp: { rol: "enf" }, motivo: "agenda de citas" })).status).toBe(200);
+    expect(await fila()).toEqual({ ce: { rol: "admisiones", veReservadas: true }, dp: { rol: "enf", activo: true } });
+    expect((await admin.get("/api/v1/ce/version")).body.version).toBeGreaterThan(v0);
+
+    // Queda en las hojas RolesCE y RolesDP (las mismas que edita el módulo) y el usuario ya registra.
+    const rolCe = (await admin.get("/api/v1/ce/libro")).body.hojas.rol.find((r: { Usuario: string }) => r.Usuario === "med.perm");
+    expect(rolCe).toMatchObject({ Rol: "admisiones", VeReservadas: "SI", Motivo: "agenda de citas", ConcedidoPor: "admin.perm" });
+    expect((await admin.get("/api/v1/dp/libro")).body.hojas.rol.find((r: { Usuario: string }) => r.Usuario === "med.perm")).toMatchObject({ Rol: "enf", Activo: "SI" });
+    expect((await med.post("/api/v1/ce/sincronizar", { cambios: { pac: { nuevos: [pacCe] } } })).status).toBe(200);
+
+    // Sin cambios de rol no se exige motivo; al administrador no se le asignan roles de módulo.
+    expect((await conRol({ ce: { rol: "admisiones", veReservadas: true } })).status).toBe(200);
+    const adminId = (await admin.get("/api/v1/auth/me")).body.usuario.id;
+    expect((await admin.put(`/api/v1/usuarios/${adminId}/permisos`, { permisos: [{ programa: "ce", ver: true, registrar: true, anular: false, exportar: false }], rolesModulo: { ce: { rol: "consulta", veReservadas: false }, motivo: "prueba" } })).status).toBe(400);
+  });
+
   it("un usuario inactivado pierde el acceso en la siguiente petición", async () => {
     await permisos([{ programa: "hd" }]);
     expect((await med.get("/api/v1/hd/libro")).status).toBe(200);
