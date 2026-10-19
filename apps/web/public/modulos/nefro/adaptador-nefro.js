@@ -168,7 +168,10 @@
       aviso("Su usuario no tiene permiso para exportar en Nefroprotección.");
       throw new Error("Sin permiso para exportar");
     }
-    pedir("POST", "/nefro/auditar", { accion: "EXPORTA", detalle: "Excel de la Ruta: " + (wb.SheetNames || []).join(", ").slice(0, 280) }).catch(() => {});
+    // XLSX.write es sincrónica (la Ruta original la usa así): no se puede esperar la auditoría sin romper esa llamada,
+    // así que se avisa si falla en vez de perderlo en silencio (a diferencia de este mismo riesgo, saveWb del portal sí
+    // puede esperarla porque es una función propia, no una de la librería).
+    pedir("POST", "/nefro/auditar", { accion: "EXPORTA", detalle: "Excel de la Ruta: " + (wb.SheetNames || []).join(", ").slice(0, 280) }).catch((e) => aviso("La exportación se descargó, pero no quedó en la auditoría: " + e.message));
     return _write.call(this, wb, opts);
   };
 

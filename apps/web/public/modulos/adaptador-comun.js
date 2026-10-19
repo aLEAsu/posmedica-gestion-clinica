@@ -186,6 +186,11 @@
           S.estado = "Sin guardar: " + e.message;
           o.toast(e.message);
           setTimeout(S.sincronizar, 10000);
+        } else if (e.status === 401 || e.codigo === "CAMBIO_CLAVE") {
+          // Sesión realmente perdida: no es un rechazo de validación. Se detiene de una vez (pedir() ya avisó al portal
+          // con «sesion-perdida»); reintentar aquí solo repetiría el mismo 401 y gastaría los reintentos de rechazos.
+          S.estado = "Sesión terminada: sus cambios no se guardaron.";
+          S.bloqueado = true;
         } else {
           o.toast(e.message);
           S.estado = "Cambio rechazado";

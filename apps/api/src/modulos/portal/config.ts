@@ -67,6 +67,8 @@ export const CONFIG_PORTAL: ConfigLibro = {
   inmutables: (h, antes, u) => {
     if (h === "msg" && antes.De !== u.id) return HOJAS_PORTAL.msg.columnas.filter((c) => !["Estado", "LeidoEn", "LeidoPor", "CerradoEn"].includes(c));
     if (h === "cmp" && !algun(u, ["sogcs", ...IAAS_PROA], "registrar")) return HOJAS_PORTAL.cmp.columnas.filter((c) => !["Estado", "EstadoReportado", "Evidencia", "FechaCierre", "Historial"].includes(c));
+    // IAAS y PROA solo asocian el documento existente a su proceso (columna «Programas»): no administran su contenido.
+    if (h === "doc" && !admin(u) && !esCalidad(u) && !puede(u, "docs", "registrar")) return HOJAS_PORTAL.doc.columnas.filter((c) => c !== "Programas");
     return [];
   },
   fijarNuevo: (h, datos, u) => {
@@ -75,6 +77,7 @@ export const CONFIG_PORTAL: ConfigLibro = {
       datos.De = u.id;
       if (!datos.FechaHora) datos.FechaHora = ahoraTexto();
     }
-    if (h === "cal" && !datos.Creador) datos.Creador = u.id;
+    // Autoría: igual que «Usuario»/«De», nunca queda con el nombre de otra persona (el cliente no puede fijar un Creador ajeno).
+    if (h === "cal") datos.Creador = u.id;
   },
 };

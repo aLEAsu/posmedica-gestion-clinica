@@ -81,7 +81,9 @@ nefroAgenda.post(
             const k = { hoja, clave: f.clave };
             const actual = await tx.nefroAgendaFila.findUnique({ where: { hoja_clave: k } });
             if (!actual) throw new HttpError(409, `${f.clave} ya no existe en la agenda. Se recargará la agenda.`, "CONFLICTO");
-            if (f._ts && actual.actualizadoEn.toISOString() !== f._ts) throw new HttpError(409, `Otro usuario modificó ${f.clave} en la agenda mientras usted trabajaba. Se recargará la agenda: revise y repita.`, "CONFLICTO");
+            // Control de concurrencia obligatorio (igual que el motor genérico, libro/servicio.ts): sin el sello no se
+            // sabe si el cliente vio la versión actual, así que se rechaza en vez de sobrescribir en silencio.
+            if (!f._ts || actual.actualizadoEn.toISOString() !== f._ts) throw new HttpError(409, `Otro usuario modificó ${f.clave} en la agenda mientras usted trabajaba. Se recargará la agenda: revise y repita.`, "CONFLICTO");
             const r = await tx.nefroAgendaFila.update({ where: { hoja_clave: k }, data: { datos: f.datos as Prisma.InputJsonValue, actualizadoPor: uid } });
             (ts[hoja] ??= {})[f.clave] = r.actualizadoEn.toISOString();
             const antes = actual.datos as Record<string, unknown>;
