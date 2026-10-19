@@ -80,7 +80,7 @@ async function main() {
   for (const t of TABLAS) {
     const delegado = (prisma as unknown as Record<string, { findMany: (a: object) => Promise<{ Paciente: string | null }[]> }>)[t.tabla];
     const pacDelegado = (prisma as unknown as Record<string, { findMany: (a: object) => Promise<{ ID: string }[]> }>)[t.paciente];
-    const filas = await delegado.findMany({ where: { Paciente: { not: null } }, select: { Paciente: true } });
+    const filas = (await delegado.findMany({ select: { Paciente: true } })).filter((f) => f.Paciente);
     if (!filas.length) continue;
     const ids = new Set((await pacDelegado.findMany({ select: { ID: true } })).map((p) => p.ID));
     const huerfanas = [...new Set(filas.map((f) => f.Paciente).filter((p): p is string => !!p && !ids.has(p)))];
