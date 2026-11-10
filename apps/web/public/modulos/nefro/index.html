@@ -1,0 +1,735 @@
+<!doctype html><html><head>
+<!-- Página propia del proyecto (punto de partida: prototipo v3.2). Se edita aquí. --><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ruta de Nefroprotección POSMÉDICA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: formulario por pasos a la izquierda; a la derecha el dictamen (ERC sí/no, grupo, próxima revisión), acciones de hoy, agenda con fechas, interpretación y nota para HC */
+:root{
+  /* Modo oscuro único (decisión de la coordinación, 10-oct-2026) */
+  --bg:#ffffff; --surface:#ffffff; --surface-2:#f4f6f7; --ink:#111c22; --muted:#5a6a71; --line:#e2e7ea; --field:#d3dbdf;
+  --accent:#0d6b71; --accent-ink:#ffffff; --accent-soft:#e7f2f2;
+  --g1:#2d7a4c; --g2:#a86a12; --g3:#b23434;
+  --ok:#2d7a4c; --warn:#a86a12; --bad:#b23434;
+  --f-display:"IBM Plex Sans","Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --logo-bg:#ffffff;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#6b7478;
+  --shadow:0 1px 2px rgba(16,28,34,.05),0 1px 3px rgba(16,28,34,.04);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1260px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px}
+.eyebrow{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;font-size:clamp(22px,3vw,30px);margin:2px 0 0;text-wrap:balance;line-height:1.15}
+.tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:8px}
+.tabs button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;padding:7px 14px;border-radius:6px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.privacy{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.brand{display:flex;align-items:center;gap:16px;flex-wrap:wrap;min-width:0}
+.logo{background:var(--logo-bg);border-radius:8px;padding:4px 6px;display:inline-flex}
+.logo img{height:46px;width:auto;display:block;max-width:100%}
+td.why{font-size:13px;color:var(--ink)}
+table.agenda{table-layout:fixed;min-width:640px}
+table.agenda th:nth-child(1){width:36%}
+table.agenda th:nth-child(2){width:118px}
+td.when .dt{display:block;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+td.when .dt.now{color:var(--bad)}
+td.when .fq{display:block;font-size:12.5px;color:var(--muted)}
+
+.grid{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:20px;margin-top:18px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:var(--shadow)}
+form.panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;padding:0}
+@media (max-width:920px){form.panel{position:static;max-height:none}}
+form details{border-bottom:1px solid var(--line)}
+form details:last-of-type{border-bottom:0}
+form summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:12px 16px;font-weight:700}
+form summary::-webkit-details-marker{display:none}
+form summary .n{font-family:var(--f-mono);color:var(--accent);margin-right:6px}
+form summary .sm{font-weight:400;font-size:12px;color:var(--muted);text-align:right}
+form summary::after{content:"+";font-family:var(--f-mono);color:var(--muted)}
+form details[open]>summary::after{content:"–"}
+.fs{display:grid;gap:10px;padding:0 16px 16px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+@media (max-width:420px){.cols2{grid-template-columns:1fr}}
+label.f{display:grid;gap:3px;font-size:13px;color:var(--muted);min-width:0}
+label.f span.u{font-family:var(--f-mono);font-size:11px}
+input[type=text],input[type=date],input[type=month],select{width:100%;font:inherit;font-family:var(--f-mono);font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--field);border-radius:6px;padding:7px 9px;min-width:0}
+select{font-family:var(--f-body)}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:14px;cursor:pointer}
+.chk input{margin-top:3px;accent-color:var(--accent)}
+.seg{display:flex;background:var(--surface-2);border-radius:6px;padding:3px;gap:3px}
+.seg label{flex:1;text-align:center;font-size:13px;padding:5px 6px;border-radius:5px;cursor:pointer;color:var(--muted)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--surface);color:var(--ink);font-weight:700}
+.calc{font-family:var(--f-mono);font-size:13px;color:var(--accent)}
+.sub-h{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:4px}
+.examples{display:flex;flex-wrap:wrap;gap:6px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.btn{font:inherit;font-size:13px;font-weight:700;border:1px solid var(--field);background:var(--surface);color:var(--ink);border-radius:6px;padding:6px 10px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.hint{font-size:12.5px;color:var(--muted);margin:0}
+
+/* resultado */
+.out{display:grid;gap:14px;min-width:0}
+.verdict{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px 20px;border-left:6px solid var(--gc,var(--line))}
+@media (max-width:620px){.verdict{grid-template-columns:minmax(0,1fr)}}
+.erc{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{font-family:var(--f-mono);font-weight:600;font-size:13px;border-radius:5px;padding:3px 9px;border:1.5px solid currentColor}
+.pill.si{color:var(--accent)} .pill.no{color:var(--ok)} .pill.prov{color:var(--warn)} .pill.agudo,.pill.fuera{color:var(--bad)} .pill.indet{color:var(--muted)}
+.erc-txt{font-weight:700}
+.verdict h2{font-family:var(--f-display);font-weight:600;font-size:clamp(20px,2.4vw,26px);margin:8px 0 4px;color:var(--gc,var(--ink));text-wrap:balance;line-height:1.2}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;background:var(--surface-2)}
+.chip b{font-family:var(--f-mono);font-weight:600}
+.next{background:var(--surface-2);border-radius:8px;padding:10px 14px;align-self:start;min-width:180px}
+.next .l{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.next .d{font-family:var(--f-mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.next .w{font-size:12.5px;color:var(--muted)}
+.flags{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--muted);display:grid;gap:3px}
+.exflag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:0 6px;margin-left:6px;vertical-align:middle}
+h3{font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.alerts{display:grid;gap:8px}
+.alert{padding:9px 12px;border-radius:8px;background:var(--surface-2);border-left:4px solid var(--accent)}
+.alert.warn{border-left-color:var(--warn)} .alert.bad{border-left-color:var(--bad)}
+.alert p{margin:0}
+.alert .when{font-family:var(--f-mono);font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap}
+.tablebox{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--surface-2)}
+td.sec{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);padding-top:14px}
+td .sub{display:block;font-size:12.5px;color:var(--muted)}
+td.dt{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.dt.now{color:var(--bad);font-weight:600}
+.tag{font-size:11px;font-weight:700;letter-spacing:.04em;border-radius:4px;padding:1px 6px;white-space:nowrap;border:1px solid var(--line);color:var(--muted)}
+.tag.prop{border-style:dashed}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.interp{display:grid;gap:0}
+.irow{display:grid;grid-template-columns:150px 110px minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.irow:last-child{border-bottom:0}
+@media (max-width:620px){.irow{grid-template-columns:1fr auto}.irow .t{grid-column:1/-1}}
+.irow .e{font-weight:700}
+.irow .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.irow .v.bad{color:var(--bad)} .irow .v.warn{color:var(--warn)} .irow .v.ok{color:var(--ok)}
+details.panel>summary{cursor:pointer;font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700}
+details.panel[open]>summary{margin-bottom:10px}
+.ind{display:grid;grid-template-columns:auto 92px minmax(0,1fr);gap:4px 10px;font-size:13.5px;align-items:baseline}
+.ind .c{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.st{display:inline-block;font-size:11.5px;font-weight:700;border-radius:4px;padding:0 6px;white-space:nowrap;text-align:center}
+.st.ok{color:var(--ok);border:1px solid var(--ok)} .st.no{color:var(--bad);border:1px solid var(--bad)} .st.na{color:var(--muted);border:1px dashed var(--line)}
+.copyrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+textarea#note{width:100%;min-height:260px;font-family:var(--f-mono);font-size:12px;line-height:1.45;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;margin-top:10px}
+.note{font-size:13px;color:var(--muted);max-width:85ch}
+.empty{padding:28px 18px;text-align:center;color:var(--muted)}
+.nav{display:flex;gap:4px;overflow-x:auto;margin-top:14px;border-bottom:1px solid var(--line)}
+.nav button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;padding:9px 12px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.nav button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}.nav button:hover{color:var(--ink)}
+.bookbar{margin-top:14px;display:grid;gap:12px}
+.filters{display:flex;flex-wrap:wrap;gap:10px}
+.filters label.f{min-width:150px;flex:1 1 150px;max-width:260px}
+.pickbox{padding:12px 16px;border-bottom:1px solid var(--line);display:grid;gap:6px;background:var(--surface-2)}
+.mout{margin-top:16px}
+.mhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px}
+.mt{font-family:var(--f-display);font-weight:600;font-size:22px;margin:0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:2px;border-top:3px solid var(--accent);box-shadow:var(--shadow)}
+.tile.warn{border-top-color:var(--warn)} .tile.bad{border-top-color:var(--bad)}
+.tile .tv{font-family:var(--f-mono);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.tile .tl{font-size:12.5px;color:var(--muted)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media (max-width:800px){.two{grid-template-columns:minmax(0,1fr)}}
+table.gxa td,table.gxa th{text-align:center;width:16%;text-transform:none}
+table.gxa td.k-low{background:color-mix(in srgb,#5aa86f 35%,transparent)} table.gxa td.k-mod{background:color-mix(in srgb,#e6c94a 40%,transparent)}
+table.gxa td.k-high{background:color-mix(in srgb,#e8893c 40%,transparent)} table.gxa td.k-vhigh{background:color-mix(in srgb,#cc4343 38%,transparent)}
+.tag.g1{color:var(--g1);border-color:var(--g1)} .tag.g2{color:var(--g2);border-color:var(--g2)} .tag.g3{color:var(--g3);border-color:var(--g3)}
+.chs{display:flex;flex-wrap:wrap;gap:4px}
+.ch{font-size:12px;border-radius:4px;padding:1px 7px;border:1px solid var(--line);white-space:nowrap}
+.ch.venc,.ch.sinreg{color:var(--bad);border-color:var(--bad)} .ch.mes{color:var(--ink)}
+.lnk{font:inherit;font-size:13px;font-weight:700;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;white-space:nowrap}
+table.indt td .c{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+table.indt tr.sel td{background:var(--surface-2)}
+.pc{font-weight:600} .pc.ok{color:var(--ok)} .pc.warn{color:var(--warn)} .pc.bad{color:var(--bad)}
+td.na{color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--accent)}
+.dot.bad{background:var(--bad)} .dot.warn{background:var(--warn)}
+.regtxt{width:100%;min-height:80px;margin-top:8px;font-family:var(--f-mono);font-size:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px}
+.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-size:14px;z-index:10;max-width:90vw}
+table.labt{font-size:13.5px}
+table.labt td,table.labt th{padding:4px 6px;border-bottom:1px solid var(--line)}
+table.labt td:first-child{min-width:110px}
+table.labt input{padding:5px 7px;font-size:13px}
+table.labt td:nth-child(2){width:84px}
+table.labt td:nth-child(3){width:142px}
+.tag.ind{color:var(--accent);border-color:var(--accent)}
+.labcal{display:grid;gap:6px}
+.lc{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;font-size:14px;padding:4px 0;border-bottom:1px solid var(--line)}
+.lc:last-child{border-bottom:0}
+.irow .e .sub{font-weight:400}
+.epsseg{display:inline-flex;flex-wrap:wrap;margin:2px 0}
+.epsseg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;color:var(--muted);padding:6px 12px;border-radius:5px;cursor:pointer}
+.epsseg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.inddet{display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.inddet{grid-template-columns:minmax(0,1fr)}}
+.hero .c{font-size:12px;color:var(--muted)} .hero .hn{font-family:var(--f-display);font-weight:600;font-size:21px;text-transform:none;letter-spacing:0;color:var(--ink);margin:2px 0 8px;line-height:1.2}
+.hero .hv{font-family:var(--f-mono);font-size:44px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.sema{margin-top:10px;font-size:13.5px;font-weight:700}
+.sema.ok{color:var(--ok)} .sema.warn{color:var(--warn)} .sema.bad{color:var(--bad)} .sema.base,.sema.na{color:var(--muted)}
+.dot.ok{background:var(--ok)} .dot.base,.dot.na{background:var(--muted)}
+.charts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media (max-width:1100px){.charts{grid-template-columns:minmax(0,1fr)}}
+.charts figure{margin:0;min-width:0}
+.charts figcaption{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:4px}
+svg.chart{width:100%;height:auto;display:block;overflow:visible}
+svg.chart .grid{stroke:var(--line);stroke-width:1}
+svg.chart .std{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:5 4;opacity:.6}
+svg.chart .std.inst{stroke:var(--warn);stroke-dasharray:2 4;opacity:.9}
+.tag.cac{background:#e8f0fe;color:#1a56b8;border-color:#c5d7f7}
+.tag.inst{background:#fff4e0;color:#8a5300;border-color:#f3d9a8}
+table.mini-t{border-collapse:collapse;font-size:12.5px;width:100%}
+table.mini-t th,table.mini-t td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}
+table.indt tr.strow td{padding-top:3px;padding-bottom:3px;background:var(--surface-2)}
+table.indt tr.strow td .sub{display:inline}
+svg.chart .ax{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+svg.chart .lab{fill:var(--ink);font-size:12px;font-weight:700;font-family:var(--f-body)}
+svg.chart .val{fill:var(--ink);font-size:12.5px;font-weight:700;font-family:var(--f-mono)}
+svg.chart .bar{stroke:var(--surface);stroke-width:2;cursor:default}
+svg.chart .bar.dim{opacity:.35}
+svg.chart .ln{fill:none;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+svg.chart .ln.tot{stroke-dasharray:6 4}
+svg.chart .mk{stroke:var(--surface);stroke-width:2}
+.tip{position:fixed;z-index:20;background:var(--ink);color:var(--bg);font-size:12.5px;padding:5px 9px;border-radius:6px;pointer-events:none;white-space:nowrap}
+.mini{display:block;height:4px;background:var(--surface-2);border-radius:2px;margin:3px 0 1px;max-width:90px}
+.mini span{display:block;height:4px;border-radius:2px;background:var(--accent)}
+.pc.base,.pc.na{color:var(--ink)}
+table.indt tbody tr{cursor:pointer}
+table.indt tbody tr:hover td{background:var(--surface-2)}
+dl.ficha{display:grid;grid-template-columns:120px minmax(0,1fr);gap:4px 12px;font-size:13.5px;margin:10px 0 0}
+dl.ficha dt{color:var(--muted);font-weight:700} dl.ficha dd{margin:0}
+details.fichad{border-bottom:1px solid var(--line);padding:6px 0}
+details.fichad summary{cursor:pointer;font-weight:700}
+table.modelt select{font-size:13px;padding:4px 6px}
+/* riesgo cardiovascular y calendario contractual (v8) */
+/* la columna de las vistas no crece más que la pantalla: las tablas anchas se desplazan dentro de su caja */
+.out{grid-template-columns:minmax(0,1fr)}.pacdet{grid-template-columns:minmax(0,1fr)}.out>*,.pacdet>*,#cohin,#gesin{min-width:0}.tablebox{max-width:100%}
+.nsub button,.epsseg button{white-space:normal}
+.rcvg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.rcvc{display:grid;gap:3px;align-content:start;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface-2);opacity:.75}
+.rcvc.on{opacity:1;border-color:var(--accent)}.rcvc .rl{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}.rcvc .rv{font-family:var(--f-mono);font-size:22px;font-weight:600}
+.calg{border-collapse:separate;border-spacing:0;min-width:760px;font-size:12.5px}.calg th,.calg td{padding:4px 5px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}
+.calg th:first-child,.calg td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;min-width:150px}
+.calg td.cm{min-width:52px}.calg .ev{display:inline-block;min-width:22px;border-radius:4px;padding:1px 4px;font-weight:700;font-size:11.5px;border:1px solid var(--accent);color:var(--accent)}
+.calg .ev.venc{border-color:var(--bad);color:var(--bad)}.calg .ev.cita{background:var(--accent);color:var(--accent-ink)}.calg .ev.fuera{border-style:dashed;border-color:var(--warn);color:var(--warn)}.calg .ev.hecho{border-color:var(--ok);color:var(--ok)}
+.calg tr.gsec td{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);text-align:left;background:var(--surface-2)}
+.callist{display:grid;gap:6px}.callist .cmo{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px;border-bottom:1px solid var(--line);padding:4px 0;font-size:13.5px}
+.nsub{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface-2);padding:4px;border-radius:8px;margin:12px 0 4px}
+.nsub button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:13.5px;padding:6px 12px;border-radius:6px;cursor:pointer}
+.nsub button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.popm{border-collapse:collapse;font-size:12.5px;min-width:820px}.popm th,.popm td{padding:4px 6px;text-align:center}.popm td:first-child,.popm th:first-child{text-align:left}
+.audc{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:6px 12px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.audc .sub{display:block;font-size:12px;color:var(--muted)}
+@media (max-width:620px){.audc{grid-template-columns:minmax(0,1fr)}}
+.bar95{height:12px;background:var(--surface-2);border-radius:6px;position:relative;overflow:hidden}.bar95 span{display:block;height:12px;background:var(--accent)}.bar95 i{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);left:95%}
+/* referencia */
+.ref h2{font-family:var(--f-display);font-weight:600;font-size:21px;margin:0 0 6px}
+.ref section+section{margin-top:22px}
+.ref p{max-width:90ch}
+.ref ol,.ref ul{padding-left:18px;display:grid;gap:4px;max-width:95ch}
+.pacgrid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
+@media (max-width:920px){.pacgrid{grid-template-columns:minmax(0,1fr)}}
+.pacdet{display:grid;gap:16px}
+.paclist .tablebox{max-height:68vh;overflow:auto}
+.pact tbody tr{cursor:pointer}.pact tbody tr:hover td{background:var(--surface-2)}
+.pact tr.sel td{background:var(--surface-2)}.pact tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.pacform{display:grid;gap:10px}
+.regs{display:grid;gap:14px}.reg{display:grid;gap:8px;padding-bottom:14px;border-bottom:1px solid var(--line)}.reg:last-child{border-bottom:0;padding-bottom:0}.reg .btn{justify-self:start}
+details.hist{border-top:1px solid var(--line);padding:9px 0}details.hist summary{cursor:pointer;font-weight:700}details.hist .tablebox{margin-top:8px}
+.pacdet [hidden]{display:none!important}
+@media (max-width:620px){.pacdet .row3,.pacdet .row{grid-template-columns:minmax(0,1fr)}}
+/* agenda */
+.agtop{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin:12px 0 8px}.agtop label.f{min-width:240px;max-width:360px;flex:1}
+.pendch{font-size:12.5px;font-weight:700;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:2px 8px}
+.agsub{margin:4px 0 12px}
+.agbar{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:4px 0 12px}.agbar label.f{min-width:160px}
+input[type=time]{width:100%;font:inherit;font-family:var(--f-mono);font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--field);border-radius:6px;padding:7px 9px;min-width:0}
+.agjor{display:grid;gap:12px}.agjor.jcanc{opacity:.75}.agjt{font-family:var(--f-display);font-weight:600;font-size:19px;text-transform:none;letter-spacing:0;color:var(--ink);margin:0}
+.agtiles{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}.agtiles .tile{padding:8px 10px}.agtiles .tile .tv{font-size:19px}
+table.agt td{padding:4px 6px;vertical-align:middle}table.agt td:first-child{width:64px}table.agt th:not(:first-child){width:46%}
+.slot{display:grid;gap:1px;width:100%;text-align:left;font:inherit;font-size:13px;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);padding:5px 8px;cursor:pointer;min-height:44px}
+.slot:hover{border-color:var(--accent)}
+.slot.free{place-items:center;color:var(--accent);font-weight:700;border-style:dashed;border-left-width:1px;background:transparent}
+.slot .sl1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.slot .sl2{font-size:12px;color:var(--muted)}.slot .sl3{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.est{font-size:11.5px;font-weight:700;border-radius:4px;padding:0 6px;border:1px solid currentColor;white-space:nowrap}
+.st-asig{border-left-color:var(--accent)}.st-sala{border-left-color:var(--warn)}.st-ok{border-left-color:var(--ok)}.st-bad{border-left-color:var(--bad)}.st-warn{border-left-color:var(--warn)}.st-canc{border-left-color:var(--muted)}
+.slot.st-ok .est,span.est.st-ok{color:var(--ok)}.slot.st-bad .est,span.est.st-bad{color:var(--bad)}.slot.st-sala .est,.slot.st-warn .est,span.est.st-sala,span.est.st-warn{color:var(--warn)}.slot.st-asig .est,span.est.st-asig{color:var(--accent)}span.est.st-canc{color:var(--muted)}
+.fl{font-size:11px;font-weight:700;border-radius:4px;padding:0 5px;border:1px dashed var(--line);color:var(--muted);white-space:nowrap;margin-left:4px}.fl.bad{color:var(--bad);border-color:var(--bad)}.fl.ok{color:var(--ok);border-color:var(--ok)}
+.agcn{margin-top:2px}.ch.agd{color:var(--ok);border-color:var(--ok)}
+.agover{position:fixed;inset:0;z-index:30;background:rgba(10,20,22,.45);display:flex;align-items:flex-start;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 16px 16px;overflow:auto}
+.agmodal{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;width:min(900px,100%);padding:16px;display:grid;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.agsel{margin:0;padding:8px 10px;background:var(--surface-2);border-radius:6px;font-size:14px}.agmsg{margin:0;color:var(--bad);font-weight:700}
+.agform{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:10px}.agform h3{margin:0}.agacts{border-top:1px solid var(--line);padding-top:10px}
+.slotpick{display:grid;gap:8px}.spj{display:grid;gap:6px;padding:8px 10px;border:1px solid var(--line);border-radius:8px}.spj.tgt{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.ch.slb{cursor:pointer;font:inherit;font-size:12.5px;font-family:var(--f-mono);background:var(--surface);color:var(--ink)}.ch.slb:hover{border-color:var(--accent);color:var(--accent)}
+.hbars{display:grid;gap:6px}.hb{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(60px,1fr) auto;gap:10px;align-items:center;font-size:13.5px}
+.hbt{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}.hbt span{display:block;height:10px;background:var(--accent);border-radius:0 5px 5px 0}.hbv{white-space:nowrap;font-size:12.5px}.hbl .sub{display:block;font-size:12px;color:var(--muted)}
+.repgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:6px}.repbox{display:grid;gap:8px;align-content:start;border:1px solid var(--line);border-radius:8px;padding:12px}.repbox .note{margin:0}.repbox .btn{justify-self:start}
+.dimgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}.dimt table{font-size:13px}.dimt td,.dimt th{padding:4px 6px}
+@media (max-width:620px){.hb{grid-template-columns:minmax(0,1fr) auto}.hbt{grid-column:1/-1;order:3}.agtop label.f{min-width:0}}
+
+
+/* ===== Modo oscuro único para toda la herramienta (decisión de la coordinación, 10-oct-2026) =====
+   Reemplaza la decisión anterior de fondo blanco. Paleta del prompt de Consulta Externa:
+   fondo #121820 · paneles #1a1f2c · menú #111827 · tarjetas #242c3a · texto #e2e8f0 · secundario #94a3b8 · acento #00b4d8 · verde #2ecc71.
+   Al imprimir se vuelve a claro para que el papel sea legible. */
+:root{
+  --bg:#121820; --surface:#1a1f2c; --surface-2:#242c3a; --ink:#e2e8f0; --muted:#94a3b8; --line:#2e3a4d; --field:#3d4a5e;
+  --accent:#00b4d8; --accent-ink:#0b1219; --accent-soft:#0e3442;
+  --ok:#2ecc71; --warn:#f5b041; --bad:#ff6b6b; --base:#94a3b8;
+  --ok-soft:#143024; --warn-soft:#3a2d14; --bad-soft:#3d1f24;
+  --info:#5aa9e6; --info-soft:#172a3d; --cover:#1a1f2c;
+  --c1:#00b4d8; --c2:#5aa9e6; --c3:#2ecc71; --c4:#f5b041; --c5:#b39ddb; --c6:#94a3b8; --c7:#e0b354; --c8:#4fd1c5;
+  --g1:#2ecc71; --g2:#f5b041; --g3:#ff6b6b; --s1:#5aa9e6; --s2:#ff8f5a; --s3:#2ecc71; --s4:#94a3b8;
+  --logo-bg:#ffffff; --menu:#111827;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--ink)}
+input[type=text],input[type=date],input[type=month],input[type=number],input[type=password],input[type=time],input[type=email],input[type=search],input:not([type]),select,textarea{background:var(--bg);color:var(--ink);border-color:var(--field)}
+input::placeholder,textarea::placeholder{color:#6b7a8f}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
+/* texto oscuro sobre colores claros (contraste) */
+.est button{background:var(--surface-2)}
+.est button[aria-pressed="true"].e-r,.est button[aria-pressed="true"].e-n,.est button[aria-pressed="true"].e-c,.est button[aria-pressed="true"].e-s{color:#0b1219}
+.lvl.alto,.lvl.medio,.lvl.bajo{color:#0b1219}
+.vxn{color:#0b1219}
+.vxS .vxcard-h,.vxcarnet-h{color:#0b1219}
+.vxS .vxcard-h span,.vxcarnet-h span{background:rgba(0,0,0,.18)}
+.chk-chip span{background:var(--surface-2)}
+.tag.cac{background:#16294a;color:#9cc0ff;border-color:#2b4a7d}
+.tag.inst{background:#3a2d14;color:#f5c97a;border-color:#6b5426}
+.toast{background:#e2e8f0;color:#121820}
+.ovl,.agover{background:rgba(3,6,10,.7)}
+.tip{background:#e2e8f0;color:#121820}
+/* barra superior del portal con el color de menú */
+#pxbar,.pxbar{background:var(--menu)}
+.calday.today .calnum{color:var(--accent-ink)}
+@media print{
+  :root{--bg:#ffffff;--surface:#ffffff;--surface-2:#f3f6f7;--ink:#111c22;--muted:#56666d;--line:#e1e7ea;--field:#cfd8dc;
+    --accent:#0d6b71;--accent-ink:#ffffff;--accent-soft:#e6f1f1;--ok:#2d7a4c;--warn:#a2650c;--bad:#b23434;--base:#5d6b73;
+    --ok-soft:#e8f3ec;--warn-soft:#fbf1e2;--bad-soft:#f9e9e9;--info:#2c5d8f;--info-soft:#e9f0f8;--cover:#f3f6f7;
+    --c1:#0d6b71;--c2:#2c5d8f;--c3:#2d7a4c;--c4:#a2650c;--c5:#7b3fa0;--c6:#5d6b73;--c7:#8a6418;--c8:#3d7f9a;
+    --g1:#2d7a4c;--g2:#a86a12;--g3:#b23434;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#6b7478;--menu:#ffffff;color-scheme:light}
+  html,body{background:#fff;color:#111c22}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="logo"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIALsCCQMBIgACEQEDEQH/xAAyAAEAAwEBAQEAAAAAAAAAAAAABAUGAwECBwEBAAMBAQAAAAAAAAAAAAAAAAECAwQF/9oADAMBAAIQAxAAAALUgAfP1S2ykKfzp4dV7U23L6ARcA89AAAAB6eAAAAAAAAAAAAAAAAAAAAAAZ7Q1enNU/P189vmTb+useL1Qz3RJeez14OXnL6uo7Ul32eQFqAAAAAAAAAAAAAAAAAAAAAAD08AAjxqfXllfMX56eK5scr2y6NO49ebu9obGnw64/z65/TtbmLK7fFC1BBJymnkoBXRy5coBaKu0ACLALlHkAiEtnedmmUFxDuIAAEHnW9krRZI0iaeiQAAAACLKpL4wfn3zu8nyVazebvoIup+a3o7GLFx6Ynln98fq1HkmNXf60uXna82iHT5rKavKTGf1+Q1+q8GM46luqXeN7kddkc0DZY370j9IQZ2FqLI67I612lvU/WcwMx512jk182s4Ppf5y0be0/O/wBAynoKyBnYkuJxeyWMi+VLZQPiuut9iyuvxwmAAAAGe0NDryQ5Mab0cV6OL2PfA8iy0Al85jU5/Lpr/r5+uf09c897fDZTV5O0UGvyGv0XgxnHUt1S713uS1uRzmA+9JpFFvPzi3rNxkdbkja0N9k4Rtbkt/KYMpYnbZe0ZzX5DR6NQzvmTRs5fJookuJxezeWNB038+PFec/o31hHkdnjhNQAAAFXacrZZvt536vOvXPpx+qCQAGe0GVy6eUmLdZdtuOryWU1efllNbkrrWNic8ZyNNKi713uR2mLzmH+kfm/6QYym/SMJYhl42uX1FZlOd3WFuLtm89xlkdHg7xz0+Y3lmJ5/o6r8438j6hnYkuHw+0Wk2+OfuLHppyhrzAAAAAPn5zl8pldz97PO+5kH6mmkkZe95PQlkTLeXX1nLbC8gRJE0k2cKTj1dhFnHsPzvh+gZTWI3Hn92jlcyNPSfvB7zI1Uv6Rh9xJDmKT+cc9pnNo0lhEscZ/Pov6Jl9a1cqFys+vmTekTYfP1jYIAZ2JYxuT1rSxgzunzAtQAAAB74ByRn4Ev57OGP8AXw1w6dOXaK+dJMWq4j13fPb443MeNOXWLyvj7e1l9lt6MO4cjqhdSQhdSR7G4k58RiYhdjuh/RKROx1QOxJRvklo3pIRfSSr5h0QfslonIsHGMT3DwkOPwSXLqAAAAAAc6a9TTF/Wpz/AFcfCdV/WmNmrvazYQ+ft6dO33fY7e9Dl9AEq6x4lV83Yqlj9FNLseJHT+BUrzwr/ZfpXeWXM+IVl0IUS29IfGw6EHlYfZW9evpB9tPkgdpP2V0O37FD9Xgp5sn04Sfn6AAAAAAAAIFLqV6YjzcNMcncWil/PTPYAAAAAAAAB74AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD3wAAAAAAAAAAHp4D/8QAAv/aAAwDAQACAAMAAAAh88vSe844w88848888888888888888888888PVR0vYN88888888888888888888888484ekOcfc58w28640868ww0884a13088888scwILGx/0rA8oWF8DhhEb10oqJiy88888X7cMfMpyUtA8hGXoCAS8bU7woMnY88888teQ884rNUuS0jWC0jEAwkCOJto7M88888IQpgHNOI84OTWbdcoWBjts84iC88888stHmzvgUK384wAgkc0U0wsU40gAQ488888sMPD3y4SU8o4Ew8EkosckoUUQ4wU08888888oYDh0888888888s888888888888888888888888888888888888888888888888888888888888088888880888888888848/8QAAv/aAAwDAQACAAMAAAAQ/wDkG5v/AMn7/wD/AO//AP8A/wDv/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8AuPzfVv7/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP77v/jZPWcp0f8A6A/MG2/I/qA8/wD/AOgM/wD/APv/AP8AQ+smmz/N9+i/8t0qz7YOck/9rdkU/wD/AP8A/wCvvHInB+jfwv8Aynzqh0D2Er4CEau3/wD/AP8A6HD77/0ShxZbPTkdoWubTcz9Szwl7/8A/wD/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" alt="UNO-P Unidad Oncológica del Putumayo"></span>
+      <div>
+        <div class="eyebrow">UNO-P · POSMÉDICA · Programa de Nefroprotección</div>
+        <h1>Ruta de Nefroprotección · valoración y gestión</h1>
+      </div>
+    </div>
+  </header>
+  <nav class="nav" role="tablist" aria-label="Secciones">
+    <button role="tab" data-v="calc" aria-selected="true">Valoración</button>
+    <button role="tab" data-v="pac">Pacientes</button>
+    <button role="tab" data-v="agenda">Agendas</button>
+    <button role="tab" data-v="coh">Cohortes</button>
+    <button role="tab" data-v="ind">Indicadores</button>
+    <button role="tab" data-v="aud">Auditoría GPC</button>
+    <button role="tab" data-v="nom">Nominal EPS</button>
+    <button role="tab" data-v="cal">Calidad del dato</button>
+    <button role="tab" data-v="ref">Referencia</button>
+  </nav>
+  <div class="bookbar panel" id="bookbar">
+    <div class="copyrow">
+      <label class="btn primary" for="bookfile" id="booklabel">Cargar libro de Excel</label><input type="file" id="bookfile" accept=".xlsx,.xls" hidden>
+      <button type="button" class="btn" id="bookdemo">Ver con datos ficticios</button>
+      <button type="button" class="btn" id="bookexp" hidden>Descargar libro actualizado</button>
+      <span class="note" id="bookinfo">Sin libro cargado. El archivo se lee solo en este navegador.</span>
+    </div>
+    <div class="filters">
+      <label class="f">Fecha de corte<input type="date" id="corte"></label>
+      <label class="f">Mes a programar<input type="month" id="mes"></label>
+      <label class="f">EPS<select id="f_eps"><option value="">Todas</option><option>EPS Familiar de Colombia</option><option>Nueva EPS</option><option>Mallamas EPS</option><option value="sin">Sin EPS</option></select></label>
+      <label class="f">Grupo<select id="f_grp"><option value="">Todos</option><option value="1">Grupo 1</option><option value="2">Grupo 2</option><option value="3">Grupo 3</option></select></label>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <div id="agdlg" class="agover" hidden></div>
+  <div class="tip" id="tip" hidden></div>
+  <p class="privacy">Se diligencia en cada valoración del programa. Nada de lo que escriba se guarda ni sale de este navegador; la herramienta propone y la decisión es del profesional.</p>
+
+  <div id="view-calc" role="tabpanel">
+  <div class="grid">
+    <form class="panel" id="frm" autocomplete="off">
+      <div class="examples">
+        <button type="button" class="btn" data-ex="a">HTA · TFG 50 · A1</button>
+        <button type="button" class="btn" data-ex="b">DM2 descontrolado · G3b A2</button>
+        <button type="button" class="btn" data-ex="d">G1 A3</button>
+        <button type="button" class="btn" data-ex="c">G5 · TMND</button>
+        <button type="button" class="btn" data-ex="clear">Limpiar</button>
+      </div>
+      <div class="pickbox" id="pickbox" hidden>
+        <label class="f">Paciente del libro de cohorte<select id="pick"></select></label>
+        <p class="hint" id="pickmsg"></p>
+      </div>
+
+      <details open>
+        <summary><span><span class="n">1</span>Valoración y paciente</span></summary>
+        <div class="fs">
+          <div class="row">
+            <label class="f">Profesional que valora<select id="prof"><option value="nefro">Nefrología</option><option value="exp">Médico experto</option><option value="mi">Medicina interna</option><option value="mg">Medicina general</option></select></label>
+            <label class="f">Tipo de valoración<select id="tipo"><option value="control">Control</option><option value="primera">Primera vez</option></select></label>
+          </div>
+          <label class="f">Causa probable de la ERC (CGA)
+            <select id="causa"><option value="">Sin registrar</option><option value="dm">Enfermedad renal diabética</option><option value="hta">Nefropatía hipertensiva</option><option value="glom">Glomerulopatía</option><option value="pq">Poliquistosis renal</option><option value="uro">Uropatía obstructiva o litiasis</option><option value="nti">Nefritis tubulointersticial o nefrotóxicos</option><option value="otra">Otra</option><option value="desc">No establecida, en estudio</option></select>
+          </label>
+          <label class="f" id="box-cond">Conducta de nefrología
+            <select id="conducta"><option value="">Sin definir</option><option value="sigue">Continúa seguimiento por nefrología</option><option value="contra">Contrarreferencia al médico del programa</option><option value="prep">Inicia preparación para TRR</option><option value="tmnd">Decisión de TMND</option></select>
+          </label>
+          <div class="row">
+            <label class="f">Código del paciente<input type="text" id="pid"></label>
+            <label class="f">EPS<select id="eps"><option value="">—</option><option>EPS Familiar de Colombia</option><option>Nueva EPS</option><option>Mallamas EPS</option></select></label>
+          </div>
+          <div class="row3">
+            <label class="f">Fecha de nacimiento<input type="date" id="fnac"></label>
+            <label class="f">Edad <span class="u">años</span><input type="text" id="edad" inputmode="numeric"></label>
+            <label class="f">Sexo<select id="sexo"><option value="">—</option><option value="F">Femenino</option><option value="M">Masculino</option></select></label>
+          </div>
+          <label class="f">Fecha de la consulta<input type="date" id="fcons"></label>
+          <p class="hint" id="epsmodel"></p>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">2</span>Precursoras y antecedentes</span></summary>
+        <div class="fs">
+          <div class="row">
+            <label class="chk" style="align-self:end"><input type="checkbox" id="hta"> Hipertensión arterial</label>
+            <label class="f">Diabetes<select id="dm"><option value="">No</option><option value="2">Tipo 2</option><option value="1">Tipo 1</option><option value="otra">Otra</option></select></label>
+          </div>
+          <div class="cols2">
+            <label class="chk"><input type="checkbox" id="ecv"> Enfermedad cardiovascular</label>
+            <label class="chk"><input type="checkbox" id="fam"> Familiar con ERC</label>
+            <label class="chk"><input type="checkbox" id="aine"> AINE u otros nefrotóxicos</label>
+            <label class="chk"><input type="checkbox" id="uro"> Litiasis o uropatía</label>
+            <label class="chk"><input type="checkbox" id="tab"> Tabaquismo actual</label>
+            <label class="chk"><input type="checkbox" id="antihta"> Recibe antihipertensivo</label>
+          </div>
+          <label class="f">Otros antecedentes relevantes<input type="text" id="otrosAnt"></label>
+          <label class="f">Situación renal
+            <select id="terapia"><option value="">Sin terapia de reemplazo</option><option value="tmnd">G5 con TMND (manejo conservador)</option><option value="trr">G5 en preparación para TRR</option><option value="dx">En diálisis o trasplantado</option></select>
+          </label>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">3</span>Paraclínicos con fecha</span><span class="sm" id="sm3"></span></summary>
+        <div class="fs">
+          <div class="seg" role="radiogroup" aria-label="Cómo ingresar la TFGe">
+            <label><input type="radio" name="modo" value="creat" id="modo-creat" checked> Con creatinina</label>
+            <label><input type="radio" name="modo" value="tfg" id="modo-tfg"> TFGe reportada</label>
+          </div>
+          <label class="f">Fecha por defecto (se usa si un examen no tiene fecha propia)<input type="date" id="flab"></label>
+          <div class="tablebox"><table class="labt"><thead><tr><th>Examen</th><th>Valor</th><th>Fecha de toma</th></tr></thead><tbody>
+          <tr id="tr-creat"><td><label for="creat">Creatinina</label> <span class="u">mg/dL</span><span class="calc" id="tfgcalc"></span></td><td><input type="text" id="creat" inputmode="decimal"></td><td><input type="date" id="fd_creat" aria-label="Fecha de Creatinina"></td></tr>
+          <tr id="tr-tfgdir"><td><label for="tfgdir">TFGe reportada</label> <span class="u">ml/min</span></td><td><input type="text" id="tfgdir" inputmode="decimal"></td><td><input type="date" id="fd_tfgdir" aria-label="Fecha de TFGe reportada"></td></tr>
+          <tr id="tr-rac"><td><label for="rac">RAC urinaria</label> <span class="u">mg/g</span></td><td><input type="text" id="rac" inputmode="decimal"></td><td><input type="date" id="fd_rac" aria-label="Fecha de RAC urinaria"></td></tr>
+          <tr id="tr-hba1c"><td><label for="hba1c">HbA1c</label> <span class="u">%</span></td><td><input type="text" id="hba1c" inputmode="decimal"></td><td><input type="date" id="fd_hba1c" aria-label="Fecha de HbA1c"></td></tr>
+          <tr id="tr-ldl"><td><label for="ldl">cLDL</label> <span class="u">mg/dL</span></td><td><input type="text" id="ldl" inputmode="decimal"></td><td><input type="date" id="fd_ldl" aria-label="Fecha de cLDL"></td></tr>
+          <tr id="tr-ct"><td><label for="ct">Colesterol total</label> <span class="u">mg/dL</span></td><td><input type="text" id="ct" inputmode="decimal"></td><td><input type="date" id="fd_ct" aria-label="Fecha de Colesterol total"></td></tr>
+          <tr id="tr-hdl"><td><label for="hdl">cHDL</label> <span class="u">mg/dL</span></td><td><input type="text" id="hdl" inputmode="decimal"></td><td><input type="date" id="fd_hdl" aria-label="Fecha de cHDL"></td></tr>
+          <tr id="tr-tg"><td><label for="tg">Triglicéridos</label> <span class="u">mg/dL</span></td><td><input type="text" id="tg" inputmode="decimal"></td><td><input type="date" id="fd_tg" aria-label="Fecha de Triglicéridos"></td></tr>
+          <tr id="tr-glu"><td><label for="glu">Glucemia basal</label> <span class="u">mg/dL</span></td><td><input type="text" id="glu" inputmode="decimal"></td><td><input type="date" id="fd_glu" aria-label="Fecha de Glucemia basal"></td></tr>
+          <tr id="tr-hb"><td><label for="hb">Hemoglobina</label> <span class="u">g/dL</span></td><td><input type="text" id="hb" inputmode="decimal"></td><td><input type="date" id="fd_hb" aria-label="Fecha de Hemoglobina"></td></tr>
+          <tr id="tr-k"><td><label for="k">Potasio</label> <span class="u">mEq/L</span></td><td><input type="text" id="k" inputmode="decimal"></td><td><input type="date" id="fd_k" aria-label="Fecha de Potasio"></td></tr>
+          <tr id="tr-ca" class="compl"><td><label for="ca">Calcio</label> <span class="u">mg/dL</span></td><td><input type="text" id="ca" inputmode="decimal"></td><td><input type="date" id="fd_ca" aria-label="Fecha de Calcio"></td></tr>
+          <tr id="tr-fos" class="compl"><td><label for="fos">Fósforo</label> <span class="u">mg/dL</span></td><td><input type="text" id="fos" inputmode="decimal"></td><td><input type="date" id="fd_fos" aria-label="Fecha de Fósforo"></td></tr>
+          <tr id="tr-pth" class="compl"><td><label for="pth">PTH</label> <span class="u">pg/mL</span></td><td><input type="text" id="pth" inputmode="decimal"></td><td><input type="date" id="fd_pth" aria-label="Fecha de PTH"></td></tr>
+          <tr id="tr-hco3" class="compl"><td><label for="hco3">Bicarbonato</label> <span class="u">mmol/L</span></td><td><input type="text" id="hco3" inputmode="decimal"></td><td><input type="date" id="fd_hco3" aria-label="Fecha de Bicarbonato"></td></tr>
+          <tr id="tr-alb" class="compl"><td><label for="alb">Albúmina</label> <span class="u">g/dL</span></td><td><input type="text" id="alb" inputmode="decimal"></td><td><input type="date" id="fd_alb" aria-label="Fecha de Albúmina"></td></tr>
+          </tbody></table></div>
+          <p class="hint" id="hint-compl" hidden>Calcio, fósforo, PTH, bicarbonato y albúmina aparecen con TFGe &lt; 60.</p>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">4</span>Diagnóstico de ERC</span></summary>
+        <div class="fs">
+          <div class="sub-h">Otros marcadores de daño renal</div>
+          <div class="cols2">
+            <label class="chk"><input type="checkbox" id="mk_hem"> Hematuria o sedimento anormal</label>
+            <label class="chk"><input type="checkbox" id="mk_img"> Alteración en imagen</label>
+            <label class="chk"><input type="checkbox" id="mk_bx"> Hallazgo histológico</label>
+          </div>
+          <div class="sub-h">Cronicidad (resultado previo)</div>
+          <div class="row3">
+            <label class="f">TFGe previa<input type="text" id="tfgprev" inputmode="decimal"></label>
+            <label class="f">RAC previa<input type="text" id="racprev" inputmode="decimal"></label>
+            <label class="f">Fecha previa<input type="date" id="fprev"></label>
+          </div>
+          <label class="chk"><input type="checkbox" id="cronHC"> Persistencia &gt; 3 meses documentada en la HC</label>
+          <label class="chk"><input type="checkbox" id="agudo"> Sospecha de deterioro agudo</label>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">5</span>Control clínico de hoy</span></summary>
+        <div class="fs">
+          <div class="row">
+            <label class="f">PA sistólica <span class="u">mmHg</span><input type="text" id="pas" inputmode="numeric"></label>
+            <label class="f">PA diastólica <span class="u">mmHg</span><input type="text" id="pad" inputmode="numeric"></label>
+          </div>
+          <div class="row3">
+            <label class="f">Peso <span class="u">kg</span><input type="text" id="peso" inputmode="decimal"></label>
+            <label class="f">Talla <span class="u">cm</span><input type="text" id="talla" inputmode="decimal"></label>
+            <label class="f">Cintura <span class="u">cm</span><input type="text" id="cint" inputmode="decimal"></label>
+          </div>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">6</span>Tratamiento nefroprotector</span></summary>
+        <div class="fs">
+          <div class="row">
+            <label class="f">IECA o ARA II<select id="m_raas"></select></label>
+            <label class="f">iSGLT2<select id="m_sglt2"></select></label>
+          </div>
+          <div class="row">
+            <label class="f">Estatina ± ezetimiba<select id="m_stat"></select></label>
+            <label class="f" id="box-fin">Finerenona<select id="m_fin"></select></label>
+          </div>
+          <label class="chk" id="box-dmaj"><input type="checkbox" id="dmaj"> Ajusta hoy el tratamiento de la diabetes</label>
+          <label class="chk"><input type="checkbox" id="htares"> HTA resistente</label>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">7</span>Síntomas y calidad de vida</span><span class="sm" id="sm7"></span></summary>
+        <div class="fs">
+          <div class="cols2" id="sintomas"></div>
+          <label class="f">En general, usted diría que su salud es (ítem 1 SF-36)
+            <select id="sf1"><option value="">Sin dato</option><option>Excelente</option><option>Muy buena</option><option>Buena</option><option>Regular</option><option>Mala</option></select>
+          </label>
+          <label class="f" id="box-kps">Estado funcional (Karnofsky)
+            <select id="kps"><option value="">Sin dato</option>
+              <option value="100">100 · Normal, sin evidencia de enfermedad</option>
+              <option value="90">90 · Actividad normal, signos menores</option>
+              <option value="80">80 · Actividad normal con esfuerzo</option>
+              <option value="70">70 · Se vale por sí mismo, no puede trabajar</option>
+              <option value="60">60 · Requiere ayuda ocasional</option>
+              <option value="50">50 · Requiere ayuda considerable</option>
+              <option value="40">40 · Incapacitado</option>
+              <option value="30">30 · Gravemente incapacitado</option>
+              <option value="20">20 · Muy enfermo</option>
+              <option value="10">10 · Moribundo</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <details open>
+        <summary><span><span class="n">8</span>Atenciones en los últimos 12 meses</span></summary>
+        <div class="fs">
+          <div class="cols2">
+            <label class="chk"><input type="checkbox" id="at_nefro"> Nefrología</label>
+            <label class="chk"><input type="checkbox" id="at_nut"> Nutrición</label>
+            <label class="chk"><input type="checkbox" id="at_enf"> Enfermería</label>
+            <label class="chk"><input type="checkbox" id="at_psi"> Psicología</label>
+            <label class="chk"><input type="checkbox" id="at_ts"> Trabajo social</label>
+            <label class="chk"><input type="checkbox" id="at_edu"> Educación estructurada</label>
+            <label class="chk"><input type="checkbox" id="at_flu"> Vacuna influenza</label>
+            <label class="chk"><input type="checkbox" id="at_rcv"> RCV con escala validada (antes de hoy)</label>
+          </div>
+        </div>
+      </details>
+    </form>
+
+    <div class="out" id="out"></div>
+  </div>
+  </div>
+
+  <div id="view-pac" role="tabpanel" hidden><div class="out mout" id="out-pac"></div></div>
+  <div id="view-agenda" role="tabpanel" hidden><div class="out mout" id="out-agenda"></div></div>
+  <div id="view-coh" role="tabpanel" hidden><div class="out mout" id="out-coh"></div></div>
+  <div id="view-mes" role="tabpanel" hidden><div class="out mout" id="out-mes"></div></div>
+  <div id="view-venc" role="tabpanel" hidden><div class="out mout" id="out-venc"></div></div>
+  <div id="view-ind" role="tabpanel" hidden><div class="out mout" id="out-ind"></div></div>
+  <div id="view-aud" role="tabpanel" hidden><div class="out mout" id="out-aud"></div></div>
+  <div id="view-nom" role="tabpanel" hidden><div class="out mout" id="out-nom"></div></div>
+  <div id="view-alert" role="tabpanel" hidden><div class="out mout" id="out-alert"></div></div>
+  <div id="view-cal" role="tabpanel" hidden><div class="out mout" id="out-cal"></div></div>
+  <div id="view-ref" role="tabpanel" hidden>
+    <div class="panel ref" style="margin-top:18px">
+      <section>
+        <h2>Cómo decide la herramienta</h2>
+        <ol>
+          <li><strong>¿Tiene ERC?</strong> Sí, si hay TFGe &lt; 60 o un marcador de daño (RAC ≥ 30 mg/g, sedimento, imagen, histología) con persistencia &gt; 3 meses. Un resultado aislado da categorías provisionales y la fecha para repetir a los 3 meses. G1–G2 A1 sin otros marcadores es «sin ERC demostrada».</li>
+          <li><strong>Grupo del programa</strong> por TFGe: grupo 1 G1–G2, grupo 2 G3a–G3b, grupo 3 G4–G5 sin diálisis. La albuminuria no cambia el grupo; acorta las frecuencias (decisión de implementación adoptada).</li>
+          <li><strong>Frecuencia fija</strong>: se parte de la agenda base por G y A; se acorta si la PA o la HbA1c están fuera de meta, si hay ajuste de fármacos, progresión o síntomas de alarma. Siempre se toma el intervalo más corto que aplique.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Agenda base adoptada</h2>
+        <p class="note">Propuesta operativa institucional construida sobre KDIGO 2024 (figura 13) y la herramienta CAC 2026 (tablas 8 y 9). No es una tabla oficial de CAC ni de KDIGO. Requiere adopción formal por el responsable clínico.</p>
+        <div class="tablebox"><table>
+          <thead><tr><th>Categoría</th><th>Riesgo KDIGO</th><th>KDIGO: TFGe y RAC/año</th><th>Control médico</th><th>Creatinina/TFGe</th><th>RAC</th></tr></thead>
+          <tbody>
+            <tr><td>G1–G2 A1</td><td>Sin ERC demostrada*</td><td>1</td><td>6 m con HTA/DM; 12 m sin ellas</td><td>12 m</td><td>12 m</td></tr>
+            <tr><td>G1–G2 A2</td><td>Moderado</td><td>1</td><td>6 m con HTA/DM; 12 m sin ellas</td><td>12 m</td><td>12 m</td></tr>
+            <tr><td>G1–G2 A3</td><td>Alto</td><td>3</td><td>3 m</td><td>3 m</td><td>3 m</td></tr>
+            <tr><td>G3a A1</td><td>Moderado</td><td>1</td><td>6 m</td><td>6 m</td><td>12 m</td></tr>
+            <tr><td>G3a A2</td><td>Alto</td><td>2</td><td>6 m</td><td>6 m</td><td>6 m</td></tr>
+            <tr><td>G3a A3</td><td>Muy alto</td><td>3</td><td>3 m</td><td>3 m</td><td>3 m</td></tr>
+            <tr><td>G3b A1</td><td>Alto</td><td>2</td><td>6 m</td><td>6 m</td><td>6 m</td></tr>
+            <tr><td>G3b A2</td><td>Muy alto</td><td>3</td><td>3 m</td><td>3 m</td><td>4 m</td></tr>
+            <tr><td>G3b A3</td><td>Muy alto</td><td>3</td><td>3 m</td><td>3 m</td><td>3 m</td></tr>
+            <tr><td>G4 A1–A2</td><td>Muy alto</td><td>3</td><td>2 m</td><td>2 m</td><td>4 m</td></tr>
+            <tr><td>G4 A3</td><td>Muy alto</td><td>≥ 4</td><td>2 m</td><td>2 m</td><td>3 m</td></tr>
+            <tr><td>G5 (TMND o preparación TRR)</td><td>Muy alto</td><td>≥ 4</td><td>1 m</td><td>1 m</td><td>3 m</td></tr>
+          </tbody></table></div>
+        <p class="note">*Con HTA o DM sigue en el programa por su condición precursora. Si falta la RAC, se usa la fila A2 y la RAC queda «ahora».</p>
+      </section>
+
+      <section>
+        <h2>Otros controles por estadio</h2>
+        <div class="tablebox"><table>
+          <thead><tr><th>Actividad</th><th>G3a–G3b</th><th>G4</th><th>G5</th><th>Base</th></tr></thead>
+          <tbody>
+            <tr><td>Hemoglobina</td><td>6 m</td><td>3 m</td><td>3 m</td><td>Propuesta; CAC p. 46 dice semestral y p. 69 trimestral</td></tr>
+            <tr><td>Calcio y fósforo</td><td>12 m</td><td>6 m</td><td>3 m</td><td>CAC; KDIGO MBD 2017 da rangos</td></tr>
+            <tr><td>PTH</td><td>12 m</td><td>6 m</td><td>3 m</td><td>CAC; KDIGO MBD 2017 da rangos</td></tr>
+            <tr><td>Potasio</td><td colspan="3">Con cada creatinina si recibe IECA/ARA II o finerenona, y en G4–G5</td><td>Propuesta</td></tr>
+            <tr><td>Tamizaje de desnutrición</td><td colspan="2">6 m si &gt; 65 años (G1–G3); 6 m en G4</td><td>6 m</td><td>CAC</td></tr>
+          </tbody></table></div>
+        <p class="note">Todos los grupos: HbA1c cada 6 meses en meta y cada 3 fuera de meta o con ajuste; perfil lipídico anual (8 semanas tras iniciar o ajustar estatina); antropometría, RCV, nutrición, educación y vacuna de influenza anuales. Enfermería, psicología y trabajo social: al menos una atención al año desde G3a (nefro_40). Bicarbonato y albúmina: según indicación, sin cuota fija.</p>
+      </section>
+
+      <section>
+        <h2>Reglas que adelantan la atención</h2>
+        <ul>
+          <li>PA o HbA1c fuera de meta: control de ajuste de metas al mes hasta lograrla (CAC: cada 1 a 2 meses). Lo hace el profesional que defina el modelo de la EPS; la valoración por nefrología conserva su frecuencia.</li>
+          <li>Modelo por EPS: EPS Familiar, médico experto cada mes que no hay valoración por nefrología, para formulación de medicamentos contratados. Nueva EPS, paquete con nefrología y equipo multidisciplinario: las frecuencias son las del riesgo del paciente (CAC/GPC) y el equipo se agenda el mismo día de nefrología.</li>
+          <li>Nutrición: mínimo anual (CAC). Cada 3 meses con fósforo fuera de meta, potasio ≥ 5,5, albúmina &lt; 3,5, IMC &lt; 20 o ≥ 35, o G5; cada 6 meses con G4, IMC 25–34,9 o HbA1c fuera de meta (propuesta institucional).</li>
+          <li>Paraclínicos individualizados: potasio 5,5–5,9 a la semana; fósforo fuera de meta a los 3 meses; anemia en G3 a los 3 meses; caída de TFGe &gt; 20 % o RAC duplicada a 1 mes; albúmina &lt; 3,5 a los 3 meses (propuestas). Lo que vence dentro de 35 días se adelanta a la misma toma.</li>
+          <li>Fosfatasa alcalina: no se programa de rutina (decisión del programa). Puede registrarse si se solicita por indicación clínica.</li>
+          <li>Inicio o aumento de IECA, ARA II, iSGLT2 o finerenona: PA, creatinina y potasio a las 2 semanas si TFGe &lt; 30 o K ≥ 5,0; a las 4 semanas en los demás (KDIGO 2024 PP 3.6.2 dice 2–4 semanas; fecha fija = propuesta).</li>
+          <li>Inicio o ajuste de estatina: perfil lipídico a las 8 semanas (ESC/EAS 2019: 8 ± 4 semanas).</li>
+          <li>Cambio de TFGe &gt; 20 % frente a la medición previa: revisión clínica. Duplicación de la RAC: verificar y adelantar valoración.</li>
+          <li>Nefrología al menos una vez al año (nefro_33) con TFGe &lt; 30, RAC &gt; 300, caída &gt; 5 ml/min/año, KFRE a 5 años ≥ 5 % o HTA resistente.</li>
+          <li>KFRE a 2 años &gt; 10 %: atención multidisciplinaria intensiva; &gt; 40 %: educación de modalidades y preparación de TRR o TMND (KDIGO 2024 PP 2.2.2–2.2.3).</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Discrepancias que se mantienen visibles</h2>
+        <ul>
+          <li>Remisión por albuminuria: el indicador nefro_33 usa RAC &gt; 300; la tabla 7 de la herramienta 2026 usa RAC persistente &gt; 700 o ≥ 300 con hematuria. Se adoptó &gt; 300.</li>
+          <li>Tabla 9 de CAC: G4–G5 «&gt; 4 controles/año»; cada 3 meses no lo cumple. Por eso G4 queda cada 2 meses.</li>
+          <li>PTH: los rangos CAC (70–110 en G4, 150–300 en G5) son referencia de indicador; KDIGO 2017 dice que el nivel óptimo en ERC sin diálisis se desconoce. No disparan tratamiento por sí solos.</li>
+          <li>Hb &gt; 10 del indicador no define ausencia de anemia (KDIGO: &lt; 13 g/dL hombres, &lt; 12 g/dL mujeres).</li>
+          <li>Lípidos: KDIGO 2013 no exige perfil lipídico seriado después de iniciar estatina; CAC mide metas de cLDL. El control a 8 semanas responde a la meta CAC.</li>
+          <li>Población de los indicadores de HbA1c (nefro_03 &lt; 7 % vs nefro_12 &lt; 8 %) inferida de la ficha técnica; pendiente de confirmar.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Agenda, asistencia e inasistencias</h2>
+        <ul>
+          <li>La agenda se abre por jornadas: fecha, servicio, profesional, horario y duración del cupo. Nefrología trabaja con agenda espejo: agendas A y B a la misma hora (cupo de 20 minutos en cada una, 6 pacientes por hora).</li>
+          <li>Cada cita guarda fecha de solicitud, fecha deseada (o fecha límite del plan) y fecha de asignación, como pide la Res. 256 de 2016 para medir oportunidad.</li>
+          <li>Desenlaces: llegó (en sala), atendida, llegó y no fue atendida, no asistió, cancelada. Cualquier aviso antes de la hora de la cita es cancelación, no inasistencia (decisión del programa); se guarda la anticipación del aviso.</li>
+          <li>Motivos agrupados por responsable: paciente, barrera de acceso, EPS, IPS, otro. Separar lo atribuible a la EPS (autorizaciones) y a la IPS de lo atribuible al paciente es lo que permite actuar y negociar.</li>
+          <li>Nada se borra: cada cambio queda en la hoja Citas_log con fecha, hora, usuario y motivo. Una cita atendida cuenta como atención de su disciplina para los indicadores; no se registra dos veces.</li>
+          <li>Evidencia usada: el antecedente de inasistencia y el tiempo largo entre asignación y cita son los predictores más consistentes de inasistencia (Dantas et al., Health Policy 2018;122:412–21). Los recordatorios por mensaje de texto aumentan la asistencia frente a no recordar (RR 1,14; IC 95 % 1,03–1,26; evidencia de calidad moderada) y rinden igual que la llamada (Gurol-Urganci et al., Cochrane 2013, CD007458).</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Versión 8: estructura y criterios</h2>
+        <ul>
+          <li><strong>Submódulos.</strong> Valoración, Pacientes (filtro por EPS y calendario de 12 meses), Agendas, Cohortes (caracterización y riesgo, gestión del mes en curso y del próximo, vencidos y alertas), Indicadores, Auditoría GPC y Nominal EPS.</li>
+          <li><strong>Herramienta CAC y GPC.</strong> La herramienta técnica de la CAC (2026) orienta la organización del programa (grupos, componentes y frecuencias mínimas) y el consenso de indicadores (2025) define cómo se mide. En las recomendaciones al profesional se cita la GPC que respalda cada frecuencia o meta (KDIGO 2024, KDIGO CKD-MBD 2017, KDIGO 2012 de anemia, ADA 2025, ACC/AHA 2017, ESH 2023, ESC 2021, ESC/EAS 2019, KDOQI 2020). Donde ninguna GPC fija la frecuencia, se dice explícitamente que es una decisión del programa ligada a un indicador.</li>
+          <li><strong>Calendario contractual.</strong> EPS Familiar: médico experto cada mes sin nefrología para formulación de los medicamentos contratados; si la PA o la HbA1c quedaron fuera de meta, ese control incluye el ajuste hasta la próxima valoración. Nueva EPS: paquete por nefrología; cada toma de laboratorios y el equipo multidisciplinario entran por la consulta de nefrología; el paquete admite frecuencia mensual, bimestral o trimestral y las frecuencias base mayores quedan señaladas como fuera del paquete.</li>
+          <li><strong>Riesgo cardiovascular.</strong> Categoría automática alta o muy alta con ECV establecida o ERC moderada o grave (ESC 2021). SCORE2 de la región de riesgo alto recalibrado para Colombia (PURE-Colombia: × 0,75 mujeres, × 0,61 hombres) entre 40 y 69 años sin DM. Framingham general 2008 × 0,75 (GPC colombiana de dislipidemias). PROCAM no se implementó: no se dispone de la tabla de puntajes verificada.</li>
+          <li><strong>Indicadores.</strong> Los 47 del consenso CAC 2025 con sus poblaciones de la tabla 1. Los que la CAC deja en «Definir» llevan meta institucional &gt; 70 % (Coordinación Asistencial). Atenciones programadas frente a atendidas con meta ≥ 95 %.</li>
+          <li><strong>Nominal EPS.</strong> Encabezados de los archivos de ejemplo de EPS Familiar (143 campos) y Nueva EPS (prediálisis 43, TMND 49). TFG por Cockcroft-Gault porque así lo piden; la estadificación clínica sigue con CKD-EPI 2021. Valores codificados solo por arrastre o por la tabla de codificación del programa.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Fuentes</h2>
+        <ol>
+          <li>Cuenta de Alto Costo. Herramienta técnica: contenidos mínimos y suficientes de un programa de nefroprotección. v1.0, 2026 (tablas 5, 7, 8, 9 y 10, según el documento de referencia interno).</li>
+          <li>Cuenta de Alto Costo. Actualización del consenso basado en la evidencia: indicadores mínimos HTA, DM y ERC 1–5 sin diálisis ni trasplante. 2025.</li>
+          <li>KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of CKD. Kidney Int. 2024;105(4S):S117–S314.</li>
+          <li>KDIGO 2017 CKD-MBD Guideline Update. Kidney Int Suppl. 2017;7:1–59. · KDIGO 2013 Lipid Management in CKD. Kidney Int Suppl. 2013;3:259–305. · KDIGO 2012 Anemia in CKD. Kidney Int Suppl. 2012;2:279–335. · KDIGO 2022 Diabetes Management in CKD. Kidney Int. 2022;102(5S):S1–S127.</li>
+          <li>Inker LA, et al. N Engl J Med. 2021;385:1737–49 (CKD-EPI 2021). · Tangri N, et al. JAMA. 2011;305:1553–9 y JAMA. 2016;315:164–74 (KFRE, calibración no norteamericana).</li>
+          <li>Mach F, et al. 2019 ESC/EAS Guidelines for the management of dyslipidaemias. Eur Heart J. 2020;41:111–88.</li>
+          <li>American Diabetes Association. Standards of Care in Diabetes—2025. Diabetes Care. 2025;48(Suppl 1). · Whelton PK, et al. 2017 ACC/AHA Guideline for high blood pressure in adults. Hypertension. 2018;71:e13–e115. · Mancia G, et al. 2023 ESH Guidelines for the management of arterial hypertension. J Hypertens. 2023;41:1874–2071. · KDIGO 2021 Clinical Practice Guideline for the Management of Blood Pressure in CKD. Kidney Int. 2021;99(3S):S1–S87.</li>
+          <li>Visseren FLJ, et al. 2021 ESC Guidelines on cardiovascular disease prevention. Eur Heart J. 2021;42:3227–337. · SCORE2 working group. Eur Heart J. 2021;42:2439–54. · López-López JP, et al. PURE-Colombia. Eur J Prev Cardiol. 2025;32(7):564–72. · D'Agostino RB Sr, et al. Circulation. 2008;117:743–53. · Cockcroft DW, Gault MH. Nephron. 1976;16:31–41.</li>
+          <li>Ikizler TA, et al. KDOQI Clinical Practice Guideline for Nutrition in CKD: 2020 update. Am J Kidney Dis. 2020;76(3 Suppl 1):S1–S107. · Davison SN, et al. Conservative kidney management and kidney supportive care. Kidney Int. 2024;105:35–45.</li>
+          <li>Lista de síntomas basada en IPOS-Renal (Cicely Saunders Institute, King's College London), registrada como sí/no; no reemplaza el puntaje validado. Calidad de vida: ítem 1 del SF-36 (RAND, dominio público) y escala de Karnofsky.</li>
+        </ol>
+        <p class="note">Versión 8.0 · 11 de octubre de 2026 (sobre la 7.2). Indicadores: tablero de 15 fichas del programa; el semáforo usa la meta CAC y, donde la CAC no la fija, una meta institucional propuesta pendiente de adopción. El indicador nefro_33 usa solo los criterios de la CAC; la regla clínica de remisión (KFRE, HTA resistente) es más amplia.</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="../vendor/xlsx.full.min.js"></script>
+<script src="../adaptador-comun.js"></script>
+<script src="adaptador-nefro-previo.js"></script>
+<script src="ruta-1.js"></script>
+<script src="ruta-2.js"></script>
+
+<script src="ruta-3.js"></script>
+
+<script src="ruta-4.js"></script>
+
+<script src="ruta-5.js"></script>
+
+
+<style>
+.wrap{max-width:1580px!important}
+.grid{grid-template-columns:minmax(0,380px) minmax(0,1fr)!important}
+.nefro-calc-wrap{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:14px;align-items:start}
+@media (max-width:860px){.nefro-calc-wrap{grid-template-columns:minmax(0,1fr)}}
+.nefro-gpc-side{position:sticky;top:12px;max-height:calc(100vh - 28px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:10px;padding:14px;box-shadow:var(--shadow);display:grid;gap:10px}
+.nefro-gpc-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.nefro-gpc-chip{font-family:var(--f-mono);font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px;border:1px solid currentColor}
+.nefro-gpc-chip.ok{color:var(--ok);background:var(--ok-soft)}
+.nefro-gpc-chip.warn{color:var(--warn);background:var(--warn-soft)}
+.nefro-gpc-chip.bad{color:var(--bad);background:var(--bad-soft)}
+ul.nefro-audl{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+ul.nefro-audl li{padding:6px 8px 6px 26px;border-radius:6px;background:var(--bad-soft);position:relative;font-size:13px;line-height:1.35}
+ul.nefro-audl li::before{content:"✗";position:absolute;left:8px;top:6px;font-weight:700;color:var(--bad)}
+ul.nefro-audl li.y{background:var(--ok-soft)}
+ul.nefro-audl li.y::before{content:"✓";color:var(--ok)}
+ul.nefro-audl li.w{background:var(--warn-soft)}
+ul.nefro-audl li.w::before{content:"!";color:var(--warn)}
+ul.nefro-audl li.na{background:var(--surface-2);color:var(--muted)}
+ul.nefro-audl li.na::before{content:"–";color:var(--muted)}
+ul.nefro-audl .sub{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.precon-bar{background:var(--surface-2);border:1px solid var(--accent);border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.listo-badge{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok);border-radius:999px;padding:1px 8px}
+</style>
+<script src="ruta-6.js"></script>
+
+<script src="adaptador-nefro.js"></script>
+<link rel="stylesheet" href="../modulo.css">
+</body></html>

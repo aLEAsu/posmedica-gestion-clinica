@@ -1,12 +1,13 @@
 import { Router } from "express";
 import { z } from "zod";
-import { PROGRAMA_POR_CLAVE } from "@posmedica/shared";
+import { PROGRAMA_POR_CLAVE, ROLES_CE, ROLES_DP, type RolesModulo } from "@posmedica/shared";
 import { prisma } from "../db.js";
 import { HttpError, h, noEncontrado } from "../http/errors.js";
 import { requiereAdmin } from "../http/middleware.js";
 import { auditar, diferencias } from "../services/auditoria.js";
 import { claveTemporal, hashClave, problemaClave } from "../security/password.js";
 import { revocarSesiones } from "../security/session.js";
+import { subirVersion } from "../services/version.js";
 
 export const usuarios = Router();
 usuarios.use(requiereAdmin);
@@ -20,8 +21,17 @@ const vista = {
 usuarios.get(
   "/",
   h(async (_req, res) => {
-    const L = await prisma.usuario.findMany({ select: vista, orderBy: [{ activo: "desc" }, { nombre: "asc" }] });
-    res.json({ usuarios: L });
+    const [L, ce, dp] = await Promise.all([
+      prisma.usuario.findMany({ select: vista, orderBy: [{ activo: "desc" }, { nombre: "asc" }] }),
+      prisma.ceRol.findMany({ select: { Usuario: true, Rol: true, VeReservadas: true } }),
+      prisma.dpRol.findMany({ select: { Usuario: true, Rol: true, Activo: true } }),
+    ]);
+    // Rol de cada usuario dentro de Consulta externa y Diálisis peritoneal (hojas RolesCE y RolesDP), para asignarlo y
+    // advertir combinaciones incompletas en el mismo panel de permisos.
+    const k = (s: string) => s.toLowerCase();
+    const rCe = new Map(ce.filter((r) => r.Rol && ROLES_CE[r.Rol]).map((r) => [k(r.Usuario), { rol: r.Rol!, veReservadas: r.VeReservadas === "SI" }]));
+    const rDp = new Map(dp.filter((r) => r.Rol && ROLES_DP[r.Rol]).map((r) => [k(r.Usuario), { rol: r.Rol!, activo: r.Activo !== "NO" }]));
+    res.json({ usuarios: L.map((u) => ({ ...u, rolesModulo: { ce: rCe.get(k(u.usuario)) ?? null, dp: rDp.get(k(u.usuario)) ?? null } satisfies RolesModulo })) });
   }),
 );
 
@@ -102,6 +112,20 @@ const Permisos = z.array(
   }),
 );
 
+/** Rol dentro de Consulta externa y Diálisis peritoneal (opcional): se guarda en las hojas RolesCE y RolesDP del libro
+    del módulo, igual que ceGuardarRol y dpDlgRol del prototipo (motivo obligatorio cuando el rol cambia). */
+const RolesModuloEntrada = z
+  .object({
+    ce: z.object({ rol: z.string().refine((r) => !!ROLES_CE[r], "Rol de Consulta externa no válido"), veReservadas: z.boolean() }).optional(),
+    dp: z.object({ rol: z.string().refine((r) => !!ROLES_DP[r], "Rol de Diálisis peritoneal no válido"), activo: z.boolean().default(true) }).optional(),
+    motivo: z.string().trim().max(300).optional(),
+  })
+  .optional();
+
+/** Fecha y hora de Bogotá como las escribe el prototipo (nowTs: «AAAA-MM-DD HH:MM»). */
+const ahoraBogota = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "America/Bogota", dateStyle: "short", timeStyle: "short" }).format(new Date());
+const hoyBogota = () => new Date(ahoraBogota().slice(0, 10) + "T00:00:00Z");
+
 /** Reemplaza todos los permisos de un usuario médico. Los programas sin «ver» se quitan. */
 usuarios.put(
   "/:id/permisos",
@@ -115,6 +139,23 @@ usuarios.put(
     if (!u) throw noEncontrado("No existe ese usuario.");
     const antes = u.permisos.map(({ programaClave, ver, registrar, anular, exportar }) => ({ programa: programaClave, ver, registrar, anular, exportar }));
 
+    // Roles de módulo: solo de los módulos a los que el usuario queda con acceso (Laboratorio también registra en DP).
+    const rm = RolesModuloEntrada.parse(req.body?.rolesModulo);
+    const con = (p: string) => lista.some((x) => x.programa === p);
+    const quiereCe = rm?.ce && con("ce") ? rm.ce : undefined;
+    const quiereDp = rm?.dp && (con("dp") || con("lab")) ? rm.dp : undefined;
+    if ((quiereCe || quiereDp) && u.rol === "ADMIN") throw new HttpError(400, "El administrador ya es Coordinación en Consulta externa y Dirección Médica en Diálisis peritoneal.", "VALIDACION");
+    const igual = { equals: u.usuario, mode: "insensitive" as const };
+    const [filaCe, filaDp] = await Promise.all([
+      quiereCe ? prisma.ceRol.findFirst({ where: { Usuario: igual } }) : null,
+      quiereDp ? prisma.dpRol.findFirst({ where: { Usuario: igual } }) : null,
+    ]);
+    const cambiaCe = !!quiereCe && (!filaCe ? quiereCe.rol !== "consulta" || quiereCe.veReservadas : filaCe.Rol !== quiereCe.rol || (filaCe.VeReservadas === "SI") !== quiereCe.veReservadas);
+    const cambiaDp = !!quiereDp && (!filaDp ? quiereDp.rol !== "cons" : filaDp.Rol !== quiereDp.rol || (filaDp.Activo !== "NO") !== quiereDp.activo);
+    const motivo = rm?.motivo ?? "";
+    if ((cambiaCe || cambiaDp) && motivo.length < 4) throw new HttpError(400, "Indique el motivo del rol en el módulo (función que lo requiere).", "VALIDACION");
+    const quien = `${req.usuario!.nombre} · ${req.usuario!.cargo}`;
+
     const r = await prisma.$transaction(async (tx) => {
       await tx.usuarioPrograma.deleteMany({ where: { usuarioId: id } });
       if (lista.length) {
@@ -123,8 +164,22 @@ usuarios.put(
         });
       }
       await auditar(req, { accion: "PERMISOS", entidad: "usuario", registroId: id, antes, despues: lista }, tx);
+      if (cambiaCe) {
+        const d = { Rol: quiereCe!.rol, VeReservadas: quiereCe!.veReservadas ? "SI" : "", Motivo: motivo, ConcedidoPor: req.usuario!.usuario, Fecha: ahoraBogota(), actualizadoPor: req.usuario!.id };
+        if (filaCe) await tx.ceRol.update({ where: { Usuario: filaCe.Usuario }, data: d });
+        else await tx.ceRol.create({ data: { Usuario: u.usuario, ...d, creadoPor: req.usuario!.id } });
+        await auditar(req, { accion: filaCe ? "MODIFICA" : "CREA", entidad: "ce.rol", programa: "ce", registroId: filaCe?.Usuario ?? u.usuario, antes: filaCe ? { Rol: filaCe.Rol, VeReservadas: filaCe.VeReservadas } : undefined, despues: { Rol: d.Rol, VeReservadas: d.VeReservadas }, detalle: motivo }, tx);
+      }
+      if (cambiaDp) {
+        const d = { Rol: quiereDp!.rol, Activo: quiereDp!.activo ? "SI" : "NO", Motivo: motivo, ConcedidoPor: `${quien} [Dirección Médica]`, Fecha: hoyBogota(), actualizadoPor: req.usuario!.id };
+        if (filaDp) await tx.dpRol.update({ where: { Usuario: filaDp.Usuario }, data: d });
+        else await tx.dpRol.create({ data: { Usuario: u.usuario, ...d, creadoPor: req.usuario!.id } });
+        await auditar(req, { accion: filaDp ? "MODIFICA" : "CREA", entidad: "dp.rol", programa: "dp", registroId: filaDp?.Usuario ?? u.usuario, antes: filaDp ? { Rol: filaDp.Rol, Activo: filaDp.Activo } : undefined, despues: { Rol: d.Rol, Activo: d.Activo }, detalle: motivo }, tx);
+      }
       return tx.usuario.findUniqueOrThrow({ where: { id }, select: vista });
     });
+    // Los portales abiertos de CE y DP ven el rol nuevo en su siguiente consulta de versión.
+    await Promise.all([cambiaCe && subirVersion("ce", "__version", req.usuario!.id), cambiaDp && subirVersion("dp", "__version", req.usuario!.id)]);
     res.json({ usuario: r });
   }),
 );

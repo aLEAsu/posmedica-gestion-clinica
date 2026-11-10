@@ -113,6 +113,7 @@ model Auditoria {
   @@index([entidad, registroId])
   @@index([usuarioId])
   @@index([programa, id])
+  @@index([accion])
   @@map("auditoria")
 }
 
@@ -171,11 +172,15 @@ model Persona {
   inscripciones InscripcionPrograma[]
   hdPaciente    HdPaciente?
   vihPaciente   VihPaciente?
+  dp11Paciente  Dp11Paciente?
   nefroPaciente NefroPaciente?
   dpPaciente    DpPaciente?
   cePaciente    CePaciente?
 
-  @@unique([tipoDoc, documento])
+  // Auditoría (A5, 19 oct 2026): antes era @@unique([tipoDoc, documento]); como la fusión ahora es solo por documento
+  // (resolverPersona, nefro/fachada.ts persona()), la restricción real de la base debe serlo también, o dos registros
+  // del mismo documento con tipo de documento distinto (uno vacío, p. ej.) podrían volver a duplicarse bajo concurrencia.
+  @@unique([documento])
   @@index([primerApellido, primerNombre])
   @@map("persona")
 }
@@ -223,79 +228,115 @@ model Parametro {
 
 /// Hoja «Pacientes» del libro de hemodiálisis del prototipo.
 model HdPaciente {
-  ID                String    @id @map("id")
-  Afiliacion        String?   @map("afiliacion")
-  Barrio            String?   @map("barrio")
-  Acudiente         String?   @map("acudiente")
-  TelAcudiente      String?   @map("tel_acudiente")
-  Discapacidad      String?   @map("discapacidad")
-  HTA               String?   @map("hta")
-  FechaDxHTA        DateTime? @map("fecha_dx_hta") @db.Date
-  DM                String?   @map("dm")
-  DMTipo            String?   @map("dm_tipo")
-  FechaDxDM         DateTime? @map("fecha_dx_dm") @db.Date
-  Dislipidemia      String?   @map("dislipidemia")
-  Etiologia         String?   @map("etiologia")
-  Talla             Float?    @map("talla")
-  FechaDxERC5       DateTime? @map("fecha_dx_erc5") @db.Date
-  TFGInicio         Float?    @map("tfg_inicio")
-  ModoInicio        String?   @map("modo_inicio")
-  InicioTRR         DateTime? @map("inicio_trr") @db.Date
-  IngresoUnidad     DateTime? @map("ingreso_unidad") @db.Date
-  IngresoPrograma   DateTime? @map("ingreso_programa") @db.Date
-  Procedencia       String?   @map("procedencia")
-  AccesoInicial     String?   @map("acceso_inicial")
-  Estado            String?   @map("estado")
-  FechaEstado       DateTime? @map("fecha_estado") @db.Date
-  CausaMuerte       String?   @map("causa_muerte")
-  Turno             String?   @map("turno")
-  Puesto            Float?    @map("puesto")
-  SesSemana         Float?    @map("ses_semana")
-  DuracionMin       Float?    @map("duracion_min")
-  PesoSeco          Float?    @map("peso_seco")
-  AccesoActual      String?   @map("acceso_actual")
-  AccesoDesde       DateTime? @map("acceso_desde") @db.Date
-  RutaAcceso        String?   @map("ruta_acceso")
-  SoporteRuta       String?   @map("soporte_ruta")
-  FechaRuta         DateTime? @map("fecha_ruta") @db.Date
-  TxEstado          String?   @map("tx_estado")
-  TxFecha           DateTime? @map("tx_fecha") @db.Date
-  TxIPS             String?   @map("tx_ips")
-  TxContra          String?   @map("tx_contra")
-  VacunaVHB         String?   @map("vacuna_vhb")
-  VHBNoRespondedor  String?   @map("vhb_no_respondedor")
-  Paratiroidectomia String?   @map("paratiroidectomia")
-  BDUA              String?   @map("bdua")
-  NovedadCAC        String?   @map("novedad_cac")
-  Metas             String?   @map("metas")
-  Obs               String?   @map("obs")
-  Usuario           String?   @map("usuario")
-  Actualizado       String?   @map("actualizado")
-  personaId         String    @unique @map("persona_id") @db.Uuid
-  persona           Persona   @relation(fields: [personaId], references: [id])
-  creadoPor         String?   @map("creado_por") @db.Uuid
-  creadoEn          DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor    String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn     DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID                  String                @id @map("id")
+  Afiliacion          String?               @map("afiliacion")
+  Barrio              String?               @map("barrio")
+  Acudiente           String?               @map("acudiente")
+  TelAcudiente        String?               @map("tel_acudiente")
+  Discapacidad        String?               @map("discapacidad")
+  HTA                 String?               @map("hta")
+  FechaDxHTA          DateTime?             @map("fecha_dx_hta") @db.Date
+  DM                  String?               @map("dm")
+  DMTipo              String?               @map("dm_tipo")
+  FechaDxDM           DateTime?             @map("fecha_dx_dm") @db.Date
+  Dislipidemia        String?               @map("dislipidemia")
+  Etiologia           String?               @map("etiologia")
+  Talla               Float?                @map("talla")
+  FechaDxERC5         DateTime?             @map("fecha_dx_erc5") @db.Date
+  TFGInicio           Float?                @map("tfg_inicio")
+  ModoInicio          String?               @map("modo_inicio")
+  InicioTRR           DateTime?             @map("inicio_trr") @db.Date
+  IngresoUnidad       DateTime?             @map("ingreso_unidad") @db.Date
+  IngresoPrograma     DateTime?             @map("ingreso_programa") @db.Date
+  Procedencia         String?               @map("procedencia")
+  AccesoInicial       String?               @map("acceso_inicial")
+  Estado              String?               @map("estado")
+  FechaEstado         DateTime?             @map("fecha_estado") @db.Date
+  CausaMuerte         String?               @map("causa_muerte")
+  Turno               String?               @map("turno")
+  Puesto              Float?                @map("puesto")
+  SesSemana           Float?                @map("ses_semana")
+  DuracionMin         Float?                @map("duracion_min")
+  PesoSeco            Float?                @map("peso_seco")
+  AccesoActual        String?               @map("acceso_actual")
+  AccesoDesde         DateTime?             @map("acceso_desde") @db.Date
+  RutaAcceso          String?               @map("ruta_acceso")
+  SoporteRuta         String?               @map("soporte_ruta")
+  FechaRuta           DateTime?             @map("fecha_ruta") @db.Date
+  TxEstado            String?               @map("tx_estado")
+  TxFecha             DateTime?             @map("tx_fecha") @db.Date
+  TxIPS               String?               @map("tx_ips")
+  TxContra            String?               @map("tx_contra")
+  VacunaVHB           String?               @map("vacuna_vhb")
+  VHBNoRespondedor    String?               @map("vhb_no_respondedor")
+  Paratiroidectomia   String?               @map("paratiroidectomia")
+  BDUA                String?               @map("bdua")
+  NovedadCAC          String?               @map("novedad_cac")
+  Metas               String?               @map("metas")
+  Obs                 String?               @map("obs")
+  Comorbilidades      String?               @map("comorbilidades")
+  ERCEtapa            Float?                @map("erc_etapa")
+  TxEtapaRaw          String?               @map("tx_etapa_raw")
+  ProgMes             Float?                @map("prog_mes")
+  InicioHD            DateTime?             @map("inicio_hd") @db.Date
+  ModalidadPrevia     String?               @map("modalidad_previa")
+  PrimerRegistro      DateTime?             @map("primer_registro") @db.Date
+  MesesMaestro        String?               @map("meses_maestro")
+  MesesRegistro       String?               @map("meses_registro")
+  IdHist              String?               @map("id_hist")
+  AccesoHist          String?               @map("acceso_hist")
+  EstadoFuente        String?               @map("estado_fuente")
+  EstadoOrigen        String?               @map("estado_origen")
+  VHBEstadoRaw        String?               @map("vhb_estado_raw")
+  Usuario             String?               @map("usuario")
+  Actualizado         String?               @map("actualizado")
+  personaId           String                @unique @map("persona_id") @db.Uuid
+  persona             Persona               @relation(fields: [personaId], references: [id])
+  creadoPor           String?               @map("creado_por") @db.Uuid
+  creadoEn            DateTime              @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor      String?               @map("actualizado_por") @db.Uuid
+  actualizadoEn       DateTime              @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  hdMovimiento        HdMovimiento[]
+  hdSesion            HdSesion[]
+  hdEvento            HdEvento[]
+  hdParaclinico       HdParaclinico[]
+  hdNovedad           HdNovedad[]
+  hdContacto          HdContacto[]
+  hdAccesoNovedad     HdAccesoNovedad[]
+  hdAtencion          HdAtencion[]
+  hdValoracion        HdValoracion[]
+  hdSeguridadPaciente HdSeguridadPaciente[]
+  hdAntimicrobiano    HdAntimicrobiano[]
+  hdPrescripcion      HdPrescripcion[]
+  hdDispensacion      HdDispensacion[]
+  hdEstudio           HdEstudio[]
+  hdVacuna            HdVacuna[]
+  hdTrasplanteItem    HdTrasplanteItem[]
+  hdSolicitudLab      HdSolicitudLab[]
+  hdDispositivo       HdDispositivo[]
+  hdActividadSiis     HdActividadSiis[]
+  hdOxigeno           HdOxigeno[]
 
   @@map("hd_paciente")
 }
 
 /// Hoja «Movimientos» del libro de hemodiálisis del prototipo.
 model HdMovimiento {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Tipo            String?   @map("tipo")
-  Detalle         String?   @map("detalle")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Tipo            String?     @map("tipo")
+  Detalle         String?     @map("detalle")
+  Origen          String?     @map("origen")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -304,41 +345,45 @@ model HdMovimiento {
 
 /// Hoja «Sesiones» del libro de hemodiálisis del prototipo.
 model HdSesion {
-  ID              String    @id @map("id")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Paciente        String?   @map("paciente")
-  Turno           String?   @map("turno")
-  Puesto          Float?    @map("puesto")
-  Tipo            String?   @map("tipo")
-  MotivoExtra     String?   @map("motivo_extra")
-  PorContrato     String?   @map("por_contrato")
-  Reprograma      DateTime? @map("reprograma") @db.Date
-  Estado          String?   @map("estado")
-  Motivo          String?   @map("motivo")
-  Responsable     String?   @map("responsable")
-  Nota            String?   @map("nota")
-  DuracionMin     Float?    @map("duracion_min")
-  Acceso          String?   @map("acceso")
-  PesoPre         Float?    @map("peso_pre")
-  PesoPost        Float?    @map("peso_post")
-  TASPre          Float?    @map("tas_pre")
-  TADPre          Float?    @map("tad_pre")
-  TASPost         Float?    @map("tas_post")
-  TADPost         Float?    @map("tad_post")
-  Gluco           Float?    @map("gluco")
-  KtVOCM          Float?    @map("kt_vocm")
-  UFNeta          Float?    @map("uf_neta")
-  UFR             Float?    @map("ufr")
-  UFMaquina       Float?    @map("uf_maquina")
-  LimpiezaPuesto  String?   @map("limpieza_puesto")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Paciente        String?     @map("paciente")
+  Turno           String?     @map("turno")
+  Puesto          Float?      @map("puesto")
+  Tipo            String?     @map("tipo")
+  MotivoExtra     String?     @map("motivo_extra")
+  PorContrato     String?     @map("por_contrato")
+  Reprograma      DateTime?   @map("reprograma") @db.Date
+  Estado          String?     @map("estado")
+  Motivo          String?     @map("motivo")
+  Responsable     String?     @map("responsable")
+  Nota            String?     @map("nota")
+  DuracionMin     Float?      @map("duracion_min")
+  Acceso          String?     @map("acceso")
+  PesoPre         Float?      @map("peso_pre")
+  PesoPost        Float?      @map("peso_post")
+  TASPre          Float?      @map("tas_pre")
+  TADPre          Float?      @map("tad_pre")
+  TASPost         Float?      @map("tas_post")
+  TADPost         Float?      @map("tad_post")
+  FC              Float?      @map("fc")
+  FR              Float?      @map("fr")
+  SatO2           Float?      @map("sat_o2")
+  Gluco           Float?      @map("gluco")
+  KtVOCM          Float?      @map("kt_vocm")
+  UFNeta          Float?      @map("uf_neta")
+  UFR             Float?      @map("ufr")
+  UFMaquina       Float?      @map("uf_maquina")
+  LimpiezaPuesto  String?     @map("limpieza_puesto")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -347,27 +392,29 @@ model HdSesion {
 
 /// Hoja «Eventos» del libro de hemodiálisis del prototipo.
 model HdEvento {
-  ID              String    @id @map("id")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Paciente        String?   @map("paciente")
-  Sesion          String?   @map("sesion")
-  Tipo            String?   @map("tipo")
-  Severidad       String?   @map("severidad")
-  Conducta        String?   @map("conducta")
-  Resuelto        String?   @map("resuelto")
-  Hemocultivo     String?   @map("hemocultivo")
-  Microorganismo  String?   @map("microorganismo")
-  Resistencia     String?   @map("resistencia")
-  FechaCierre     DateTime? @map("fecha_cierre") @db.Date
-  ReporteSP       String?   @map("reporte_sp")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Paciente        String?     @map("paciente")
+  Sesion          String?     @map("sesion")
+  Tipo            String?     @map("tipo")
+  Severidad       String?     @map("severidad")
+  Conducta        String?     @map("conducta")
+  Resuelto        String?     @map("resuelto")
+  Hemocultivo     String?     @map("hemocultivo")
+  Microorganismo  String?     @map("microorganismo")
+  Resistencia     String?     @map("resistencia")
+  FechaCierre     DateTime?   @map("fecha_cierre") @db.Date
+  ReporteSP       String?     @map("reporte_sp")
+  NombreFuente    String?     @map("nombre_fuente")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -376,20 +423,21 @@ model HdEvento {
 
 /// Hoja «Paraclinicos» del libro de hemodiálisis del prototipo.
 model HdParaclinico {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  FechaToma       DateTime? @map("fecha_toma") @db.Date
-  Examen          String?   @map("examen")
-  Valor           String?   @map("valor")
-  Metodo          String?   @map("metodo")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  FechaToma       DateTime?   @map("fecha_toma") @db.Date
+  Examen          String?     @map("examen")
+  Valor           String?     @map("valor")
+  Metodo          String?     @map("metodo")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([FechaToma])
@@ -398,23 +446,28 @@ model HdParaclinico {
 
 /// Hoja «Novedades» del libro de hemodiálisis del prototipo.
 model HdNovedad {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Tipo            String?   @map("tipo")
-  Inicio          DateTime? @map("inicio") @db.Date
-  Fin             DateTime? @map("fin") @db.Date
-  Descripcion     String?   @map("descripcion")
-  Causa           String?   @map("causa")
-  Atribuible      String?   @map("atribuible")
-  Evitable        String?   @map("evitable")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Tipo            String?     @map("tipo")
+  Inicio          DateTime?   @map("inicio") @db.Date
+  Fin             DateTime?   @map("fin") @db.Date
+  Descripcion     String?     @map("descripcion")
+  Causa           String?     @map("causa")
+  Atribuible      String?     @map("atribuible")
+  Evitable        String?     @map("evitable")
+  TipoRaw         String?     @map("tipo_raw")
+  EstadoRaw       String?     @map("estado_raw")
+  NotasN          Float?      @map("notas_n")
+  NombreFuente    String?     @map("nombre_fuente")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Inicio])
@@ -423,18 +476,19 @@ model HdNovedad {
 
 /// Hoja «Contactos» del libro de hemodiálisis del prototipo.
 model HdContacto {
-  ID             String    @id @map("id")
-  Paciente       String?   @map("paciente")
-  Fecha          DateTime? @map("fecha") @db.Date
-  Medio          String?   @map("medio")
-  Resultado      String?   @map("resultado")
-  Nota           String?   @map("nota")
-  Usuario        String?   @map("usuario")
-  Registrado     String?   @map("registrado")
-  creadoPor      String?   @map("creado_por") @db.Uuid
-  creadoEn       DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn  DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID             String      @id @map("id")
+  Paciente       String?     @map("paciente")
+  Fecha          DateTime?   @map("fecha") @db.Date
+  Medio          String?     @map("medio")
+  Resultado      String?     @map("resultado")
+  Nota           String?     @map("nota")
+  Usuario        String?     @map("usuario")
+  Registrado     String?     @map("registrado")
+  creadoPor      String?     @map("creado_por") @db.Uuid
+  creadoEn       DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn  DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente       HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -443,20 +497,21 @@ model HdContacto {
 
 /// Hoja «AccesoNovedades» del libro de hemodiálisis del prototipo.
 model HdAccesoNovedad {
-  ID               String    @id @map("id")
-  Paciente         String?   @map("paciente")
-  Fecha            DateTime? @map("fecha") @db.Date
-  Tipo             String?   @map("tipo")
-  Detalle          String?   @map("detalle")
-  AccesoResultante String?   @map("acceso_resultante")
-  Usuario          String?   @map("usuario")
-  Registrado       String?   @map("registrado")
-  Anulado          String?   @map("anulado")
-  MotivoAnulacion  String?   @map("motivo_anulacion")
-  creadoPor        String?   @map("creado_por") @db.Uuid
-  creadoEn         DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor   String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn    DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID               String      @id @map("id")
+  Paciente         String?     @map("paciente")
+  Fecha            DateTime?   @map("fecha") @db.Date
+  Tipo             String?     @map("tipo")
+  Detalle          String?     @map("detalle")
+  AccesoResultante String?     @map("acceso_resultante")
+  Usuario          String?     @map("usuario")
+  Registrado       String?     @map("registrado")
+  Anulado          String?     @map("anulado")
+  MotivoAnulacion  String?     @map("motivo_anulacion")
+  creadoPor        String?     @map("creado_por") @db.Uuid
+  creadoEn         DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor   String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn    DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente         HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -465,19 +520,20 @@ model HdAccesoNovedad {
 
 /// Hoja «Atenciones» del libro de hemodiálisis del prototipo.
 model HdAtencion {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Disciplina      String?   @map("disciplina")
-  Nota            String?   @map("nota")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Disciplina      String?     @map("disciplina")
+  Nota            String?     @map("nota")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -486,27 +542,28 @@ model HdAtencion {
 
 /// Hoja «Valoraciones» del libro de hemodiálisis del prototipo.
 model HdValoracion {
-  ID               String    @id @map("id")
-  Paciente         String?   @map("paciente")
-  Fecha            DateTime? @map("fecha") @db.Date
-  Mes              String?   @map("mes")
-  Profesional      String?   @map("profesional")
-  PesoSeco         Float?    @map("peso_seco")
-  Diuresis         Float?    @map("diuresis")
-  CalidadPuntaje   Float?    @map("calidad_puntaje")
-  CalidadCategoria String?   @map("calidad_categoria")
-  EnfermedadActual String?   @map("enfermedad_actual")
-  Analisis         String?   @map("analisis")
-  Plan             String?   @map("plan")
-  Datos            String?   @map("datos")
-  Usuario          String?   @map("usuario")
-  Registrado       String?   @map("registrado")
-  Anulado          String?   @map("anulado")
-  MotivoAnulacion  String?   @map("motivo_anulacion")
-  creadoPor        String?   @map("creado_por") @db.Uuid
-  creadoEn         DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor   String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn    DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID               String      @id @map("id")
+  Paciente         String?     @map("paciente")
+  Fecha            DateTime?   @map("fecha") @db.Date
+  Mes              String?     @map("mes")
+  Profesional      String?     @map("profesional")
+  PesoSeco         Float?      @map("peso_seco")
+  Diuresis         Float?      @map("diuresis")
+  CalidadPuntaje   Float?      @map("calidad_puntaje")
+  CalidadCategoria String?     @map("calidad_categoria")
+  EnfermedadActual String?     @map("enfermedad_actual")
+  Analisis         String?     @map("analisis")
+  Plan             String?     @map("plan")
+  Datos            String?     @map("datos")
+  Usuario          String?     @map("usuario")
+  Registrado       String?     @map("registrado")
+  Anulado          String?     @map("anulado")
+  MotivoAnulacion  String?     @map("motivo_anulacion")
+  creadoPor        String?     @map("creado_por") @db.Uuid
+  creadoEn         DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor   String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn    DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente         HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -516,29 +573,30 @@ model HdValoracion {
 
 /// Hoja «SeguridadPaciente» del libro de hemodiálisis del prototipo.
 model HdSeguridadPaciente {
-  ID              String    @id @map("id")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Paciente        String?   @map("paciente")
-  Clasificacion   String?   @map("clasificacion")
-  Categoria       String?   @map("categoria")
-  Severidad       String?   @map("severidad")
-  Descripcion     String?   @map("descripcion")
-  AccionInmediata String?   @map("accion_inmediata")
-  Analisis        String?   @map("analisis")
-  Causas          String?   @map("causas")
-  PlanMejora      String?   @map("plan_mejora")
-  Responsable     String?   @map("responsable")
-  Estado          String?   @map("estado")
-  FechaCierre     DateTime? @map("fecha_cierre") @db.Date
-  Evento          String?   @map("evento")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Paciente        String?     @map("paciente")
+  Clasificacion   String?     @map("clasificacion")
+  Categoria       String?     @map("categoria")
+  Severidad       String?     @map("severidad")
+  Descripcion     String?     @map("descripcion")
+  AccionInmediata String?     @map("accion_inmediata")
+  Analisis        String?     @map("analisis")
+  Causas          String?     @map("causas")
+  PlanMejora      String?     @map("plan_mejora")
+  Responsable     String?     @map("responsable")
+  Estado          String?     @map("estado")
+  FechaCierre     DateTime?   @map("fecha_cierre") @db.Date
+  Evento          String?     @map("evento")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -547,29 +605,30 @@ model HdSeguridadPaciente {
 
 /// Hoja «Antimicrobianos» del libro de hemodiálisis del prototipo.
 model HdAntimicrobiano {
-  ID               String    @id @map("id")
-  Paciente         String?   @map("paciente")
-  Inicio           DateTime? @map("inicio") @db.Date
-  Fin              DateTime? @map("fin") @db.Date
-  Antimicrobiano   String?   @map("antimicrobiano")
-  Dosis            String?   @map("dosis")
-  Via              String?   @map("via")
-  Indicacion       String?   @map("indicacion")
-  Tipo             String?   @map("tipo")
-  CultivoPrevio    String?   @map("cultivo_previo")
-  Ajustado         String?   @map("ajustado")
-  Evento           String?   @map("evento")
-  DuracionPrevista Float?    @map("duracion_prevista")
-  Prescriptor      String?   @map("prescriptor")
-  Nota             String?   @map("nota")
-  Usuario          String?   @map("usuario")
-  Registrado       String?   @map("registrado")
-  Anulado          String?   @map("anulado")
-  MotivoAnulacion  String?   @map("motivo_anulacion")
-  creadoPor        String?   @map("creado_por") @db.Uuid
-  creadoEn         DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor   String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn    DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID               String      @id @map("id")
+  Paciente         String?     @map("paciente")
+  Inicio           DateTime?   @map("inicio") @db.Date
+  Fin              DateTime?   @map("fin") @db.Date
+  Antimicrobiano   String?     @map("antimicrobiano")
+  Dosis            String?     @map("dosis")
+  Via              String?     @map("via")
+  Indicacion       String?     @map("indicacion")
+  Tipo             String?     @map("tipo")
+  CultivoPrevio    String?     @map("cultivo_previo")
+  Ajustado         String?     @map("ajustado")
+  Evento           String?     @map("evento")
+  DuracionPrevista Float?      @map("duracion_prevista")
+  Prescriptor      String?     @map("prescriptor")
+  Nota             String?     @map("nota")
+  Usuario          String?     @map("usuario")
+  Registrado       String?     @map("registrado")
+  Anulado          String?     @map("anulado")
+  MotivoAnulacion  String?     @map("motivo_anulacion")
+  creadoPor        String?     @map("creado_por") @db.Uuid
+  creadoEn         DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor   String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn    DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente         HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Inicio])
@@ -600,27 +659,28 @@ model HdAuditoriaIaas {
 
 /// Hoja «Prescripciones» del libro de hemodiálisis del prototipo.
 model HdPrescripcion {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Medicamento     String?   @map("medicamento")
-  Dosis           String?   @map("dosis")
-  Frecuencia      String?   @map("frecuencia")
-  Via             String?   @map("via")
-  Lugar           String?   @map("lugar")
-  CantidadMes     Float?    @map("cantidad_mes")
-  Unidad          String?   @map("unidad")
-  Inicio          DateTime? @map("inicio") @db.Date
-  Fin             DateTime? @map("fin") @db.Date
-  Mipres          String?   @map("mipres")
-  Nota            String?   @map("nota")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Medicamento     String?     @map("medicamento")
+  Dosis           String?     @map("dosis")
+  Frecuencia      String?     @map("frecuencia")
+  Via             String?     @map("via")
+  Lugar           String?     @map("lugar")
+  CantidadMes     Float?      @map("cantidad_mes")
+  Unidad          String?     @map("unidad")
+  Inicio          DateTime?   @map("inicio") @db.Date
+  Fin             DateTime?   @map("fin") @db.Date
+  Mipres          String?     @map("mipres")
+  Nota            String?     @map("nota")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Inicio])
@@ -629,24 +689,25 @@ model HdPrescripcion {
 
 /// Hoja «Dispensacion» del libro de hemodiálisis del prototipo.
 model HdDispensacion {
-  ID              String    @id @map("id")
-  Mes             String?   @map("mes")
-  Paciente        String?   @map("paciente")
-  Prescripcion    String?   @map("prescripcion")
-  Medicamento     String?   @map("medicamento")
-  Prescrita       Float?    @map("prescrita")
-  Entregada       Float?    @map("entregada")
-  Estado          String?   @map("estado")
-  Motivo          String?   @map("motivo")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Mes             String?     @map("mes")
+  Paciente        String?     @map("paciente")
+  Prescripcion    String?     @map("prescripcion")
+  Medicamento     String?     @map("medicamento")
+  Prescrita       Float?      @map("prescrita")
+  Entregada       Float?      @map("entregada")
+  Estado          String?     @map("estado")
+  Motivo          String?     @map("motivo")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -656,24 +717,25 @@ model HdDispensacion {
 
 /// Hoja «Estudios» del libro de hemodiálisis del prototipo.
 model HdEstudio {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Tipo            String?   @map("tipo")
-  Nombre          String?   @map("nombre")
-  Resultado       String?   @map("resultado")
-  Relevante       String?   @map("relevante")
-  Seguimiento     String?   @map("seguimiento")
-  ProximoControl  DateTime? @map("proximo_control") @db.Date
-  Soporte         String?   @map("soporte")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Tipo            String?     @map("tipo")
+  Nombre          String?     @map("nombre")
+  Resultado       String?     @map("resultado")
+  Relevante       String?     @map("relevante")
+  Seguimiento     String?     @map("seguimiento")
+  ProximoControl  DateTime?   @map("proximo_control") @db.Date
+  Soporte         String?     @map("soporte")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -682,23 +744,24 @@ model HdEstudio {
 
 /// Hoja «Vacunas» del libro de hemodiálisis del prototipo.
 model HdVacuna {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Vacuna          String?   @map("vacuna")
-  Esquema         String?   @map("esquema")
-  Serie           String?   @map("serie")
-  NumDosis        Float?    @map("num_dosis")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Lote            String?   @map("lote")
-  Observacion     String?   @map("observacion")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Vacuna          String?     @map("vacuna")
+  Esquema         String?     @map("esquema")
+  Serie           String?     @map("serie")
+  NumDosis        Float?      @map("num_dosis")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Lote            String?     @map("lote")
+  Observacion     String?     @map("observacion")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -707,20 +770,21 @@ model HdVacuna {
 
 /// Hoja «TrasplanteSeguimiento» del libro de hemodiálisis del prototipo.
 model HdTrasplanteItem {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Item            String?   @map("item")
-  Estado          String?   @map("estado")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Resultado       String?   @map("resultado")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Item            String?     @map("item")
+  Estado          String?     @map("estado")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Resultado       String?     @map("resultado")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -729,24 +793,25 @@ model HdTrasplanteItem {
 
 /// Hoja «SolicitudesLab» del libro de hemodiálisis del prototipo.
 model HdSolicitudLab {
-  ID              String    @id @map("id")
-  Mes             String?   @map("mes")
-  Programa        String?   @map("programa")
-  Paciente        String?   @map("paciente")
-  Examen          String?   @map("examen")
-  Origen          String?   @map("origen")
-  Motivo          String?   @map("motivo")
-  Estado          String?   @map("estado")
-  FechaToma       DateTime? @map("fecha_toma") @db.Date
-  Nota            String?   @map("nota")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Mes             String?     @map("mes")
+  Programa        String?     @map("programa")
+  Paciente        String?     @map("paciente")
+  Examen          String?     @map("examen")
+  Origen          String?     @map("origen")
+  Motivo          String?     @map("motivo")
+  Estado          String?     @map("estado")
+  FechaToma       DateTime?   @map("fecha_toma") @db.Date
+  Nota            String?     @map("nota")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([FechaToma])
@@ -756,30 +821,31 @@ model HdSolicitudLab {
 
 /// Hoja «Dispositivos» del libro de hemodiálisis del prototipo.
 model HdDispositivo {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Tipo            String?   @map("tipo")
-  Sitio           String?   @map("sitio")
-  FechaInsercion  DateTime? @map("fecha_insercion") @db.Date
-  LugarInsercion  String?   @map("lugar_insercion")
-  FechaRetiro     DateTime? @map("fecha_retiro") @db.Date
-  MotivoRetiro    String?   @map("motivo_retiro")
-  Estado          String?   @map("estado")
-  Reemplaza       String?   @map("reemplaza")
-  Novedad         String?   @map("novedad")
-  Origen          String?   @map("origen")
-  Validado        String?   @map("validado")
-  ValidadoPor     String?   @map("validado_por")
-  ValidadoFecha   DateTime? @map("validado_fecha") @db.Date
-  Nota            String?   @map("nota")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Tipo            String?     @map("tipo")
+  Sitio           String?     @map("sitio")
+  FechaInsercion  DateTime?   @map("fecha_insercion") @db.Date
+  LugarInsercion  String?     @map("lugar_insercion")
+  FechaRetiro     DateTime?   @map("fecha_retiro") @db.Date
+  MotivoRetiro    String?     @map("motivo_retiro")
+  Estado          String?     @map("estado")
+  Reemplaza       String?     @map("reemplaza")
+  Novedad         String?     @map("novedad")
+  Origen          String?     @map("origen")
+  Validado        String?     @map("validado")
+  ValidadoPor     String?     @map("validado_por")
+  ValidadoFecha   DateTime?   @map("validado_fecha") @db.Date
+  Nota            String?     @map("nota")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@map("hd_dispositivo")
@@ -821,6 +887,120 @@ model HdLimpieza {
   @@map("hd_limpieza")
 }
 
+/// Hoja «ActividadesSIIS» del libro de hemodiálisis del prototipo.
+model HdActividadSiis {
+  ID              String      @id @map("id")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Paciente        String?     @map("paciente")
+  Codigo          String?     @map("codigo")
+  Actividad       String?     @map("actividad")
+  Tipo            String?     @map("tipo")
+  Categoria       String?     @map("categoria")
+  Protocolo       String?     @map("protocolo")
+  Turno           String?     @map("turno")
+  Puesto          Float?      @map("puesto")
+  Severidad       String?     @map("severidad")
+  Nota            String?     @map("nota")
+  Estado          String?     @map("estado")
+  Origen          String?     @map("origen")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("hd_actividad_siis")
+}
+
+/// Hoja «OxigenoMedicinal» del libro de hemodiálisis del prototipo.
+model HdOxigeno {
+  ID              String      @id @map("id")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Turno           String?     @map("turno")
+  Puesto          Float?      @map("puesto")
+  Paciente        String?     @map("paciente")
+  CodigoSIIS      String?     @map("codigo_siis")
+  Indicacion      String?     @map("indicacion")
+  Dispositivo     String?     @map("dispositivo")
+  FlujoLmin       Float?      @map("flujo_lmin")
+  Minutos         Float?      @map("minutos")
+  SatO2Pre        Float?      @map("sat_o2_pre")
+  SatO2Post       Float?      @map("sat_o2_post")
+  Cilindro        String?     @map("cilindro")
+  Lote            String?     @map("lote")
+  VenceCilindro   DateTime?   @map("vence_cilindro") @db.Date
+  PsiInicial      Float?      @map("psi_inicial")
+  PsiFinal        Float?      @map("psi_final")
+  Litros          Float?      @map("litros")
+  M3              Float?      @map("m3")
+  Nota            String?     @map("nota")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        HdPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("hd_oxigeno")
+}
+
+/// Hoja «CilindrosOxigeno» del libro de hemodiálisis del prototipo.
+model HdCilindroOxigeno {
+  ID              String    @id @map("id")
+  Tipo            String?   @map("tipo")
+  CapacidadM3     Float?    @map("capacidad_m3")
+  Factor          Float?    @map("factor")
+  Ubicacion       String?   @map("ubicacion")
+  Lote            String?   @map("lote")
+  Vence           DateTime? @map("vence") @db.Date
+  Psi             Float?    @map("psi")
+  Estado          String?   @map("estado")
+  Usuario         String?   @map("usuario")
+  Registrado      String?   @map("registrado")
+  Anulado         String?   @map("anulado")
+  MotivoAnulacion String?   @map("motivo_anulacion")
+  creadoPor       String?   @map("creado_por") @db.Uuid
+  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@map("hd_cilindro_oxigeno")
+}
+
+/// Hoja «ChequeoTurno» del libro de hemodiálisis del prototipo.
+model HdChequeoTurno {
+  ID              String    @id @map("id")
+  Fecha           DateTime? @map("fecha") @db.Date
+  Turno           String?   @map("turno")
+  Agua            String?   @map("agua")
+  Desinfeccion    String?   @map("desinfeccion")
+  Conductividad   String?   @map("conductividad")
+  Cloro           String?   @map("cloro")
+  Observacion     String?   @map("observacion")
+  Usuario         String?   @map("usuario")
+  Registrado      String?   @map("registrado")
+  Anulado         String?   @map("anulado")
+  MotivoAnulacion String?   @map("motivo_anulacion")
+  creadoPor       String?   @map("creado_por") @db.Uuid
+  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Fecha])
+  @@map("hd_chequeo_turno")
+}
+
 /// Hoja «Cortes» del libro de hemodiálisis del prototipo.
 model HdCorte {
   ID             String    @id @map("id")
@@ -844,79 +1024,92 @@ model HdCorte {
 
 /// Hoja «Pacientes» del libro del programa VIH del prototipo.
 model VihPaciente {
-  ID                String   @id @map("id")
-  ContactoRed       String?  @map("contacto_red")
-  PoblacionClave    String?  @map("poblacion_clave")
-  NaturalDe         String?  @map("natural_de")
-  Escolaridad       String?  @map("escolaridad")
-  Ocupacion         String?  @map("ocupacion")
-  EstadoCivil       String?  @map("estado_civil")
-  Mecanismo         String?  @map("mecanismo")
-  TipoIngreso       String?  @map("tipo_ingreso")
-  FechaDx           String?  @map("fecha_dx")
-  FechaPresentacion String?  @map("fecha_presentacion")
-  FechaIngresoIPS   String?  @map("fecha_ingreso_ips")
-  OportunistaDx     String?  @map("oportunista_dx")
-  Modalidad         String?  @map("modalidad")
-  Sede              String?  @map("sede")
-  Gestante          String?  @map("gestante")
-  UltAtencionExt    String?  @map("ult_atencion_ext")
-  CIE10             String?  @map("cie10")
-  OrientacionSexual String?  @map("orientacion_sexual")
-  PracticaAnal      String?  @map("practica_anal")
-  TARPrevio         String?  @map("tar_previo")
-  TARPrevioDetalle  String?  @map("tar_previo_detalle")
-  DxOtraIPS         String?  @map("dx_otra_ips")
-  SoporteDx         String?  @map("soporte_dx")
-  MotivoTamizaje    String?  @map("motivo_tamizaje")
-  PruebasDx         String?  @map("pruebas_dx")
-  Barreras          String?  @map("barreras")
-  NovedadNominal    String?  @map("novedad_nominal")
-  Estado            String?  @map("estado")
-  FechaEgreso       String?  @map("fecha_egreso")
-  MotivoEgreso      String?  @map("motivo_egreso")
-  Observaciones     String?  @map("observaciones")
-  Usuario           String?  @map("usuario")
-  Registrado        String?  @map("registrado")
-  Anulado           String?  @map("anulado")
-  MotivoAnulacion   String?  @map("motivo_anulacion")
-  personaId         String   @unique @map("persona_id") @db.Uuid
-  persona           Persona  @relation(fields: [personaId], references: [id])
-  creadoPor         String?  @map("creado_por") @db.Uuid
-  creadoEn          DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor    String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn     DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID                String             @id @map("id")
+  ContactoRed       String?            @map("contacto_red")
+  PoblacionClave    String?            @map("poblacion_clave")
+  NaturalDe         String?            @map("natural_de")
+  Escolaridad       String?            @map("escolaridad")
+  Ocupacion         String?            @map("ocupacion")
+  EstadoCivil       String?            @map("estado_civil")
+  Mecanismo         String?            @map("mecanismo")
+  TipoIngreso       String?            @map("tipo_ingreso")
+  FechaDx           String?            @map("fecha_dx")
+  FechaPresentacion String?            @map("fecha_presentacion")
+  FechaIngresoIPS   String?            @map("fecha_ingreso_ips")
+  OportunistaDx     String?            @map("oportunista_dx")
+  Modalidad         String?            @map("modalidad")
+  Sede              String?            @map("sede")
+  Gestante          String?            @map("gestante")
+  UltAtencionExt    String?            @map("ult_atencion_ext")
+  CIE10             String?            @map("cie10")
+  OrientacionSexual String?            @map("orientacion_sexual")
+  PracticaAnal      String?            @map("practica_anal")
+  TARPrevio         String?            @map("tar_previo")
+  TARPrevioDetalle  String?            @map("tar_previo_detalle")
+  DxOtraIPS         String?            @map("dx_otra_ips")
+  SoporteDx         String?            @map("soporte_dx")
+  MotivoTamizaje    String?            @map("motivo_tamizaje")
+  PruebasDx         String?            @map("pruebas_dx")
+  Barreras          String?            @map("barreras")
+  NovedadNominal    String?            @map("novedad_nominal")
+  Estado            String?            @map("estado")
+  FechaEgreso       String?            @map("fecha_egreso")
+  MotivoEgreso      String?            @map("motivo_egreso")
+  Observaciones     String?            @map("observaciones")
+  Usuario           String?            @map("usuario")
+  Registrado        String?            @map("registrado")
+  Anulado           String?            @map("anulado")
+  MotivoAnulacion   String?            @map("motivo_anulacion")
+  personaId         String             @unique @map("persona_id") @db.Uuid
+  persona           Persona            @relation(fields: [personaId], references: [id])
+  creadoPor         String?            @map("creado_por") @db.Uuid
+  creadoEn          DateTime           @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor    String?            @map("actualizado_por") @db.Uuid
+  actualizadoEn     DateTime           @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  vihAntecedente    VihAntecedente[]
+  vihLaboratorio    VihLaboratorio[]
+  vihEsquemaTar     VihEsquemaTar[]
+  vihEntregaTar     VihEntregaTar[]
+  vihCita           VihCita[]
+  vihValoracion     VihValoracion[]
+  vihVacuna         VihVacuna[]
+  vihProcedimiento  VihProcedimiento[]
+  vihProfilaxis     VihProfilaxis[]
+  vihNovedad        VihNovedad[]
+  vihSolicitudLab   VihSolicitudLab[]
+  vihArrastreCac    VihArrastreCac[]
 
   @@map("vih_paciente")
 }
 
 /// Hoja «Antecedentes» del libro del programa VIH del prototipo.
 model VihAntecedente {
-  ID                String   @id @map("id")
-  Paciente          String?  @map("paciente")
-  Fecha             String?  @map("fecha")
-  Patologicos       String?  @map("patologicos")
-  Oportunistas      String?  @map("oportunistas")
-  ITS               String?  @map("its")
-  TB                String?  @map("tb")
-  Quirurgicos       String?  @map("quirurgicos")
-  FarmNoTAR         String?  @map("farm_no_tar")
-  Toxicos           String?  @map("toxicos")
-  Alergicos         String?  @map("alergicos")
-  Transfusionales   String?  @map("transfusionales")
-  Traumaticos       String?  @map("traumaticos")
-  Psiquiatricos     String?  @map("psiquiatricos")
-  Psicosociales     String?  @map("psicosociales")
-  Discapacidad      String?  @map("discapacidad")
-  Familiares        String?  @map("familiares")
-  GrupoSanguineo    String?  @map("grupo_sanguineo")
-  Ginecoobstetricos String?  @map("ginecoobstetricos")
-  Usuario           String?  @map("usuario")
-  Registrado        String?  @map("registrado")
-  creadoPor         String?  @map("creado_por") @db.Uuid
-  creadoEn          DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor    String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn     DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID                String       @id @map("id")
+  Paciente          String?      @map("paciente")
+  Fecha             String?      @map("fecha")
+  Patologicos       String?      @map("patologicos")
+  Oportunistas      String?      @map("oportunistas")
+  ITS               String?      @map("its")
+  TB                String?      @map("tb")
+  Quirurgicos       String?      @map("quirurgicos")
+  FarmNoTAR         String?      @map("farm_no_tar")
+  Toxicos           String?      @map("toxicos")
+  Alergicos         String?      @map("alergicos")
+  Transfusionales   String?      @map("transfusionales")
+  Traumaticos       String?      @map("traumaticos")
+  Psiquiatricos     String?      @map("psiquiatricos")
+  Psicosociales     String?      @map("psicosociales")
+  Discapacidad      String?      @map("discapacidad")
+  Familiares        String?      @map("familiares")
+  GrupoSanguineo    String?      @map("grupo_sanguineo")
+  Ginecoobstetricos String?      @map("ginecoobstetricos")
+  Usuario           String?      @map("usuario")
+  Registrado        String?      @map("registrado")
+  creadoPor         String?      @map("creado_por") @db.Uuid
+  creadoEn          DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor    String?      @map("actualizado_por") @db.Uuid
+  actualizadoEn     DateTime     @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente          VihPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -925,22 +1118,23 @@ model VihAntecedente {
 
 /// Hoja «Laboratorios» del libro del programa VIH del prototipo.
 model VihLaboratorio {
-  ID              String   @id @map("id")
-  Paciente        String?  @map("paciente")
-  FechaToma       String?  @map("fecha_toma")
-  Examen          String?  @map("examen")
-  Valor           String?  @map("valor")
-  Resultado       String?  @map("resultado")
-  Fuente          String?  @map("fuente")
-  Solicitud       String?  @map("solicitud")
-  Usuario         String?  @map("usuario")
-  Registrado      String?  @map("registrado")
-  Anulado         String?  @map("anulado")
-  MotivoAnulacion String?  @map("motivo_anulacion")
-  creadoPor       String?  @map("creado_por") @db.Uuid
-  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String       @id @map("id")
+  Paciente        String?      @map("paciente")
+  FechaToma       String?      @map("fecha_toma")
+  Examen          String?      @map("examen")
+  Valor           String?      @map("valor")
+  Resultado       String?      @map("resultado")
+  Fuente          String?      @map("fuente")
+  Solicitud       String?      @map("solicitud")
+  Usuario         String?      @map("usuario")
+  Registrado      String?      @map("registrado")
+  Anulado         String?      @map("anulado")
+  MotivoAnulacion String?      @map("motivo_anulacion")
+  creadoPor       String?      @map("creado_por") @db.Uuid
+  creadoEn        DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?      @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime     @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        VihPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([FechaToma])
@@ -950,25 +1144,26 @@ model VihLaboratorio {
 
 /// Hoja «EsquemasTAR» del libro del programa VIH del prototipo.
 model VihEsquemaTar {
-  ID              String   @id @map("id")
-  Paciente        String?  @map("paciente")
-  Inicio          String?  @map("inicio")
-  Fin             String?  @map("fin")
-  Esquema         String?  @map("esquema")
-  Linea           String?  @map("linea")
-  Motivo          String?  @map("motivo")
-  TARPrevio       String?  @map("tar_previo")
-  Validacion      String?  @map("validacion")
-  ValidadoPor     String?  @map("validado_por")
-  FechaValidacion String?  @map("fecha_validacion")
-  Usuario         String?  @map("usuario")
-  Registrado      String?  @map("registrado")
-  Anulado         String?  @map("anulado")
-  MotivoAnulacion String?  @map("motivo_anulacion")
-  creadoPor       String?  @map("creado_por") @db.Uuid
-  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String       @id @map("id")
+  Paciente        String?      @map("paciente")
+  Inicio          String?      @map("inicio")
+  Fin             String?      @map("fin")
+  Esquema         String?      @map("esquema")
+  Linea           String?      @map("linea")
+  Motivo          String?      @map("motivo")
+  TARPrevio       String?      @map("tar_previo")
+  Validacion      String?      @map("validacion")
+  ValidadoPor     String?      @map("validado_por")
+  FechaValidacion String?      @map("fecha_validacion")
+  Usuario         String?      @map("usuario")
+  Registrado      String?      @map("registrado")
+  Anulado         String?      @map("anulado")
+  MotivoAnulacion String?      @map("motivo_anulacion")
+  creadoPor       String?      @map("creado_por") @db.Uuid
+  creadoEn        DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?      @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime     @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        VihPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Inicio])
@@ -977,21 +1172,27 @@ model VihEsquemaTar {
 
 /// Hoja «EntregasTAR» del libro del programa VIH del prototipo.
 model VihEntregaTar {
-  ID              String   @id @map("id")
-  Paciente        String?  @map("paciente")
-  Fecha           String?  @map("fecha")
-  Esquema         String?  @map("esquema")
-  Meses           String?  @map("meses")
-  Unidades        String?  @map("unidades")
-  Lugar           String?  @map("lugar")
-  Usuario         String?  @map("usuario")
-  Registrado      String?  @map("registrado")
-  Anulado         String?  @map("anulado")
-  MotivoAnulacion String?  @map("motivo_anulacion")
-  creadoPor       String?  @map("creado_por") @db.Uuid
-  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID               String       @id @map("id")
+  Paciente         String?      @map("paciente")
+  Fecha            String?      @map("fecha")
+  Esquema          String?      @map("esquema")
+  Meses            String?      @map("meses")
+  Unidades         String?      @map("unidades")
+  Lugar            String?      @map("lugar")
+  Usuario          String?      @map("usuario")
+  Registrado       String?      @map("registrado")
+  Anulado          String?      @map("anulado")
+  MotivoAnulacion  String?      @map("motivo_anulacion")
+  SaldoPrevio      String?      @map("saldo_previo")
+  UnidadesTeoricas String?      @map("unidades_teoricas")
+  Lote             String?      @map("lote")
+  FechaVencimiento String?      @map("fecha_vencimiento")
+  DiasInterrupcion String?      @map("dias_interrupcion")
+  creadoPor        String?      @map("creado_por") @db.Uuid
+  creadoEn         DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor   String?      @map("actualizado_por") @db.Uuid
+  actualizadoEn    DateTime     @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente         VihPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -1000,26 +1201,27 @@ model VihEntregaTar {
 
 /// Hoja «Agenda» del libro del programa VIH del prototipo.
 model VihCita {
-  ID              String   @id @map("id")
-  Paciente        String?  @map("paciente")
-  Fecha           String?  @map("fecha")
-  Hora            String?  @map("hora")
-  Disciplina      String?  @map("disciplina")
-  Tipo            String?  @map("tipo")
-  Modalidad       String?  @map("modalidad")
-  Profesional     String?  @map("profesional")
-  Estado          String?  @map("estado")
-  Motivo          String?  @map("motivo")
-  Gestion         String?  @map("gestion")
-  FechaGestion    String?  @map("fecha_gestion")
-  Usuario         String?  @map("usuario")
-  Registrado      String?  @map("registrado")
-  Anulado         String?  @map("anulado")
-  MotivoAnulacion String?  @map("motivo_anulacion")
-  creadoPor       String?  @map("creado_por") @db.Uuid
-  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String       @id @map("id")
+  Paciente        String?      @map("paciente")
+  Fecha           String?      @map("fecha")
+  Hora            String?      @map("hora")
+  Disciplina      String?      @map("disciplina")
+  Tipo            String?      @map("tipo")
+  Modalidad       String?      @map("modalidad")
+  Profesional     String?      @map("profesional")
+  Estado          String?      @map("estado")
+  Motivo          String?      @map("motivo")
+  Gestion         String?      @map("gestion")
+  FechaGestion    String?      @map("fecha_gestion")
+  Usuario         String?      @map("usuario")
+  Registrado      String?      @map("registrado")
+  Anulado         String?      @map("anulado")
+  MotivoAnulacion String?      @map("motivo_anulacion")
+  creadoPor       String?      @map("creado_por") @db.Uuid
+  creadoEn        DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?      @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime     @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        VihPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -1028,45 +1230,46 @@ model VihCita {
 
 /// Hoja «Valoraciones» del libro del programa VIH del prototipo.
 model VihValoracion {
-  ID               String   @id @map("id")
-  Paciente         String?  @map("paciente")
-  Fecha            String?  @map("fecha")
-  Cita             String?  @map("cita")
-  Disciplina       String?  @map("disciplina")
-  Profesional      String?  @map("profesional")
-  Motivo           String?  @map("motivo")
-  Peso             String?  @map("peso")
-  Talla            String?  @map("talla")
-  PerAbd           String?  @map("per_abd")
-  PAS              String?  @map("pas")
-  PAD              String?  @map("pad")
-  FC               String?  @map("fc")
-  FR               String?  @map("fr")
-  Temp             String?  @map("temp")
-  SatO2            String?  @map("sat_o2")
-  SMAQ             String?  @map("smaq")
-  SMAQd            String?  @map("sma_qd")
-  RCV              String?  @map("rcv")
-  RCVCat           String?  @map("rcv_cat")
-  TamizTB          String?  @map("tamiz_tb")
-  Fumador          String?  @map("fumador")
-  RiesgoSocial     String?  @map("riesgo_social")
-  EnfermedadActual String?  @map("enfermedad_actual")
-  RevisionSistemas String?  @map("revision_sistemas")
-  ExamenFisico     String?  @map("examen_fisico")
-  Diagnosticos     String?  @map("diagnosticos")
-  Educacion        String?  @map("educacion")
-  Extra            String?  @map("extra")
-  Analisis         String?  @map("analisis")
-  Plan             String?  @map("plan")
-  Usuario          String?  @map("usuario")
-  Registrado       String?  @map("registrado")
-  Anulado          String?  @map("anulado")
-  MotivoAnulacion  String?  @map("motivo_anulacion")
-  creadoPor        String?  @map("creado_por") @db.Uuid
-  creadoEn         DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor   String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn    DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID               String       @id @map("id")
+  Paciente         String?      @map("paciente")
+  Fecha            String?      @map("fecha")
+  Cita             String?      @map("cita")
+  Disciplina       String?      @map("disciplina")
+  Profesional      String?      @map("profesional")
+  Motivo           String?      @map("motivo")
+  Peso             String?      @map("peso")
+  Talla            String?      @map("talla")
+  PerAbd           String?      @map("per_abd")
+  PAS              String?      @map("pas")
+  PAD              String?      @map("pad")
+  FC               String?      @map("fc")
+  FR               String?      @map("fr")
+  Temp             String?      @map("temp")
+  SatO2            String?      @map("sat_o2")
+  SMAQ             String?      @map("smaq")
+  SMAQd            String?      @map("sma_qd")
+  RCV              String?      @map("rcv")
+  RCVCat           String?      @map("rcv_cat")
+  TamizTB          String?      @map("tamiz_tb")
+  Fumador          String?      @map("fumador")
+  RiesgoSocial     String?      @map("riesgo_social")
+  EnfermedadActual String?      @map("enfermedad_actual")
+  RevisionSistemas String?      @map("revision_sistemas")
+  ExamenFisico     String?      @map("examen_fisico")
+  Diagnosticos     String?      @map("diagnosticos")
+  Educacion        String?      @map("educacion")
+  Extra            String?      @map("extra")
+  Analisis         String?      @map("analisis")
+  Plan             String?      @map("plan")
+  Usuario          String?      @map("usuario")
+  Registrado       String?      @map("registrado")
+  Anulado          String?      @map("anulado")
+  MotivoAnulacion  String?      @map("motivo_anulacion")
+  creadoPor        String?      @map("creado_por") @db.Uuid
+  creadoEn         DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor   String?      @map("actualizado_por") @db.Uuid
+  actualizadoEn    DateTime     @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente         VihPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -1075,22 +1278,23 @@ model VihValoracion {
 
 /// Hoja «Vacunas» del libro del programa VIH del prototipo.
 model VihVacuna {
-  ID              String   @id @map("id")
-  Paciente        String?  @map("paciente")
-  Vacuna          String?  @map("vacuna")
-  Dosis           String?  @map("dosis")
-  Fecha           String?  @map("fecha")
-  Lote            String?  @map("lote")
-  Estado          String?  @map("estado")
-  Soporte         String?  @map("soporte")
-  Usuario         String?  @map("usuario")
-  Registrado      String?  @map("registrado")
-  Anulado         String?  @map("anulado")
-  MotivoAnulacion String?  @map("motivo_anulacion")
-  creadoPor       String?  @map("creado_por") @db.Uuid
-  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String       @id @map("id")
+  Paciente        String?      @map("paciente")
+  Vacuna          String?      @map("vacuna")
+  Dosis           String?      @map("dosis")
+  Fecha           String?      @map("fecha")
+  Lote            String?      @map("lote")
+  Estado          String?      @map("estado")
+  Soporte         String?      @map("soporte")
+  Usuario         String?      @map("usuario")
+  Registrado      String?      @map("registrado")
+  Anulado         String?      @map("anulado")
+  MotivoAnulacion String?      @map("motivo_anulacion")
+  creadoPor       String?      @map("creado_por") @db.Uuid
+  creadoEn        DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?      @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime     @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        VihPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -1099,27 +1303,28 @@ model VihVacuna {
 
 /// Hoja «Procedimientos» del libro del programa VIH del prototipo.
 model VihProcedimiento {
-  ID              String   @id @map("id")
-  Paciente        String?  @map("paciente")
-  Tipo            String?  @map("tipo")
-  Ordenado        String?  @map("ordenado")
-  OrdenadoPor     String?  @map("ordenado_por")
-  Fecha           String?  @map("fecha")
-  Lote            String?  @map("lote")
-  FechaLectura    String?  @map("fecha_lectura")
-  Lectura         String?  @map("lectura")
-  Resultado       String?  @map("resultado")
-  Conducta        String?  @map("conducta")
-  ProximaFecha    String?  @map("proxima_fecha")
-  Estado          String?  @map("estado")
-  Usuario         String?  @map("usuario")
-  Registrado      String?  @map("registrado")
-  Anulado         String?  @map("anulado")
-  MotivoAnulacion String?  @map("motivo_anulacion")
-  creadoPor       String?  @map("creado_por") @db.Uuid
-  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String       @id @map("id")
+  Paciente        String?      @map("paciente")
+  Tipo            String?      @map("tipo")
+  Ordenado        String?      @map("ordenado")
+  OrdenadoPor     String?      @map("ordenado_por")
+  Fecha           String?      @map("fecha")
+  Lote            String?      @map("lote")
+  FechaLectura    String?      @map("fecha_lectura")
+  Lectura         String?      @map("lectura")
+  Resultado       String?      @map("resultado")
+  Conducta        String?      @map("conducta")
+  ProximaFecha    String?      @map("proxima_fecha")
+  Estado          String?      @map("estado")
+  Usuario         String?      @map("usuario")
+  Registrado      String?      @map("registrado")
+  Anulado         String?      @map("anulado")
+  MotivoAnulacion String?      @map("motivo_anulacion")
+  creadoPor       String?      @map("creado_por") @db.Uuid
+  creadoEn        DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?      @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime     @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        VihPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -1128,20 +1333,21 @@ model VihProcedimiento {
 
 /// Hoja «Profilaxis» del libro del programa VIH del prototipo.
 model VihProfilaxis {
-  ID              String   @id @map("id")
-  Paciente        String?  @map("paciente")
-  Medicamento     String?  @map("medicamento")
-  Indicacion      String?  @map("indicacion")
-  Inicio          String?  @map("inicio")
-  Fin             String?  @map("fin")
-  Usuario         String?  @map("usuario")
-  Registrado      String?  @map("registrado")
-  Anulado         String?  @map("anulado")
-  MotivoAnulacion String?  @map("motivo_anulacion")
-  creadoPor       String?  @map("creado_por") @db.Uuid
-  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String       @id @map("id")
+  Paciente        String?      @map("paciente")
+  Medicamento     String?      @map("medicamento")
+  Indicacion      String?      @map("indicacion")
+  Inicio          String?      @map("inicio")
+  Fin             String?      @map("fin")
+  Usuario         String?      @map("usuario")
+  Registrado      String?      @map("registrado")
+  Anulado         String?      @map("anulado")
+  MotivoAnulacion String?      @map("motivo_anulacion")
+  creadoPor       String?      @map("creado_por") @db.Uuid
+  creadoEn        DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?      @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime     @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        VihPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Inicio])
@@ -1150,20 +1356,21 @@ model VihProfilaxis {
 
 /// Hoja «Novedades» del libro del programa VIH del prototipo.
 model VihNovedad {
-  ID              String   @id @map("id")
-  Paciente        String?  @map("paciente")
-  Fecha           String?  @map("fecha")
-  Tipo            String?  @map("tipo")
-  Detalle         String?  @map("detalle")
-  FechaFin        String?  @map("fecha_fin")
-  Usuario         String?  @map("usuario")
-  Registrado      String?  @map("registrado")
-  Anulado         String?  @map("anulado")
-  MotivoAnulacion String?  @map("motivo_anulacion")
-  creadoPor       String?  @map("creado_por") @db.Uuid
-  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String       @id @map("id")
+  Paciente        String?      @map("paciente")
+  Fecha           String?      @map("fecha")
+  Tipo            String?      @map("tipo")
+  Detalle         String?      @map("detalle")
+  FechaFin        String?      @map("fecha_fin")
+  Usuario         String?      @map("usuario")
+  Registrado      String?      @map("registrado")
+  Anulado         String?      @map("anulado")
+  MotivoAnulacion String?      @map("motivo_anulacion")
+  creadoPor       String?      @map("creado_por") @db.Uuid
+  creadoEn        DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?      @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime     @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        VihPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -1172,23 +1379,24 @@ model VihNovedad {
 
 /// Hoja «SolicitudesLab» del libro del programa VIH del prototipo.
 model VihSolicitudLab {
-  ID              String   @id @map("id")
-  Mes             String?  @map("mes")
-  Paciente        String?  @map("paciente")
-  Examen          String?  @map("examen")
-  Origen          String?  @map("origen")
-  Motivo          String?  @map("motivo")
-  Estado          String?  @map("estado")
-  FechaToma       String?  @map("fecha_toma")
-  Nota            String?  @map("nota")
-  Usuario         String?  @map("usuario")
-  Registrado      String?  @map("registrado")
-  Anulado         String?  @map("anulado")
-  MotivoAnulacion String?  @map("motivo_anulacion")
-  creadoPor       String?  @map("creado_por") @db.Uuid
-  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String       @id @map("id")
+  Mes             String?      @map("mes")
+  Paciente        String?      @map("paciente")
+  Examen          String?      @map("examen")
+  Origen          String?      @map("origen")
+  Motivo          String?      @map("motivo")
+  Estado          String?      @map("estado")
+  FechaToma       String?      @map("fecha_toma")
+  Nota            String?      @map("nota")
+  Usuario         String?      @map("usuario")
+  Registrado      String?      @map("registrado")
+  Anulado         String?      @map("anulado")
+  MotivoAnulacion String?      @map("motivo_anulacion")
+  creadoPor       String?      @map("creado_por") @db.Uuid
+  creadoEn        DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?      @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime     @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        VihPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([FechaToma])
@@ -1198,14 +1406,15 @@ model VihSolicitudLab {
 
 /// Hoja «ArrastreCAC» del libro del programa VIH del prototipo.
 model VihArrastreCac {
-  Paciente       String   @id @map("paciente")
-  Corte          String?  @map("corte")
-  Fuente         String?  @map("fuente")
-  Datos          String?  @map("datos")
-  creadoPor      String?  @map("creado_por") @db.Uuid
-  creadoEn       DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn  DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  Paciente       String      @id @map("paciente")
+  Corte          String?     @map("corte")
+  Fuente         String?     @map("fuente")
+  Datos          String?     @map("datos")
+  creadoPor      String?     @map("creado_por") @db.Uuid
+  creadoEn       DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn  DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente       VihPaciente @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@map("vih_arrastre_cac")
 }
@@ -1722,6 +1931,304 @@ model PortalIndicadorHistorico {
   @@map("portal_indicador_historico")
 }
 
+/// Hoja «QuimioterapiaSesiones» del libro institucional del prototipo.
+model PortalQuimioterapiaSesion {
+  ID             String   @id @map("id")
+  Fecha          String?  @map("fecha")
+  Paciente       String?  @map("paciente")
+  Nombre         String?  @map("nombre")
+  EPS            String?  @map("eps")
+  Esquema        String?  @map("esquema")
+  Ciclo          String?  @map("ciclo")
+  Medicamentos   String?  @map("medicamentos")
+  DobleVerif     String?  @map("doble_verif")
+  Extravasacion  String?  @map("extravasacion")
+  Reaccion       String?  @map("reaccion")
+  Conducta       String?  @map("conducta")
+  Estado         String?  @map("estado")
+  Profesional    String?  @map("profesional")
+  Usuario        String?  @map("usuario")
+  Registrado     String?  @map("registrado")
+  creadoPor      String?  @map("creado_por") @db.Uuid
+  creadoEn       DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn  DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("portal_quimioterapia_sesion")
+}
+
+/// Hoja «Capacitaciones» del libro institucional del prototipo.
+model PortalCapacitacion {
+  ID                String   @id @map("id")
+  Fecha             String?  @map("fecha")
+  Hora              String?  @map("hora")
+  Programa          String?  @map("programa")
+  Proceso           String?  @map("proceso")
+  Tema              String?  @map("tema")
+  Modalidad         String?  @map("modalidad")
+  Facilitador       String?  @map("facilitador")
+  Objetivo          String?  @map("objetivo")
+  Asistentes        String?  @map("asistentes")
+  TotalAsistentes   String?  @map("total_asistentes")
+  EvaluacionPrePost String?  @map("evaluacion_pre_post")
+  Evidencia         String?  @map("evidencia")
+  Estado            String?  @map("estado")
+  Origen            String?  @map("origen")
+  Usuario           String?  @map("usuario")
+  Registrado        String?  @map("registrado")
+  creadoPor         String?  @map("creado_por") @db.Uuid
+  creadoEn          DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor    String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn     DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Fecha])
+  @@map("portal_capacitacion")
+}
+
+/// Hoja «LiberacionReportes» del libro institucional del prototipo.
+model PortalLiberacionReporte {
+  ID                  String   @id @map("id")
+  Fecha               String?  @map("fecha")
+  Programa            String?  @map("programa")
+  Reporte             String?  @map("reporte")
+  Periodo             String?  @map("periodo")
+  EPS                 String?  @map("eps")
+  Registros           String?  @map("registros")
+  Bloqueantes         String?  @map("bloqueantes")
+  Advertencias        String?  @map("advertencias")
+  SoportesVerificados String?  @map("soportes_verificados")
+  Dictamen            String?  @map("dictamen")
+  Auditor             String?  @map("auditor")
+  Observacion         String?  @map("observacion")
+  Registrado          String?  @map("registrado")
+  creadoPor           String?  @map("creado_por") @db.Uuid
+  creadoEn            DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor      String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn       DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Fecha])
+  @@map("portal_liberacion_reporte")
+}
+
+/// Hoja «Preconsulta» del libro institucional del prototipo.
+model PortalPreconsulta {
+  ID              String   @id @map("id")
+  Fecha           String?  @map("fecha")
+  Programa        String?  @map("programa")
+  Paciente        String?  @map("paciente")
+  PAS             String?  @map("pas")
+  PAD             String?  @map("pad")
+  FC              String?  @map("fc")
+  FR              String?  @map("fr")
+  Temp            String?  @map("temp")
+  SatO2           String?  @map("sat_o2")
+  Peso            String?  @map("peso")
+  Talla           String?  @map("talla")
+  Cintura         String?  @map("cintura")
+  Glucometria     String?  @map("glucometria")
+  Auxiliar        String?  @map("auxiliar")
+  Listo           String?  @map("listo")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("portal_preconsulta")
+}
+
+/// Hoja «AsistenciaActividades» del libro institucional del prototipo.
+model PortalAsistenciaActividad {
+  ID              String   @id @map("id")
+  Programa        String?  @map("programa")
+  Paciente        String?  @map("paciente")
+  Disciplina      String?  @map("disciplina")
+  Mes             String?  @map("mes")
+  Resultado       String?  @map("resultado")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Mes])
+  @@map("portal_asistencia_actividad")
+}
+
+/// Hoja «Procedimientos» del libro institucional del prototipo.
+model PortalProcedimiento {
+  ID                    String   @id @map("id")
+  Fecha                 String?  @map("fecha")
+  Programa              String?  @map("programa")
+  Paciente              String?  @map("paciente")
+  Procedimiento         String?  @map("procedimiento")
+  Sitio                 String?  @map("sitio")
+  Lote                  String?  @map("lote")
+  Responsable           String?  @map("responsable")
+  SolicitudDesinfeccion String?  @map("solicitud_desinfeccion")
+  Usuario               String?  @map("usuario")
+  Registrado            String?  @map("registrado")
+  Anulado               String?  @map("anulado")
+  MotivoAnulacion       String?  @map("motivo_anulacion")
+  creadoPor             String?  @map("creado_por") @db.Uuid
+  creadoEn              DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor        String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn         DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("portal_procedimiento")
+}
+
+/// Hoja «VacunacionRenal» del libro institucional del prototipo.
+model PortalVacunacionRenal {
+  ID                    String   @id @map("id")
+  Programa              String?  @map("programa")
+  Paciente              String?  @map("paciente")
+  VHB                   String?  @map("vhb")
+  AntiHBs               String?  @map("anti_h_bs")
+  Influenza             String?  @map("influenza")
+  NeumococoConjugada    String?  @map("neumococo_conjugada")
+  NeumococoPolisacarida String?  @map("neumococo_polisacarida")
+  Covid                 String?  @map("covid")
+  Usuario               String?  @map("usuario")
+  Registrado            String?  @map("registrado")
+  Anulado               String?  @map("anulado")
+  MotivoAnulacion       String?  @map("motivo_anulacion")
+  creadoPor             String?  @map("creado_por") @db.Uuid
+  creadoEn              DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor        String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn         DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@map("portal_vacunacion_renal")
+}
+
+/// Hoja «SoportesSISCAC» del libro institucional del prototipo.
+model PortalSoporteSiscac {
+  ID              String   @id @map("id")
+  Programa        String?  @map("programa")
+  Paciente        String?  @map("paciente")
+  Soportes        String?  @map("soportes")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@map("portal_soporte_siscac")
+}
+
+/// Hoja «THEmpleadosMes» del libro institucional del prototipo.
+model PortalThEmpleadoMes {
+  ID              String   @id @map("id")
+  Mes             String?  @map("mes")
+  Nombre          String?  @map("nombre")
+  Cargo           String?  @map("cargo")
+  Area            String?  @map("area")
+  Valor           String?  @map("valor")
+  Motivo          String?  @map("motivo")
+  Votos           String?  @map("votos")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Mes])
+  @@map("portal_th_empleado_mes")
+}
+
+/// Hoja «THCuadroTurnos» del libro institucional del prototipo.
+model PortalThTurno {
+  ID              String   @id @map("id")
+  Colaborador     String?  @map("colaborador")
+  Cargo           String?  @map("cargo")
+  Servicio        String?  @map("servicio")
+  Lun             String?  @map("lun")
+  Mar             String?  @map("mar")
+  Mie             String?  @map("mie")
+  Jue             String?  @map("jue")
+  Vie             String?  @map("vie")
+  Sab             String?  @map("sab")
+  Obs             String?  @map("obs")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@map("portal_th_turno")
+}
+
+/// Hoja «THFormatos» del libro institucional del prototipo.
+model PortalThFormato {
+  ID              String   @id @map("id")
+  Codigo          String?  @map("codigo")
+  Tipo            String?  @map("tipo")
+  Colaborador     String?  @map("colaborador")
+  Area            String?  @map("area")
+  Fecha           String?  @map("fecha")
+  Detalle         String?  @map("detalle")
+  Estado          String?  @map("estado")
+  AprobadoPor     String?  @map("aprobado_por")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Fecha])
+  @@map("portal_th_formato")
+}
+
+/// Hoja «THClimaLaboral» del libro institucional del prototipo.
+model PortalThClima {
+  ID              String   @id @map("id")
+  Fecha           String?  @map("fecha")
+  Area            String?  @map("area")
+  Dimension       String?  @map("dimension")
+  Puntaje         String?  @map("puntaje")
+  Riesgo          String?  @map("riesgo")
+  Accion          String?  @map("accion")
+  Estado          String?  @map("estado")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Fecha])
+  @@map("portal_th_clima")
+}
+
 // >>> PORTAL
 
 // ============================================================================
@@ -1917,75 +2424,133 @@ model NefroAgendaFila {
   @@map("nefro_agenda_fila")
 }
 
+/// Diálisis peritoneal v1.1 (fase D): paciente del módulo. La identidad (documento, nombres, nacimiento, sexo, EPS,
+/// municipio, teléfono) vive en «persona», el maestro único; aquí, los demás campos del módulo.
+model Dp11Paciente {
+  id              String         @id
+  personaId       String         @unique @map("persona_id") @db.Uuid
+  datos           Json
+  anulado         Boolean        @default(false)
+  motivoAnulacion String?        @map("motivo_anulacion")
+  creadoPor       String?        @map("creado_por") @db.Uuid
+  creadoEn        DateTime       @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?        @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime       @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  persona         Persona        @relation(fields: [personaId], references: [id])
+  registros       Dp11Registro[]
+
+  @@map("dp11_paciente")
+}
+
+/// Diálisis peritoneal v1.1: un registro de una colección del módulo (Kt/V, laboratorios, eventos, valoraciones, visitas,
+/// fórmula, habilitación, obligaciones, catálogo, actividades hechas, farmacia del mes, plan, costos, metas). Lo que
+/// pertenece a un paciente lleva su llave foránea; anular conserva el registro (no se borra).
+model Dp11Registro {
+  coleccion       String
+  clave           String
+  paciente        String?
+  datos           Json
+  anulado         Boolean       @default(false)
+  motivoAnulacion String?       @map("motivo_anulacion")
+  creadoPor       String?       @map("creado_por") @db.Uuid
+  creadoEn        DateTime      @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?       @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime      @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  pacienteRel     Dp11Paciente? @relation(fields: [paciente], references: [id], onDelete: Restrict)
+
+  @@id([coleccion, clave])
+  @@index([paciente])
+  @@map("dp11_registro")
+}
+
 // <<< DIALISIS PERITONEAL (GENERADO por scripts/generar-esquema.mjs: no editar a mano)
 
 /// Hoja «Pacientes» del libro de Diálisis peritoneal del prototipo.
 model DpPaciente {
-  ID                   String    @id @map("id")
-  IdInst               String?   @map("id_inst")
-  NombreFuente         String?   @map("nombre_fuente")
-  Cuidador             String?   @map("cuidador")
-  TelCuidador          String?   @map("tel_cuidador")
-  Modalidad            String?   @map("modalidad")
-  ModalidadFuente      String?   @map("modalidad_fuente")
-  EstadoPrograma       String?   @map("estado_programa")
-  FechaIngresoPrograma DateTime? @map("fecha_ingreso_programa") @db.Date
-  FechaInicioTRR       DateTime? @map("fecha_inicio_trr") @db.Date
-  FechaCateter         DateTime? @map("fecha_cateter") @db.Date
-  FechaInicioDP        DateTime? @map("fecha_inicio_dp") @db.Date
-  FechaFinDP           DateTime? @map("fecha_fin_dp") @db.Date
-  MotivoFin            String?   @map("motivo_fin")
-  Etiologia            String?   @map("etiologia")
-  HTA                  String?   @map("hta")
-  DM                   String?   @map("dm")
-  Comorbilidades       String?   @map("comorbilidades")
-  Talla                Float?    @map("talla")
-  Paratiroidectomia    String?   @map("paratiroidectomia")
-  Antineoplasicos      String?   @map("antineoplasicos")
-  VacunaVHB            String?   @map("vacuna_vhb")
-  CAC                  String?   @map("cac")
-  Verif                String?   @map("verif")
-  Origen               String?   @map("origen")
-  Obs                  String?   @map("obs")
-  Usuario              String?   @map("usuario")
-  Registrado           String?   @map("registrado")
-  Anulado              String?   @map("anulado")
-  MotivoAnulacion      String?   @map("motivo_anulacion")
-  personaId            String    @unique @map("persona_id") @db.Uuid
-  persona              Persona   @relation(fields: [personaId], references: [id])
-  creadoPor            String?   @map("creado_por") @db.Uuid
-  creadoEn             DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor       String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn        DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID                   String              @id @map("id")
+  IdInst               String?             @map("id_inst")
+  NombreFuente         String?             @map("nombre_fuente")
+  Cuidador             String?             @map("cuidador")
+  TelCuidador          String?             @map("tel_cuidador")
+  Modalidad            String?             @map("modalidad")
+  ModalidadFuente      String?             @map("modalidad_fuente")
+  EstadoPrograma       String?             @map("estado_programa")
+  FechaIngresoPrograma DateTime?           @map("fecha_ingreso_programa") @db.Date
+  FechaInicioTRR       DateTime?           @map("fecha_inicio_trr") @db.Date
+  FechaCateter         DateTime?           @map("fecha_cateter") @db.Date
+  FechaInicioDP        DateTime?           @map("fecha_inicio_dp") @db.Date
+  FechaFinDP           DateTime?           @map("fecha_fin_dp") @db.Date
+  MotivoFin            String?             @map("motivo_fin")
+  Etiologia            String?             @map("etiologia")
+  HTA                  String?             @map("hta")
+  DM                   String?             @map("dm")
+  Comorbilidades       String?             @map("comorbilidades")
+  Talla                Float?              @map("talla")
+  Paratiroidectomia    String?             @map("paratiroidectomia")
+  Antineoplasicos      String?             @map("antineoplasicos")
+  VacunaVHB            String?             @map("vacuna_vhb")
+  CAC                  String?             @map("cac")
+  Verif                String?             @map("verif")
+  Origen               String?             @map("origen")
+  Obs                  String?             @map("obs")
+  Usuario              String?             @map("usuario")
+  Registrado           String?             @map("registrado")
+  Anulado              String?             @map("anulado")
+  MotivoAnulacion      String?             @map("motivo_anulacion")
+  personaId            String              @unique @map("persona_id") @db.Uuid
+  persona              Persona             @relation(fields: [personaId], references: [id])
+  creadoPor            String?             @map("creado_por") @db.Uuid
+  creadoEn             DateTime            @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor       String?             @map("actualizado_por") @db.Uuid
+  actualizadoEn        DateTime            @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  dpEpisodio           DpEpisodio[]
+  dpAntimicrobiano     DpAntimicrobiano[]
+  dpTransicion         DpTransicion[]
+  dpValoracion         DpValoracion[]
+  dpLaboratorio        DpLaboratorio[]
+  dpPlanLaboratorio    DpPlanLaboratorio[]
+  dpSolicitudLab       DpSolicitudLab[]
+  dpAgenda             DpAgenda[]
+  dpPrescripcion       DpPrescripcion[]
+  dpCateter            DpCateter[]
+  dpEducacion          DpEducacion[]
+  dpInsumo             DpInsumo[]
+  dpEntrega            DpEntrega[]
+  dpHospitalizacion    DpHospitalizacion[]
+  dpTrasplante         DpTrasplante[]
+  dpCalidadVida        DpCalidadVida[]
+  dpHeredado           DpHeredado[]
+  dpCorteCacDetalle    DpCorteCacDetalle[]
 
   @@map("dp_paciente")
 }
 
 /// Hoja «Episodios» del libro de Diálisis peritoneal del prototipo.
 model DpEpisodio {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Tipo            String?   @map("tipo")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Sintomas        String?   @map("sintomas")
-  Leucocitos      Float?    @map("leucocitos")
-  PMN             Float?    @map("pmn")
-  PermanenciaH    Float?    @map("permanencia_h")
-  DxClinico       String?   @map("dx_clinico")
-  Clasificacion   String?   @map("clasificacion")
-  EpisodioPrevio  String?   @map("episodio_previo")
-  Tratamiento     String?   @map("tratamiento")
-  FechaResolucion DateTime? @map("fecha_resolucion") @db.Date
-  Desenlace       String?   @map("desenlace")
-  Seguimiento     String?   @map("seguimiento")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Tipo            String?     @map("tipo")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Sintomas        String?     @map("sintomas")
+  Leucocitos      Float?      @map("leucocitos")
+  PMN             Float?      @map("pmn")
+  PermanenciaH    Float?      @map("permanencia_h")
+  DxClinico       String?     @map("dx_clinico")
+  Clasificacion   String?     @map("clasificacion")
+  EpisodioPrevio  String?     @map("episodio_previo")
+  Tratamiento     String?     @map("tratamiento")
+  FechaResolucion DateTime?   @map("fecha_resolucion") @db.Date
+  Desenlace       String?     @map("desenlace")
+  Seguimiento     String?     @map("seguimiento")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -1994,27 +2559,28 @@ model DpEpisodio {
 
 /// Hoja «Antimicrobianos» del libro de Diálisis peritoneal del prototipo.
 model DpAntimicrobiano {
-  ID               String    @id @map("id")
-  Paciente         String?   @map("paciente")
-  Episodio         String?   @map("episodio")
-  Inicio           DateTime? @map("inicio") @db.Date
-  Fin              DateTime? @map("fin") @db.Date
-  Antimicrobiano   String?   @map("antimicrobiano")
-  Dosis            String?   @map("dosis")
-  Via              String?   @map("via")
-  Indicacion       String?   @map("indicacion")
-  Tipo             String?   @map("tipo")
-  DuracionPrevista Float?    @map("duracion_prevista")
-  Prescriptor      String?   @map("prescriptor")
-  Nota             String?   @map("nota")
-  Usuario          String?   @map("usuario")
-  Registrado       String?   @map("registrado")
-  Anulado          String?   @map("anulado")
-  MotivoAnulacion  String?   @map("motivo_anulacion")
-  creadoPor        String?   @map("creado_por") @db.Uuid
-  creadoEn         DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor   String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn    DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID               String      @id @map("id")
+  Paciente         String?     @map("paciente")
+  Episodio         String?     @map("episodio")
+  Inicio           DateTime?   @map("inicio") @db.Date
+  Fin              DateTime?   @map("fin") @db.Date
+  Antimicrobiano   String?     @map("antimicrobiano")
+  Dosis            String?     @map("dosis")
+  Via              String?     @map("via")
+  Indicacion       String?     @map("indicacion")
+  Tipo             String?     @map("tipo")
+  DuracionPrevista Float?      @map("duracion_prevista")
+  Prescriptor      String?     @map("prescriptor")
+  Nota             String?     @map("nota")
+  Usuario          String?     @map("usuario")
+  Registrado       String?     @map("registrado")
+  Anulado          String?     @map("anulado")
+  MotivoAnulacion  String?     @map("motivo_anulacion")
+  creadoPor        String?     @map("creado_por") @db.Uuid
+  creadoEn         DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor   String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn    DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente         DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Inicio])
@@ -2023,24 +2589,25 @@ model DpAntimicrobiano {
 
 /// Hoja «Transiciones» del libro de Diálisis peritoneal del prototipo.
 model DpTransicion {
-  ID                String    @id @map("id")
-  Paciente          String?   @map("paciente")
-  Fecha             DateTime? @map("fecha") @db.Date
-  EstadoAnterior    String?   @map("estado_anterior")
-  EstadoNuevo       String?   @map("estado_nuevo")
-  ModalidadAnterior String?   @map("modalidad_anterior")
-  ModalidadNueva    String?   @map("modalidad_nueva")
-  Motivo            String?   @map("motivo")
-  Destino           String?   @map("destino")
-  Soporte           String?   @map("soporte")
-  Usuario           String?   @map("usuario")
-  Registrado        String?   @map("registrado")
-  Anulado           String?   @map("anulado")
-  MotivoAnulacion   String?   @map("motivo_anulacion")
-  creadoPor         String?   @map("creado_por") @db.Uuid
-  creadoEn          DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor    String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn     DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID                String      @id @map("id")
+  Paciente          String?     @map("paciente")
+  Fecha             DateTime?   @map("fecha") @db.Date
+  EstadoAnterior    String?     @map("estado_anterior")
+  EstadoNuevo       String?     @map("estado_nuevo")
+  ModalidadAnterior String?     @map("modalidad_anterior")
+  ModalidadNueva    String?     @map("modalidad_nueva")
+  Motivo            String?     @map("motivo")
+  Destino           String?     @map("destino")
+  Soporte           String?     @map("soporte")
+  Usuario           String?     @map("usuario")
+  Registrado        String?     @map("registrado")
+  Anulado           String?     @map("anulado")
+  MotivoAnulacion   String?     @map("motivo_anulacion")
+  creadoPor         String?     @map("creado_por") @db.Uuid
+  creadoEn          DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor    String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn     DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente          DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -2049,28 +2616,29 @@ model DpTransicion {
 
 /// Hoja «Valoraciones» del libro de Diálisis peritoneal del prototipo.
 model DpValoracion {
-  ID               String    @id @map("id")
-  Paciente         String?   @map("paciente")
-  Fecha            DateTime? @map("fecha") @db.Date
-  Tipo             String?   @map("tipo")
-  Profesional      String?   @map("profesional")
-  Estado           String?   @map("estado")
-  Version          Float?    @map("version")
-  VersionDe        String?   @map("version_de")
-  MotivoCorreccion String?   @map("motivo_correccion")
-  Datos            String?   @map("datos")
-  Completitud      Float?    @map("completitud")
-  FinalizadaPor    String?   @map("finalizada_por")
-  FinalizadaEn     String?   @map("finalizada_en")
-  Agenda           String?   @map("agenda")
-  Usuario          String?   @map("usuario")
-  Registrado       String?   @map("registrado")
-  Anulado          String?   @map("anulado")
-  MotivoAnulacion  String?   @map("motivo_anulacion")
-  creadoPor        String?   @map("creado_por") @db.Uuid
-  creadoEn         DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor   String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn    DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID               String      @id @map("id")
+  Paciente         String?     @map("paciente")
+  Fecha            DateTime?   @map("fecha") @db.Date
+  Tipo             String?     @map("tipo")
+  Profesional      String?     @map("profesional")
+  Estado           String?     @map("estado")
+  Version          Float?      @map("version")
+  VersionDe        String?     @map("version_de")
+  MotivoCorreccion String?     @map("motivo_correccion")
+  Datos            String?     @map("datos")
+  Completitud      Float?      @map("completitud")
+  FinalizadaPor    String?     @map("finalizada_por")
+  FinalizadaEn     String?     @map("finalizada_en")
+  Agenda           String?     @map("agenda")
+  Usuario          String?     @map("usuario")
+  Registrado       String?     @map("registrado")
+  Anulado          String?     @map("anulado")
+  MotivoAnulacion  String?     @map("motivo_anulacion")
+  creadoPor        String?     @map("creado_por") @db.Uuid
+  creadoEn         DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor   String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn    DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente         DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -2079,33 +2647,34 @@ model DpValoracion {
 
 /// Hoja «Laboratorios» del libro de Diálisis peritoneal del prototipo.
 model DpLaboratorio {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Examen          String?   @map("examen")
-  Valor           String?   @map("valor")
-  Unidad          String?   @map("unidad")
-  FechaToma       DateTime? @map("fecha_toma") @db.Date
-  FechaResultado  DateTime? @map("fecha_resultado") @db.Date
-  LabOrigen       String?   @map("lab_origen")
-  Metodo          String?   @map("metodo")
-  Componentes     String?   @map("componentes")
-  Estado          String?   @map("estado")
-  Reviso          String?   @map("reviso")
-  FechaRevision   DateTime? @map("fecha_revision") @db.Date
-  Version         Float?    @map("version")
-  VersionDe       String?   @map("version_de")
-  Motivo          String?   @map("motivo")
-  Solicitud       String?   @map("solicitud")
-  Soporte         String?   @map("soporte")
-  Observacion     String?   @map("observacion")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Examen          String?     @map("examen")
+  Valor           String?     @map("valor")
+  Unidad          String?     @map("unidad")
+  FechaToma       DateTime?   @map("fecha_toma") @db.Date
+  FechaResultado  DateTime?   @map("fecha_resultado") @db.Date
+  LabOrigen       String?     @map("lab_origen")
+  Metodo          String?     @map("metodo")
+  Componentes     String?     @map("componentes")
+  Estado          String?     @map("estado")
+  Reviso          String?     @map("reviso")
+  FechaRevision   DateTime?   @map("fecha_revision") @db.Date
+  Version         Float?      @map("version")
+  VersionDe       String?     @map("version_de")
+  Motivo          String?     @map("motivo")
+  Solicitud       String?     @map("solicitud")
+  Soporte         String?     @map("soporte")
+  Observacion     String?     @map("observacion")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([FechaToma])
@@ -2115,25 +2684,26 @@ model DpLaboratorio {
 
 /// Hoja «PlanLaboratorio» del libro de Diálisis peritoneal del prototipo.
 model DpPlanLaboratorio {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Examen          String?   @map("examen")
-  Periodicidad    Float?    @map("periodicidad")
-  Meses           String?   @map("meses")
-  Indicacion      String?   @map("indicacion")
-  Fuente          String?   @map("fuente")
-  Estado          String?   @map("estado")
-  ValidadoPor     String?   @map("validado_por")
-  FechaValidacion DateTime? @map("fecha_validacion") @db.Date
-  Nota            String?   @map("nota")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Examen          String?     @map("examen")
+  Periodicidad    Float?      @map("periodicidad")
+  Meses           String?     @map("meses")
+  Indicacion      String?     @map("indicacion")
+  Fuente          String?     @map("fuente")
+  Estado          String?     @map("estado")
+  ValidadoPor     String?     @map("validado_por")
+  FechaValidacion DateTime?   @map("fecha_validacion") @db.Date
+  Nota            String?     @map("nota")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@map("dp_plan_laboratorio")
@@ -2141,22 +2711,23 @@ model DpPlanLaboratorio {
 
 /// Hoja «SolicitudLab» del libro de Diálisis peritoneal del prototipo.
 model DpSolicitudLab {
-  ID              String    @id @map("id")
-  Mes             String?   @map("mes")
-  Paciente        String?   @map("paciente")
-  Examen          String?   @map("examen")
-  Origen          String?   @map("origen")
-  Estado          String?   @map("estado")
-  FechaToma       DateTime? @map("fecha_toma") @db.Date
-  Motivo          String?   @map("motivo")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Mes             String?     @map("mes")
+  Paciente        String?     @map("paciente")
+  Examen          String?     @map("examen")
+  Origen          String?     @map("origen")
+  Estado          String?     @map("estado")
+  FechaToma       DateTime?   @map("fecha_toma") @db.Date
+  Motivo          String?     @map("motivo")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([FechaToma])
@@ -2166,30 +2737,31 @@ model DpSolicitudLab {
 
 /// Hoja «Agenda» del libro de Diálisis peritoneal del prototipo.
 model DpAgenda {
-  ID               String    @id @map("id")
-  Paciente         String?   @map("paciente")
-  Tipo             String?   @map("tipo")
-  Fecha            DateTime? @map("fecha") @db.Date
-  Hora             String?   @map("hora")
-  DuracionMin      Float?    @map("duracion_min")
-  Profesional      String?   @map("profesional")
-  Modalidad        String?   @map("modalidad")
-  Lugar            String?   @map("lugar")
-  Estado           String?   @map("estado")
-  FechaRealizacion DateTime? @map("fecha_realizacion") @db.Date
-  Resultado        String?   @map("resultado")
-  Registro         String?   @map("registro")
-  Motivo           String?   @map("motivo")
-  Historial        String?   @map("historial")
-  Origen           String?   @map("origen")
-  Usuario          String?   @map("usuario")
-  Registrado       String?   @map("registrado")
-  Anulado          String?   @map("anulado")
-  MotivoAnulacion  String?   @map("motivo_anulacion")
-  creadoPor        String?   @map("creado_por") @db.Uuid
-  creadoEn         DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor   String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn    DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID               String      @id @map("id")
+  Paciente         String?     @map("paciente")
+  Tipo             String?     @map("tipo")
+  Fecha            DateTime?   @map("fecha") @db.Date
+  Hora             String?     @map("hora")
+  DuracionMin      Float?      @map("duracion_min")
+  Profesional      String?     @map("profesional")
+  Modalidad        String?     @map("modalidad")
+  Lugar            String?     @map("lugar")
+  Estado           String?     @map("estado")
+  FechaRealizacion DateTime?   @map("fecha_realizacion") @db.Date
+  Resultado        String?     @map("resultado")
+  Registro         String?     @map("registro")
+  Motivo           String?     @map("motivo")
+  Historial        String?     @map("historial")
+  Origen           String?     @map("origen")
+  Usuario          String?     @map("usuario")
+  Registrado       String?     @map("registrado")
+  Anulado          String?     @map("anulado")
+  MotivoAnulacion  String?     @map("motivo_anulacion")
+  creadoPor        String?     @map("creado_por") @db.Uuid
+  creadoEn         DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor   String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn    DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente         DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -2198,37 +2770,38 @@ model DpAgenda {
 
 /// Hoja «Prescripciones» del libro de Diálisis peritoneal del prototipo.
 model DpPrescripcion {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Version         Float?    @map("version")
-  Modalidad       String?   @map("modalidad")
-  VigenteDesde    DateTime? @map("vigente_desde") @db.Date
-  VigenteHasta    DateTime? @map("vigente_hasta") @db.Date
-  Prescriptor     String?   @map("prescriptor")
-  Motivo          String?   @map("motivo")
-  PesoRef         Float?    @map("peso_ref")
-  Sistema         String?   @map("sistema")
-  Soluciones      String?   @map("soluciones")
-  VolumenTotal    Float?    @map("volumen_total")
-  Intercambios    Float?    @map("intercambios")
-  PermanenciaNoct String?   @map("permanencia_noct")
-  TiempoTotalH    Float?    @map("tiempo_total_h")
-  Ciclos          Float?    @map("ciclos")
-  VolCiclo        Float?    @map("vol_ciclo")
-  Tidal           Float?    @map("tidal")
-  UltimaInfusion  String?   @map("ultima_infusion")
-  DiaSeco         String?   @map("dia_seco")
-  Objetivos       String?   @map("objetivos")
-  Obs             String?   @map("obs")
-  Estado          String?   @map("estado")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Version         Float?      @map("version")
+  Modalidad       String?     @map("modalidad")
+  VigenteDesde    DateTime?   @map("vigente_desde") @db.Date
+  VigenteHasta    DateTime?   @map("vigente_hasta") @db.Date
+  Prescriptor     String?     @map("prescriptor")
+  Motivo          String?     @map("motivo")
+  PesoRef         Float?      @map("peso_ref")
+  Sistema         String?     @map("sistema")
+  Soluciones      String?     @map("soluciones")
+  VolumenTotal    Float?      @map("volumen_total")
+  Intercambios    Float?      @map("intercambios")
+  PermanenciaNoct String?     @map("permanencia_noct")
+  TiempoTotalH    Float?      @map("tiempo_total_h")
+  Ciclos          Float?      @map("ciclos")
+  VolCiclo        Float?      @map("vol_ciclo")
+  Tidal           Float?      @map("tidal")
+  UltimaInfusion  String?     @map("ultima_infusion")
+  DiaSeco         String?     @map("dia_seco")
+  Objetivos       String?     @map("objetivos")
+  Obs             String?     @map("obs")
+  Estado          String?     @map("estado")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@map("dp_prescripcion")
@@ -2236,27 +2809,28 @@ model DpPrescripcion {
 
 /// Hoja «Cateter» del libro de Diálisis peritoneal del prototipo.
 model DpCateter {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Tipo            String?   @map("tipo")
-  Fecha           DateTime? @map("fecha") @db.Date
-  TipoCateter     String?   @map("tipo_cateter")
-  Datos           String?   @map("datos")
-  Clasificacion   String?   @map("clasificacion")
-  Responsable     String?   @map("responsable")
-  Episodio        String?   @map("episodio")
-  Estado          String?   @map("estado")
-  FechaCierre     DateTime? @map("fecha_cierre") @db.Date
-  Cierre          String?   @map("cierre")
-  Obs             String?   @map("obs")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Tipo            String?     @map("tipo")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  TipoCateter     String?     @map("tipo_cateter")
+  Datos           String?     @map("datos")
+  Clasificacion   String?     @map("clasificacion")
+  Responsable     String?     @map("responsable")
+  Episodio        String?     @map("episodio")
+  Estado          String?     @map("estado")
+  FechaCierre     DateTime?   @map("fecha_cierre") @db.Date
+  Cierre          String?     @map("cierre")
+  Obs             String?     @map("obs")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -2265,28 +2839,29 @@ model DpCateter {
 
 /// Hoja «Educacion» del libro de Diálisis peritoneal del prototipo.
 model DpEducacion {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Tipo            String?   @map("tipo")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Responsable     String?   @map("responsable")
-  Participante    String?   @map("participante")
-  Datos           String?   @map("datos")
-  Resultado       String?   @map("resultado")
-  Riesgos         String?   @map("riesgos")
-  Plan            String?   @map("plan")
-  Seguimiento     String?   @map("seguimiento")
-  Estado          String?   @map("estado")
-  FechaCierre     DateTime? @map("fecha_cierre") @db.Date
-  Cierre          String?   @map("cierre")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Tipo            String?     @map("tipo")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Responsable     String?     @map("responsable")
+  Participante    String?     @map("participante")
+  Datos           String?     @map("datos")
+  Resultado       String?     @map("resultado")
+  Riesgos         String?     @map("riesgos")
+  Plan            String?     @map("plan")
+  Seguimiento     String?     @map("seguimiento")
+  Estado          String?     @map("estado")
+  FechaCierre     DateTime?   @map("fecha_cierre") @db.Date
+  Cierre          String?     @map("cierre")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -2295,26 +2870,27 @@ model DpEducacion {
 
 /// Hoja «InsumosPrescritos» del libro de Diálisis peritoneal del prototipo.
 model DpInsumo {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Insumo          String?   @map("insumo")
-  Cantidad        Float?    @map("cantidad")
-  Periodo         String?   @map("periodo")
-  VigenteDesde    DateTime? @map("vigente_desde") @db.Date
-  Estado          String?   @map("estado")
-  Origen          String?   @map("origen")
-  NombreFuente    String?   @map("nombre_fuente")
-  Sugerido        String?   @map("sugerido")
-  Confianza       String?   @map("confianza")
-  Nota            String?   @map("nota")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Insumo          String?     @map("insumo")
+  Cantidad        Float?      @map("cantidad")
+  Periodo         String?     @map("periodo")
+  VigenteDesde    DateTime?   @map("vigente_desde") @db.Date
+  Estado          String?     @map("estado")
+  Origen          String?     @map("origen")
+  NombreFuente    String?     @map("nombre_fuente")
+  Sugerido        String?     @map("sugerido")
+  Confianza       String?     @map("confianza")
+  Nota            String?     @map("nota")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@map("dp_insumo")
@@ -2322,26 +2898,27 @@ model DpInsumo {
 
 /// Hoja «Entregas» del libro de Diálisis peritoneal del prototipo.
 model DpEntrega {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Periodo         String?   @map("periodo")
-  FechaProgramada DateTime? @map("fecha_programada") @db.Date
-  FechaEntrega    DateTime? @map("fecha_entrega") @db.Date
-  Items           String?   @map("items")
-  Estado          String?   @map("estado")
-  Responsable     String?   @map("responsable")
-  SoporteRecibido String?   @map("soporte_recibido")
-  Soporte         String?   @map("soporte")
-  Incidencia      String?   @map("incidencia")
-  Contingencia    String?   @map("contingencia")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Periodo         String?     @map("periodo")
+  FechaProgramada DateTime?   @map("fecha_programada") @db.Date
+  FechaEntrega    DateTime?   @map("fecha_entrega") @db.Date
+  Items           String?     @map("items")
+  Estado          String?     @map("estado")
+  Responsable     String?     @map("responsable")
+  SoporteRecibido String?     @map("soporte_recibido")
+  Soporte         String?     @map("soporte")
+  Incidencia      String?     @map("incidencia")
+  Contingencia    String?     @map("contingencia")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@map("dp_entrega")
@@ -2349,25 +2926,26 @@ model DpEntrega {
 
 /// Hoja «Hospitalizaciones» del libro de Diálisis peritoneal del prototipo.
 model DpHospitalizacion {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  FechaIngreso    DateTime? @map("fecha_ingreso") @db.Date
-  FechaEgreso     DateTime? @map("fecha_egreso") @db.Date
-  Mas24h          String?   @map("mas24h")
-  Institucion     String?   @map("institucion")
-  Causa           String?   @map("causa")
-  RelacionDP      String?   @map("relacion_dp")
-  Episodio        String?   @map("episodio")
-  Desenlace       String?   @map("desenlace")
-  Estado          String?   @map("estado")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  FechaIngreso    DateTime?   @map("fecha_ingreso") @db.Date
+  FechaEgreso     DateTime?   @map("fecha_egreso") @db.Date
+  Mas24h          String?     @map("mas24h")
+  Institucion     String?     @map("institucion")
+  Causa           String?     @map("causa")
+  RelacionDP      String?     @map("relacion_dp")
+  Episodio        String?     @map("episodio")
+  Desenlace       String?     @map("desenlace")
+  Estado          String?     @map("estado")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@map("dp_hospitalizacion")
@@ -2375,22 +2953,23 @@ model DpHospitalizacion {
 
 /// Hoja «Trasplante» del libro de Diálisis peritoneal del prototipo.
 model DpTrasplante {
-  ID                 String    @id @map("id")
-  Paciente           String?   @map("paciente")
-  Fecha              DateTime? @map("fecha") @db.Date
-  Estado             String?   @map("estado")
-  Contraindicaciones String?   @map("contraindicaciones")
-  Centro             String?   @map("centro")
-  Soporte            String?   @map("soporte")
-  Nota               String?   @map("nota")
-  Usuario            String?   @map("usuario")
-  Registrado         String?   @map("registrado")
-  Anulado            String?   @map("anulado")
-  MotivoAnulacion    String?   @map("motivo_anulacion")
-  creadoPor          String?   @map("creado_por") @db.Uuid
-  creadoEn           DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor     String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn      DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID                 String      @id @map("id")
+  Paciente           String?     @map("paciente")
+  Fecha              DateTime?   @map("fecha") @db.Date
+  Estado             String?     @map("estado")
+  Contraindicaciones String?     @map("contraindicaciones")
+  Centro             String?     @map("centro")
+  Soporte            String?     @map("soporte")
+  Nota               String?     @map("nota")
+  Usuario            String?     @map("usuario")
+  Registrado         String?     @map("registrado")
+  Anulado            String?     @map("anulado")
+  MotivoAnulacion    String?     @map("motivo_anulacion")
+  creadoPor          String?     @map("creado_por") @db.Uuid
+  creadoEn           DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor     String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn      DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente           DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -2399,22 +2978,23 @@ model DpTrasplante {
 
 /// Hoja «CalidadVida» del libro de Diálisis peritoneal del prototipo.
 model DpCalidadVida {
-  ID              String    @id @map("id")
-  Paciente        String?   @map("paciente")
-  Fecha           DateTime? @map("fecha") @db.Date
-  Escala          String?   @map("escala")
-  Momento         String?   @map("momento")
-  Puntaje         Float?    @map("puntaje")
-  Profesional     String?   @map("profesional")
-  Soporte         String?   @map("soporte")
-  Usuario         String?   @map("usuario")
-  Registrado      String?   @map("registrado")
-  Anulado         String?   @map("anulado")
-  MotivoAnulacion String?   @map("motivo_anulacion")
-  creadoPor       String?   @map("creado_por") @db.Uuid
-  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID              String      @id @map("id")
+  Paciente        String?     @map("paciente")
+  Fecha           DateTime?   @map("fecha") @db.Date
+  Escala          String?     @map("escala")
+  Momento         String?     @map("momento")
+  Puntaje         Float?      @map("puntaje")
+  Profesional     String?     @map("profesional")
+  Soporte         String?     @map("soporte")
+  Usuario         String?     @map("usuario")
+  Registrado      String?     @map("registrado")
+  Anulado         String?     @map("anulado")
+  MotivoAnulacion String?     @map("motivo_anulacion")
+  creadoPor       String?     @map("creado_por") @db.Uuid
+  creadoEn        DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente        DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])
@@ -2423,25 +3003,26 @@ model DpCalidadVida {
 
 /// Hoja «Heredados» del libro de Diálisis peritoneal del prototipo.
 model DpHeredado {
-  ID                String    @id @map("id")
-  Clave             String?   @map("clave")
-  Paciente          String?   @map("paciente")
-  Tipo              String?   @map("tipo")
-  FechaFuente       DateTime? @map("fecha_fuente") @db.Date
-  Anotacion         String?   @map("anotacion")
-  Fuente            String?   @map("fuente")
-  Estado            String?   @map("estado")
-  Verificacion      String?   @map("verificacion")
-  VerificadoPor     String?   @map("verificado_por")
-  FechaVerificacion DateTime? @map("fecha_verificacion") @db.Date
-  Usuario           String?   @map("usuario")
-  Registrado        String?   @map("registrado")
-  Anulado           String?   @map("anulado")
-  MotivoAnulacion   String?   @map("motivo_anulacion")
-  creadoPor         String?   @map("creado_por") @db.Uuid
-  creadoEn          DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor    String?   @map("actualizado_por") @db.Uuid
-  actualizadoEn     DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID                String      @id @map("id")
+  Clave             String?     @map("clave")
+  Paciente          String?     @map("paciente")
+  Tipo              String?     @map("tipo")
+  FechaFuente       DateTime?   @map("fecha_fuente") @db.Date
+  Anotacion         String?     @map("anotacion")
+  Fuente            String?     @map("fuente")
+  Estado            String?     @map("estado")
+  Verificacion      String?     @map("verificacion")
+  VerificadoPor     String?     @map("verificado_por")
+  FechaVerificacion DateTime?   @map("fecha_verificacion") @db.Date
+  Usuario           String?     @map("usuario")
+  Registrado        String?     @map("registrado")
+  Anulado           String?     @map("anulado")
+  MotivoAnulacion   String?     @map("motivo_anulacion")
+  creadoPor         String?     @map("creado_por") @db.Uuid
+  creadoEn          DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor    String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn     DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente          DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@map("dp_heredado")
@@ -2496,14 +3077,15 @@ model DpCorteCac {
 
 /// Hoja «CortesCACDetalle» del libro de Diálisis peritoneal del prototipo.
 model DpCorteCacDetalle {
-  clave          String   @id @map("clave")
-  Corte          String?  @map("corte")
-  Paciente       String?  @map("paciente")
-  Datos          String?  @map("datos")
-  creadoPor      String?  @map("creado_por") @db.Uuid
-  creadoEn       DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn  DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  clave          String      @id @map("clave")
+  Corte          String?     @map("corte")
+  Paciente       String?     @map("paciente")
+  Datos          String?     @map("datos")
+  creadoPor      String?     @map("creado_por") @db.Uuid
+  creadoEn       DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn  DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente       DpPaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@map("dp_corte_cac_detalle")
@@ -2569,56 +3151,59 @@ model DpConfig {
 
 /// Hoja «Pacientes» del libro de Consulta externa del prototipo.
 model CePaciente {
-  ID             String   @id @map("id")
-  Telefono2      String?  @map("telefono2")
-  Usuario        String?  @map("usuario")
-  Registrado     String?  @map("registrado")
-  personaId      String   @unique @map("persona_id") @db.Uuid
-  persona        Persona  @relation(fields: [personaId], references: [id])
-  creadoPor      String?  @map("creado_por") @db.Uuid
-  creadoEn       DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn  DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID             String        @id @map("id")
+  Telefono2      String?       @map("telefono2")
+  Usuario        String?       @map("usuario")
+  Registrado     String?       @map("registrado")
+  personaId      String        @unique @map("persona_id") @db.Uuid
+  persona        Persona       @relation(fields: [personaId], references: [id])
+  creadoPor      String?       @map("creado_por") @db.Uuid
+  creadoEn       DateTime      @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor String?       @map("actualizado_por") @db.Uuid
+  actualizadoEn  DateTime      @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ceSolicitud    CeSolicitud[]
+  ceCita         CeCita[]
 
   @@map("ce_paciente")
 }
 
 /// Hoja «Solicitudes» del libro de Consulta externa del prototipo.
 model CeSolicitud {
-  ID                     String   @id @map("id")
-  Paciente               String?  @map("paciente")
-  Especialidad           String?  @map("especialidad")
-  TipoConsulta           String?  @map("tipo_consulta")
-  Modalidad              String?  @map("modalidad")
-  FechaSolicitud         String?  @map("fecha_solicitud")
-  SoporteFecha           String?  @map("soporte_fecha")
-  Canal                  String?  @map("canal")
-  FechaDeseada           String?  @map("fecha_deseada")
-  ProfesionalPedido      String?  @map("profesional_pedido")
-  Programa               String?  @map("programa")
-  TieneOrden             String?  @map("tiene_orden")
-  OrdenRef               String?  @map("orden_ref")
-  FechaLimiteClinica     String?  @map("fecha_limite_clinica")
-  SustentoLimite         String?  @map("sustento_limite")
-  Observacion            String?  @map("observacion")
-  Estado                 String?  @map("estado")
-  Responsable            String?  @map("responsable")
-  ProximaAccion          String?  @map("proxima_accion")
-  ProximaFecha           String?  @map("proxima_fecha")
-  Prioridad              String?  @map("prioridad")
-  PrioridadMotivo        String?  @map("prioridad_motivo")
-  PrioridadFuente        String?  @map("prioridad_fuente")
-  PrioridadPor           String?  @map("prioridad_por")
-  PrioridadFecha         String?  @map("prioridad_fecha")
-  DuplicadoJustificacion String?  @map("duplicado_justificacion")
-  CausaCierre            String?  @map("causa_cierre")
-  FechaCierre            String?  @map("fecha_cierre")
-  Usuario                String?  @map("usuario")
-  Registrado             String?  @map("registrado")
-  creadoPor              String?  @map("creado_por") @db.Uuid
-  creadoEn               DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor         String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn          DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID                     String      @id @map("id")
+  Paciente               String?     @map("paciente")
+  Especialidad           String?     @map("especialidad")
+  TipoConsulta           String?     @map("tipo_consulta")
+  Modalidad              String?     @map("modalidad")
+  FechaSolicitud         String?     @map("fecha_solicitud")
+  SoporteFecha           String?     @map("soporte_fecha")
+  Canal                  String?     @map("canal")
+  FechaDeseada           String?     @map("fecha_deseada")
+  ProfesionalPedido      String?     @map("profesional_pedido")
+  Programa               String?     @map("programa")
+  TieneOrden             String?     @map("tiene_orden")
+  OrdenRef               String?     @map("orden_ref")
+  FechaLimiteClinica     String?     @map("fecha_limite_clinica")
+  SustentoLimite         String?     @map("sustento_limite")
+  Observacion            String?     @map("observacion")
+  Estado                 String?     @map("estado")
+  Responsable            String?     @map("responsable")
+  ProximaAccion          String?     @map("proxima_accion")
+  ProximaFecha           String?     @map("proxima_fecha")
+  Prioridad              String?     @map("prioridad")
+  PrioridadMotivo        String?     @map("prioridad_motivo")
+  PrioridadFuente        String?     @map("prioridad_fuente")
+  PrioridadPor           String?     @map("prioridad_por")
+  PrioridadFecha         String?     @map("prioridad_fecha")
+  DuplicadoJustificacion String?     @map("duplicado_justificacion")
+  CausaCierre            String?     @map("causa_cierre")
+  FechaCierre            String?     @map("fecha_cierre")
+  Usuario                String?     @map("usuario")
+  Registrado             String?     @map("registrado")
+  creadoPor              String?     @map("creado_por") @db.Uuid
+  creadoEn               DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor         String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn          DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente               CePaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@map("ce_solicitud")
@@ -2720,23 +3305,24 @@ model CeCupo {
 
 /// Hoja «Citas» del libro de Consulta externa del prototipo.
 model CeCita {
-  ID               String   @id @map("id")
-  Cupo             String?  @map("cupo")
-  Solicitud        String?  @map("solicitud")
-  Paciente         String?  @map("paciente")
-  Fecha            String?  @map("fecha")
-  Hora             String?  @map("hora")
-  Estado           String?  @map("estado")
-  Origen           String?  @map("origen")
-  AsignadaEn       String?  @map("asignada_en")
-  AsignadaPor      String?  @map("asignada_por")
-  SaltoOrdenMotivo String?  @map("salto_orden_motivo")
-  Confirmacion     String?  @map("confirmacion")
-  Observacion      String?  @map("observacion")
-  creadoPor        String?  @map("creado_por") @db.Uuid
-  creadoEn         DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoPor   String?  @map("actualizado_por") @db.Uuid
-  actualizadoEn    DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  ID               String      @id @map("id")
+  Cupo             String?     @map("cupo")
+  Solicitud        String?     @map("solicitud")
+  Paciente         String?     @map("paciente")
+  Fecha            String?     @map("fecha")
+  Hora             String?     @map("hora")
+  Estado           String?     @map("estado")
+  Origen           String?     @map("origen")
+  AsignadaEn       String?     @map("asignada_en")
+  AsignadaPor      String?     @map("asignada_por")
+  SaltoOrdenMotivo String?     @map("salto_orden_motivo")
+  Confirmacion     String?     @map("confirmacion")
+  Observacion      String?     @map("observacion")
+  creadoPor        String?     @map("creado_por") @db.Uuid
+  creadoEn         DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor   String?     @map("actualizado_por") @db.Uuid
+  actualizadoEn    DateTime    @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  paciente         CePaciente? @relation(fields: [Paciente], references: [ID], onDelete: Restrict)
 
   @@index([Paciente])
   @@index([Fecha])

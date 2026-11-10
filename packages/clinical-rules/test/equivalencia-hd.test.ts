@@ -1,4 +1,4 @@
-/* Equivalencia Hemodiálisis: prototipo original (oráculo) frente a crearMotorHD, con la cohorte ficticia de
+/* Equivalencia Hemodiálisis: código del portal (oráculo) frente a crearMotorHD, con la cohorte ficticia de
    40 pacientes que trae el propio prototipo («Ver con datos ficticios»), en dos fechas de corte distintas, y con la
    demostración institucional completa (pxDemo), que agrega el registro de dispositivos, la limpieza y la hoja
    Microbiología del libro institucional (confirmación de ITS-CVC y días-catéter). */
@@ -55,7 +55,10 @@ for (const { fecha, demo } of ESCENARIOS) {
     const libro = clonarLibro(o.ev("ST.book"));
     const portal = o.ev<Record<string, unknown> | null>("PX.book") ? clonarLibro(o.ev("PX.book")) : null;
     const ps = o.ev<Date>("ST.ps");
-    const m = crearMotorHD({ libro, portal, hoy: fecha, corte: fecha, inicioPeriodo: ps }) as Record<string, unknown>;
+    // Desde la v2.1 la facturación no se bloquea con clave en la interfaz (en la aplicación solo la recibe el
+    // administrador): el motor la recibe por ctx.facturacion, igual que la ve la interfaz.
+    const facturacion = clonarLibro(o.ev("ST.fin && ST.fin.data ? ST.fin.data : null"));
+    const m = crearMotorHD({ libro, portal, facturacion, hoy: fecha, corte: fecha, inicioPeriodo: ps }) as Record<string, unknown>;
     evaluarEn(m, "ensureIdx()");
     const ids = o.ev<string[]>("pacs().map(p => p.ID)");
 

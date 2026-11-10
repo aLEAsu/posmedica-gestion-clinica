@@ -24,6 +24,11 @@ export const MODELOS_HD = {
   sol: { modelo: "HdSolicitudLab", tabla: "hd_solicitud_lab" },
   dsp: { modelo: "HdDispositivo", tabla: "hd_dispositivo" },
   lim: { modelo: "HdLimpieza", tabla: "hd_limpieza" },
+  // v3.2 (hd-hojas.js): actividades SIIS, bitácora de oxígeno medicinal y verificación pre-turno.
+  sii: { modelo: "HdActividadSiis", tabla: "hd_actividad_siis" },
+  oxi: { modelo: "HdOxigeno", tabla: "hd_oxigeno" },
+  cil: { modelo: "HdCilindroOxigeno", tabla: "hd_cilindro_oxigeno" },
+  chk: { modelo: "HdChequeoTurno", tabla: "hd_chequeo_turno" },
   cor: { modelo: "HdCorte", tabla: "hd_corte" },
 };
 

@@ -8,13 +8,13 @@
    cupos sí llegan (no tienen datos del paciente) para que la apertura de agenda detecte los cruces de horario.
    Un cupo no puede tener dos citas activas: se verifica en la base dentro de la transacción serializable del guardado
    (el prototipo lo dejaba para la base de datos: «el control simultáneo real llega con la base de datos»). */
-import { puede, type UsuarioSesion } from "@posmedica/shared";
+import { puede, ROLES_CE, type UsuarioSesion } from "@posmedica/shared";
 import type { ConfigLibro, Db, Fila, HojaDef } from "../libro/servicio.js";
 import { sexoCodigo, sexoEtiqueta } from "../libro/persona.js";
 import { CAMPOS_PERSONA_CE, HOJAS_CE } from "./hojas.js";
 
 /** Roles y acciones del módulo (CE_ROLES y CE_PUEDE del prototipo; la prueba verifica que sean idénticos). */
-export const ROLES_CE: Record<string, string> = { coordinacion: "Coordinación", admisiones: "Admisiones", autorizaciones: "Autorizaciones", profesional: "Profesional", calidad: "Calidad", consulta: "Solo consulta" };
+export { ROLES_CE };
 export const PUEDE_CE: Record<string, string[]> = {
   registrar: ["admisiones", "coordinacion"], asignar: ["admisiones", "coordinacion"], abrir: ["admisiones", "coordinacion"], bloquear: ["admisiones", "coordinacion"], bloquearJornada: ["coordinacion"],
   gestion: ["admisiones", "autorizaciones", "coordinacion"], estado: ["admisiones", "autorizaciones", "coordinacion"], priorizar: ["admisiones", "coordinacion", "profesional"], prioClinica: ["coordinacion", "profesional"],
@@ -72,6 +72,9 @@ export const CONFIG_CE: ConfigLibro = {
   // El prototipo lee el libro de Consulta externa todo como texto (ceParse con raw:false y "" en las celdas vacías).
   tipo: () => "texto",
   vacio: "",
+  // RolesCE usa el nombre de usuario como clave, y en «usuario» siempre es minúsculas: sin esto, un admin que escriba
+  // una variante con mayúsculas desde dentro del módulo podría crear una fila de rol ambigua para el mismo usuario.
+  normalizarClave: (h, v) => (h === "rol" ? v.toLowerCase() : v),
   contexto,
   leeFila: (h, f, _u, c: CtxCe) => c.veReservadas || !reservada(h, f, c),
   escribe: (h, u, tipo, f, c: CtxCe) => {
@@ -119,6 +122,9 @@ export const CONFIG_CE: ConfigLibro = {
     relacionPersona: "cePaciente",
     camposPersona: CAMPOS_PERSONA_CE,
     campoIngreso: "Registrado",
+    // CE no tiene un estado de paciente propio (no aplica, decisión de la auditoría A9, 19 oct 2026): su inscripción
+    // queda en «Activo» a propósito; el estado real de cada caso vive en Solicitudes/Citas, no en el paciente.
+
     aPersona: (r: Fila) => ({
       tipoDoc: r.TipoDoc, documento: r.Documento, primerNombre: r.PrimerNombre, segundoNombre: r.SegundoNombre, primerApellido: r.PrimerApellido,
       segundoApellido: r.SegundoApellido, fechaNacimiento: r.FechaNac, sexo: sexoEtiqueta(r.Sexo), eps: r.EPS, municipio: r.Municipio, telefono: r.Telefono,

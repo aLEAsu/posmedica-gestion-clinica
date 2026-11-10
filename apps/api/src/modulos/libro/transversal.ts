@@ -12,7 +12,7 @@ type Transversal = (typeof TRANSVERSALES)[number];
 export const HOJAS_TRANSVERSALES: Record<"hd" | "vih" | "dp", Partial<Record<Transversal, string[]>>> = {
   hd: {
     lab: ["pac", "mov", "nov", "lab", "sol"],
-    prod: ["pac", "mov", "nov", "ses"],
+    prod: ["pac", "mov", "nov", "ses", "val"],
     sp: ["pac", "mov", "nov", "ses", "evt", "seg"],
     iaas: ["pac", "mov", "nov", "ses", "evt", "atb", "dsp", "lim", "aud"],
     proa: ["pac", "mov", "nov", "ses", "evt", "atb"],
@@ -20,15 +20,44 @@ export const HOJAS_TRANSVERSALES: Record<"hd" | "vih" | "dp", Partial<Record<Tra
   vih: {
     lab: ["pac", "nov", "lab", "sol"],
     prod: ["pac", "nov", "cit", "ent"],
+    proa: ["pac", "prf"], // v0.9: PROA lee la profilaxis antimicrobiana de VIH
   },
   // DP: RolesDP y Config no tienen datos de pacientes y el módulo los necesita para el rol del usuario (dpRole) y sus
   // parámetros (dpCfg): sin «rol», Laboratorio quedaría como «Solo consulta» aunque tenga su rol en DP.
   dp: {
     lab: ["pac", "est", "lab", "plab", "sol", "rol", "cfg"],
-    prod: ["pac", "est", "rol", "cfg"],
+    prod: ["pac", "est", "rol", "cfg", "val"],
     iaas: ["pac", "est", "epi", "atb", "cat", "rol", "cfg"],
     proa: ["pac", "est", "epi", "atb", "rol", "cfg"],
   },
+};
+
+/* Columnas: algunas hojas las necesita un módulo solo para contar o nombrar. Ahí recibe únicamente esas columnas (medidas
+   igual que las hojas). v3.2: Producción cuenta las valoraciones cerradas del mes (sin su texto clínico) y PROA nombra
+   al paciente de VIH y lee su profilaxis. Una hoja que no aparece aquí se entrega con todas sus columnas. */
+export const COLUMNAS_TRANSVERSALES: Record<"hd" | "vih" | "dp", Partial<Record<Transversal, Record<string, string[]>>>> = {
+  hd: { prod: { val: ["ID", "Mes", "Anulado"] } },
+  vih: {
+    proa: {
+      pac: ["ID", "PrimerNombre", "SegundoNombre", "PrimerApellido", "SegundoApellido", "Anulado"],
+      prf: ["ID", "Paciente", "Medicamento", "Indicacion", "Inicio", "Usuario", "Anulado"],
+    },
+  },
+  dp: { prod: { val: ["ID", "Paciente", "Fecha", "Estado", "Anulado"] } },
+};
+
+/** Columnas que recibe el usuario de una hoja: todas si tiene el programa o si alguno de sus módulos transversales usa la
+    hoja completa; si no, la unión de las columnas que usan sus módulos. */
+export const columnasProgramaOTransversal = (programa: "hd" | "vih" | "dp") => (hoja: string, u: UsuarioSesion): string[] | null => {
+  if (puede(u, programa, "ver")) return null;
+  const mios = TRANSVERSALES.filter((t) => puede(u, t, "ver") && (HOJAS_TRANSVERSALES[programa][t] ?? []).includes(hoja));
+  const union = new Set<string>();
+  for (const t of mios) {
+    const cs = COLUMNAS_TRANSVERSALES[programa][t]?.[hoja];
+    if (!cs) return null;
+    cs.forEach((c) => union.add(c));
+  }
+  return mios.length ? [...union] : null;
 };
 
 /** Lee el libro quien ve el programa o alguno de los módulos transversales que lo consultan. */

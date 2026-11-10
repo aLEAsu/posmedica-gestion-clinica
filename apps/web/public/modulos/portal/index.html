@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Portal · POSMÉDICA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="../portal.css">
+<link rel="stylesheet" href="../modulo.css">
+</head>
+<body>
+<div class="cargando-modulo" id="cargando-modulo">Cargando…</div>
+
+
+<meta name="sigc-version" content="3.1 · 10-nov-2026 · Hemodiálisis: base real leída solo de los Dashboards mayo-noviembre 2026 (sin datos generados), caracterización epidemiológica de la cohorte y tablero CAC de 17 indicadores con cálculo auditado. Base: 3.0 · 2.2 · 26-oct-2026 · Diálisis peritoneal v1.1 reemplaza el módulo DP nativo en la navegación; nuevo módulo Contratos y tecnologías v1.1 (sin precios). Ambos embebidos como aplicaciones independientes. Base: 2.1">
+
+
+
+
+<img id="pxlogo" src="/logo-posmedica.jpg" alt="" hidden>
+<div id="px">
+<div id="pxbar" class="pxbar" hidden></div>
+<div class="wrap pxwrap" id="pxmain"></div>
+<section id="hdapp" hidden>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="logo"><img src="/logo-posmedica.jpg" alt="UNO-P Unidad Oncológica del Putumayo"></span>
+      <div>
+        <div class="eyebrow">UNO-P · POSMÉDICA · Unidad Renal</div>
+        <h1>Hemodiálisis · control y gestión</h1>
+      </div>
+    </div>
+  </header>
+  <nav class="nav" id="nav" role="tablist" aria-label="Secciones"></nav>
+  <div id="hd-subbar"></div>
+  <div class="bookbar panel" id="bookbar">
+    <div class="copyrow">
+      <label class="btn primary" for="bookfile">Cargar libro o Dashboard</label><input type="file" id="bookfile" accept=".xlsx,.xls" hidden>
+      <button type="button" class="btn" id="bookdemo">Ver con datos ficticios</button>
+      <button type="button" class="btn" id="booknew">Empezar libro nuevo</button>
+      <button type="button" class="btn" id="bookexp" hidden>Descargar libro actualizado</button>
+      <span class="note" id="bookinfo">Sin libro cargado. El archivo se lee solo en este navegador.</span>
+    </div>
+    <div class="filters">
+      <label class="f">Usuario que registra *<input type="text" id="user" placeholder="Nombre y cargo" autocomplete="name"></label>
+      <label class="f">Fecha de corte<input type="date" id="corte"></label>
+      <label class="f">Inicio del periodo<input type="date" id="ps"></label>
+      <label class="f">EPS<select id="feps"></select></label>
+    </div>
+  </div>
+  <p class="privacy">Datos de salud sensibles (Ley 1581 de 2012). Nada sale de este navegador: el libro se lee y se descarga en su equipo. La herramienta calcula y alerta; la decisión clínica es del profesional.</p>
+  <main id="out" class="mout"></main>
+</div>
+</section>
+<section id="nefroapp" hidden></section>
+<section id="extapp" hidden></section>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- =====================================================================================================
+     SIGC POSMÉDICA v3.2 · REDISEÑO VISUAL AMIGABLE Y BARRA LATERAL ESTILO GEMINI (EXPLORADOR DE SUBMÓDULOS)
+     ===================================================================================================== -->
+
+
+
+
+
+
+<div class="toast" id="toast" role="status" hidden></div>
+<div id="dlg" class="ovl" hidden></div>
+<script src="../vendor/xlsx.full.min.js"></script>
+<script src="portal.js"></script>
+<script src="hd-hojas.js"></script>
+<script src="transversal-registros.js"></script>
+<script src="talento-humano.js"></script>
+<script src="modulos-v11.js"></script>
+<script src="hdx-lectura.js"></script>
+<script src="hdx-nucleo.js"></script>
+<script src="motor-v30.js"></script>
+<script src="hd-registros.js"></script>
+<script src="hdx-vistas.js"></script>
+<script src="barra-lateral.js"></script>
+<script src="../adaptador-comun.js"></script>
+<script src="adaptador-portal.js"></script>
+</body>
+</html>

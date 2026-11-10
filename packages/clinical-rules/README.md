@@ -1,17 +1,17 @@
 # @posmedica/clinical-rules
 
-Reglas clínicas de Hemodiálisis, VIH y Nefroprotección, **copiadas textualmente** del prototipo validado por la coordinación médica y verificadas contra él.
+Reglas clínicas de Hemodiálisis, VIH y Nefroprotección, **copiadas textualmente** del código de los módulos (`apps/web/public/modulos/`, el que sirve la aplicación) y verificadas contra él. Ese código partió del prototipo v0.8 validado por la coordinación médica; el prototipo HTML ya no se lee.
 
 ## Cómo está hecho
 
 ```
-scripts/fuente.mjs           lee «Gestión Clínica POSMÉDICA (1).html» (raíz del repositorio)
+scripts/fuente.mjs           lee apps/web/public/modulos/portal/portal.js y nefro/ruta-*.js
 scripts/extraer-reglas.mjs   copia cada definición permitida, con su línea de origen, a src/generado/
 src/generado/hd.js           crearMotorHD(ctx)     164 definiciones   ┐
 src/generado/vih.js          crearMotorVIH(ctx)    139 definiciones   ├ GENERADOS: no editar a mano
 src/generado/nefro.js        crearMotorNefro(ctx)  NP + COH completos ┘
 src/index.ts                 API tipada y fórmulas sueltas
-test/oraculo.ts              ejecuta el prototipo ORIGINAL completo en un contexto aislado (DOM simulado, reloj fijo)
+test/oraculo.ts              ejecuta el código COMPLETO de los módulos en un contexto aislado (DOM simulado, reloj fijo)
 test/equivalencia-*.test.ts  compara oráculo y motor, paciente por paciente
 ```
 
@@ -48,9 +48,9 @@ formulas.ktvDaugirdas(60, 20, 240, 3, 70); // 1,32
 
 `libro` tiene las mismas hojas y columnas que el libro de Excel del prototipo. En las fases 3 a 5 el backend lo arma desde la base de datos.
 
-## Si el prototipo cambia
+## Si cambia la lógica clínica de un módulo
 
-1. Reemplace `Gestión Clínica POSMÉDICA (1).html` con la versión aprobada por la coordinación.
+1. Haga el cambio en `apps/web/public/modulos/portal/portal.js` (o `nefro/ruta-*.js`), tomando como referencia la versión del prototipo aprobada por la coordinación.
 2. Ejecute la extracción:
    ```bash
    npm run extraer -w packages/clinical-rules

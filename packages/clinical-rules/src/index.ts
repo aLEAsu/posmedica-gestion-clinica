@@ -9,7 +9,7 @@ import { crearMotorNefro as _nefro } from "./generado/nefro.js";
 import { crearMotorVIH as _vih } from "./generado/vih.js";
 
 export const VERSION_REGLAS = "0.2.0";
-export const FUENTE = "Gestión Clínica POSMÉDICA (1).html";
+export const FUENTE = "apps/web/public/modulos (portal.js, nefro/ruta-*.js)";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Fn = (...a: any[]) => any;

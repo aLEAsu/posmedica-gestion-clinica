@@ -1,4 +1,4 @@
-/* Herramientas de comparación entre el prototipo (oráculo) y los motores extraídos. */
+/* Herramientas de comparación entre el código de los módulos (oráculo) y los motores extraídos. */
 
 const esFecha = (v: unknown): v is Date => Object.prototype.toString.call(v) === "[object Date]";
 

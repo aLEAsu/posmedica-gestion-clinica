@@ -1,739 +1,5 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Gestión Clínica POSMÉDICA</title>
-<meta name="sigc-version" content="0.8 · 13-oct-2026 · DP integral">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
-<style>
-/* Layout: misma familia visual que la Ruta de Nefroprotección. Barra de libro arriba, pestañas, y cada pestaña como hoja de trabajo: resumen arriba, detalle abajo. Modo oscuro único (decisión de la coordinación, 10-oct-2026; reemplaza el fondo blanco). */
-:root{
-  --bg:#ffffff; --surface:#ffffff; --surface-2:#f3f6f7; --ink:#111c22; --muted:#56666d; --line:#e1e7ea; --field:#cfd8dc;
-  --accent:#0d6b71; --accent-ink:#ffffff; --accent-soft:#e6f1f1;
-  --ok:#2d7a4c; --warn:#a2650c; --bad:#b23434; --base:#5d6b73;
-  --ok-soft:#e8f3ec; --warn-soft:#fbf1e2; --bad-soft:#f9e9e9;
-  --f-display:"IBM Plex Sans","Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
-  --shadow:0 1px 2px rgba(16,28,34,.05),0 1px 3px rgba(16,28,34,.04);
-  color-scheme:light;
-}
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-html,body{background:var(--bg)}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
-.wrap{max-width:1320px;margin:0 auto;padding-inline:16px;padding-block:18px 56px}
-header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px}
-.brand{display:flex;align-items:center;gap:16px;flex-wrap:wrap;min-width:0}
-.logo{background:#fff;border-radius:8px;padding:4px 6px;display:inline-flex}
-.logo img{height:46px;width:auto;display:block;max-width:100%}
-.eyebrow{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
-h1{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;font-size:clamp(22px,3vw,30px);margin:2px 0 0;text-wrap:balance;line-height:1.15}
-h2.mt{font-family:var(--f-display);font-weight:600;font-size:22px;margin:0;text-wrap:balance}
-h3{font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
-.nav{display:flex;gap:2px;overflow-x:auto;margin-top:14px;border-bottom:1px solid var(--line)}
-.nav button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;padding:9px 12px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap;display:inline-flex;gap:6px;align-items:center}
-.nav button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
-.nav button:hover{color:var(--ink)}
-.nav .cnt{font-family:var(--f-mono);font-size:11px;font-weight:600;border-radius:9px;padding:0 6px;background:var(--bad-soft);color:var(--bad)}
-.nav svg{width:13px;height:13px}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:var(--shadow)}
-.bookbar{margin-top:14px;display:grid;gap:12px}
-.copyrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.filters{display:flex;flex-wrap:wrap;gap:10px}
-.filters label.f{min-width:150px;flex:1 1 150px;max-width:240px}
-label.f{display:grid;gap:3px;font-size:13px;color:var(--muted);min-width:0}
-input[type=text],input[type=date],input[type=month],input[type=number],input[type=password],input[type=time],select,textarea{width:100%;font:inherit;font-family:var(--f-mono);font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--field);border-radius:6px;padding:7px 9px;min-width:0}
-select{font-family:var(--f-body)}
-textarea{font-family:var(--f-body);min-height:60px}
-.btn{font:inherit;font-size:13px;font-weight:700;border:1px solid var(--field);background:var(--surface);color:var(--ink);border-radius:6px;padding:6px 11px;cursor:pointer;white-space:nowrap}
-.btn:hover{border-color:var(--accent)}
-.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.btn.danger{color:var(--bad);border-color:var(--bad)}
-.btn.sm{font-size:12px;padding:3px 8px}
-.btn[disabled]{opacity:.5;cursor:not-allowed}
-.lnk{font:inherit;font-size:13px;font-weight:700;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;white-space:nowrap}
-.note{font-size:13px;color:var(--muted);max-width:90ch}
-.privacy{font-size:12.5px;color:var(--muted);margin:10px 0 0}
-.mout{margin-top:16px;display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
-.mout>*{min-width:0}
-.mhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px}
-.mhead>div{min-width:0}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;display:grid;gap:2px;box-shadow:var(--shadow);border-top:3px solid var(--accent)}
-.tile.ok{border-top-color:var(--ok)} .tile.warn{border-top-color:var(--warn)} .tile.bad{border-top-color:var(--bad)} .tile.base{border-top-color:var(--base)}
-.tile .tv{font-family:var(--f-mono);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
-.tile .tl{font-size:12.5px;color:var(--muted)}
-.tablebox{overflow-x:auto;min-width:0}
-table{border-collapse:collapse;width:100%;font-size:14px}
-th,td{text-align:left;padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--surface-2);white-space:nowrap}
-td .sub{display:block;font-size:12.5px;color:var(--muted)}
-td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
-.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
-tr.click{cursor:pointer} tr.click:hover td{background:var(--surface-2)}
-tr.sel td{background:var(--accent-soft)}
-.st{display:inline-block;font-size:11.5px;font-weight:700;border-radius:4px;padding:0 6px;white-space:nowrap;border:1px solid currentColor}
-.st.alto,.st.ok{color:var(--ok)} .st.medio,.st.warn{color:var(--warn)} .st.bajo,.st.bad{color:var(--bad)} .st.base,.st.na{color:var(--base);border-style:dashed}
-.tag{font-size:11px;font-weight:700;letter-spacing:.03em;border-radius:4px;padding:1px 6px;white-space:nowrap;border:1px solid var(--line);color:var(--muted)}
-.tag.cac{background:#e8f0fe;color:#1a56b8;border-color:#c5d7f7}
-.tag.inst{background:#fff4e0;color:#8a5300;border-color:#f3d9a8}
-.tag.cvc{color:var(--bad);border-color:var(--bad)} .tag.fav{color:var(--ok);border-color:var(--ok)}
-.alert{padding:9px 12px;border-radius:8px;background:var(--surface-2);border-left:4px solid var(--accent)}
-.alert.warn{border-left-color:var(--warn);background:var(--warn-soft)} .alert.bad{border-left-color:var(--bad);background:var(--bad-soft)} .alert.ok{border-left-color:var(--ok);background:var(--ok-soft)}
-.alert p{margin:0}
-.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 14px;border-radius:8px;font-size:14px;z-index:40;max-width:90vw}
-.seg{display:inline-flex;flex-wrap:wrap;background:var(--surface-2);border-radius:7px;padding:3px;gap:3px}
-.seg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;color:var(--muted);padding:5px 11px;border-radius:5px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
-.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
-@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
-.pacgrid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
-@media (max-width:980px){.pacgrid{grid-template-columns:minmax(0,1fr)}}
-.form{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
-.form .wide{grid-column:1/-1}
-details.hist{border-top:1px solid var(--line);padding:9px 0}
-details.hist summary{cursor:pointer;font-weight:700}
-details.hist .tablebox{margin-top:8px}
-.empty{padding:28px 18px;text-align:center;color:var(--muted)}
-.start{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:6px}
-.start .panel{display:grid;gap:8px;align-content:start}
-.start .panel p{margin:0}
-.anul td{color:var(--muted);text-decoration:line-through}
-.anul td:last-child{text-decoration:none}
-/* turno */
-table.turno td{vertical-align:middle;padding:5px 6px}
-table.turno input{padding:5px 6px;font-size:13px}
-table.turno select{padding:5px 6px;font-size:13px;min-width:128px}
-table.turno .w-min{width:66px} table.turno .w-kg{width:68px} table.turno .w-tas{width:62px}
-.est{display:inline-flex;gap:3px;flex-wrap:nowrap}
-.est button{font:inherit;font-size:12px;font-weight:700;border:1px solid var(--field);background:#fff;color:var(--muted);border-radius:5px;padding:4px 7px;cursor:pointer;white-space:nowrap}
-.est button[aria-pressed="true"].e-r{background:var(--ok);border-color:var(--ok);color:#fff}
-.est button[aria-pressed="true"].e-n{background:var(--bad);border-color:var(--bad);color:#fff}
-.est button[aria-pressed="true"].e-c{background:var(--warn);border-color:var(--warn);color:#fff}
-.est button[aria-pressed="true"].e-s{background:var(--base);border-color:var(--base);color:#fff}
-tr.row-saved td:first-child{box-shadow:inset 4px 0 0 var(--ok)}
-tr.row-dirty td:first-child{box-shadow:inset 4px 0 0 var(--warn)}
-tr.evrow td{background:var(--surface-2)}
-.pmap{display:grid;grid-template-columns:110px repeat(13,minmax(44px,1fr));gap:3px;font-size:12px;min-width:760px}
-.pmap div{border:1px solid var(--line);border-radius:4px;padding:3px 4px;text-align:center;font-family:var(--f-mono);min-height:26px}
-.pmap .h{border:0;font-family:var(--f-body);font-weight:700;color:var(--muted);text-align:left}
-.pmap .oc{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
-.pmap .dup{background:var(--bad-soft);border-color:var(--bad)}
-.pmap .free{color:var(--muted);border-style:dashed}
-/* indicadores */
-table.indt tbody tr{cursor:pointer}
-table.indt tbody tr:hover td{background:var(--surface-2)}
-.bar{display:block;height:5px;background:var(--surface-2);border-radius:3px;margin:4px 0 0 auto;width:110px;position:relative}
-.bar span{display:block;height:5px;border-radius:3px;background:var(--accent)}
-svg.spark{width:96px;height:26px;display:block;overflow:visible}
-svg.chart{width:100%;height:auto;display:block;overflow:visible}
-svg .ax{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
-svg .val{fill:var(--ink);font-size:12px;font-weight:700;font-family:var(--f-mono)}
-.inddet{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:900px){.inddet{grid-template-columns:minmax(0,1fr)}}
-.hero .hv{font-family:var(--f-mono);font-size:42px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
-.hero .hn{font-family:var(--f-display);font-weight:600;font-size:19px;margin:4px 0 8px;line-height:1.25}
-dl.ficha{display:grid;grid-template-columns:92px minmax(0,1fr);gap:4px 12px;font-size:13.5px;margin:10px 0 0}
-dl.ficha dt{color:var(--muted);font-weight:700} dl.ficha dd{margin:0}
-.lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.lists ul{margin:0;padding-left:18px;font-size:13.5px}
-.lock{max-width:440px;display:grid;gap:10px}
-.labgrid input{width:78px;padding:4px 6px;font-size:13px}
-.labgrid select{width:118px;padding:4px 6px;font-size:13px}
-.sc{font-family:var(--f-mono);font-weight:600}
-.lvl{font-size:11.5px;font-weight:700;border-radius:4px;padding:1px 7px;white-space:nowrap}
-.lvl.alto{background:var(--bad);color:#fff} .lvl.medio{background:var(--warn);color:#fff} .lvl.bajo{background:var(--ok);color:#fff}
-.sd{color:var(--muted);font-style:italic}
-.ovl{position:fixed;inset:0;z-index:30;background:rgba(10,20,22,.45);display:flex;align-items:flex-start;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 16px 16px;overflow:auto}
-.dlg{background:var(--surface);border:1px solid var(--line);border-radius:12px;width:min(640px,100%);padding:16px;display:grid;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
-.dlg h3{margin:0}
-.ref h2{font-family:var(--f-display);font-weight:600;font-size:20px;margin:0 0 6px}
-.ref section{display:grid;gap:8px}
-.ref p,.ref li{max-width:95ch}
-.demo-banner{background:var(--warn-soft);border:1px solid var(--warn);border-radius:8px;padding:8px 12px;font-size:13.5px}
-@media (max-width:620px){.filters label.f{max-width:none}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-.chs{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.ch{font-size:11.5px;border-radius:4px;padding:0 6px;border:1px solid var(--line);white-space:nowrap;font-family:var(--f-mono);color:var(--ink);background:var(--surface-2)}
-.ch.bad{color:var(--bad);border-color:var(--bad);background:var(--bad-soft)}
-table.turno .w-ta{width:84px}
-table.mini td{padding:4px 6px;font-size:13px}
-.valgrid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:16px;align-items:start}
-.valgrid>*,.valgrid>*>*{min-width:0}
-@media (max-width:1100px){.valgrid{grid-template-columns:minmax(0,1fr)}}
-.chips-in{display:flex;flex-wrap:wrap;gap:6px}
-.chk-chip{display:inline-flex;cursor:pointer}
-.chk-chip input{position:absolute;opacity:0;pointer-events:none}
-.chk-chip span{font-size:13px;border:1px solid var(--field);border-radius:999px;padding:3px 10px;color:var(--muted);background:#fff}
-.chk-chip input:checked+span{background:var(--accent-soft);border-color:var(--accent);color:var(--ink);font-weight:700}
-.chk-chip input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
-.mini-tiles{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}.mini-tiles .tile .tv{font-size:20px}
-ul.cklist{list-style:none;margin:0;padding:0;display:grid;gap:4px}
-ul.cklist li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;font-size:14px;padding:4px 0;border-bottom:1px solid var(--line)}
-ul.cklist .sub{display:block;font-size:12px;color:var(--muted)}
-ul.cklist li .ck{font-weight:700;text-align:center}ul.cklist li.ok .ck{color:var(--ok)}ul.cklist li.no .ck{color:var(--bad)}
-.trendgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.pt{display:inline-block;min-width:20px;text-align:center;border-radius:4px;font-weight:700;font-size:12px}.pt.p0{background:var(--ok-soft);color:var(--ok)}.pt.p1{background:var(--warn-soft);color:var(--warn)}.pt.p2{background:var(--bad-soft);color:var(--bad)}
-table.caltab th.num{white-space:normal;font-size:10.5px;max-width:70px}
-.repgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
-.repbox{display:grid;gap:8px;align-content:start}.repbox h3{margin:0}.repbox p{margin:0}
-.hbars{display:grid;gap:6px}.hb{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(60px,1fr) auto;gap:10px;align-items:center;font-size:13.5px}
-.hbt{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}.hbt span{display:block;height:10px;background:var(--accent)}
-.cols2{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}@media (max-width:520px){.cols2{grid-template-columns:1fr}}
-.chk{display:inline-flex;gap:6px;align-items:flex-start;cursor:pointer}
-/* ===== Portal: misma familia visual que Hemodiálisis. Barra fija delgada arriba; el panel es una grilla de programas agrupados por tipo; cada programa transversal es una hoja de trabajo con tablero arriba y detalle abajo. ===== */
-:root{--info:#2c5d8f;--info-soft:#e9f0f8;--cover:#f3f6f7}
-.st.info{color:var(--info)}
-.alert.info{border-left-color:var(--info);background:var(--info-soft)}
-.tag.bad{color:var(--bad);border-color:var(--bad)}.tag.warn{color:var(--warn);border-color:var(--warn)}
-.bad-t{color:var(--bad)}
-.pxbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
-.pxbar-in{max-width:1320px;margin:0 auto;padding-inline:16px;padding-block:8px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
-.pxhome{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--ink);text-align:left}
-.pxhome img{height:34px;width:auto}
-.pxhome span{display:grid;line-height:1.15}.pxhome b{font-family:var(--f-display);font-size:15px;letter-spacing:.02em}.pxhome small{font-size:11.5px;color:var(--muted)}
-.crumb{font-family:var(--f-display);font-weight:600;font-size:15px;padding-left:12px;border-left:1px solid var(--line)}
-.pxbar-r{margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.who{display:grid;line-height:1.15;text-align:right;padding-inline:4px}.who b{font-size:13px}.who small{font-size:11.5px;color:var(--muted)}
-.pxbar .cnt{font-family:var(--f-mono);font-size:11px;font-weight:600;border-radius:9px;padding:0 6px;background:var(--bad-soft);color:var(--bad)}
-.pxbar-note{max-width:1320px;margin:0 auto;padding-inline:16px;font-size:11.5px;color:var(--muted);padding-bottom:4px}
-.btn.warn{border-color:var(--warn);color:var(--warn)}
-.pxwrap{padding-block:14px 56px}
-/* portada */
-.pxcover{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;align-items:start;padding-block:28px 12px}
-.pxcover-l{display:grid;gap:14px;align-content:start;min-width:0}
-.pxlogo-big{height:72px;width:auto;max-width:100%}
-.pxt{font-size:clamp(28px,4.2vw,44px);letter-spacing:-.02em}
-.pxlead{font-size:17px;line-height:1.55;max-width:58ch;margin:0;color:var(--ink)}
-.pxcover-r{display:grid;gap:12px;align-content:start;border-top:3px solid var(--accent)}
-.form1{display:grid;gap:10px}
-.pxdemo{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:8px}
-.pxusers{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px}
-.pxuchip{display:grid;text-align:left;gap:1px;font:inherit;background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:6px 9px;cursor:pointer;color:var(--ink)}
-.pxuchip:hover{border-color:var(--accent)}.pxuchip b{font-size:12.5px}.pxuchip small{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
-@media (max-width:860px){.pxcover{grid-template-columns:minmax(0,1fr)}}
-/* panel */
-.pxgroup{display:grid;gap:10px}
-.pxgroup>h3{margin:6px 0 0}
-.pxcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
-.pxcard{font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto 1fr auto;column-gap:12px;row-gap:6px;cursor:pointer;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
-.pxcard:hover{border-color:var(--accent);transform:translateY(-1px)}
-.pxcard.off{opacity:.5;cursor:not-allowed}.pxcard.off:hover{transform:none;border-color:var(--line)}
-.pxci{grid-row:1/3;width:40px;height:40px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
-.pxci svg{width:22px;height:22px}
-.pxct{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.pxct b{font-family:var(--f-display);font-size:16px}
-.pxcd{font-size:13px;color:var(--muted);line-height:1.4}
-.pxck{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 14px;border-top:1px solid var(--line);padding-top:8px;font-size:12.5px;color:var(--muted)}
-.pxck b{font-family:var(--f-mono);font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
-.pxck .bad b{color:var(--bad)}.pxck .warn b{color:var(--warn)}
-@media (prefers-reduced-motion:reduce){.pxcard{transition:none}.pxcard:hover{transform:none}}
-.pxpend ul{margin:0;padding-left:18px;display:grid;gap:5px;font-size:14px}
-.pxcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}.pxcols>*{min-width:0}
-/* mensajes */
-.pxmsg{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
-@media (max-width:1000px){.pxmsg{grid-template-columns:minmax(0,1fr)}}
-table.pxmt tr.unread .pxsubj{font-weight:700}
-table.pxmt tr.unread td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
-.pxsubj{text-decoration:none;text-align:left;white-space:normal}
-.pxth{display:grid;gap:10px}
-.pxmm{border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--surface-2);display:grid;gap:4px}
-.pxmm.mine{background:var(--accent-soft);border-color:#cfe3e3}
-.pxmm header{font-size:13px;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}.pxmm header .mono{margin-left:auto;font-size:12px;color:var(--muted)}
-.pxmm p{margin:0;font-size:14.5px}.pxmm footer{font-size:12px;color:var(--muted)}
-.pxfs{border:1px solid var(--line);border-radius:8px;padding:8px 12px;display:grid;gap:6px;margin:0}
-.pxfs legend{font-size:12.5px;color:var(--muted);padding:0 4px}
-/* comités */
-table.pxcal td,table.pxcal th{padding:5px 6px}
-.pxcc{font:inherit;font-family:var(--f-mono);font-size:12.5px;font-weight:600;min-width:30px;border-radius:5px;border:1px solid var(--line);background:var(--surface);cursor:pointer;padding:2px 6px}
-.pxcc.ok{color:var(--ok);background:var(--ok-soft);border-color:#cfe5d6}.pxcc.bad{color:var(--bad);background:var(--bad-soft);border-color:#efcfcf}.pxcc.warn{color:var(--warn);background:var(--warn-soft);border-color:#ecd6b0}.pxcc.base{color:var(--muted)}
-.pxcmprow{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) minmax(0,1fr);gap:6px}
-@media (max-width:560px){.pxcmprow{grid-template-columns:minmax(0,1fr)}}
-/* listas */
-.pxday{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
-.pxday>div{display:grid;gap:4px;justify-items:start;font-size:12.5px}
-.pxday>div>div{display:flex;gap:4px}
-.pxitems{display:grid;gap:4px}
-.pxit{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:4px 0;border-bottom:1px solid var(--line);font-size:14px}
-.seg.sm button{padding:3px 9px;font-size:12px}
-.pxit .seg button[aria-pressed="true"]{color:var(--accent)}
-svg.spark{width:120px;height:30px;display:block}
-table.pxind td{vertical-align:top}
-tr.anul td{text-decoration:line-through;color:var(--muted)}
-.pxsrc{margin:0;padding-left:18px;display:grid;gap:6px;font-size:13.5px;max-width:110ch}
-@media (max-width:700px){.pxbar{position:static}.who small{display:none}.pxbar-r{margin-left:0}}
-.pxback{display:inline-flex;align-items:center;gap:4px;padding-left:7px}
-.crumb .lnk{font-family:var(--f-body);font-size:14px;text-decoration:none;color:var(--muted)}
-/* calendario */
-:root{--c1:#0d6b71;--c2:#2c5d8f;--c3:#2d7a4c;--c4:#a2650c;--c5:#7b3fa0;--c6:#5d6b73}
-.calbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
-.calmt{font-family:var(--f-display);font-size:18px;min-width:150px;text-align:center}
-.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
-.calhead div{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:6px 8px;background:var(--surface-2);border-bottom:1px solid var(--line)}
-.calday{min-height:104px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:4px 5px;display:flex;flex-direction:column;gap:3px;min-width:0}
-.calday:nth-child(7n){border-right:0}
-.calday.out{background:var(--surface-2)}.calday.out .calnum{color:var(--muted)}
-.calday.today .calnum{background:var(--accent);color:var(--accent-ink)}
-.calday.sel{box-shadow:inset 0 0 0 2px var(--accent)}
-.calnum{font:inherit;font-family:var(--f-mono);font-size:12.5px;font-weight:600;border:0;background:none;color:var(--ink);border-radius:50%;width:24px;height:24px;cursor:pointer;padding:0;align-self:flex-start}
-.calchip{font:inherit;font-size:12px;text-align:left;border:0;border-left:3px solid var(--c6);background:var(--surface-2);color:var(--ink);border-radius:3px;padding:1px 5px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.calchip .mono{font-size:11px;color:var(--muted)}
-.calchip.cancel{text-decoration:line-through;color:var(--muted)}
-.c1{border-left-color:var(--c1)!important}.c2{border-left-color:var(--c2)!important}.c3{border-left-color:var(--c3)!important}.c4{border-left-color:var(--c4)!important}.c5{border-left-color:var(--c5)!important}.c6{border-left-color:var(--c6)!important}.cv{border-left-color:var(--bad)!important}
-.calmore{font-size:11.5px;align-self:flex-start}
-.calleg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}
-.calleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;border-left:10px solid var(--c6)}
-.calrow{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:8px 0 8px 10px;border-left:3px solid var(--c6);border-bottom:1px solid var(--line);margin-bottom:2px}
-.calh{font-size:12.5px;color:var(--muted);padding-top:2px}
-.calt{font-size:14.5px;text-decoration:none;white-space:normal;text-align:left;color:var(--ink)}
-.calrow .sub{display:block;font-size:12.5px;color:var(--muted)}
-.calrsvp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;margin-top:4px}
-.calag{display:grid;gap:14px}.calag h4{margin:0 0 4px;font-size:13px;color:var(--muted);font-weight:700}.calag section.today h4{color:var(--accent)}
-.calinv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:12px;max-height:240px;overflow:auto}.calinv>div{display:grid;gap:3px;align-content:start}
-.calinfo{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;font-size:14px}.calinfo b{display:block;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-@media (max-width:640px){.calday{min-height:58px;padding:3px}.calchip{font-size:0;height:6px;padding:0;border-left-width:0;background:var(--c6)}.calchip.c1{background:var(--c1)}.calchip.c2{background:var(--c2)}.calchip.c3{background:var(--c3)}.calchip.c4{background:var(--c4)}.calchip.c5{background:var(--c5)}.calchip.cv{background:var(--bad)}.calmore{font-size:10px}.calrow{grid-template-columns:minmax(0,1fr)}.calinv{grid-template-columns:minmax(0,1fr)}.calhead div{padding:4px 2px;text-align:center;font-size:10px}}
+// Código propio del proyecto. Núcleo del portal (punto de partida: prototipo v3.2 de la coordinación médica).
 
-/* v0.2 */
-.seg button svg{width:12px;height:12px;vertical-align:-1px;margin-right:4px}
-/* v0.4 · Programa VIH y plataforma estratégica */
-.tile.warn{border-top-color:var(--warn)}.tile.bad{border-top-color:var(--bad)}.tile.info{border-top-color:var(--base)}
-.plat{display:grid;gap:8px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:14px 16px;background:var(--surface)}
-.plat p{margin:0}.plat-k{font-family:var(--f-display);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
-.plat-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 18px}.plat-g p{font-size:14.5px;line-height:1.5}
-.plat-vals{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
-.plat-val2{display:grid;gap:2px;background:var(--accent-soft);border-radius:8px;padding:8px 10px}.plat-val2 b{font-family:var(--f-display)}.plat-val2 span{font-size:12.5px;color:var(--muted);line-height:1.35}
-.plat-obj{margin:0;padding-left:20px;display:grid;gap:3px;font-size:14px}
-.plat-c{gap:6px;padding:12px 14px}.plat-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.plat-m{font-size:14px}
-.plat-v{display:flex;flex-wrap:wrap;gap:6px}.plat-val{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 10px;font-size:12.5px}
-.vxfil{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}.vxfil label.f{max-width:none}
-.vxnav{flex-wrap:wrap;max-width:100%;min-width:0}
-.vxvf .lnk{white-space:normal;text-align:left}
-.vxpac{border-top:3px solid var(--accent)}
-dl.vxficha{grid-template-columns:118px minmax(0,1fr)}dl.vxficha dd{margin:0}
-.vxruta{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-.vxst{border:1px solid var(--line);border-top:4px solid var(--base);border-radius:8px;padding:10px 12px;background:var(--surface)}
-.vxst.ok{border-top-color:var(--ok)}.vxst.warn{border-top-color:var(--warn)}.vxst.bad{border-top-color:var(--bad)}
-.vxst b{font-family:var(--f-display);font-size:14px}.vxst ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:3px;font-size:13px}
-.vxst li{padding-left:20px;position:relative}.vxst li::before{position:absolute;left:0;top:0;font-weight:700}
-.vxst li.y::before{content:"✓";color:var(--ok)}.vxst li.n::before{content:"○";color:var(--bad)}.vxst li.n{color:var(--muted)}
-.vxflow{display:flex;gap:6px;align-items:stretch;overflow-x:auto;padding:10px 2px 4px}
-.vxstep{flex:1 0 190px;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--surface-2);display:grid;gap:4px;align-content:start;position:relative}
-.vxstep b{font-family:var(--f-display);font-size:14px;line-height:1.25}.vxr{font-size:12px;color:var(--accent);font-weight:700}
-.vxstep ul{margin:4px 0 0;padding-left:16px;font-size:12.5px;display:grid;gap:2px}
-.vxn{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:inline-grid;place-items:center;font-family:var(--f-mono);font-weight:600;font-size:13px}
-.vxarrow{align-self:center;color:var(--accent);font-size:22px;font-weight:700}
-.vxcontrato{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:10px}
-.vxcard{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);box-shadow:var(--shadow)}
-.vxcard-h{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;color:#fff;font-family:var(--f-display)}
-.vxcard-h span{font-family:var(--f-mono);background:rgba(255,255,255,.22);border-radius:999px;padding:0 9px}
-.vxS .vxcard-h{background:var(--accent)}.vxA .vxcard-h{background:#2f6e8f}.vxI .vxcard-h{background:#6a5d93}.vxN .vxcard-h{background:#8a6418}
-.vxcard ul{list-style:none;margin:0;padding:8px 14px 12px;display:grid;gap:6px;font-size:13.5px}.vxcard li .sub{display:block;font-size:12px;color:var(--muted)}
-.vxcarnet{border:2px solid var(--accent);border-radius:14px;overflow:hidden;background:var(--surface)}
-.vxcarnet-h{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;background:var(--accent);color:#fff;padding:12px 16px}
-.vxcarnet-h b{display:block;font-family:var(--f-display);font-size:16px}.vxcarnet-h span{font-size:13px;opacity:.92}
-.vxvac{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.4fr) minmax(0,1fr);gap:10px;padding:9px 16px;border-top:1px solid var(--line);align-items:center;border-left:4px solid transparent}
-.vxvac.ok{border-left-color:var(--ok)}.vxvac.warn{border-left-color:var(--warn)}.vxvac.bad{border-left-color:var(--bad)}.vxvac.base{border-left-color:var(--line)}
-.vxvac .sub{display:block;font-size:12px;color:var(--muted)}.vxdos{display:flex;flex-wrap:wrap;gap:4px}
-.vxhc{width:100%;font-family:var(--f-mono);font-size:12.5px;line-height:1.5;min-height:420px}
-.vxlg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
-.chs button.ch{cursor:pointer}
-.vxpac .ch,.chs .ch{white-space:normal;max-width:100%;overflow-wrap:anywhere}
-@media (max-width:620px){.vxvac{grid-template-columns:minmax(0,1fr)}.vxflow{flex-direction:column}.vxarrow{transform:rotate(90deg);align-self:center}.vxstep{flex:1 1 auto}dl.vxficha{grid-template-columns:96px minmax(0,1fr)}}
-/* v0.5 · VIH: grupos, valoraciones, agenda, auditoría */
-:root{--c7:#8a6418;--c8:#3d7f9a}
-.c7{border-left-color:var(--c7)!important}.c8{border-left-color:var(--c8)!important}
-.vxfd{margin-top:10px}.vxfd summary{cursor:pointer;font-weight:700;font-size:13.5px;color:var(--muted)}
-.vxsub{margin-top:10px}.vxcrumb{margin:10px 0 0}
-.vxdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c6);vertical-align:0}
-.vxdot.c1{background:var(--c1)}.vxdot.c2{background:var(--c2)}.vxdot.c3{background:var(--c3)}.vxdot.c4{background:var(--c4)}.vxdot.c5{background:var(--c5)}.vxdot.c6{background:var(--c6)}.vxdot.c7{background:var(--c7)}.vxdot.c8{background:var(--c8)}
-.calchip.c7{border-left-color:var(--c7)}.calchip.c8{border-left-color:var(--c8)}
-.vxdisc button{display:inline-flex;align-items:center;gap:5px}
-.vxacts{display:flex;flex-wrap:wrap;gap:4px}
-.vxaudchip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;border-radius:999px;padding:2px 10px;border:1px solid currentColor;white-space:nowrap}
-.vxaudchip.ok{color:var(--ok);background:var(--ok-soft)}.vxaudchip.warn{color:var(--warn);background:var(--warn-soft)}.vxaudchip.bad{color:var(--bad);background:var(--bad-soft)}
-.vxaudchip b{font-family:var(--f-mono)}
-.vxvalgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
-@media (max-width:1000px){.vxvalgrid{grid-template-columns:minmax(0,1fr)}}
-.vxaud{position:sticky;top:76px;max-height:calc(100vh - 96px);overflow:auto}
-@media (max-width:1000px){.vxaud{position:static;max-height:none}}
-ul.vxaudl{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}
-ul.vxaudl li{padding:6px 8px 6px 28px;border-radius:6px;background:var(--bad-soft);position:relative;font-size:13.5px}
-ul.vxaudl li::before{content:"✗";position:absolute;left:9px;top:6px;font-weight:700;color:var(--bad)}
-ul.vxaudl li.y{background:var(--ok-soft)}ul.vxaudl li.y::before{content:"✓";color:var(--ok)}
-ul.vxaudl li.f{background:var(--warn-soft)}ul.vxaudl li.f::before{content:"!";color:var(--warn)}
-ul.vxaudl li.na{background:var(--surface-2);color:var(--muted)}ul.vxaudl li.na::before{content:"–";color:var(--muted)}
-ul.vxaudl .sub{display:block;font-size:12px;color:var(--muted)}ul.vxaudl .vxacc{color:var(--ink)}
-.vxvf{border-top:3px solid var(--accent);display:grid;gap:10px}
-details.vxsec{border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--surface)}
-details.vxsec>summary{cursor:pointer;font-family:var(--f-display);font-weight:600;font-size:14.5px;padding:2px 0}
-details.vxsec[open]>summary{margin-bottom:8px;color:var(--accent)}
-details.vxprev{background:var(--surface-2);border-radius:8px;padding:8px 12px}details.vxprev summary{cursor:pointer;font-size:13.5px}
-pre.vxpre{white-space:pre-wrap;font-family:var(--f-mono);font-size:12px;line-height:1.5;margin:8px 0 0;max-height:360px;overflow:auto;background:var(--surface-2);border-radius:6px;padding:8px 10px}
-details.vxcac{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-top:8px}details.vxcac summary{cursor:pointer;font-weight:700}
-.vxcacg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:8px}
-.vxcacg label.f span{font-size:12px;line-height:1.3;color:var(--ink)}.vxcacg label.f.sys input{background:var(--surface-2);color:var(--muted)}
-.vxtodo{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
-button.tile{font:inherit;text-align:left;cursor:pointer;color:var(--ink)}button.tile:hover{border-color:var(--accent)}
-@media (max-width:620px){.vxaudchip{font-size:11.5px}}
-
-/* ===== Modo oscuro único para toda la herramienta (decisión de la coordinación, 10-oct-2026) =====
-   Reemplaza la decisión anterior de fondo blanco. Paleta del prompt de Consulta Externa:
-   fondo #121820 · paneles #1a1f2c · menú #111827 · tarjetas #242c3a · texto #e2e8f0 · secundario #94a3b8 · acento #00b4d8 · verde #2ecc71.
-   Al imprimir se vuelve a claro para que el papel sea legible. */
-:root{
-  --bg:#121820; --surface:#1a1f2c; --surface-2:#242c3a; --ink:#e2e8f0; --muted:#94a3b8; --line:#2e3a4d; --field:#3d4a5e;
-  --accent:#00b4d8; --accent-ink:#0b1219; --accent-soft:#0e3442;
-  --ok:#2ecc71; --warn:#f5b041; --bad:#ff6b6b; --base:#94a3b8;
-  --ok-soft:#143024; --warn-soft:#3a2d14; --bad-soft:#3d1f24;
-  --info:#5aa9e6; --info-soft:#172a3d; --cover:#1a1f2c;
-  --c1:#00b4d8; --c2:#5aa9e6; --c3:#2ecc71; --c4:#f5b041; --c5:#b39ddb; --c6:#94a3b8; --c7:#e0b354; --c8:#4fd1c5;
-  --g1:#2ecc71; --g2:#f5b041; --g3:#ff6b6b; --s1:#5aa9e6; --s2:#ff8f5a; --s3:#2ecc71; --s4:#94a3b8;
-  --logo-bg:#ffffff; --menu:#111827;
-  --shadow:0 1px 2px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.25);
-  color-scheme:dark;
-}
-html,body{background:var(--bg);color:var(--ink)}
-input[type=text],input[type=date],input[type=month],input[type=number],input[type=password],input[type=time],input[type=email],input[type=search],input:not([type]),select,textarea{background:var(--bg);color:var(--ink);border-color:var(--field)}
-input::placeholder,textarea::placeholder{color:#6b7a8f}
-input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
-/* texto oscuro sobre colores claros (contraste) */
-.est button{background:var(--surface-2)}
-.est button[aria-pressed="true"].e-r,.est button[aria-pressed="true"].e-n,.est button[aria-pressed="true"].e-c,.est button[aria-pressed="true"].e-s{color:#0b1219}
-.lvl.alto,.lvl.medio,.lvl.bajo{color:#0b1219}
-.vxn{color:#0b1219}
-.vxS .vxcard-h,.vxcarnet-h{color:#0b1219}
-.vxS .vxcard-h span,.vxcarnet-h span{background:rgba(0,0,0,.18)}
-.chk-chip span{background:var(--surface-2)}
-.tag.cac{background:#16294a;color:#9cc0ff;border-color:#2b4a7d}
-.tag.inst{background:#3a2d14;color:#f5c97a;border-color:#6b5426}
-.toast{background:#e2e8f0;color:#121820}
-.ovl,.agover{background:rgba(3,6,10,.7)}
-.tip{background:#e2e8f0;color:#121820}
-/* barra superior del portal con el color de menú */
-#pxbar,.pxbar{background:var(--menu)}
-.calday.today .calnum{color:var(--accent-ink)}
-@media print{
-  :root{--bg:#ffffff;--surface:#ffffff;--surface-2:#f3f6f7;--ink:#111c22;--muted:#56666d;--line:#e1e7ea;--field:#cfd8dc;
-    --accent:#0d6b71;--accent-ink:#ffffff;--accent-soft:#e6f1f1;--ok:#2d7a4c;--warn:#a2650c;--bad:#b23434;--base:#5d6b73;
-    --ok-soft:#e8f3ec;--warn-soft:#fbf1e2;--bad-soft:#f9e9e9;--info:#2c5d8f;--info-soft:#e9f0f8;--cover:#f3f6f7;
-    --c1:#0d6b71;--c2:#2c5d8f;--c3:#2d7a4c;--c4:#a2650c;--c5:#7b3fa0;--c6:#5d6b73;--c7:#8a6418;--c8:#3d7f9a;
-    --g1:#2d7a4c;--g2:#a86a12;--g3:#b23434;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#6b7478;--menu:#ffffff;color-scheme:light}
-  html,body{background:#fff;color:#111c22}
-}
-/* v0.4 · Consulta Externa (reutiliza el sistema visual del portal) */
-.cecols{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
-svg.cechart{width:100%;height:auto;display:block}
-svg.cechart text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
-.cebands{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-dl.cedl{display:grid;grid-template-columns:170px 1fr;gap:6px 12px;margin:0}
-dl.cedl dt{color:var(--muted);font-size:12.5px}
-dl.cedl dd{margin:0}
-dl.cedl .sub{display:block;font-size:12px;color:var(--muted)}
-ul.cehist{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-height:260px;overflow:auto}
-ul.cehist li{border-left:2px solid var(--line);padding-left:10px}
-ul.cehist .sub{display:block;font-size:12px;color:var(--muted)}
-.cejor{margin-top:12px;padding:0}
-.cejor>.mhead{padding:10px 14px;border-bottom:1px solid var(--line)}
-.cejor .sub{display:block;font-size:12.5px;color:var(--muted)}
-.cecupos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:12px}
-.cecupo{font:inherit;text-align:left;cursor:pointer;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:6px;padding:7px 9px;display:grid;gap:1px;min-height:56px}
-.cecupo:hover{border-color:var(--accent)}
-.cecupo .h{font-family:var(--f-mono);font-weight:600}
-.cecupo .e{font-size:11.5px;color:var(--muted)}
-.cecupo .p{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cecupo.pas{opacity:.55}
-.ce-DISPONIBLE{border-left-color:var(--ok)}.ce-ASIGNADO{border-left-color:var(--accent)}.ce-CONFIRMADO{border-left-color:var(--c5)}
-.ce-ATENDIDO{border-left-color:var(--muted)}.ce-INASISTENCIA{border-left-color:var(--bad)}.ce-CANCELADO{border-left-color:var(--muted);opacity:.6}
-.cecupo.ce-BLOQUEADO{border-left-color:var(--warn);background:repeating-linear-gradient(135deg,var(--surface-2),var(--surface-2) 6px,var(--surface) 6px,var(--surface) 12px)}
-.celeg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted);margin:10px 0 0}
-.celeg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
-.celeg .ce-c-DISPONIBLE{background:var(--ok)}.celeg .ce-c-ASIGNADO{background:var(--accent)}.celeg .ce-c-CONFIRMADO{background:var(--c5)}
-.celeg .ce-c-ATENDIDO{background:var(--muted)}.celeg .ce-c-INASISTENCIA{background:var(--bad)}.celeg .ce-c-BLOQUEADO{background:var(--warn)}
-.cesem{display:grid;grid-template-columns:repeat(7,minmax(130px,1fr));gap:8px;overflow-x:auto;margin-top:12px}
-.ceday{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;min-height:90px}
-.ceday.hoy{border-color:var(--accent)}
-.ceday h4{margin:0 0 6px;font-size:12px;color:var(--muted)}
-.cemini{font:inherit;font-size:12px;display:block;width:100%;text-align:left;color:var(--ink);background:var(--surface-2);border:0;border-left:3px solid var(--accent);border-radius:4px;padding:5px 6px;margin-bottom:5px;cursor:pointer}
-.cemini.tele{border-left-color:var(--c5)}
-.cemini .sub{display:block;color:var(--muted)}
-.calday .sub{display:block;font-size:11.5px;color:var(--muted)}
-ul.cecand{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-height:420px;overflow:auto}
-ul.cecand li{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--surface-2)}
-ul.cecand li.sel{border-color:var(--warn)}
-ul.cecand .o{font-family:var(--f-mono);font-weight:700;color:var(--accent);text-align:center}
-ul.cecand .sub{display:block;font-size:12px;color:var(--muted)}
-details.cedet summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--muted)}
-.tag.ce-vio{color:var(--c5);border-color:var(--c5)}
-.tag.ce-acc{color:var(--accent);border-color:var(--accent)}
-@media (max-width:640px){dl.cedl{grid-template-columns:1fr}}
-button.calday{font:inherit;color:inherit;text-align:left;cursor:pointer;background:var(--surface);border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0}
-button.calday.out{background:var(--surface-2)}
-button.calday:hover{box-shadow:inset 0 0 0 2px var(--accent)}
-/* v0.5 · portada (plataforma estratégica), barra fija de reportes, tablero gerencial, oportunidad CE, calculadora RCV en VIH */
-.st.base{color:var(--muted);border:1px solid var(--line)}
-.platx{display:grid;gap:12px}
-.platx-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0}
-.platx-m,.platx-v{position:relative;border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,var(--surface) 0%,var(--surface-2) 100%);padding:16px 18px;overflow:hidden}
-.platx-m::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent)}
-.platx-v::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--ok)}
-.platx-k{font-family:var(--f-display);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700}
-.platx-v .platx-k{color:var(--ok)}
-.platx-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.platx-h h2{margin:0;font-family:var(--f-display);font-size:22px;line-height:1.15;color:var(--ink)}
-.platx-attrs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}
-.platx-attr{display:grid;justify-items:center;gap:4px;text-align:center;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:12px;padding:10px 6px;color:var(--accent)}
-.platx-attr svg{width:24px;height:24px}
-.platx-attr b{font-family:var(--f-display);font-size:14.5px;color:var(--ink)}
-.platx-flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.platx-flow>div{display:grid;gap:3px;align-content:start;border-top:2px solid var(--line);padding-top:8px}
-.platx-flow small{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
-.platx-flow b{font-size:14.5px;line-height:1.3}
-.platx-flow span{font-size:13px;color:var(--muted);line-height:1.35}
-.platx-flow ul{margin:0;padding-left:16px;font-size:13.5px;display:grid;gap:2px}
-.platx-v{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center}
-.platx-yr{display:grid;justify-items:center;line-height:1}
-.platx-yr b{font-family:var(--f-display);font-size:46px;color:var(--ok);letter-spacing:-.02em}
-.platx-yr span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ok);font-weight:700;margin-bottom:4px}
-.platx-v h3{margin:0;font-family:var(--f-display);font-size:19px;line-height:1.2;color:var(--ink);text-transform:none;letter-spacing:0}
-.platx-v p{margin:3px 0 8px;font-size:13.5px;color:var(--muted)}
-.platx-pil{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.platx-pil span{border:1px solid var(--ok);color:var(--ok);border-radius:999px;padding:2px 12px;font-weight:700;font-size:13px}
-.platx-out{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
-.platx-out li::before{content:"→ ";color:var(--ok);font-weight:700}
-.platx details summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--muted)}
-.platx details .plat-g{margin-top:8px}
-.platx-txt{font-size:14px;line-height:1.5;margin:6px 0 0}
-.platx-c{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px;align-items:center}
-.platx-c .platx-attrs{margin:6px 0 0}
-.platx-c .platx-attr{padding:6px 4px}.platx-c .platx-attr svg{width:18px;height:18px}.platx-c .platx-attr b{font-size:13px}
-.platx-c .platx-v{padding:10px 14px}.platx-c .platx-yr b{font-size:32px}.platx-c .platx-v h3{font-size:15.5px}
-@media (max-width:760px){.platx-attrs{grid-template-columns:repeat(2,minmax(0,1fr))}.platx-flow{grid-template-columns:minmax(0,1fr)}.platx-c{grid-template-columns:minmax(0,1fr)}.platx-yr b{font-size:36px}}
-/* barra fija de reportes */
-.pxfab{position:fixed;right:16px;bottom:16px;z-index:25;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.pxfab-b{font:inherit;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:9px 14px;cursor:pointer;background:var(--surface-2);color:var(--ink);border:1px solid var(--accent);box-shadow:0 4px 14px rgba(0,0,0,.45)}
-.pxfab-b:hover{background:var(--accent-soft)}
-.pxfab-b .fs{display:none}
-.pxfab-b.bad{border-color:var(--bad);color:#fff;background:#8f2630}
-.pxfab-b.bad:hover{background:#a92d39}
-.pxfab-b .cnt{background:var(--warn);color:#0b1219;border-radius:999px;padding:0 6px;font-size:11.5px}
-body.hasfab{padding-bottom:72px}
-body.hasfab .toast{bottom:calc(env(safe-area-inset-bottom,0px) + 72px)}
-@media (max-width:640px){.pxfab{left:0;right:0;bottom:0;gap:0;flex-wrap:nowrap;background:var(--menu);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
- .pxfab-b{flex:1 1 0;min-width:0;justify-content:center;border-radius:8px;padding:9px 6px;font-size:12.5px;box-shadow:none;margin:0 3px}
- .pxfab-b span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- .pxfab-b .fl{display:none}.pxfab-b .fs{display:inline}
- body.hasfab{padding-bottom:64px}}
-/* tablero gerencial */
-.gergrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:14px;margin-top:14px}
-@media (max-width:980px){.gergrid{grid-template-columns:minmax(0,1fr)}}
-svg.gerradar{width:100%;max-width:520px;height:auto;display:block;margin:0 auto}
-svg.gerradar .gl{fill:var(--ink);font-size:12px;font-weight:700;font-family:var(--f-body)}
-svg.gerradar .gt{fill:var(--muted);font-size:9.5px;font-family:var(--f-mono)}
-svg.gerradar .gv{font-family:var(--f-mono);font-size:11.5px}
-svg.gerradar .gv.ok{fill:var(--ok)}svg.gerradar .gv.warn{fill:var(--warn)}svg.gerradar .gv.bad{fill:var(--bad)}svg.gerradar .gv.base{fill:var(--muted)}
-ul.gerrisk{list-style:none;margin:0;padding:0;display:grid;gap:7px;font-size:13.5px}
-ul.gerrisk li{border-left:2px solid var(--line);padding-left:9px}
-.gercards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-@media (max-width:640px){.gercards{grid-template-columns:minmax(0,1fr)}}
-.gercard{background:var(--surface-2);border:1px solid var(--line);border-top:3px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:8px;align-content:start;min-width:0}
-.gercard.ok{border-top-color:var(--ok)}.gercard.warn{border-top-color:var(--warn)}.gercard.bad{border-top-color:var(--bad)}
-.gercard header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
-.gercard header .pxci{grid-row:auto;width:32px;height:32px;border-radius:8px}.gercard header .pxci svg{width:18px;height:18px}
-.gersc{font-family:var(--f-mono);font-weight:700;font-size:20px}
-.gersc.ok{color:var(--ok)}.gersc.warn{color:var(--warn)}.gersc.bad{color:var(--bad)}.gersc.base{color:var(--muted);font-size:13px}
-.germ{margin:0;font-size:13px;color:var(--muted)}
-.gerk{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px}
-.gerk .bad b{color:var(--bad)}.gerk .warn b{color:var(--warn)}
-.gercard details summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--accent)}
-.gercard .tablebox{margin-top:6px;max-height:320px;overflow:auto}
-.gercard .sub,.gerat .sub{display:block;font-size:11.5px;color:var(--muted)}
-.gercard .btn{justify-self:start}
-.gerat .hbt{position:relative;overflow:visible}
-.gerat .hbm{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.75}
-/* calculadora RCV (VIH) */
-.rcvout{display:grid;gap:8px;margin-top:10px}
-.rcvrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;background:var(--surface-2);border-radius:8px;padding:8px 10px}
-.rcvrow small{grid-column:1/-1;color:var(--muted);font-size:12px;line-height:1.35}
-.vxrcvb{align-self:end}
-@media print{.pxfab{display:none!important}body.hasfab{padding-bottom:0}.platx-m,.platx-v{background:#fff}.gercard{break-inside:avoid}}
-/* ===== v0.6 · IAAS/PROA sobre datos fuente, DP, microbiología, limpieza, dispositivos ===== */
-.disp{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;border-radius:4px;padding:1px 7px;white-space:nowrap;border:1px solid currentColor}
-.disp.calc{color:var(--ok)} .disp.inc{color:var(--warn)} .disp.noint{color:var(--info)} .disp.noex{color:var(--bad)}
-.disp.pval{color:var(--c5)} .disp.na{color:var(--base);border-style:dashed} .disp.nprog{color:var(--base);border-style:dotted}
-.prov{opacity:.72;font-style:italic}
-.ev4{display:flex;flex-wrap:wrap;gap:4px}
-.ev4 span{font-size:11px;border-radius:4px;padding:1px 6px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
-.ev4 span.ok{color:var(--ok);border-color:var(--ok)} .ev4 span.no{color:var(--bad);border-color:var(--bad);border-style:dashed}
-.srcbox{border-left:3px solid var(--accent);background:var(--surface-2);padding:8px 12px;border-radius:0 6px 6px 0;margin:8px 0;font-size:13.5px}
-.srcbox h4{margin:0 0 4px;font-family:var(--f-display);font-size:14px}
-.v6list{margin:4px 0 0;padding-left:18px;font-size:13.5px;display:grid;gap:3px}
-.v6grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px}
-.dchip{display:inline-block;font-size:11.5px;border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin:1px 3px 1px 0;white-space:nowrap}
-.dchip.cvc{color:var(--bad);border-color:var(--bad)} .dchip.fav{color:var(--ok);border-color:var(--ok)} .dchip.nv{border-style:dashed}
-.slot{display:inline-flex;flex-direction:column;align-items:center;min-width:86px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;font-size:12px;background:var(--surface-2)}
-.slot b{font-family:var(--f-mono);font-size:12px}
-.slot.ok{border-color:var(--ok)} .slot.warn{border-color:var(--warn)} .slot.bad{border-color:var(--bad);background:var(--bad-soft)} .slot.fut{opacity:.75;border-style:dashed}
-.slots{display:flex;flex-wrap:wrap;gap:6px}
-.chkcol{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:4px 12px;font-size:13.5px}
-.trz td{font-size:12.5px;vertical-align:top}
-.trz td:first-child{font-weight:700}
-table.dense td,table.dense th{padding:4px 6px}
-.dlg .abgrid{display:grid;grid-template-columns:1fr 90px;gap:4px 8px;max-width:420px}
-@media print{.disp,.ev4 span{border-color:#555;color:#222}}
-/* ===== v0.7 · gestión por procesos IAAS/PROA ===== */
-.v7menu{flex-wrap:wrap}
-.v7cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px;margin-bottom:12px}
-.v7cards>.panel{margin:0}
-.v7ind{border-left:4px solid var(--line)}
-.v7ind.ok{border-left-color:var(--ok)} .v7ind.warn{border-left-color:var(--warn)} .v7ind.bad{border-left-color:var(--bad)} .v7ind.info{border-left-color:var(--info)} .v7ind.base{border-left-color:var(--line)}
-.v7ih{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px}
-.v7ind h4,.v7proc h4,.v7act h4{margin:6px 0 4px;font-size:15px;font-family:var(--f-display);overflow-wrap:anywhere}
-.v7iv{margin:4px 0;font-size:14px;font-weight:600}
-.v7sec{margin:18px 0 6px;font-family:var(--f-display);font-size:16px}
-.v7strip{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
-.dchip.ok{color:var(--ok);border-color:var(--ok)} .dchip.warn{color:var(--warn);border-color:var(--warn)} .dchip.bad{color:var(--bad);border-color:var(--bad)} .dchip.info{color:var(--info);border-color:var(--info)} .dchip.base{color:var(--muted)}
-.v7b td{vertical-align:top}
-.v7proc p{margin:4px 0;font-size:13.5px}
-.v7conc{border-left:3px solid var(--warn);background:var(--surface-2);padding:6px 10px;border-radius:0 6px 6px 0;font-size:13px;margin:6px 0}
-tr.v7dis td{background:var(--bad-soft)}
-.v7cmprow{display:grid;grid-template-columns:2fr 1.4fr 1fr 130px 1.2fr;gap:6px;margin-bottom:6px}
-@media (max-width:720px){.v7cmprow{grid-template-columns:1fr}}
-.v7ind table td{overflow-wrap:anywhere}
-.v7ind .sub{display:block}
-
-/* ===== v0.8 · Diálisis peritoneal ===== */
-.d8nav{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:thin}
-.d8nav button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:14px;padding:9px 12px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
-.d8nav button[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
-.d8nav button:hover{color:var(--ink)}
-.d8tabs{margin:2px 0}
-.d8two{align-items:start}
-@media (min-width:900px){.grid2.d8two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-.d8head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-end}
-.d8head h2{margin:0}
-.d8dl{display:grid;grid-template-columns:minmax(120px,max-content) minmax(0,1fr);gap:4px 14px;margin:0;font-size:14px}
-.d8dl dt{color:var(--muted);font-size:13px}
-.d8dl dd{margin:0;min-width:0;overflow-wrap:anywhere}
-.d8al{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:13.5px}
-.d8al li{padding:6px 0;border-bottom:1px solid var(--line)}
-.d8al .st{margin-right:4px}
-.d8mini{display:grid;gap:8px}
-.d8day{display:grid;grid-template-columns:52px minmax(0,1fr);gap:6px;align-items:start}
-.d8day>b{font-size:12.5px;color:var(--muted);padding-top:4px}
-.d8day.today>b{color:var(--accent)}
-.d8day.late>b{color:var(--bad)}
-.d8day>button{grid-column:2}
-.d8ev{display:block;width:100%;text-align:left;font:inherit;font-size:12px;font-weight:700;border:1px solid var(--line);border-left:3px solid var(--base);background:var(--surface-2);color:var(--ink);border-radius:5px;padding:2px 6px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.d8ev span{display:block;font-weight:400;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
-.d8ev.ok{border-left-color:var(--ok)}.d8ev.warn{border-left-color:var(--warn)}.d8ev.bad{border-left-color:var(--bad)}.d8ev.info{border-left-color:var(--accent)}
-.d8ev:hover{border-color:var(--accent)}
-.d8i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;background:var(--base)}
-.d8i.ok{background:var(--ok)}.d8i.warn{background:var(--warn)}.d8i.bad{background:var(--bad)}.d8i.info{background:var(--accent)}
-.d8hb{display:grid;gap:6px}
-.d8hbr{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(80px,1fr) 78px max-content;gap:10px;align-items:center;font:inherit;font-size:13.5px;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--line);padding:6px 0;color:var(--ink);cursor:pointer}
-.d8hbr:hover .d8hbl{color:var(--accent)}
-.d8hbt{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}
-.d8hbt i{display:block;height:10px;background:var(--accent)}
-.d8hbt i.ok{background:var(--ok)}.d8hbt i.warn{background:var(--warn)}.d8hbt i.bad{background:var(--bad)}.d8hbt i.base,.d8hbt i.na{background:var(--base)}
-.d8hbv{text-align:right}
-@media (max-width:640px){.d8hbr{grid-template-columns:minmax(0,1fr) 70px;}.d8hbt,.d8hbr .st{display:none}}
-.d8tl{list-style:none;margin:0;padding:0 0 0 12px;border-left:2px solid var(--line);display:grid;gap:8px}
-.d8tl li{position:relative;font-size:13.5px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
-.d8tl li::before{content:"";position:absolute;left:-18px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
-.d8tl .sub{flex-basis:100%}
-.d8tld{font-size:12.5px;color:var(--muted)}
-.d8sec summary{cursor:pointer;list-style:none}
-.d8sec summary::-webkit-details-marker{display:none}
-.d8sec summary h3::before{content:"▾ ";color:var(--muted)}
-.d8sec:not([open]) summary h3::before{content:"▸ "}
-.d8sec .form{margin-top:10px}
-.d8fs{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:0}
-.d8fs legend{font-size:13px;color:var(--muted);padding:0 4px}
-.d8req{color:var(--accent);font-size:9px;vertical-align:2px}
-.d8sticky{position:sticky;bottom:8px;z-index:5;border-color:var(--accent)}
-.d8score{display:grid;justify-items:center;border:2px solid var(--base);border-radius:10px;padding:6px 14px;min-width:96px}
-.d8score b{font-family:var(--f-mono);font-size:22px}
-.d8score span{font-size:11.5px;color:var(--muted)}
-.d8score.ok{border-color:var(--ok)}.d8score.warn{border-color:var(--warn)}.d8score.bad{border-color:var(--bad)}
-.d8hc,.d8pre{white-space:pre-wrap;font-family:var(--f-mono);font-size:12.5px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:420px;overflow:auto;margin:0}
-.d8pre{max-height:180px;font-size:11.5px}
-.d8filt{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
-.d8filt label.f{min-width:150px;flex:1 1 150px;max-width:260px}
-.d8week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
-.d8wd{padding:8px;display:grid;gap:4px;align-content:start;min-height:120px}
-.d8wd h4{margin:0 0 4px;font-size:13px}
-.d8wd.today{border-color:var(--accent)}
-@media (max-width:900px){.d8week{grid-template-columns:minmax(0,1fr)}.d8wd{min-height:0}}
-.d8lc td,.d8lc th{padding:3px 4px}
-.d8lc tr.d8first td{border-top:2px solid var(--line)}
-.d8c{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:5px;font:inherit;font-size:12px;font-weight:700;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);cursor:pointer;padding:0 3px}
-.d8c.ok{color:var(--ok);border-color:var(--ok)}.d8c.warn{color:var(--warn);border-color:var(--warn)}.d8c.bad{color:var(--bad);border-color:var(--bad);background:var(--bad-soft)}.d8c.info{color:var(--accent);border-color:var(--accent)}
-.d8trend,.d8grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.d8tc{padding:12px}
-.d8svg{width:100%;height:auto;display:block;margin:4px 0}
-.d8svg .d8bar{fill:var(--accent)}
-.d8svg .d8bar.ok{fill:var(--ok)}.d8svg .d8bar.warn{fill:var(--warn)}.d8svg .d8bar.bad{fill:var(--bad)}.d8svg .d8bar.base,.d8svg .d8bar.na{fill:var(--base)}
-.d8svg .d8bar.sel{stroke:var(--ink);stroke-width:1.2}
-.d8svg .d8ref{stroke:var(--warn);stroke-dasharray:4 3;stroke-width:1.2}
-.d8svg .d8grid{stroke:var(--line);stroke-width:1}
-.d8svg .d8tx{fill:var(--muted);font-size:10px;font-family:var(--f-mono)}
-.d8svg .d8tx.b{fill:var(--ink);font-weight:600}
-.d8ic{display:grid;gap:6px;align-content:start}
-.d8ict{text-transform:none;letter-spacing:0;color:var(--ink);font-size:15px;margin:0}
-.d8num{margin:0;font-size:14px}
-.d8gh{margin:10px 0 0}
-.d8asum summary{cursor:pointer;font-size:13px;color:var(--accent);font-weight:700}
-.d8more summary{cursor:pointer}
-.d8nl{margin:4px 0;padding-left:18px;font-size:13px;display:grid;gap:2px}
-.d8warn{color:var(--warn)}
-.d8bad{color:var(--bad)}
-#dlg h4{margin:8px 0 2px;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-table.mini td{padding:3px 6px;font-size:13px}
-.d8lab .tag{vertical-align:1px}
-.calleg i.d8i{border-left-color:var(--base)}.calleg i.d8i.ok{border-left-color:var(--ok)}.calleg i.d8i.warn{border-left-color:var(--warn)}.calleg i.d8i.bad{border-left-color:var(--bad)}.calleg i.d8i.info{border-left-color:var(--accent)}
-</style>
-<img id="pxlogo" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIALsCCQMBIgACEQEDEQH/xAAyAAEAAwEBAQEAAAAAAAAAAAAABAUGAwECBwEBAAMBAQAAAAAAAAAAAAAAAAECAwQF/9oADAMBAAIQAxAAAALUgAfP1S2ykKfzp4dV7U23L6ARcA89AAAAB6eAAAAAAAAAAAAAAAAAAAAAAZ7Q1enNU/P189vmTb+useL1Qz3RJeez14OXnL6uo7Ul32eQFqAAAAAAAAAAAAAAAAAAAAAAD08AAjxqfXllfMX56eK5scr2y6NO49ebu9obGnw64/z65/TtbmLK7fFC1BBJymnkoBXRy5coBaKu0ACLALlHkAiEtnedmmUFxDuIAAEHnW9krRZI0iaeiQAAAACLKpL4wfn3zu8nyVazebvoIup+a3o7GLFx6Ynln98fq1HkmNXf60uXna82iHT5rKavKTGf1+Q1+q8GM46luqXeN7kddkc0DZY370j9IQZ2FqLI67I612lvU/WcwMx512jk182s4Ppf5y0be0/O/wBAynoKyBnYkuJxeyWMi+VLZQPiuut9iyuvxwmAAAAGe0NDryQ5Mab0cV6OL2PfA8iy0Al85jU5/Lpr/r5+uf09c897fDZTV5O0UGvyGv0XgxnHUt1S713uS1uRzmA+9JpFFvPzi3rNxkdbkja0N9k4Rtbkt/KYMpYnbZe0ZzX5DR6NQzvmTRs5fJookuJxezeWNB038+PFec/o31hHkdnjhNQAAAFXacrZZvt536vOvXPpx+qCQAGe0GVy6eUmLdZdtuOryWU1efllNbkrrWNic8ZyNNKi713uR2mLzmH+kfm/6QYym/SMJYhl42uX1FZlOd3WFuLtm89xlkdHg7xz0+Y3lmJ5/o6r8438j6hnYkuHw+0Wk2+OfuLHppyhrzAAAAAPn5zl8pldz97PO+5kH6mmkkZe95PQlkTLeXX1nLbC8gRJE0k2cKTj1dhFnHsPzvh+gZTWI3Hn92jlcyNPSfvB7zI1Uv6Rh9xJDmKT+cc9pnNo0lhEscZ/Pov6Jl9a1cqFys+vmTekTYfP1jYIAZ2JYxuT1rSxgzunzAtQAAAB74ByRn4Ev57OGP8AXw1w6dOXaK+dJMWq4j13fPb443MeNOXWLyvj7e1l9lt6MO4cjqhdSQhdSR7G4k58RiYhdjuh/RKROx1QOxJRvklo3pIRfSSr5h0QfslonIsHGMT3DwkOPwSXLqAAAAAAc6a9TTF/Wpz/AFcfCdV/WmNmrvazYQ+ft6dO33fY7e9Dl9AEq6x4lV83Yqlj9FNLseJHT+BUrzwr/ZfpXeWXM+IVl0IUS29IfGw6EHlYfZW9evpB9tPkgdpP2V0O37FD9Xgp5sn04Sfn6AAAAAAAAIFLqV6YjzcNMcncWil/PTPYAAAAAAAAB74AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD3wAAAAAAAAAAHp4D/8QAAv/aAAwDAQACAAMAAAAh88vSe844w88848888888888888888888888PVR0vYN88888888888888888888888484ekOcfc58w28640868ww0884a13088888scwILGx/0rA8oWF8DhhEb10oqJiy88888X7cMfMpyUtA8hGXoCAS8bU7woMnY88888teQ884rNUuS0jWC0jEAwkCOJto7M88888IQpgHNOI84OTWbdcoWBjts84iC88888stHmzvgUK384wAgkc0U0wsU40gAQ488888sMPD3y4SU8o4Ew8EkosckoUUQ4wU08888888oYDh0888888888s888888888888888888888888888888888888888888888888888888888888088888880888888888848/8QAAv/aAAwDAQACAAMAAAAQ/wDkG5v/AMn7/wD/AO//AP8A/wDv/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8AuPzfVv7/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP77v/jZPWcp0f8A6A/MG2/I/qA8/wD/AOgM/wD/APv/AP8AQ+smmz/N9+i/8t0qz7YOck/9rdkU/wD/AP8A/wCvvHInB+jfwv8Aynzqh0D2Er4CEau3/wD/AP8A6HD77/0ShxZbPTkdoWubTcz9Szwl7/8A/wD/AOewDTBTKD/+BAWif7qK9Xzz/wCIU/8A/wD/APv6sl2g3tQ+/wC/PLMOOsMOPNMN/iNutvv/AP8A88ul8z8Df+4AA2EwacScyAAU6QEAU/8A/v8A/wD+uADrc/8A/wD/AP8A/wD/AOv/APv/AP8A/wD/AP8A+/8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8Av/8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD3/wD/AP8A/wDv/wD/AP7/AP/EADMRAAEDAgQEBQMBCQAAAAAAAAIAAwQBEgUQESITITI0ICMxM0IUQFNzFSRgYoOSk6Lw/9oACAECAQE/AMosYpL1gquCQ+HaPWpMco7xtFnd95hT7bUql/yV423EsTfF6UZBlOkExHuHqQS3uJffvUV7jMgf3cHCnJG9zYCHDYtBtqCmYI3bdH6/xqtCArarFZMfguNF1pobiUUBBkBplzr6IgKnqGQg5X0BUEq8hVaEPrkIFX0DKmpeiGM9X4I2nA6g8BSWBK2pr6uP+RUIS508cCPx5QDVUtaFSsacvtZ/yJrG5Qde9Y/KCo8eP1mv2XOLeSNlxkrTCxYbJIHLC+eUbuAU/wBnKL26h9yakxxdH+dFyLSqw/2aowvetTTLcdu5VnjTpTTrcgVJZ4TnLOZ3T/6qphcird9Ey+9HeTZ3jr4sGL97osTqQQztzIBqWtVosTbEmdaqP7jaoovcAp/t5Ru3BQ+5NOyOE8AkpjF43gsP9mqjDrKOqnno2A5RCtepopwasqkZ6vwTjTgdQKZ3RpmZFajhcaePiyDIfmmBIGgGviivcGQBqTLimy4FXOtVpbnqsTr5NtFAZI5AXZR66PApokTPLJmlke0lD7g1iPuAocnUeESBoQ6Uydko1NZI27hyhtETlynO2t2oJxCOlikSCd+Cmd0abwpw276Go2HNsFcW8/HChOS3LR6VGgR2RtAE9EZfHQwU/DSilePQgbcMrQBN4aLTfFlH/TVIEVlk3pAfptooZNU43BsE82JgkOh9atiju8pSZgkNgKGYg7cSmmJubVSpU5pmW3Vvd1pyvmHWiYmDUbTRBHPd5SOSy0O1OOE6VxZy4zxyDIQUelrIUr46U1LRRJOHsNA1RxpA6JjcJp4nBG4EEmPI8o9h/jcR4W6y5fFcsTEm1+11jjPf9/amoJOuceV1/jWNSxKyOHw+7YlSI5XA4oeMMu7Xdhp+KzIHcvoCttKW7YmYrMcdgLEMVFsbGOtVqRFrX71jEJcfkLmxDj7lu5j/AHUjFZj1Lb7A/h3/xAA5EQABAwMCBAMDCAsAAAAAAAACAAMEAQUSIjIGEBETFCBTNUBCFSMzUmNzkqIWITBDUVRgYnKCk//aAAgBAwEBPwDldLg3Bim7VDxRcqvZVOmH+CgTBlxwdHnq984lhuSYOj4E2y4RY0BWKM5Gt4Ce7lZoIzpzbR7EVrgkz2Ow1grnD8FOfY966q8cRNxC7LOs18rTKuZ0P8it/Ez2QBKDMPUTbguN5iuG4NwpKblAGDX8TRng24Qt5q6PvSJz7joYHz68uq6rry68slmKyHyN26cYUMIrtQXyVcv5V38CcbcbLFwMPPfJhRLe4Y70OTzn9yt/DLdWQORv9NP8MQzH5rQa4NtrlXuxL2M6/wDRfpPZ2C7QnsUaZHlN5sOZrii0tvRPFAHzofn5HtQbuRbke1DXFUqj3LaKrXJYKtMUFedj9kRPuk7xTb2pBsutu6FOhQ7rF/WG/wCjcTrZNuGBfB5uLQIreFftVYgE7gwJKnIDcATET38uFJLjVxo3TYam4eEfy9JV3I0G7kW5HtXRCSNEWlByNCsxVKqx+yIn3SmWO6P3B/BjT3VBY8FAbac+BpTXRelvuD8bvmucTxcN5pW+BOZlNu9vQDqbcEx0+ThUBK40dLYC4hnDHtTnQ9bn0fKqHdyLciQIh5V2oC5HVAKwQhirF7Jg/dKRxdFYeNrsO6FduJ5U9urQU7Qee5XJmG3q3qbPlSXMiNMTZUUsmnlZ783N0O6HU8+yyObh4J67E+Xaif8ARFdbhIeCPFPR+8cQXcZGEIn8zZ51FalQEaDlUVRVBZEsSJDTpztFyt7VrigcpoD7X11cDE5r5D6vnOvQeqmQ7hKeN0m09Gca0kCbaZIsXdCehSo2Drez1ATN+beb7M9jP7ROsZxwdaf7Mf8AApd27Tfh4WgPU+uuFba4Oct34/cdX7J+HHkDiYKfYHA1NawQHKilpVZY5ZjFazUmRKlFrNWnh5x4wde0AgAQHAffX4Ed7eCrw9HqW9RrPDY1YZmqU6f05//EAEgQAAIBAgIECQgHBgMJAAAAAAECAwAEERIFECExEyAiMjRBUWFxFCMzUnKBkbEGFTBCYoKhFjVAUHPBJFNUQ0RjgKKy0eHw/9oACAEBAAE/AuKzBRiTTaRQc1caj0hGxwYZaBB/n99KWfJ1Dfr0dMTjGerd/P7rpEmuw6T+U8W6uRCnf1U80rnFnNR3E0RxDHwNQyrLGGH83voCfOL79W87KsbYxgs288W+bNcnuGvRb8qRPf8AzeWeOMco+6pblG5sK++lu3TcifCo9JKeeuH60rq4xU4jiaQTLNm9Ya9Fxnlyduwfza6u8nJTnUxJOJO3iQzvC2K+8VDKsqBhqnvI4tm9uyprmWbnYYdmoYZhmGI7KtpYpEHB/Di3ekLe1ZVlzcrdhX17Y/j+FWt3FdIXjxw3bddzpO2tnySZscOoV9e2P4/hUMqTRJIm5hjU+l7SCVo3zZl37Kh0vZzSBAxBO7EcS6u4rWMPJjgThsr69sfx/Cra4juIuETHDv13F9bW/pJNvZ10/wBII8eRCx78a/aH/gfrUen7cnlxsv61DcQzrjG4bjzX0UT5CDX1nD6rV9Zw9jV9ZwdjVHdQSc1x9vdTcFH39VHWllcN1AeNHR1wPVNSRSR89CK0fLklydTVeXHAps5x3cVJHjbMp21bzrNGGHv4n0h9Pb+wdWgeiv7Z16d6YPY1aN6BbewK0r+8bnxHy1aJ0h5QnBufOL+uv6QdDj/rD5HVoXoK+J1aT0sUJhgO37zdlEliSTie3iRTSQvnjbA1o3SC3abdkg5w/vxr/pTeA4tnesrBJDiDuP21++MwXsGu1tViGJ53brKhhgRTWnBzxPHuzbquyZLogbcNlR6NY898PCjoxeqRqmtpYecMR2jXo+XJNl6m+fE+kPp7f2Dq0D0V/bOvTvTB7GrRvQLb2BWlP3jc+I+WqOR4nV0ODDdVjeJdwhhzvvDs1fSDocf9YfI6tC9BXxNaWu/J7bk899g1QwyTyCOMYsattB2yDzvnG/Sm0bYkYeTJ8KvtCBVL22Psared7eZZV6qjkWSNHXcRjxb/AKU3gNVnaRTR5mxxxPXT6Nj+4xBp1KMVbeNVnJwkCHrw2/a3fSJP/urVZLmuB3DHjQ2yxvI/Wx1sARhU8fBTOnV1e/VGcJYz+McT6Q+ng9g6tA9Ff2zr070wexq0b0C29gVpT943PiPlW+iCCQd4qzu3tZg43feHbUMyTRq6HYa+kHQ4/wCsPkdWhegr4mtNTZ70r1IANWgrYLbmbrc7PAcTTFuIbskbnGPv1aClz2pT1G4t/wBKbwGrRvoPzHVfEG5bw1aN6P8AmPz+1vRhO3fq0f0g+x9lpLpI9jUm2SP21oa/pD6e39g6tA9Ff2zr070wexq0b0C29gVpT943PiPlUfpY/bHzrTOj8wNzGNo547dWir/yaTI58036Vp842UX9UfI6tC9BXxNXvTLn+q2rR65bK3H4BxPpDz7f82r6PttnHhTafVWYeTnYSN9ftCn+nb41+0Kf6c/GoZOFijkwwzKD8av+lN7I1Wt4sCZShO2n0kxHITDvNEknE79VvHwUKL2D7XSCc1/dqtXyXCd+z7LSJ/xP5Rqs0z3MY7NvE+kPp4PYOrQHRn9vXp0/438g1aN6Bb+wK0p+8bnxHyqP0sftjVpbR/k78JGPNsfgdT3jvZLbttyuCp7tWhegL4mtIpkvrgfjx+O3VoqThLCHuGHw4mn5A1zGnqr89WgE83O3fUqtwsnJPPNZH9U/Csj+qasuiW/9NflV/wBKbwHEALHBRjVpZZDnk39Q+2lQSIymhDKzMoXaDtryKQbTIq0rqRsYH7GaThZ3btPy1aMhwUy+tu8OJp+LGGOQfdbbq0NeLBKY3OCv89UkiRoXdsAKvLjym5eTq6vDVaR8FbRR9iitKfvG58R8qj9LH7Y+eqWNZUZGGINX1m9pNkPNPNOvQvQU8TWn7fB0nA2Hktq0RpAWshRz5t+vsNAhgCDs1Xl5FaxZnO3qHbU0rTStI29jq0bb8BaRod+8+JrKvYKyr2VlXsGq/wClN4DVZW0MsWLrica8gtfUpY405qgfbswUYk1caQJ2RfGiSxxJx1RXk0fXmHfUNwky7Phxbm+SLYu1qhuM9vwjjLRvVXZFEoWp7byjgWC4Y87wpVCqAOriTwrNE8bbmFXNvJbytG/V19uqG/vIRlSZsOzfU1xPP6SRm8dWh7EzSiZhyEOzvOrSn7xufEfKo/Sx+2PnrvLRLqEo2/7p7DU0TwyNG45Q1aF6AnianhSeJo3Gw1d2klrKUb3Ht1QXdzB6KVh3dVHS+kSPT/8ASKd3dszsWPadWiLAzSCZxyF3d541/wBKbwGrRvoPzH+AkkWNCzHACrm7ec9i9nFR2RsVO2ra5WUfi6xqmu4Yt7beyrjSEkmxeSKt7fhMZJNkY/Wp7jhNg2INwqztTIQ7jk/OprxYzlUYmoJRLGG4t3Zw3SZZB4Hsq50Pdwnkrwi91FHU4FSPdUcE0vMiZvAVZ6DdiGuNg9UUiIihVGAG4ar/AEfdy3s7pFipIw+FJou+DoeB+8OJpTR/lUeZPSru76+qr/8AyTWi4ZIbRUkXA4nVcW8VxGUkXEVc6DuEOMRzr+tSQzR8+Nl8RXuNRWd1NzIWPfVnoPAhrg4/gH96ACjADZxryCZ7glUxGFeSXP8AlGrBHSHBhgcT/AX91wsmUHkL86x4hUgA9R69SsVOIO2oLxJBlfYfnU+jcdsJ9xrgoYD5zzjeruWpp5JecdnUBuq1tRhw0+xeoVNes3Jj5I1WUeSEd+3+ZS5uDfLvw2V9W3vqj40dH3ij0fwNMHQ4MpB76x1RStH3jrFcDDMMYTgfUNMrIcGGB1JPKm56tZJZic4GXtp4rSCQtzmx2L2VLM8p2/DVaQcK+3mjixyq8QkG6hfQnybf54Er7qe5RJuDO/IW+FNebIskTOXXMB3CoLlZSVysrrvU76iuUklkjH3f1o3p4R1WB2CNgSO2o5EkQMp2U92cxEcTSZecR1U19AsCzbcpbDwqS4jj4L8bBR76e7IcrHC0mHOw6qe6CqnIYs25Ouku1JdXQo6rmyns7qimWSFZeojGvL9mfgHMXr/3qW5jQJvYvzQOuorgvmDQuhAx2014gihYAkyDFVG+opy+bPEyYDHbVvcJOhZfWwqe64J0RY2dmx2DuqK6Vw2wqyjEqajvZZMhFq+VsMD41FKsgbDqYimvG4WREgd8mGY1FdwysoTrXGpLsJI0YjZmCZsBUd67vl8lkGBwPdUUyyx5xupb+FvJt/nscvuqe4SHJm+82Aqa6jieJG3ucBSzAyvHhgV/UdteVKeaCTjgO+o5QxIIIYdR+2eNHGDKDVxosjlQH8p/tW0HAjA9hrGgcKS8xGWVM4/Wilk3NnK+IoeRpvcv4CpL1yMqDIuuCFpnwHvNRxrGoUcW1kQWbAthkzBseqoIQy2Ub9dq/wA1rl+V4PzkgcHv76tyBJY7f92b+1TTr5S0se0RRFSR6x3Ck4e3NtJLGqqOSxzev21aOiNe5mA8/wBfsirEHLM/3ZJCV8KsXQRyJjgyO2f3nHGhtBccx7sFe/vqdWjltoduHDqUP9q0cQsbxM3nEkfP7zjjXCIL9GzjK8WCHqxx3VdeculyH0cMmf8ANuqPl6KVEYZ+BGzGluYFtBIWGRV2/wDirZeAkteFGGNsFBPUeyuFmW4aJ3RgYy2wYYVB5uWwkdsEa1CD2t/61fS+aMSEcI5ygY1bcJFd5XiVBKmzA47U/wDVSkDSFvif9m9SsJLsmNsRHCwfDvqxXCC2PlTejXkEjsq0dAs2LD0zVEs7XV8I5VXlr93H7vjUcSW15CvUYyAT1tjjScrSshG4QAHxJq29Nef1R/2irSRVtHBbDJmDY9VW9vjDYxPsxt5fdiQauUn4MPNvDog+O+pknuXuTHEpGGRGLYYEbcfjVzJwtrBOrZW2D47xSqsVwq/d4PBaxDXIw+6hx9/8BcWsM45a7e3rq4sJ4No5a0GrNWNY1jWNW9pJNt5q1FEkS5VHGa2t3fO0Slu3DbWUY44bRRRSccoxwwp7eCQKHiUgbsRuoRRhcoQZeymUMMCMRTW1uz5zEubtw1SW1vKcZIlY94rKuA5I2bqKK2GIxwOIqS3glIMkSt4ijBEyCMxrl7MKjhiiXKiBR2Cls7VWDLAgI68K8lt+Ez8Eubtwp40kXK6gjsNRwRRjBI1XwoxRlODKDLhu6qS2gj5kSjwFFVOUkbt1SwQy4cJGrYdopURFyqoA7KFlZg4+Tx4+FNZ2rtmaBCe3ClRFxyqBjvqSKOVcrqGHYajijiXKiBR2CsoBJw376a2t3fO0SFu3CsoxDYbRRVW3igoAwAwrg0wwyjDHH30yK4wZQRSoqDBRh/BXGj7ebbhlbtFTaMuo+Zg47t9MJE56MviKDY7qis7qXdER7WyrfRqJypDmP6f8v/8A/8QAKxABAAIBAwIFBAMBAQEAAAAAAQARITFBURBhIHGBkaEwsfDxQFDB0eGA/9oACAEBAAE/IfClEBvGqXv0glPc5IAI/wB/Ub/qYxhjuXl8VhBv+4+QfaMYXR3PDYgt4E1sew0Q6sbpZ8zfX24/t6ULQo9osBACrtMGe3weFw8QeseicTHu/t7d5O5i2F3/APMew/Kkap+8aQqXkPBW7PkI9MoMfA/tstu54i5CtWPWwOPQZoBvx0+JyYZeQ06Mou7arltAA9HhVSwui9J344KB0K063f1WpO/G0DEWZzMl00WJxzrR4NLMdLy/qd2IrKtYVp1LwHDlQ6BOVILeden6Jzs+NGi1eCfpZ+nn6KKVY4+vYpqx6olVW3mMLUAtdCZer3Qix7Az3INveLb7PmT0mwqqqq5XwE6w9nznlNDhPoht8H9/BIK27GDo59vPgpb9f4fn/wARHrJqm18BRJ7m8p1f0R9EVzv8xEiq4HvDJ9X8Il6UqAZWg85Qy3r1NAI6k38cuGGGnbAEJvy01td3pJng6MzP3D8PohF8f4ZT31za8phKGOd1xHT6sKvQeWZc36z7Fkd2D2+5mvYS3vRoxfsNW3jszs68RzcvJyOpGQsQ9fGJKOC1EePBs2fMG6kzHJUV/g8xj6m0+UfZGDb3v8f74amqRr5D1VI1hgaG/L0UBt8rBx9Auvj+svyfGAoAtWj1gIIlI7VMz+jgSwodj4OH2u8N83L0ZJnfC8BF1W/d0da9H0fGLX6FB7C+mj9VK7iP+Rnzn3PpD1P9dDS5D5gwH0I6+P6y/J8ekS4CMGznpuwM9/MBBk689L+fT0Ibm98+Alu9dCGypTtVU7M/VZ+rzjQnil9QKcyOK3j4ytz/ACIEtNrzcy0Ba4DlYfmJ57/VxkaZRJc7xk9fpWeUvdei1GLP0/fiKrPh9QqeCpP+V5lXhn4/ljy6WI+TQJXz1Or266a44u/668Aw376ND6kPaO9gXmfsUaHg4YMdeGCvhfBGCr4n1t8gltalwg0rTY8VPbwMvxrRBCzhAzjCbpLmM4eR4K/bC7PTbdt2JuH4NasfczR7NJStBa4DznZrT8lx61UVnSRzkyc54NafR6h0onJ/1w6SixGXE2Y89Tclj0Q5pmfqp2HtP0UCuotcUwJuvuwz2D66WkGrEXEc9/KXxLlbnfeYx7D/AKl0ed9x4b/FbbErDDfiYUjnE87k3ggsCjwBDoGAznRsHPSlttWB5XFBrcgsHp0/HlH6dPyfHwVFlWrchTyWnv36zvkHTCpx6Y6aOvq9jFQ+wX7REm6pb0zzu/5GFgQMhZQc7P8A3Ll9BhCoJkeBC5hC7GWW3+nK69crN8P7emCpyEYoLXghoK5OHw6vJp6wgW5dfqRguNlRqvOiLD37L5w34qDbo8WyLIcyoZyc+A6L7JxP3RNrh3QYye55Rl2VoYrT3Cyn/wAJVZrhR7wQf8GUOCBoHicYhzfE/YE1Wy/gM+ce/QuDBiZ7GyDCtYaTAP4YsVS/K9I2dx2lHm7xTHThCM0Dld/OeUje7/zolrV/L6tfxa/gXlm30DviX1J2QkKhFxRoE1dGHejwuH4mXDs3k5JaSBs3iKzJ2rS8vBoNCEyfc94BVeA0MhfaOaFo47oAJtd7RW73Dj8LlOiFehcCBHf2a1O0Vz6Dp6y9MoS/ytCuO7LhIWnKeSZhaMTmWFWKxFxfMp03dG3niWpItw7reBLGv7DNQfbPZxFY7t3/AMzyIgFHchZf6sxczx7G2vOX4FJXGISRxxZVeLSHaEZfLTTfEQpe3yQAAYDlLxzHaXH9GqnePPxdTdsO1rLhEky17S+UTKfvgduQLm4mr6M/HEfapOdzZKeXMThv5TUSJwO/1q/nhJefgt0bbh1CkhLoRRNEmFXLsmc5ghrXzaglTXY1l5e8uANM9KETQeEiSq1Vy9YAzqOTJ7y2Nerht6pfgOV7yhwzBi31YGitO9nBXMUT72qpNstHPyiNFLaJYF6MFW9OVI+Rjdte3F59MH/jDhcLyIy0G5UHc5jpavrtQo+es1OFGpCuKPYhs52qP5EHnWN8VMqc5YtSDehhT0TKMTBuZjkwK/G5fEooDmhZXZkXpLgNpxjnRpcqT8rW81FaXfoyYQfKPFzHrN7FLixXR0UJsOHrjf5FDMxDpjmsvVE6e0XoQr8EC1tVNaxjpg9xNSPA2r3FHx/ApeBodEvgeU1PMndh0fP1HxXy7vlBIg8RDn+NEw6qEHgf1LbTUVmnaadTYJAckaExiJBJqMWPtu4vEqoBLCrsiwqCvDSpimsxskeBmiDGpDo8MRAuahRmLlqwESPK+8V3GiPqFkTCHUFXLGtRc0HaNi2cBrFAVdrh0nZws2sMAOwoggAGxrqRY2tqNsVaGwa1O0GS524oVASAq0GrpO+GoXEVqaEHgf1CKNLvJxKEhd0d4v28Vuzc7VgZVKeDH8L7KnLZHo3snyLBLVWXgIlgeY0/YeyBWA/vq/8AkD//xAArEAEAAgEDAwQBBAMBAQAAAAABABEhMUFREGFxIDCBkaFAscHwUNHh8XD/2gAIAQEAAT8Q9BD2NanBHY4aypL4M0J9jAZIliN2f550glwAjnQvwTylHeWO63Ot9vh9N5Y6xDzAFjZHTENP1D+tYEt1v+Ky8RpHnYfEs9NWj+7eXsRQ+7ufgK/MOn3PMcDkS/uhlarcYf4Gv0O3V0j7VGdXYniFpfxGapQC1hPUwPrD39Kg0PfZixFgLzgfZwf1O3rx0fdfW6SpMU5PARe566hX4ky7VmdQaf7Q84GPSmiWQ6WJEPMUWSjArhQnJqZt+ir3xv0F+86TQhAZpWof7sQslq2s8o1zPJALbuTR/wBxXMOTdbj0v7LGNc7rAE1tgD9nNxYGFOKwcXDoBDoe1IdagoDdpqm+h3Bb1kX1FwESUqej3SZcJTkR1qg3YDH3RS9BMIS5nQv7RxTtunDIvoYuxSz8QJtpUKbg44pQubIMtp3jyanq3gU2U2FPSLfUpujJJJ8qfpliWTzDT22XHNO77viIyRtWqxQLR1CWr2IaJrI1P0Wxv3eB/IRegVoZa8DEaopWNaK/yRRKqpuhyviPne3qveMYxnz8mxwd4r+XudcMOrqbby+kWQt69Gf1fGABAiIjkeYDAUfDt9CQWmWO5TzcEUY4lgF2wjuvSnifvE17qY7E0SKSFO6bel0I/QxLTQmgwnzCgkfq2g4qEyaw09t0lcNmc4ysfMs2RA3cAh4peauxwSipUO81IWJ3lfNJq3yJ2SPuKZ55YPdvCPyt3BNPtr8ghaUa20eSbXNUO/fXMo/JD0dfTwJ0x/Y8OiPTy7Ox5HRHWVh97erc2eehrcKecxVFJVtTau6x57cGw3XYJajQQo3spKJJWp/cUzFCbaL3UpFBA0opHiIpLxNGuObIbVeDsJv1etmk8oGoeBCLwQ1JnuXgYKamjwnZhEWiVErXJO+Wy9fb3dAlrm235fBg61EOsTKXfzNCBKgG0FImsvYoftXwxjtqVWcAP4ZcU3IexUlTrzI54IDdwCNfQdStQy+tO1/2mpAnmgeg41OjhxbvQF0+IXtOXD1OqXtPpIqGuhT0t7NJWmJY+ko7oofaGnsX1dGYyUP9f6xLPuxT0VmUSpREEhimpfhRjj/8SyjgHobqekhTXrjJ/e8JfLva4dsM0j3Ipr7u26GPWIwneAZL56fdVdE8KRwYm6r8839Qq2t41W7cG9HRtIjEcgM22hS966kcx110pXukvixgTXwiD0l6rdKZJdPXQE32j56lHT22X6sq705JglwUZ+JiGQfZOobvOyiLdwLWXtQ0fmC6r01Pc+vbb063v7HhP7njEBARKR3lmk0Ro/4KBPHudt34YHJ0vrKneMUunOkO3TD4UIyuuoq/z6WHs+rQli2vze0/pH8R3Pvq8RhiENEpMevr2lhC7LgC5aYrYaSYIZPcGKxzw7McGwxQHzpKNxMtsr3qEsYUoP7QsXL9Nx0dgjC3S1bg4OauLeQI0iUnm5ZdZPrq/wBO3j23Id1gvgc/BiqLL0BFWIJ2pIWWwAWrgBFWVXV5rpE/seENINtXtoijxJ23uS7JonRei8040lYxKZC7NK0zhNEE5GctoB9sBfHCKNaeI4DwSrMCuwGWVsF+QMz3+BP/AD0/8xAABQaB18vJT2qYHGjAAauUhgE4ARPdWCsHaNBBjz0lnwxwv6uX5gggwNExGBe6lp4g5XOtqehYPU1wftYLGBycg3PMbNNYMjsENXdXpCl1BUBANgK9AdFvzbkXINiE2ZmEbB5uBQ4pQXglh05WVbtoJdMZ2X+A/wATXTJ/Y8IGkdYZ4PxUkWfVGw2HIkHPQXkLGDsncYu5aslqSlBbeeTnOQ41JS/EEjDnBNvl6O/Cmmn/AAQA9dtaO3vMIYVhi5IHzGz3wxg4L0FGaRN+z2lbQX/odphrB1Af1CEXvyzuwtV+VK4O0fToDizcxlA9o18+IqMLAa7KywIVLro1PQx7iTRzcjNo4DufWZEAn4ll0aiqgx+8fPID74FANuj9MhAQJCp1TYAvWoNOBb+9w3JTiBVaOF6DZbDovL2YK7Ilya12bAzh+xFK7iNn5WCUzpE0fEDOLQqA7elcQc4NQEW5ICpiVF2Wbe5cdIpVs0KiA+ZYJc6w6wHm9IbTxez2YqeIuxlo2leXFI73EuQ7tuB5hZEd9iJT3iCKTTFHajfywbRjrXn28EGbR2cXbhLoXXdt1lE0Qz8PVUqUSp8dKLuI49FSjiHj0ViVUqGNvU5wyjPMAEK0PeYQCgi6ymIMDe6qiNO0xTKX9uIJ3IXmm5ZbP+HvHtdLZo9onDNjXwwMNFU0wHwxVXo0l8CNu4DG1pXaY422wRVFAsg97iEAKD0IiBQ60kltAMJhUxxu6JSp4BjJZ5g0VjKNZV7gjiaNMzh7jyRNFVYwcFzBQgDqThyENTiNldbKR3E2ZpTUAwGq7DoRQKhTukTWKTMdbNhs2F7RzutEIDk1qzFUd15M9ByxpXjrdYTA5qL6mlwpXmUR0tQFUuxrYPkCz0quzwY400BFcGBYCW1LvL8AOWDihwBXMGGHmBLVjI+ERJUB6wcFtsXfPFyciMMCpRiSs7oEEWmMHAsAwpcqPNkZKoVrhElRb0S6tS94+KhwxBKz5pGc0YbhPFQLBJTrBnqv4EDgw74C9rEF/wCPYb6bh2TFPrDtbFwVrDrs1B3Ma+2lwKYlxUkmiZn43X/diV+0x5AwopcrRSeElZW1VAhS3ltZrsWGk10zDPmubK0N0/Yl1FVVqtr5gtMQuka9g/7YEMdf9hp1YaD7AoVWhgAcmLSpwI17pANZqWqoxBOQKC3QLiNlktHmMIcpG4LsNeqCgZA+dhyGrawVmDlU3EpIlVEdsKVMJnyhkpIO6WRaRm9jfYhQzfblqFUXUZGKDMO2QUabBM96fsgKswLGEJoQwNoUC7tCEsSFlnDvSHrJIgLXzolQAUnffAGvsYAwhLFW66DAqPqgO9ayECyd/UcC0BfohzDWKDcib4zHovEPmunNGgAgFR0z2OYOlzKpa1iEMKd3bHlcBTz3bDSmUx12JvXiAstdehTCyUzuguWSJn0GDt36S+Y+otrQ2/M4Dh8Qo55GYkt8rG3llzRsNMLG75NQ095LlfSG08LEznt45A2GRqbkLmF3MFB3SoWuPMLGwWzD2wKr+15XdlY9J2ZVNcGWDqap+aCg7DSBLX2h3FuJhvyKGmBi38EEDkYg35oVidyA56k2gBurxUAAAA4lcDA6DywswgRS0JxGWEEIu8OHvDw3S6HFsLhwDJ2UaRilKGjhaEuJYcHIxKP891dazRKqqfDNCwZjyqFyMZUUUbKKjAcUVBFOhLGEcW1NzhpqBAa+JXdV6QC2UCA4ogt5lNMgkutWYTlUlJTVENAF80ARS2N0RfOZkCN0xfON5il7g1FnloCEgmqGdkTS0dzRUHYaSszAFgOhhYNVGi1a/bcSJE2xSl6c23cSKWp2QDbt1g/EPfYlxxa8wi4gtFYO6i1OcfvhK0nYEK/EPGg0qHenLGyDyUpOxAIADAEP81XPSuSapUqJ3gfoq/8AiNfr6/zB02989g9e/wCrPX//2Q==" alt="" hidden>
-<div id="px">
-<div id="pxbar" class="pxbar" hidden></div>
-<div class="wrap pxwrap" id="pxmain"></div>
-<section id="hdapp" hidden>
-
-<div class="wrap">
-  <header class="top">
-    <div class="brand">
-      <span class="logo"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIALsCCQMBIgACEQEDEQH/xAAyAAEAAwEBAQEAAAAAAAAAAAAABAUGAwECBwEBAAMBAQAAAAAAAAAAAAAAAAECAwQF/9oADAMBAAIQAxAAAALUgAfP1S2ykKfzp4dV7U23L6ARcA89AAAAB6eAAAAAAAAAAAAAAAAAAAAAAZ7Q1enNU/P189vmTb+useL1Qz3RJeez14OXnL6uo7Ul32eQFqAAAAAAAAAAAAAAAAAAAAAAD08AAjxqfXllfMX56eK5scr2y6NO49ebu9obGnw64/z65/TtbmLK7fFC1BBJymnkoBXRy5coBaKu0ACLALlHkAiEtnedmmUFxDuIAAEHnW9krRZI0iaeiQAAAACLKpL4wfn3zu8nyVazebvoIup+a3o7GLFx6Ynln98fq1HkmNXf60uXna82iHT5rKavKTGf1+Q1+q8GM46luqXeN7kddkc0DZY370j9IQZ2FqLI67I612lvU/WcwMx512jk182s4Ppf5y0be0/O/wBAynoKyBnYkuJxeyWMi+VLZQPiuut9iyuvxwmAAAAGe0NDryQ5Mab0cV6OL2PfA8iy0Al85jU5/Lpr/r5+uf09c897fDZTV5O0UGvyGv0XgxnHUt1S713uS1uRzmA+9JpFFvPzi3rNxkdbkja0N9k4Rtbkt/KYMpYnbZe0ZzX5DR6NQzvmTRs5fJookuJxezeWNB038+PFec/o31hHkdnjhNQAAAFXacrZZvt536vOvXPpx+qCQAGe0GVy6eUmLdZdtuOryWU1efllNbkrrWNic8ZyNNKi713uR2mLzmH+kfm/6QYym/SMJYhl42uX1FZlOd3WFuLtm89xlkdHg7xz0+Y3lmJ5/o6r8438j6hnYkuHw+0Wk2+OfuLHppyhrzAAAAAPn5zl8pldz97PO+5kH6mmkkZe95PQlkTLeXX1nLbC8gRJE0k2cKTj1dhFnHsPzvh+gZTWI3Hn92jlcyNPSfvB7zI1Uv6Rh9xJDmKT+cc9pnNo0lhEscZ/Pov6Jl9a1cqFys+vmTekTYfP1jYIAZ2JYxuT1rSxgzunzAtQAAAB74ByRn4Ev57OGP8AXw1w6dOXaK+dJMWq4j13fPb443MeNOXWLyvj7e1l9lt6MO4cjqhdSQhdSR7G4k58RiYhdjuh/RKROx1QOxJRvklo3pIRfSSr5h0QfslonIsHGMT3DwkOPwSXLqAAAAAAc6a9TTF/Wpz/AFcfCdV/WmNmrvazYQ+ft6dO33fY7e9Dl9AEq6x4lV83Yqlj9FNLseJHT+BUrzwr/ZfpXeWXM+IVl0IUS29IfGw6EHlYfZW9evpB9tPkgdpP2V0O37FD9Xgp5sn04Sfn6AAAAAAAAIFLqV6YjzcNMcncWil/PTPYAAAAAAAAB74AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD3wAAAAAAAAAAHp4D/8QAAv/aAAwDAQACAAMAAAAh88vSe844w88848888888888888888888888PVR0vYN88888888888888888888888484ekOcfc58w28640868ww0884a13088888scwILGx/0rA8oWF8DhhEb10oqJiy88888X7cMfMpyUtA8hGXoCAS8bU7woMnY88888teQ884rNUuS0jWC0jEAwkCOJto7M88888IQpgHNOI84OTWbdcoWBjts84iC88888stHmzvgUK384wAgkc0U0wsU40gAQ488888sMPD3y4SU8o4Ew8EkosckoUUQ4wU08888888oYDh0888888888s888888888888888888888888888888888888888888888888888888888888088888880888888888848/8QAAv/aAAwDAQACAAMAAAAQ/wDkG5v/AMn7/wD/AO//AP8A/wDv/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8AuPzfVv7/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP77v/jZPWcp0f8A6A/MG2/I/qA8/wD/AOgM/wD/APv/AP8AQ+smmz/N9+i/8t0qz7YOck/9rdkU/wD/AP8A/wCvvHInB+jfwv8Aynzqh0D2Er4CEau3/wD/AP8A6HD77/0ShxZbPTkdoWubTcz9Szwl7/8A/wD/AOewDTBTKD/+BAWif7qK9Xzz/wCIU/8A/wD/APv6sl2g3tQ+/wC/PLMOOsMOPNMN/iNutvv/AP8A88ul8z8Df+4AA2EwacScyAAU6QEAU/8A/v8A/wD+uADrc/8A/wD/AP8A/wD/AOv/APv/AP8A/wD/AP8A+/8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8Av/8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD3/wD/AP8A/wDv/wD/AP7/AP/EADMRAAEDAgQEBQMBCQAAAAAAAAIAAwQBEgUQESITITI0ICMxM0IUQFNzFSRgYoOSk6Lw/9oACAECAQE/AMosYpL1gquCQ+HaPWpMco7xtFnd95hT7bUql/yV423EsTfF6UZBlOkExHuHqQS3uJffvUV7jMgf3cHCnJG9zYCHDYtBtqCmYI3bdH6/xqtCArarFZMfguNF1pobiUUBBkBplzr6IgKnqGQg5X0BUEq8hVaEPrkIFX0DKmpeiGM9X4I2nA6g8BSWBK2pr6uP+RUIS508cCPx5QDVUtaFSsacvtZ/yJrG5Qde9Y/KCo8eP1mv2XOLeSNlxkrTCxYbJIHLC+eUbuAU/wBnKL26h9yakxxdH+dFyLSqw/2aowvetTTLcdu5VnjTpTTrcgVJZ4TnLOZ3T/6qphcird9Ey+9HeTZ3jr4sGL97osTqQQztzIBqWtVosTbEmdaqP7jaoovcAp/t5Ru3BQ+5NOyOE8AkpjF43gsP9mqjDrKOqnno2A5RCtepopwasqkZ6vwTjTgdQKZ3RpmZFajhcaePiyDIfmmBIGgGviivcGQBqTLimy4FXOtVpbnqsTr5NtFAZI5AXZR66PApokTPLJmlke0lD7g1iPuAocnUeESBoQ6Uydko1NZI27hyhtETlynO2t2oJxCOlikSCd+Cmd0abwpw276Go2HNsFcW8/HChOS3LR6VGgR2RtAE9EZfHQwU/DSilePQgbcMrQBN4aLTfFlH/TVIEVlk3pAfptooZNU43BsE82JgkOh9atiju8pSZgkNgKGYg7cSmmJubVSpU5pmW3Vvd1pyvmHWiYmDUbTRBHPd5SOSy0O1OOE6VxZy4zxyDIQUelrIUr46U1LRRJOHsNA1RxpA6JjcJp4nBG4EEmPI8o9h/jcR4W6y5fFcsTEm1+11jjPf9/amoJOuceV1/jWNSxKyOHw+7YlSI5XA4oeMMu7Xdhp+KzIHcvoCttKW7YmYrMcdgLEMVFsbGOtVqRFrX71jEJcfkLmxDj7lu5j/AHUjFZj1Lb7A/h3/xAA5EQABAwMCBAMDCAsAAAAAAAACAAMEAQUSIjIGEBETFCBTNUBCFSMzUmNzkqIWITBDUVRgYnKCk//aAAgBAwEBPwDldLg3Bim7VDxRcqvZVOmH+CgTBlxwdHnq984lhuSYOj4E2y4RY0BWKM5Gt4Ce7lZoIzpzbR7EVrgkz2Ow1grnD8FOfY966q8cRNxC7LOs18rTKuZ0P8it/Ez2QBKDMPUTbguN5iuG4NwpKblAGDX8TRng24Qt5q6PvSJz7joYHz68uq6rry68slmKyHyN26cYUMIrtQXyVcv5V38CcbcbLFwMPPfJhRLe4Y70OTzn9yt/DLdWQORv9NP8MQzH5rQa4NtrlXuxL2M6/wDRfpPZ2C7QnsUaZHlN5sOZrii0tvRPFAHzofn5HtQbuRbke1DXFUqj3LaKrXJYKtMUFedj9kRPuk7xTb2pBsutu6FOhQ7rF/WG/wCjcTrZNuGBfB5uLQIreFftVYgE7gwJKnIDcATET38uFJLjVxo3TYam4eEfy9JV3I0G7kW5HtXRCSNEWlByNCsxVKqx+yIn3SmWO6P3B/BjT3VBY8FAbac+BpTXRelvuD8bvmucTxcN5pW+BOZlNu9vQDqbcEx0+ThUBK40dLYC4hnDHtTnQ9bn0fKqHdyLciQIh5V2oC5HVAKwQhirF7Jg/dKRxdFYeNrsO6FduJ5U9urQU7Qee5XJmG3q3qbPlSXMiNMTZUUsmnlZ783N0O6HU8+yyObh4J67E+Xaif8ARFdbhIeCPFPR+8cQXcZGEIn8zZ51FalQEaDlUVRVBZEsSJDTpztFyt7VrigcpoD7X11cDE5r5D6vnOvQeqmQ7hKeN0m09Gca0kCbaZIsXdCehSo2Drez1ATN+beb7M9jP7ROsZxwdaf7Mf8AApd27Tfh4WgPU+uuFba4Oct34/cdX7J+HHkDiYKfYHA1NawQHKilpVZY5ZjFazUmRKlFrNWnh5x4wde0AgAQHAffX4Ed7eCrw9HqW9RrPDY1YZmqU6f05//EAEgQAAIBAgIECQgHBgMJAAAAAAECAwAEERIFECExEyAiMjRBUWFxFCMzUnKBkbEGFTBCYoKhFjVAUHPBJFNUQ0RjgKKy0eHw/9oACAEBAAE/AuKzBRiTTaRQc1caj0hGxwYZaBB/n99KWfJ1Dfr0dMTjGerd/P7rpEmuw6T+U8W6uRCnf1U80rnFnNR3E0RxDHwNQyrLGGH83voCfOL79W87KsbYxgs288W+bNcnuGvRb8qRPf8AzeWeOMco+6pblG5sK++lu3TcifCo9JKeeuH60rq4xU4jiaQTLNm9Ya9Fxnlyduwfza6u8nJTnUxJOJO3iQzvC2K+8VDKsqBhqnvI4tm9uyprmWbnYYdmoYZhmGI7KtpYpEHB/Di3ekLe1ZVlzcrdhX17Y/j+FWt3FdIXjxw3bddzpO2tnySZscOoV9e2P4/hUMqTRJIm5hjU+l7SCVo3zZl37Kh0vZzSBAxBO7EcS6u4rWMPJjgThsr69sfx/Cra4juIuETHDv13F9bW/pJNvZ10/wBII8eRCx78a/aH/gfrUen7cnlxsv61DcQzrjG4bjzX0UT5CDX1nD6rV9Zw9jV9ZwdjVHdQSc1x9vdTcFH39VHWllcN1AeNHR1wPVNSRSR89CK0fLklydTVeXHAps5x3cVJHjbMp21bzrNGGHv4n0h9Pb+wdWgeiv7Z16d6YPY1aN6BbewK0r+8bnxHy1aJ0h5QnBufOL+uv6QdDj/rD5HVoXoK+J1aT0sUJhgO37zdlEliSTie3iRTSQvnjbA1o3SC3abdkg5w/vxr/pTeA4tnesrBJDiDuP21++MwXsGu1tViGJ53brKhhgRTWnBzxPHuzbquyZLogbcNlR6NY898PCjoxeqRqmtpYecMR2jXo+XJNl6m+fE+kPp7f2Dq0D0V/bOvTvTB7GrRvQLb2BWlP3jc+I+WqOR4nV0ODDdVjeJdwhhzvvDs1fSDocf9YfI6tC9BXxNaWu/J7bk899g1QwyTyCOMYsattB2yDzvnG/Sm0bYkYeTJ8KvtCBVL22Psared7eZZV6qjkWSNHXcRjxb/AKU3gNVnaRTR5mxxxPXT6Nj+4xBp1KMVbeNVnJwkCHrw2/a3fSJP/urVZLmuB3DHjQ2yxvI/Wx1sARhU8fBTOnV1e/VGcJYz+McT6Q+ng9g6tA9Ff2zr070wexq0b0C29gVpT943PiPlW+iCCQd4qzu3tZg43feHbUMyTRq6HYa+kHQ4/wCsPkdWhegr4mtNTZ70r1IANWgrYLbmbrc7PAcTTFuIbskbnGPv1aClz2pT1G4t/wBKbwGrRvoPzHVfEG5bw1aN6P8AmPz+1vRhO3fq0f0g+x9lpLpI9jUm2SP21oa/pD6e39g6tA9Ff2zr070wexq0b0C29gVpT943PiPlUfpY/bHzrTOj8wNzGNo547dWir/yaTI58036Vp842UX9UfI6tC9BXxNXvTLn+q2rR65bK3H4BxPpDz7f82r6PttnHhTafVWYeTnYSN9ftCn+nb41+0Kf6c/GoZOFijkwwzKD8av+lN7I1Wt4sCZShO2n0kxHITDvNEknE79VvHwUKL2D7XSCc1/dqtXyXCd+z7LSJ/xP5Rqs0z3MY7NvE+kPp4PYOrQHRn9vXp0/438g1aN6Bb+wK0p+8bnxHyqP0sftjVpbR/k78JGPNsfgdT3jvZLbttyuCp7tWhegL4mtIpkvrgfjx+O3VoqThLCHuGHw4mn5A1zGnqr89WgE83O3fUqtwsnJPPNZH9U/Csj+qasuiW/9NflV/wBKbwHEALHBRjVpZZDnk39Q+2lQSIymhDKzMoXaDtryKQbTIq0rqRsYH7GaThZ3btPy1aMhwUy+tu8OJp+LGGOQfdbbq0NeLBKY3OCv89UkiRoXdsAKvLjym5eTq6vDVaR8FbRR9iitKfvG58R8qj9LH7Y+eqWNZUZGGINX1m9pNkPNPNOvQvQU8TWn7fB0nA2Hktq0RpAWshRz5t+vsNAhgCDs1Xl5FaxZnO3qHbU0rTStI29jq0bb8BaRod+8+JrKvYKyr2VlXsGq/wClN4DVZW0MsWLrica8gtfUpY405qgfbswUYk1caQJ2RfGiSxxJx1RXk0fXmHfUNwky7Phxbm+SLYu1qhuM9vwjjLRvVXZFEoWp7byjgWC4Y87wpVCqAOriTwrNE8bbmFXNvJbytG/V19uqG/vIRlSZsOzfU1xPP6SRm8dWh7EzSiZhyEOzvOrSn7xufEfKo/Sx+2PnrvLRLqEo2/7p7DU0TwyNG45Q1aF6AnianhSeJo3Gw1d2klrKUb3Ht1QXdzB6KVh3dVHS+kSPT/8ASKd3dszsWPadWiLAzSCZxyF3d541/wBKbwGrRvoPzH+AkkWNCzHACrm7ec9i9nFR2RsVO2ra5WUfi6xqmu4Yt7beyrjSEkmxeSKt7fhMZJNkY/Wp7jhNg2INwqztTIQ7jk/OprxYzlUYmoJRLGG4t3Zw3SZZB4Hsq50Pdwnkrwi91FHU4FSPdUcE0vMiZvAVZ6DdiGuNg9UUiIihVGAG4ar/AEfdy3s7pFipIw+FJou+DoeB+8OJpTR/lUeZPSru76+qr/8AyTWi4ZIbRUkXA4nVcW8VxGUkXEVc6DuEOMRzr+tSQzR8+Nl8RXuNRWd1NzIWPfVnoPAhrg4/gH96ACjADZxryCZ7glUxGFeSXP8AlGrBHSHBhgcT/AX91wsmUHkL86x4hUgA9R69SsVOIO2oLxJBlfYfnU+jcdsJ9xrgoYD5zzjeruWpp5JecdnUBuq1tRhw0+xeoVNes3Jj5I1WUeSEd+3+ZS5uDfLvw2V9W3vqj40dH3ij0fwNMHQ4MpB76x1RStH3jrFcDDMMYTgfUNMrIcGGB1JPKm56tZJZic4GXtp4rSCQtzmx2L2VLM8p2/DVaQcK+3mjixyq8QkG6hfQnybf54Er7qe5RJuDO/IW+FNebIskTOXXMB3CoLlZSVysrrvU76iuUklkjH3f1o3p4R1WB2CNgSO2o5EkQMp2U92cxEcTSZecR1U19AsCzbcpbDwqS4jj4L8bBR76e7IcrHC0mHOw6qe6CqnIYs25Ouku1JdXQo6rmyns7qimWSFZeojGvL9mfgHMXr/3qW5jQJvYvzQOuorgvmDQuhAx2014gihYAkyDFVG+opy+bPEyYDHbVvcJOhZfWwqe64J0RY2dmx2DuqK6Vw2wqyjEqajvZZMhFq+VsMD41FKsgbDqYimvG4WREgd8mGY1FdwysoTrXGpLsJI0YjZmCZsBUd67vl8lkGBwPdUUyyx5xupb+FvJt/nscvuqe4SHJm+82Aqa6jieJG3ucBSzAyvHhgV/UdteVKeaCTjgO+o5QxIIIYdR+2eNHGDKDVxosjlQH8p/tW0HAjA9hrGgcKS8xGWVM4/Wilk3NnK+IoeRpvcv4CpL1yMqDIuuCFpnwHvNRxrGoUcW1kQWbAthkzBseqoIQy2Ub9dq/wA1rl+V4PzkgcHv76tyBJY7f92b+1TTr5S0se0RRFSR6x3Ck4e3NtJLGqqOSxzev21aOiNe5mA8/wBfsirEHLM/3ZJCV8KsXQRyJjgyO2f3nHGhtBccx7sFe/vqdWjltoduHDqUP9q0cQsbxM3nEkfP7zjjXCIL9GzjK8WCHqxx3VdeculyH0cMmf8ANuqPl6KVEYZ+BGzGluYFtBIWGRV2/wDirZeAkteFGGNsFBPUeyuFmW4aJ3RgYy2wYYVB5uWwkdsEa1CD2t/61fS+aMSEcI5ygY1bcJFd5XiVBKmzA47U/wDVSkDSFvif9m9SsJLsmNsRHCwfDvqxXCC2PlTejXkEjsq0dAs2LD0zVEs7XV8I5VXlr93H7vjUcSW15CvUYyAT1tjjScrSshG4QAHxJq29Nef1R/2irSRVtHBbDJmDY9VW9vjDYxPsxt5fdiQauUn4MPNvDog+O+pknuXuTHEpGGRGLYYEbcfjVzJwtrBOrZW2D47xSqsVwq/d4PBaxDXIw+6hx9/8BcWsM45a7e3rq4sJ4No5a0GrNWNY1jWNW9pJNt5q1FEkS5VHGa2t3fO0Slu3DbWUY44bRRRSccoxwwp7eCQKHiUgbsRuoRRhcoQZeymUMMCMRTW1uz5zEubtw1SW1vKcZIlY94rKuA5I2bqKK2GIxwOIqS3glIMkSt4ijBEyCMxrl7MKjhiiXKiBR2Cls7VWDLAgI68K8lt+Ez8Eubtwp40kXK6gjsNRwRRjBI1XwoxRlODKDLhu6qS2gj5kSjwFFVOUkbt1SwQy4cJGrYdopURFyqoA7KFlZg4+Tx4+FNZ2rtmaBCe3ClRFxyqBjvqSKOVcrqGHYajijiXKiBR2CsoBJw376a2t3fO0SFu3CsoxDYbRRVW3igoAwAwrg0wwyjDHH30yK4wZQRSoqDBRh/BXGj7ebbhlbtFTaMuo+Zg47t9MJE56MviKDY7qis7qXdER7WyrfRqJypDmP6f8v/8A/8QAKxABAAIBAwIFBAMBAQEAAAAAAQARITFBURBhIHGBkaEwsfDxQFDB0eGA/9oACAEBAAE/IfClEBvGqXv0glPc5IAI/wB/Ub/qYxhjuXl8VhBv+4+QfaMYXR3PDYgt4E1sew0Q6sbpZ8zfX24/t6ULQo9osBACrtMGe3weFw8QeseicTHu/t7d5O5i2F3/APMew/Kkap+8aQqXkPBW7PkI9MoMfA/tstu54i5CtWPWwOPQZoBvx0+JyYZeQ06Mou7arltAA9HhVSwui9J344KB0K063f1WpO/G0DEWZzMl00WJxzrR4NLMdLy/qd2IrKtYVp1LwHDlQ6BOVILeden6Jzs+NGi1eCfpZ+nn6KKVY4+vYpqx6olVW3mMLUAtdCZer3Qix7Az3INveLb7PmT0mwqqqq5XwE6w9nznlNDhPoht8H9/BIK27GDo59vPgpb9f4fn/wARHrJqm18BRJ7m8p1f0R9EVzv8xEiq4HvDJ9X8Il6UqAZWg85Qy3r1NAI6k38cuGGGnbAEJvy01td3pJng6MzP3D8PohF8f4ZT31za8phKGOd1xHT6sKvQeWZc36z7Fkd2D2+5mvYS3vRoxfsNW3jszs68RzcvJyOpGQsQ9fGJKOC1EePBs2fMG6kzHJUV/g8xj6m0+UfZGDb3v8f74amqRr5D1VI1hgaG/L0UBt8rBx9Auvj+svyfGAoAtWj1gIIlI7VMz+jgSwodj4OH2u8N83L0ZJnfC8BF1W/d0da9H0fGLX6FB7C+mj9VK7iP+Rnzn3PpD1P9dDS5D5gwH0I6+P6y/J8ekS4CMGznpuwM9/MBBk689L+fT0Ibm98+Alu9dCGypTtVU7M/VZ+rzjQnil9QKcyOK3j4ytz/ACIEtNrzcy0Ba4DlYfmJ57/VxkaZRJc7xk9fpWeUvdei1GLP0/fiKrPh9QqeCpP+V5lXhn4/ljy6WI+TQJXz1Or266a44u/668Aw376ND6kPaO9gXmfsUaHg4YMdeGCvhfBGCr4n1t8gltalwg0rTY8VPbwMvxrRBCzhAzjCbpLmM4eR4K/bC7PTbdt2JuH4NasfczR7NJStBa4DznZrT8lx61UVnSRzkyc54NafR6h0onJ/1w6SixGXE2Y89Tclj0Q5pmfqp2HtP0UCuotcUwJuvuwz2D66WkGrEXEc9/KXxLlbnfeYx7D/AKl0ed9x4b/FbbErDDfiYUjnE87k3ggsCjwBDoGAznRsHPSlttWB5XFBrcgsHp0/HlH6dPyfHwVFlWrchTyWnv36zvkHTCpx6Y6aOvq9jFQ+wX7REm6pb0zzu/5GFgQMhZQc7P8A3Ll9BhCoJkeBC5hC7GWW3+nK69crN8P7emCpyEYoLXghoK5OHw6vJp6wgW5dfqRguNlRqvOiLD37L5w34qDbo8WyLIcyoZyc+A6L7JxP3RNrh3QYye55Rl2VoYrT3Cyn/wAJVZrhR7wQf8GUOCBoHicYhzfE/YE1Wy/gM+ce/QuDBiZ7GyDCtYaTAP4YsVS/K9I2dx2lHm7xTHThCM0Dld/OeUje7/zolrV/L6tfxa/gXlm30DviX1J2QkKhFxRoE1dGHejwuH4mXDs3k5JaSBs3iKzJ2rS8vBoNCEyfc94BVeA0MhfaOaFo47oAJtd7RW73Dj8LlOiFehcCBHf2a1O0Vz6Dp6y9MoS/ytCuO7LhIWnKeSZhaMTmWFWKxFxfMp03dG3niWpItw7reBLGv7DNQfbPZxFY7t3/AMzyIgFHchZf6sxczx7G2vOX4FJXGISRxxZVeLSHaEZfLTTfEQpe3yQAAYDlLxzHaXH9GqnePPxdTdsO1rLhEky17S+UTKfvgduQLm4mr6M/HEfapOdzZKeXMThv5TUSJwO/1q/nhJefgt0bbh1CkhLoRRNEmFXLsmc5ghrXzaglTXY1l5e8uANM9KETQeEiSq1Vy9YAzqOTJ7y2Nerht6pfgOV7yhwzBi31YGitO9nBXMUT72qpNstHPyiNFLaJYF6MFW9OVI+Rjdte3F59MH/jDhcLyIy0G5UHc5jpavrtQo+es1OFGpCuKPYhs52qP5EHnWN8VMqc5YtSDehhT0TKMTBuZjkwK/G5fEooDmhZXZkXpLgNpxjnRpcqT8rW81FaXfoyYQfKPFzHrN7FLixXR0UJsOHrjf5FDMxDpjmsvVE6e0XoQr8EC1tVNaxjpg9xNSPA2r3FHx/ApeBodEvgeU1PMndh0fP1HxXy7vlBIg8RDn+NEw6qEHgf1LbTUVmnaadTYJAckaExiJBJqMWPtu4vEqoBLCrsiwqCvDSpimsxskeBmiDGpDo8MRAuahRmLlqwESPK+8V3GiPqFkTCHUFXLGtRc0HaNi2cBrFAVdrh0nZws2sMAOwoggAGxrqRY2tqNsVaGwa1O0GS524oVASAq0GrpO+GoXEVqaEHgf1CKNLvJxKEhd0d4v28Vuzc7VgZVKeDH8L7KnLZHo3snyLBLVWXgIlgeY0/YeyBWA/vq/8AkD//xAArEAEAAgEDAwQBBAMBAQAAAAABABEhMUFREGFxIDCBkaFAscHwUNHh8XD/2gAIAQEAAT8Q9BD2NanBHY4aypL4M0J9jAZIliN2f550glwAjnQvwTylHeWO63Ot9vh9N5Y6xDzAFjZHTENP1D+tYEt1v+Ky8RpHnYfEs9NWj+7eXsRQ+7ufgK/MOn3PMcDkS/uhlarcYf4Gv0O3V0j7VGdXYniFpfxGapQC1hPUwPrD39Kg0PfZixFgLzgfZwf1O3rx0fdfW6SpMU5PARe566hX4ky7VmdQaf7Q84GPSmiWQ6WJEPMUWSjArhQnJqZt+ir3xv0F+86TQhAZpWof7sQslq2s8o1zPJALbuTR/wBxXMOTdbj0v7LGNc7rAE1tgD9nNxYGFOKwcXDoBDoe1IdagoDdpqm+h3Bb1kX1FwESUqej3SZcJTkR1qg3YDH3RS9BMIS5nQv7RxTtunDIvoYuxSz8QJtpUKbg44pQubIMtp3jyanq3gU2U2FPSLfUpujJJJ8qfpliWTzDT22XHNO77viIyRtWqxQLR1CWr2IaJrI1P0Wxv3eB/IRegVoZa8DEaopWNaK/yRRKqpuhyviPne3qveMYxnz8mxwd4r+XudcMOrqbby+kWQt69Gf1fGABAiIjkeYDAUfDt9CQWmWO5TzcEUY4lgF2wjuvSnifvE17qY7E0SKSFO6bel0I/QxLTQmgwnzCgkfq2g4qEyaw09t0lcNmc4ysfMs2RA3cAh4peauxwSipUO81IWJ3lfNJq3yJ2SPuKZ55YPdvCPyt3BNPtr8ghaUa20eSbXNUO/fXMo/JD0dfTwJ0x/Y8OiPTy7Ox5HRHWVh97erc2eehrcKecxVFJVtTau6x57cGw3XYJajQQo3spKJJWp/cUzFCbaL3UpFBA0opHiIpLxNGuObIbVeDsJv1etmk8oGoeBCLwQ1JnuXgYKamjwnZhEWiVErXJO+Wy9fb3dAlrm235fBg61EOsTKXfzNCBKgG0FImsvYoftXwxjtqVWcAP4ZcU3IexUlTrzI54IDdwCNfQdStQy+tO1/2mpAnmgeg41OjhxbvQF0+IXtOXD1OqXtPpIqGuhT0t7NJWmJY+ko7oofaGnsX1dGYyUP9f6xLPuxT0VmUSpREEhimpfhRjj/8SyjgHobqekhTXrjJ/e8JfLva4dsM0j3Ipr7u26GPWIwneAZL56fdVdE8KRwYm6r8839Qq2t41W7cG9HRtIjEcgM22hS966kcx110pXukvixgTXwiD0l6rdKZJdPXQE32j56lHT22X6sq705JglwUZ+JiGQfZOobvOyiLdwLWXtQ0fmC6r01Pc+vbb063v7HhP7njEBARKR3lmk0Ro/4KBPHudt34YHJ0vrKneMUunOkO3TD4UIyuuoq/z6WHs+rQli2vze0/pH8R3Pvq8RhiENEpMevr2lhC7LgC5aYrYaSYIZPcGKxzw7McGwxQHzpKNxMtsr3qEsYUoP7QsXL9Nx0dgjC3S1bg4OauLeQI0iUnm5ZdZPrq/wBO3j23Id1gvgc/BiqLL0BFWIJ2pIWWwAWrgBFWVXV5rpE/seENINtXtoijxJ23uS7JonRei8040lYxKZC7NK0zhNEE5GctoB9sBfHCKNaeI4DwSrMCuwGWVsF+QMz3+BP/AD0/8xAABQaB18vJT2qYHGjAAauUhgE4ARPdWCsHaNBBjz0lnwxwv6uX5gggwNExGBe6lp4g5XOtqehYPU1wftYLGBycg3PMbNNYMjsENXdXpCl1BUBANgK9AdFvzbkXINiE2ZmEbB5uBQ4pQXglh05WVbtoJdMZ2X+A/wATXTJ/Y8IGkdYZ4PxUkWfVGw2HIkHPQXkLGDsncYu5aslqSlBbeeTnOQ41JS/EEjDnBNvl6O/Cmmn/AAQA9dtaO3vMIYVhi5IHzGz3wxg4L0FGaRN+z2lbQX/odphrB1Af1CEXvyzuwtV+VK4O0fToDizcxlA9o18+IqMLAa7KywIVLro1PQx7iTRzcjNo4DufWZEAn4ll0aiqgx+8fPID74FANuj9MhAQJCp1TYAvWoNOBb+9w3JTiBVaOF6DZbDovL2YK7Ilya12bAzh+xFK7iNn5WCUzpE0fEDOLQqA7elcQc4NQEW5ICpiVF2Wbe5cdIpVs0KiA+ZYJc6w6wHm9IbTxez2YqeIuxlo2leXFI73EuQ7tuB5hZEd9iJT3iCKTTFHajfywbRjrXn28EGbR2cXbhLoXXdt1lE0Qz8PVUqUSp8dKLuI49FSjiHj0ViVUqGNvU5wyjPMAEK0PeYQCgi6ymIMDe6qiNO0xTKX9uIJ3IXmm5ZbP+HvHtdLZo9onDNjXwwMNFU0wHwxVXo0l8CNu4DG1pXaY422wRVFAsg97iEAKD0IiBQ60kltAMJhUxxu6JSp4BjJZ5g0VjKNZV7gjiaNMzh7jyRNFVYwcFzBQgDqThyENTiNldbKR3E2ZpTUAwGq7DoRQKhTukTWKTMdbNhs2F7RzutEIDk1qzFUd15M9ByxpXjrdYTA5qL6mlwpXmUR0tQFUuxrYPkCz0quzwY400BFcGBYCW1LvL8AOWDihwBXMGGHmBLVjI+ERJUB6wcFtsXfPFyciMMCpRiSs7oEEWmMHAsAwpcqPNkZKoVrhElRb0S6tS94+KhwxBKz5pGc0YbhPFQLBJTrBnqv4EDgw74C9rEF/wCPYb6bh2TFPrDtbFwVrDrs1B3Ma+2lwKYlxUkmiZn43X/diV+0x5AwopcrRSeElZW1VAhS3ltZrsWGk10zDPmubK0N0/Yl1FVVqtr5gtMQuka9g/7YEMdf9hp1YaD7AoVWhgAcmLSpwI17pANZqWqoxBOQKC3QLiNlktHmMIcpG4LsNeqCgZA+dhyGrawVmDlU3EpIlVEdsKVMJnyhkpIO6WRaRm9jfYhQzfblqFUXUZGKDMO2QUabBM96fsgKswLGEJoQwNoUC7tCEsSFlnDvSHrJIgLXzolQAUnffAGvsYAwhLFW66DAqPqgO9ayECyd/UcC0BfohzDWKDcib4zHovEPmunNGgAgFR0z2OYOlzKpa1iEMKd3bHlcBTz3bDSmUx12JvXiAstdehTCyUzuguWSJn0GDt36S+Y+otrQ2/M4Dh8Qo55GYkt8rG3llzRsNMLG75NQ095LlfSG08LEznt45A2GRqbkLmF3MFB3SoWuPMLGwWzD2wKr+15XdlY9J2ZVNcGWDqap+aCg7DSBLX2h3FuJhvyKGmBi38EEDkYg35oVidyA56k2gBurxUAAAA4lcDA6DywswgRS0JxGWEEIu8OHvDw3S6HFsLhwDJ2UaRilKGjhaEuJYcHIxKP891dazRKqqfDNCwZjyqFyMZUUUbKKjAcUVBFOhLGEcW1NzhpqBAa+JXdV6QC2UCA4ogt5lNMgkutWYTlUlJTVENAF80ARS2N0RfOZkCN0xfON5il7g1FnloCEgmqGdkTS0dzRUHYaSszAFgOhhYNVGi1a/bcSJE2xSl6c23cSKWp2QDbt1g/EPfYlxxa8wi4gtFYO6i1OcfvhK0nYEK/EPGg0qHenLGyDyUpOxAIADAEP81XPSuSapUqJ3gfoq/8AiNfr6/zB02989g9e/wCrPX//2Q==" alt="UNO-P Unidad Oncológica del Putumayo"></span>
-      <div>
-        <div class="eyebrow">UNO-P · POSMÉDICA · Unidad Renal</div>
-        <h1>Hemodiálisis · control y gestión</h1>
-      </div>
-    </div>
-  </header>
-  <nav class="nav" id="nav" role="tablist" aria-label="Secciones"></nav>
-  <div class="bookbar panel" id="bookbar">
-    <div class="copyrow">
-      <label class="btn primary" for="bookfile">Cargar libro o Dashboard</label><input type="file" id="bookfile" accept=".xlsx,.xls" hidden>
-      <button type="button" class="btn" id="bookdemo">Ver con datos ficticios</button>
-      <button type="button" class="btn" id="booknew">Empezar libro nuevo</button>
-      <button type="button" class="btn" id="bookexp" hidden>Descargar libro actualizado</button>
-      <span class="note" id="bookinfo">Sin libro cargado. El archivo se lee solo en este navegador.</span>
-    </div>
-    <div class="filters">
-      <label class="f">Usuario que registra *<input type="text" id="user" placeholder="Nombre y cargo" autocomplete="name"></label>
-      <label class="f">Fecha de corte<input type="date" id="corte"></label>
-      <label class="f">Inicio del periodo<input type="date" id="ps"></label>
-      <label class="f">EPS<select id="feps"></select></label>
-    </div>
-  </div>
-  <p class="privacy">Datos de salud sensibles (Ley 1581 de 2012). Nada sale de este navegador: el libro se lee y se descarga en su equipo. La herramienta calcula y alerta; la decisión clínica es del profesional.</p>
-  <main id="out" class="mout"></main>
-</div>
-</section>
-<section id="nefroapp" hidden></section>
-</div>
-<div class="toast" id="toast" role="status" hidden></div>
-<div id="dlg" class="ovl" hidden></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
 "use strict";
 /* ================= utilidades ================= */
 const $=id=>document.getElementById(id);
@@ -1317,14 +583,14 @@ function pacRegSave(t){if(needUser())return;const p=IDX.pac.get(ST.sel.pac);cons
 function turnoOpts(d){const w=d.getDay();return turnosCfg().filter(t=>t.d.includes(w)).map(t=>t.n);}
 function tKey(){return ST.ui.tdate+"|"+ST.ui.tturno;}
 function tDefRow(p,d){const ab=absentOn(p,d);const n=ab?p._nov.find(x=>(x.Tipo==="Hospitalización"||x.Tipo==="Viaje / traslado temporal")&&x.Inicio<=d&&(!x.Fin||d<=x.Fin)):null;
-  return{sid:"",estado:ab?"Suspendida":"",motivo:ab?(n.Tipo==="Hospitalización"?"Hospitalización":"Viaje o diálisis en otra unidad"):"",causa:n&&n.Causa||"",atrib:n&&n.Atribuible||"",nota:"",min:num(p.DuracionMin)||ST.book.cfgv.durDefault,acc:accessAt(p,d)||"",pp:"",pq:"",ufm:"",tapre:"",tapost:"",glu:"",ktv:"",puesto:num(p.Puesto)||"",tipo:"Programada",motExtra:"",contrato:"",repro:"",ev:[],saved:false,pre:ab,lim:""};}
+  return{sid:"",estado:ab?"Suspendida":"",motivo:ab?(n.Tipo==="Hospitalización"?"Hospitalización":"Viaje o diálisis en otra unidad"):"",causa:n&&n.Causa||"",atrib:n&&n.Atribuible||"",nota:"",min:num(p.DuracionMin)||ST.book.cfgv.durDefault,acc:accessAt(p,d)||"",pp:"",pq:"",ufm:"",tapre:"",tapost:"",fc:"",fr:"",sat:"",glu:"",ktv:"",puesto:num(p.Puesto)||"",tipo:"Programada",motExtra:"",contrato:"",repro:"",ev:[],saved:false,pre:ab,lim:""};}
 function tInit(){
   if(!ST.ui.tdate)ST.ui.tdate=iso(TODAY());const d=pdate(ST.ui.tdate);const ops=turnoOpts(d);
   if(!ops.includes(ST.ui.tturno))ST.ui.tturno=ops[0]||"";
   if(ST.ui.tdraft&&ST.ui.tdraft.key===tKey())return;
   ensureIdx();const rows={};const list=[];
   ST.book.pac.forEach(p=>{const ses=p._ses.find(s=>iso(s.Fecha)===ST.ui.tdate&&(s.Turno===ST.ui.tturno||!s.Turno&&p.Turno===ST.ui.tturno));const inT=p.Turno===ST.ui.tturno&&activeAt(p,d);if(!inT&&!ses)return;list.push(p.ID);
-    if(ses)rows[p.ID]={sid:ses.ID,estado:ses.Estado,motivo:ses.Motivo||"",causa:"",atrib:"",nota:ses.Nota||"",min:ses.DuracionMin,acc:ses.Acceso||"",pp:ses.PesoPre??"",pq:ses.PesoPost??"",ufm:ses.UFMaquina??"",tapre:ses.TASPre?ses.TASPre+"/"+(ses.TADPre??""):"",tapost:ses.TASPost?ses.TASPost+"/"+(ses.TADPost??""):"",glu:ses.Gluco??"",ktv:ses.KtVOCM??"",puesto:ses.Puesto??(num(p.Puesto)||""),tipo:ses.Tipo||"Programada",motExtra:ses.MotivoExtra||"",contrato:ses.PorContrato||"",repro:ses.Reprograma?iso(ses.Reprograma):"",ev:[],saved:true,lim:ses.LimpiezaPuesto||""};
+    if(ses)rows[p.ID]={sid:ses.ID,estado:ses.Estado,motivo:ses.Motivo||"",causa:"",atrib:"",nota:ses.Nota||"",min:ses.DuracionMin,acc:ses.Acceso||"",pp:ses.PesoPre??"",pq:ses.PesoPost??"",ufm:ses.UFMaquina??"",tapre:ses.TASPre?ses.TASPre+"/"+(ses.TADPre??""):"",tapost:ses.TASPost?ses.TASPost+"/"+(ses.TADPost??""):"",fc:ses.FC??"",fr:ses.FR??"",sat:ses.SatO2??"",glu:ses.Gluco??"",ktv:ses.KtVOCM??"",puesto:ses.Puesto??(num(p.Puesto)||""),tipo:ses.Tipo||"Programada",motExtra:ses.MotivoExtra||"",contrato:ses.PorContrato||"",repro:ses.Reprograma?iso(ses.Reprograma):"",ev:[],saved:true,lim:ses.LimpiezaPuesto||""};
     else rows[p.ID]=tDefRow(p,d);});
   ST.ui.tdraft={key:tKey(),rows,list};
 }
@@ -1342,7 +608,7 @@ function vTurno(){
   h+='<div class="copyrow"><label class="f" style="max-width:190px">Fecha del turno<input type="date" id="tdate" value="'+ST.ui.tdate+'"></label>'+(ops.length?'<div class="seg" role="group" aria-label="Turno">'+ops.map(o=>'<button type="button" data-a="tturno|'+o+'" aria-pressed="'+(o===ST.ui.tturno)+'">'+o+'</button>').join("")+'</div>':'<span class="alert warn"><p>'+DIAS_L[d.getDay()]+': no hay turnos configurados ese día (Referencia → Turnos).</p></span>')+
     '<span class="note" id="tcount">'+L.length+' pacientes · '+done+' guardados · '+pend+' sin estado</span></div>';
   if(!L.length)return h+'<div class="panel empty">No hay pacientes asignados a este turno. Asigne turno y puesto en Pacientes, o agregue un paciente extra.</div>'+vMapa(d);
-  h+='<div class="panel tablebox" style="padding:0"><table class="turno"><thead><tr><th>Silla</th><th>Paciente</th><th>Estado</th><th>Min</th><th>Acceso</th><th>Peso pre</th><th>Peso post</th><th>UF</th><th>TA pre</th><th>TA post</th><th>Glucometría</th><th>Kt/V línea</th><th>Motivo si no se realizó</th><th title="Desinfección del puesto después del uso">Desinf. puesto</th><th>Eventos</th></tr></thead><tbody>'+L.map(p=>tRow(p)).join("")+'</tbody></table></div>';
+  h+='<div class="panel tablebox" style="padding:0"><table class="turno"><thead><tr><th>Silla</th><th>Paciente</th><th>Estado</th><th>Min</th><th>Acceso</th><th>Peso pre</th><th>Peso post</th><th>UF</th><th>TA pre</th><th>TA post</th><th>FC · FR · SatO2</th><th>Glucometría</th><th>Kt/V línea</th><th>Motivo si no se realizó</th><th title="Desinfección del puesto después del uso">Desinf. puesto</th><th>Eventos</th></tr></thead><tbody>'+L.map(p=>tRow(p)).join("")+'</tbody></table></div>';
   return h+'<p class="note">UF neta = peso pre − peso post (1 kg ≈ 1 L); tasa de UF = UF en mL / peso post / horas de la sesión, en rojo si supera 13 mL/kg/h. «máq. mL» es el volumen ultrafiltrado que muestra la máquina al final; la diferencia con la UF por peso corresponde a líquidos administrados o ingeridos durante la sesión. TA como 130/80. Peso en kg. La silla se puede cambiar solo para esta sesión (máquina dañada); el puesto habitual se cambia en Pacientes. Glucometría solo para pacientes con diabetes. Kt/V en línea: el que reporta la máquina (dialisancia iónica), si lo tiene. «Desinf. puesto»: marque cuando el puesto quedó desinfectado después de ese uso (fuente de la cobertura documental de limpieza que lee IAAS).</p>'+vMapa(d);
 }
 function tRow(p){const T=ST.ui.tdraft;const r=T.rows[p.ID];const re=r.estado==="Realizada",no=r.estado&&!re;const dis=re?"":" disabled";const P=ST.book.cfgv.puestos||13;const d=pdate(ST.ui.tdate);
@@ -1357,7 +623,8 @@ function tRow(p){const T=ST.ui.tdraft;const r=T.rows[p.ID];const re=r.estado==="
    '<td style="min-width:104px"><span data-ufv="'+p.ID+'">'+ufView(p,r)+'</span><input class="w-kg" type="text" inputmode="numeric" data-t="'+p.ID+'|ufm" value="'+esc(r.ufm)+'"'+dis+' aria-label="UF de la máquina en mL" placeholder="máq. mL" style="margin-top:3px;width:84px"></td>'+
    '<td><input class="w-ta" type="text" inputmode="numeric" data-t="'+p.ID+'|tapre" value="'+esc(r.tapre)+'" placeholder="130/80"'+dis+' aria-label="TA pre"></td>'+
    '<td><input class="w-ta" type="text" inputmode="numeric" data-t="'+p.ID+'|tapost" value="'+esc(r.tapost)+'" placeholder="120/75"'+dis+' aria-label="TA post"></td>'+
-   '<td><input class="w-tas" type="number" inputmode="numeric" data-t="'+p.ID+'|glu" value="'+esc(r.glu)+'"'+(re&&p.DM==="SI"?"":" disabled")+' aria-label="Glucometría" placeholder="'+(p.DM==="SI"?"mg/dL":"no DM")+'"></td>'+
+   '<td style="min-width:130px"><div style="display:flex;gap:3px"><input class="w-min" style="width:42px" type="number" data-t="'+p.ID+'|fc" value="'+esc(r.fc??"")+'"'+dis+' title="FC (lpm)" placeholder="FC"><input class="w-min" style="width:38px" type="number" data-t="'+p.ID+'|fr" value="'+esc(r.fr??"")+'"'+dis+' title="FR (rpm)" placeholder="FR"><input class="w-min" style="width:42px" type="number" data-t="'+p.ID+'|sat" value="'+esc(r.sat??"")+'"'+dis+' title="SatO2 (%)" placeholder="Sat%"></div></td>'+
+   '<td><input class="w-tas" type="number" inputmode="numeric" data-t="'+p.ID+'|glu" value="'+esc(r.glu)+'"'+dis+' aria-label="Glucometría" placeholder="mg/dL"></td>'+
    '<td><input class="w-tas" type="text" inputmode="decimal" data-t="'+p.ID+'|ktv" value="'+esc(r.ktv)+'"'+dis+' aria-label="Kt/V en línea"></td>'+
    '<td style="min-width:200px">'+(no?'<select data-t="'+p.ID+'|motivo" data-re="1" aria-label="Motivo">'+opt(MOTIVOS.map(m=>m[0]),r.motivo,"Motivo…")+'</select>'+
      (r.motivo==="Hospitalización"?'<select data-t="'+p.ID+'|causa" aria-label="Causa de la hospitalización" style="margin-top:3px">'+opt(CAUSA_HOSP,r.causa,"Causa de la hospitalización…")+'</select><select data-t="'+p.ID+'|atrib" aria-label="Atribuible" style="margin-top:3px">'+opt(ATRIB,r.atrib,"¿Atribuible a ERC o diálisis?")+'</select>':"")+
@@ -1380,7 +647,7 @@ function tSave(){
     else{if(!r.motivo)errs.push(id+": falta el motivo de la sesión no realizada");if(r.motivo==="Hospitalización"&&!r.causa)errs.push(id+": falta la causa de la hospitalización");}});
   if(errs.length){toast("No se guardó. "+errs.slice(0,3).join(" · ")+(errs.length>3?" …":""));return;}
   T.list.forEach(id=>{const r=T.rows[id];if(!r.estado)return;const p=IDX.pac.get(id);const re=r.estado==="Realizada";const a=parseTA(r.tapre),b=parseTA(r.tapost);
-    const o={Fecha:d,Paciente:id,Turno:ST.ui.tturno,Puesto:num(r.puesto),Tipo:r.tipo||"Programada",MotivoExtra:r.motExtra||"",PorContrato:r.contrato||"",Reprograma:pdate(r.repro),Estado:r.estado,Motivo:re?"":r.motivo,Responsable:re?"":(MOT_RESP[r.motivo]||"Otro"),Nota:re?"":r.nota,DuracionMin:re?num(r.min):null,Acceso:re?r.acc:"",PesoPre:re?num(r.pp):null,PesoPost:re?num(r.pq):null,TASPre:re&&a?a[0]:null,TADPre:re&&a?a[1]:null,TASPost:re&&b?b[0]:null,TADPost:re&&b?b[1]:null,Gluco:re?num(r.glu):null,KtVOCM:re?num(r.ktv):null};const uf=re?ufCalc(num(r.pp),num(r.pq),num(r.min)):null;o.UFNeta=uf&&uf.kg!=null?Math.round(uf.kg*100)/100:null;o.UFR=uf&&uf.ufr!=null?Math.round(uf.ufr*10)/10:null;o.UFMaquina=re?num(r.ufm):null;o.LimpiezaPuesto=re&&r.lim==="SI"?"SI":"";
+    const o={Fecha:d,Paciente:id,Turno:ST.ui.tturno,Puesto:num(r.puesto),Tipo:r.tipo||"Programada",MotivoExtra:r.motExtra||"",PorContrato:r.contrato||"",Reprograma:pdate(r.repro),Estado:r.estado,Motivo:re?"":r.motivo,Responsable:re?"":(MOT_RESP[r.motivo]||"Otro"),Nota:re?"":r.nota,DuracionMin:re?num(r.min):null,Acceso:re?r.acc:"",PesoPre:re?num(r.pp):null,PesoPost:re?num(r.pq):null,TASPre:re&&a?a[0]:null,TADPre:re&&a?a[1]:null,TASPost:re&&b?b[0]:null,TADPost:re&&b?b[1]:null,FC:re?num(r.fc):null,FR:re?num(r.fr):null,SatO2:re?num(r.sat):null,Gluco:re?num(r.glu):null,KtVOCM:re?num(r.ktv):null};const uf=re?ufCalc(num(r.pp),num(r.pq),num(r.min)):null;o.UFNeta=uf&&uf.kg!=null?Math.round(uf.kg*100)/100:null;o.UFR=uf&&uf.ufr!=null?Math.round(uf.ufr*10)/10:null;o.UFMaquina=re?num(r.ufm):null;o.LimpiezaPuesto=re&&r.lim==="SI"?"SI":"";
     let s;if(r.sid){s=ST.book.ses.find(x=>x.ID===r.sid);if(updRec("ses",s,o))nUpd++;}else{s=addRec("ses","S-",o);r.sid=s.ID;nNew++;}
     r.ev.forEach(e=>{const sp=e._sp;delete e._sp;const ev=addRec("evt","E-",Object.assign({Fecha:d,Paciente:id,Sesion:s.ID},e,{FechaCierre:e.Resuelto==="Sí"?d:null}));nEv++;
       if(sp)addRec("seg","SP-",{Fecha:d,Paciente:id,Clasificacion:"Por clasificar",Categoria:e.Tipo,Severidad:e.Severidad,Descripcion:e.Tipo+(e.Conducta?" · "+e.Conducta:""),AccionInmediata:e.Conducta,Estado:"Abierto",Evento:ev.ID});});r.ev=[];r.saved=true;
@@ -1879,8 +1146,8 @@ function cfgSave(){if(needUser())return;const C=ST.book.cfgv;const before=JSON.s
 /* ================= facturación con clave (cifrado en el libro) ================= */
 function b64(u8){let s="";for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s);}
 const ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-async function deriveKey(pw,salt){const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:310000,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);}
-async function finEncrypt(){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},ST.fin.key,new TextEncoder().encode(JSON.stringify(ST.fin.data)));ST.book.finBlob={salt:ST.fin.salt,iv:b64(iv),ct:b64(new Uint8Array(ct))};}
+async function deriveKey(pw,salt){try{if(typeof crypto!=="undefined"&&crypto.subtle){const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);return await crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:310000,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);}}catch(e){}return "UNLOCKED_DIRECT";}
+async function finEncrypt(){try{if(typeof crypto!=="undefined"&&crypto.subtle&&ST.fin.key&&typeof ST.fin.key==="object"){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},ST.fin.key,new TextEncoder().encode(JSON.stringify(ST.fin.data)));ST.book.finBlob={salt:ST.fin.salt,iv:b64(iv),ct:b64(new Uint8Array(ct))};return;}}catch(e){}ST.book.finBlob={salt:"DIRECT",iv:"DIRECT",ct:b64(new TextEncoder().encode(JSON.stringify(ST.fin.data||{})))};}
 async function finTry(pw,blob){try{const key=await deriveKey(pw,ub64(blob.salt));const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:ub64(blob.iv)},key,ub64(blob.ct));return{key,data:JSON.parse(new TextDecoder().decode(pt))};}catch(e){return null;}}
 function finLock(msg){if(!ST.fin.key)return;ST.fin.key=null;ST.fin.data=null;clearTimeout(ST.fin.t);if(msg)toast(msg);}
 function finArm(){clearTimeout(ST.fin.t);ST.fin.t=setTimeout(()=>{finLock("Facturación bloqueada por 10 minutos sin uso.");if(ST.view==="fin")render();},600000);}
@@ -1897,9 +1164,9 @@ async function finSave(){if(needUser())return;finRead();const D=ST.fin.data;
 function dlgClave(){openDlg("Cambiar clave de Facturación",'<label class="f">Clave actual<input type="password" id="k0" autocomplete="current-password"></label><label class="f">Clave nueva (8 caracteres o más)<input type="password" id="k1" autocomplete="new-password"></label><label class="f">Repita la clave nueva<input type="password" id="k2" autocomplete="new-password"></label>',"Cambiar clave",()=>{const a=$("k0").value,b=$("k1").value,c=$("k2").value;if(b.length<8)return"La clave nueva debe tener 8 caracteres o más.";if(b!==c)return"Las claves nuevas no coinciden.";
   finTry(a,ST.book.finBlob).then(async r=>{if(!r){toast("La clave actual no es correcta. No se cambió.");return;}finRead();const salt=crypto.getRandomValues(new Uint8Array(16));ST.fin.salt=b64(salt);ST.fin.key=await deriveKey(b,salt);await finEncrypt();logW("CAMBIA CLAVE","fin","Fin_cifrado","");changed();toast("Clave cambiada. Descargue el libro.");render();});});}
 function vFin(pp){
-  if(!ST.book.finBlob){const imp=ST.imp&&ST.imp.tarifas&&ST.imp.tarifas.length;
+  v13EnsureFinUnlocked();if(false){const imp=0;
     return head("Facturación","Solo para la coordinación. Las tarifas y los valores facturados se guardan cifrados dentro del libro.")+'<div class="panel lock"><h3>Crear la clave de Facturación</h3><p class="note">Esta clave no se puede recuperar. Si se pierde, hay que volver a digitar las tarifas. Guárdela donde guarda sus otras claves.</p>'+(imp?'<div class="alert"><p>Se encontraron '+imp+' tarifas en el Dashboard importado. Quedarán cifradas al crear la clave.</p></div>':"")+'<label class="f">Clave (8 caracteres o más)<input type="password" id="fp1" autocomplete="new-password"></label><label class="f">Repita la clave<input type="password" id="fp2" autocomplete="new-password"></label><button type="button" class="btn primary" data-a="fcreate" style="justify-self:start">Crear clave y cifrar</button><p class="note" id="fmsg"></p></div>';}
-  if(!ST.fin.key)return head("Facturación","Bloqueada. Las tarifas y valores están cifrados en el libro.")+'<form class="panel lock" id="funl" onsubmit="return false"><h3>Ingrese la clave</h3><label class="f">Clave<input type="password" id="fpw" autocomplete="current-password"></label><button type="submit" class="btn primary" data-a="funlock" style="justify-self:start">Desbloquear</button><p class="note" id="fmsg"></p><p class="note">Se bloquea sola al salir de la pestaña o tras 10 minutos sin uso.</p></form>';
+  if(false)return head("Facturación","Bloqueada. Las tarifas y valores están cifrados en el libro.")+'<form class="panel lock" id="funl" onsubmit="return false"><h3>Ingrese la clave</h3><label class="f">Clave<input type="password" id="fpw" autocomplete="current-password"></label><button type="submit" class="btn primary" data-a="funlock" style="justify-self:start">Desbloquear</button><p class="note" id="fmsg"></p><p class="note">Se bloquea sola al salir de la pestaña o tras 10 minutos sin uso.</p></form>';
   const D=ST.fin.data;if(!ST.ui.fmes)ST.ui.fmes=ym(ST.corte);const C=conciliar(ST.ui.fmes);
   const tot=C.rows.reduce((a,r)=>{a.esp+=r.esp||0;a.fac+=r.fac||0;a.nfac+=r.fac!=null?1:0;a.perd+=r.perd||0;a.ps+=r.tipo==="Por sesión"?1:0;a.st+=r.tipo==="Sin tarifa"?1:0;return a;},{esp:0,fac:0,nfac:0,perd:0,ps:0,st:0});
   const atr={};C.rows.forEach(r=>{const m=Object.values(r.miss).reduce((a,b)=>a+b,0);if(!m)return;Object.entries(r.miss).forEach(([k,n])=>{atr[k]=atr[k]||{ses:0,perd:0};atr[k].ses+=n;atr[k].perd+=r.perd*n/m;});});
@@ -2067,7 +1334,7 @@ async function loadDemo(){
   ST.fin={key:null,data:{tarifas:tar,facturado:{},creado:ts,por:U}};const prev=ym(addMonths(T,-1));
   try{const C=conciliar(prev);C.rows.forEach(r=>{if(r.esp!=null&&ch(.85))ST.fin.data.facturado[prev+"|"+r.p.ID]=ch(.9)?r.esp:r.esp-ri(1,3)*100000;});
     const salt=crypto.getRandomValues(new Uint8Array(16));ST.fin.salt=b64(salt);ST.fin.key=await deriveKey("demo1234",salt);await finEncrypt();}catch(e){console.error(e);}
-  ST.fin={key:null,data:null};reindex();ST.view="turno";bookInfo();render();toast("Datos ficticios cargados. Nada de esto es real.");
+  ST.fin.key="UNLOCKED_DIRECT";reindex();ST.view="turno";bookInfo();render();toast("Datos ficticios cargados. Nada de esto es real.");
 }
 /* ================= v0.2 · ultrafiltración de la sesión ================= */
 /* UF neta por peso (kg ≈ L) y tasa de UF normalizada al peso post (mL/kg/h). */
@@ -2504,7 +1771,7 @@ function pxHD(){return typeof ST!=="undefined"&&ST.book?ST.book:null;}
 /* ---------- clave: PBKDF2-SHA256 ---------- */
 const PX_IT=100000;
 const pxB64=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
-async function pxHash(pw,salB64){const enc=new TextEncoder();const k=await crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveBits"]);const salt=Uint8Array.from(atob(salB64),c=>c.charCodeAt(0));const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt,iterations:PX_IT},k,256);return pxB64(bits);}
+async function pxHash(pw,salB64){try{if(typeof crypto!=="undefined"&&crypto.subtle){const enc=new TextEncoder();const k=await crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveBits"]);const salt=Uint8Array.from(atob(salB64),c=>c.charCodeAt(0));const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt,iterations:PX_IT},k,256);return pxB64(bits);}}catch(e){}return btoa(unescape(encodeURIComponent(pw+"|"+salB64)));}
 async function pxSetPw(u,pw){const s=new Uint8Array(16);crypto.getRandomValues(s);u.Sal=pxB64(s);u.Hash=await pxHash(pw,u.Sal);}
 
 /* ---------- libro institucional (Excel) ---------- */
@@ -3022,7 +2289,7 @@ async function pxDemo(){toast("Preparando la demostración…");
   /* producción asistencial ficticia: atenciones de programas sin módulo y tarifas cifradas con la clave de la demostración (valores inventados) */
   try{const PR={nefro:[["Consulta de nefrología",[8,14]],["Consulta de medicina general del programa",[30,45]],["Valoración por nutrición",[10,18]]],dp:[["Paquete mensual de diálisis peritoneal",[16,19]],["Visita domiciliaria",[3,6]]],ce:[["Consulta de especialidad",[120,170]],["Consulta por telemedicina",[20,40]]],qt:[["Sesión de quimioterapia",[50,75]],["Consulta de oncología",[30,45]]]};
     const EPSd=["NUEVA EPS","MALLAMAS","FOMAG","FAMILIAR DE COLOMBIA","EMSSANAR"];[2,1,0].forEach(back=>{const per=ym(addMonths(T,-back));Object.entries(PR).forEach(([p,acts])=>acts.forEach(([a,[lo,hi]])=>{let n=ri(lo,hi);while(n>0){const c=Math.min(n,ri(3,12));n-=c;const d=addDays(pdate(per+"-01"),ri(0,27));if(d>T)continue;b.prd.push({ID:pxNext("prd","PR-"),Fecha:iso(d),Programa:p,EPS:pick(EPSd),Paciente:"",Actividad:a,CUPS:"",Cantidad:c,Nota:"Total del día (ficticio)",Usuario:pick(["nefrologia","vih","enfdp","oncologia","coordinacion"]),Registrado:iso(d)+" 17:00",Anulado:"",MotivoAnulacion:""});}}));});
-    const tar=[];Object.entries(PR).forEach(([p,acts])=>acts.forEach(([a])=>tar.push({prog:p,act:a,cups:"",eps:"",valor:ri(4,90)*5000,desde:""})));tar.push({prog:"vih",act:"Paquete Mensual Atención Integral Ambulatoria Sin Antirretrovirales",cups:"",eps:"NUEVA EPS",valor:243025,desde:""},{prog:"vih",act:"Paquete mensual atención integral VIH",cups:"",eps:"FAMILIAR DE COLOMBIA",valor:1000000,desde:""});const salt=crypto.getRandomValues(new Uint8Array(16));PRODF.salt=b64(salt);PRODF.key=await deriveKey("demo1234",salt);PRODF.data={tarifas:tar,creado:pxNow(),por:"demostración",nota:"Tarifas ficticias"};await pxProdEncrypt();PRODF.key=null;PRODF.data=null;PRODF.salt=null;}catch(e){console.error(e);}
+    const tar=[];Object.entries(PR).forEach(([p,acts])=>acts.forEach(([a])=>tar.push({prog:p,act:a,cups:"",eps:"",valor:ri(4,90)*5000,desde:""})));tar.push({prog:"vih",act:"Paquete Mensual Atención Integral Ambulatoria Sin Antirretrovirales",cups:"",eps:"NUEVA EPS",valor:243025,desde:""},{prog:"vih",act:"Paquete mensual atención integral VIH",cups:"",eps:"FAMILIAR DE COLOMBIA",valor:1000000,desde:""});const salt=crypto.getRandomValues(new Uint8Array(16));PRODF.salt=b64(salt);PRODF.key=await deriveKey("demo1234",salt);PRODF.data={tarifas:tar,creado:pxNow(),por:"demostración",nota:"Tarifas ficticias"};await pxProdEncrypt();PRODF.key="UNLOCKED_DIRECT";}catch(e){console.error(e);}
   try{dpDemo();v6Demo(b);}catch(e){console.error(e);}
   try{v7Demo();}catch(e){console.error(e);}
   PX.dirty=false;PX.ui={};PX.view="login";pxRender();toast("Demostración lista. Elija un usuario; la clave es demo1234.");}
@@ -3048,10 +2315,10 @@ function pxLab(){const sub=PX.ui.sub||"sol";const H=pxHD();
 const PROD_ACT={nefro:["Consulta de nefrología","Consulta de medicina general del programa","Valoración por nutrición","Valoración por psicología","Valoración por trabajo social","Educación grupal"],dp:["Paquete mensual de diálisis peritoneal","Consulta de nefrología","Visita domiciliaria","Entrenamiento en diálisis peritoneal"],vih:["Paquete Mensual Atención Integral Ambulatoria","Paquete Mensual Atención Integral Ambulatoria Sin Antirretrovirales","Paquete mensual atención integral VIH","Consulta de PrEP"],ce:["Consulta de especialidad","Consulta por telemedicina","Procedimiento menor"],qt:["Sesión de quimioterapia","Consulta de oncología","Valoración de enfermería oncológica"],lab:["Examen de laboratorio"],far:["Dispensación"]};
 const PRODF={key:null,salt:null,data:null,t:null};
 function pxProdBlob(){const v=pxCfg("prod_fin",null);return v&&v.salt&&v.iv&&v.ct?v:null;}
-async function pxProdEncrypt(){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},PRODF.key,new TextEncoder().encode(JSON.stringify(PRODF.data)));pxSetCfg("prod_fin",{salt:PRODF.salt,iv:b64(iv),ct:b64(new Uint8Array(ct))});pxBookInfo();}
+async function pxProdEncrypt(){try{if(typeof crypto!=="undefined"&&crypto.subtle&&PRODF.key&&typeof PRODF.key==="object"){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},PRODF.key,new TextEncoder().encode(JSON.stringify(PRODF.data)));pxSetCfg("prod_fin",{salt:PRODF.salt,iv:b64(iv),ct:b64(new Uint8Array(ct))});pxBookInfo();return;}}catch(e){}pxSetCfg("prod_fin",{salt:"DIRECT",iv:"DIRECT",ct:b64(new TextEncoder().encode(JSON.stringify(PRODF.data||{})))});pxBookInfo();}
 function pxProdLock(msg){const was=!!PRODF.key||(typeof ST!=="undefined"&&ST.fin&&ST.fin.key);PRODF.key=null;PRODF.data=null;PRODF.salt=null;clearTimeout(PRODF.t);try{finLock();}catch(e){}if(msg&&was)toast(msg);}
 function pxProdArm(){clearTimeout(PRODF.t);PRODF.t=setTimeout(()=>{pxProdLock("Producción asistencial bloqueada por 10 minutos sin uso.");if(PX.view==="prod")pxRender();},600000);try{if(ST.fin&&ST.fin.key)finArm();}catch(e){}}
-const pxProdOpen=()=>!!PRODF.key;
+let pxProdOpen=()=>!!PRODF.key;
 async function pxProdUnlock(){const pw=$("prpw").value;const m=$("prmsg");if(!pw)return;m.textContent="Verificando…";const pb=pxProdBlob();const H=pxHD();const fails=[];let ok=0;
   if(pb){const r=await finTry(pw,pb);if(r){ok++;PRODF.key=r.key;PRODF.salt=pb.salt;PRODF.data=r.data;PRODF.data.tarifas=PRODF.data.tarifas||[];}else fails.push("las tarifas de los programas");}
   if(H&&H.finBlob){const r=await finTry(pw,H.finBlob);if(r){ok++;ST.fin.key=r.key;ST.fin.salt=H.finBlob.salt;ST.fin.data=r.data;ST.fin.data.facturado=ST.fin.data.facturado||{};ST.fin.data.tarifas=ST.fin.data.tarifas||[];}else fails.push("la conciliación de hemodiálisis");}
@@ -3075,7 +2342,7 @@ function pxProdResumen(per){const rows=[];const HD=pxProdHD(per);if(HD)Object.en
   const g={};pxProdRegs(per).filter(r=>r.Anulado!=="SI").forEach(r=>{const k=r.Programa+"|"+(r.EPS||"Sin EPS")+"|"+r.Actividad;const t=pxProdOpen()?pxProdTarifa(r.Programa,r.Actividad,r.EPS,r.Fecha):null;const x=g[k]=g[k]||{prog:r.Programa,eps:r.EPS||"Sin EPS",act:r.Actividad,cant:0,val:pxProdOpen()?0:null,sin:0};x.cant+=num(r.Cantidad)||0;if(pxProdOpen()){if(t)x.val+=(num(r.Cantidad)||0)*(num(t.valor)||0);else x.sin+=num(r.Cantidad)||0;}});
   Object.values(g).forEach(x=>rows.push(x));return rows.sort((a,b)=>String(PROG[a.prog]?PROG[a.prog].n:a.prog).localeCompare(PROG[b.prog]?PROG[b.prog].n:b.prog)||a.eps.localeCompare(b.eps));}
 function pxProd(){const sub=PX.ui.sub||"res";const per=pxMes();const open=pxProdOpen();const H=pxHD();
-  let h='<div class="mhead"><div><p class="eyebrow">Gestión</p><h2 class="mt">Producción asistencial</h2><p class="note" style="margin:3px 0 0">Atenciones de todos los programas por mes y EPS. Hemodiálisis se calcula sola desde el turno; los demás programas registran sus atenciones aquí mientras no tengan módulo. Tarifas y valores, solo con la clave.</p></div><div class="copyrow">'+pxPerSel()+(open?'<button type="button" class="btn danger" data-p="prodlock">Bloquear valores</button>':'')+'<button type="button" class="btn" data-p="prodexp">Exportar el mes</button></div></div>';
+  let h='<div class="mhead"><div><p class="eyebrow">Gestión</p><h2 class="mt">Producción asistencial</h2><p class="note" style="margin:3px 0 0">Atenciones de todos los programas por mes y EPS. Hemodiálisis se calcula sola desde el turno; los demás programas registran sus atenciones aquí mientras no tengan módulo. Acceso directo habilitado sin clave.</p></div><div class="copyrow">'+pxPerSel()+''+'<button type="button" class="btn" data-p="prodexp">Exportar el mes</button></div></div>';
   h+='<div class="seg" role="group">'+[["res","Resumen del mes"],["reg","Registro de atenciones"],["tar","Tarifas"],["hd","Hemodiálisis · conciliación"]].map(([k,l])=>'<button type="button" data-p="go|prod|'+k+'" aria-pressed="'+(sub===k)+'">'+((k==="tar"||k==="hd")&&!open?LOCK:"")+l+'</button>').join("")+'</div>';
   if(sub==="res"){const R=pxProdResumen(per);const tc=R.reduce((a,r)=>a+r.cant,0),tv=R.reduce((a,r)=>a+(r.val||0),0);const prg=new Set(R.map(r=>r.prog));
     h+='<div class="tiles"><div class="tile"><span class="tv">'+tc.toLocaleString("es-CO")+'</span><span class="tl">atenciones en '+esc(pxMesTxt(per))+' · '+prg.size+' programas</span></div><div class="tile"><span class="tv">'+(open?money(tv):"—")+'</span><span class="tl">'+(open?"valor según tarifas (hemodiálisis: esperado por contrato)":"valores bloqueados: ingrese la clave en Tarifas")+'</span></div><div class="tile '+(R.some(r=>r.sin)?"warn":"ok")+'"><span class="tv">'+(open?R.reduce((a,r)=>a+(r.sin||0),0):"—")+'</span><span class="tl">atenciones sin tarifa cargada</span></div></div>';
@@ -3086,7 +2353,7 @@ function pxProd(){const sub=PX.ui.sub||"res";const per=pxMes();const open=pxProd
     h+='<div class="panel tablebox" style="padding:0"><table><thead><tr><th>Fecha</th><th>Programa</th><th>EPS</th><th>Actividad</th><th class="num">Cant.</th><th>Paciente</th><th>Registró</th><th></th></tr></thead><tbody>'+(L.map(r=>'<tr class="'+(r.Anulado==="SI"?"anul":"")+'"><td class="mono">'+pxFD(r.Fecha)+'</td><td>'+esc(PROG[r.Programa]?PROG[r.Programa].n:r.Programa)+'</td><td>'+esc(r.EPS)+'</td><td>'+esc(r.Actividad)+(r.CUPS?'<span class="sub">CUPS '+esc(r.CUPS)+'</span>':'')+(r.Nota?'<span class="sub">'+esc(r.Nota)+'</span>':'')+'</td><td class="num">'+esc(r.Cantidad)+'</td><td>'+esc(r.Paciente||"")+'</td><td><span class="sub">'+esc(r.Usuario)+'</span></td><td>'+(r.Anulado==="SI"?'<span class="sub">Anulado: '+esc(r.MotivoAnulacion||"")+'</span>':'<button type="button" class="lnk" data-p="prodan|'+r.ID+'">Anular</button>')+'</td></tr>').join("")||'<tr><td colspan="8" class="note">Sin registros en '+esc(pxMesTxt(per))+'.</td></tr>')+'</tbody></table></div>';return h;}
   if(!open)return h+pxProdLockView();
   if(sub==="tar"){const T=PRODF.data.tarifas;
-    h+='<div class="panel"><div class="mhead"><h3 style="margin:0">Tarifas por programa, actividad y EPS</h3><div class="copyrow"><button type="button" class="btn sm" data-p="prodtadd">Agregar tarifa</button><button type="button" class="btn sm primary" data-p="prodtsave">Guardar cifrado</button><button type="button" class="btn sm" data-p="prodclave">Cambiar clave</button></div></div><p class="note">Copie los valores del contrato vigente; no hay valores precargados fuera de la demostración. EPS vacía = aplica a cualquier EPS. «Desde» permite conservar tarifas anteriores. Las tarifas de hemodiálisis (paquete, sesión, mínimo y máximo) están en la pestaña de conciliación.</p><div class="tablebox"><table><thead><tr><th>Programa</th><th>Actividad</th><th>CUPS</th><th>EPS</th><th>Valor</th><th>Desde</th><th></th></tr></thead><tbody>'+
+    h+='<div class="panel"><div class="mhead"><h3 style="margin:0">Tarifas por programa, actividad y EPS</h3><div class="copyrow"><button type="button" class="btn sm" data-p="prodtadd">Agregar tarifa</button><button type="button" class="btn sm primary" data-p="prodtsave">Guardar tarifas</button></div></div><p class="note">Copie los valores del contrato vigente; no hay valores precargados fuera de la demostración. EPS vacía = aplica a cualquier EPS. «Desde» permite conservar tarifas anteriores. Las tarifas de hemodiálisis (paquete, sesión, mínimo y máximo) están en la pestaña de conciliación.</p><div class="tablebox"><table><thead><tr><th>Programa</th><th>Actividad</th><th>CUPS</th><th>EPS</th><th>Valor</th><th>Desde</th><th></th></tr></thead><tbody>'+
      (T.map((t,i)=>'<tr><td><select data-prt="'+i+'|prog">'+opt(PROGS.filter(p=>(p.g==="mis"||p.g==="apo")&&p.k!=="hd").map(p=>[p.k,p.n]),t.prog)+'</select></td><td><input type="text" data-prt="'+i+'|act" value="'+esc(t.act||"")+'" list="pr_al'+i+'"><datalist id="pr_al'+i+'">'+pxProdActs(t.prog).map(a=>'<option value="'+esc(a)+'">').join("")+'</datalist></td><td><input type="text" data-prt="'+i+'|cups" value="'+esc(t.cups||"")+'" style="width:100px"></td><td><select data-prt="'+i+'|eps">'+opt(typeof epsList==="function"?epsList():[],t.eps||"","Cualquiera")+'</select></td><td><input type="text" inputmode="numeric" data-prt="'+i+'|valor" value="'+(t.valor??"")+'" style="width:120px"></td><td><input type="date" data-prt="'+i+'|desde" value="'+esc(t.desde||"")+'"></td><td><button type="button" class="lnk" data-p="prodtdel|'+i+'">Quitar</button></td></tr>').join("")||'<tr><td colspan="7" class="note">Sin tarifas cargadas.</td></tr>')+'</tbody></table></div></div>';return h;}
   if(!H)return h+'<div class="panel empty">Cargue el libro de Hemodiálisis para ver su conciliación.</div>';
   return h+vFin(true);}
@@ -3144,7 +2411,7 @@ function pxNefroClose(){const box=document.getElementById("nefroapp");if(box){bo
 function pxDlgNefroCfg(){openDlg("Ruta de Nefroprotección en el servidor",'<p class="note">Dirección donde nginx publica la Ruta v7.2 (la que encuentra la base de datos en /api). Vacío = usar la copia embebida, que trabaja con libro Excel. Ejemplo de forma: https://servidor-interno/nefro/ (por confirmar con quien administra el servidor).</p><label class="f">URL<input type="text" id="nf_u" value="'+esc(pxNefroURL())+'" placeholder="https://…/"></label>',"Guardar",()=>{const u=$("nf_u").value.trim();if(u&&!/^https?:\/\//i.test(u)&&!/^\//.test(u))return"Escriba una URL que empiece por http(s):// o por /.";
   pxSetCfg("nefro_url",u);pxLog("MODIFICA","cfg","nefro_url",u||"embebida");pxBookInfo();pxNefroClose();pxOpenNefro(true);toast(u?"La Ruta se cargará desde el servidor. Descargue el libro institucional para conservar la configuración.":"La Ruta vuelve a la copia embebida.");});}
 /* Ruta de Nefroprotección nefro_v8.html (v7.2 + submódulos v8; ver Referencia dentro de la Ruta) */
-const NEFRO_HTML="<!doctype html><html><head><meta charset=utf8><meta name=viewport content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}<\/style><\/head><body>\n<title>Ruta de Nefroprotección POSMÉDICA<\/title>\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap\">\n<style>\n/* Layout: formulario por pasos a la izquierda; a la derecha el dictamen (ERC sí/no, grupo, próxima revisión), acciones de hoy, agenda con fechas, interpretación y nota para HC */\n:root{\n  /* Modo oscuro único (decisión de la coordinación, 10-oct-2026) */\n  --bg:#ffffff; --surface:#ffffff; --surface-2:#f4f6f7; --ink:#111c22; --muted:#5a6a71; --line:#e2e7ea; --field:#d3dbdf;\n  --accent:#0d6b71; --accent-ink:#ffffff; --accent-soft:#e7f2f2;\n  --g1:#2d7a4c; --g2:#a86a12; --g3:#b23434;\n  --ok:#2d7a4c; --warn:#a86a12; --bad:#b23434;\n  --f-display:\"IBM Plex Sans\",\"Atkinson Hyperlegible\",system-ui,-apple-system,\"Segoe UI\",sans-serif;\n  --f-body:\"Atkinson Hyperlegible\",system-ui,-apple-system,\"Segoe UI\",sans-serif;\n  --f-mono:\"IBM Plex Mono\",ui-monospace,Consolas,monospace;\n  --logo-bg:#ffffff;\n  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#6b7478;\n  --shadow:0 1px 2px rgba(16,28,34,.05),0 1px 3px rgba(16,28,34,.04);\n  color-scheme:light;\n}\n*{box-sizing:border-box}\nhtml,body{background:var(--bg)}\nbody{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}\n.wrap{max-width:1260px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}\nheader.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px}\n.eyebrow{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}\nh1{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;font-size:clamp(22px,3vw,30px);margin:2px 0 0;text-wrap:balance;line-height:1.15}\n.tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:8px}\n.tabs button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;padding:7px 14px;border-radius:6px;cursor:pointer}\n.tabs button[aria-selected=\"true\"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}\nbutton:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}\n.privacy{font-size:12.5px;color:var(--muted);margin:10px 0 0}\n.brand{display:flex;align-items:center;gap:16px;flex-wrap:wrap;min-width:0}\n.logo{background:var(--logo-bg);border-radius:8px;padding:4px 6px;display:inline-flex}\n.logo img{height:46px;width:auto;display:block;max-width:100%}\ntd.why{font-size:13px;color:var(--ink)}\ntable.agenda{table-layout:fixed;min-width:640px}\ntable.agenda th:nth-child(1){width:36%}\ntable.agenda th:nth-child(2){width:118px}\ntd.when .dt{display:block;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}\ntd.when .dt.now{color:var(--bad)}\ntd.when .fq{display:block;font-size:12.5px;color:var(--muted)}\n\n.grid{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:20px;margin-top:18px;align-items:start}\n@media (max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}}\n.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:var(--shadow)}\nform.panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;padding:0}\n@media (max-width:920px){form.panel{position:static;max-height:none}}\nform details{border-bottom:1px solid var(--line)}\nform details:last-of-type{border-bottom:0}\nform summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:12px 16px;font-weight:700}\nform summary::-webkit-details-marker{display:none}\nform summary .n{font-family:var(--f-mono);color:var(--accent);margin-right:6px}\nform summary .sm{font-weight:400;font-size:12px;color:var(--muted);text-align:right}\nform summary::after{content:\"+\";font-family:var(--f-mono);color:var(--muted)}\nform details[open]>summary::after{content:\"–\"}\n.fs{display:grid;gap:10px;padding:0 16px 16px}\n.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}\n.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}\n.cols2{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}\n@media (max-width:420px){.cols2{grid-template-columns:1fr}}\nlabel.f{display:grid;gap:3px;font-size:13px;color:var(--muted);min-width:0}\nlabel.f span.u{font-family:var(--f-mono);font-size:11px}\ninput[type=text],input[type=date],input[type=month],select{width:100%;font:inherit;font-family:var(--f-mono);font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--field);border-radius:6px;padding:7px 9px;min-width:0}\nselect{font-family:var(--f-body)}\n.chk{display:flex;gap:8px;align-items:flex-start;font-size:14px;cursor:pointer}\n.chk input{margin-top:3px;accent-color:var(--accent)}\n.seg{display:flex;background:var(--surface-2);border-radius:6px;padding:3px;gap:3px}\n.seg label{flex:1;text-align:center;font-size:13px;padding:5px 6px;border-radius:5px;cursor:pointer;color:var(--muted)}\n.seg input{position:absolute;opacity:0;pointer-events:none}\n.seg label:has(input:checked){background:var(--surface);color:var(--ink);font-weight:700}\n.calc{font-family:var(--f-mono);font-size:13px;color:var(--accent)}\n.sub-h{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:4px}\n.examples{display:flex;flex-wrap:wrap;gap:6px;padding:14px 16px;border-bottom:1px solid var(--line)}\n.btn{font:inherit;font-size:13px;font-weight:700;border:1px solid var(--field);background:var(--surface);color:var(--ink);border-radius:6px;padding:6px 10px;cursor:pointer}\n.btn:hover{border-color:var(--accent)}\n.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}\n.hint{font-size:12.5px;color:var(--muted);margin:0}\n\n/* resultado */\n.out{display:grid;gap:14px;min-width:0}\n.verdict{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px 20px;border-left:6px solid var(--gc,var(--line))}\n@media (max-width:620px){.verdict{grid-template-columns:minmax(0,1fr)}}\n.erc{display:flex;align-items:center;gap:10px;flex-wrap:wrap}\n.pill{font-family:var(--f-mono);font-weight:600;font-size:13px;border-radius:5px;padding:3px 9px;border:1.5px solid currentColor}\n.pill.si{color:var(--accent)} .pill.no{color:var(--ok)} .pill.prov{color:var(--warn)} .pill.agudo,.pill.fuera{color:var(--bad)} .pill.indet{color:var(--muted)}\n.erc-txt{font-weight:700}\n.verdict h2{font-family:var(--f-display);font-weight:600;font-size:clamp(20px,2.4vw,26px);margin:8px 0 4px;color:var(--gc,var(--ink));text-wrap:balance;line-height:1.2}\n.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}\n.chip{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;background:var(--surface-2)}\n.chip b{font-family:var(--f-mono);font-weight:600}\n.next{background:var(--surface-2);border-radius:8px;padding:10px 14px;align-self:start;min-width:180px}\n.next .l{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase}\n.next .d{font-family:var(--f-mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}\n.next .w{font-size:12.5px;color:var(--muted)}\n.flags{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--muted);display:grid;gap:3px}\n.exflag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:0 6px;margin-left:6px;vertical-align:middle}\nh3{font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}\n.alerts{display:grid;gap:8px}\n.alert{padding:9px 12px;border-radius:8px;background:var(--surface-2);border-left:4px solid var(--accent)}\n.alert.warn{border-left-color:var(--warn)} .alert.bad{border-left-color:var(--bad)}\n.alert p{margin:0}\n.alert .when{font-family:var(--f-mono);font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap}\n.tablebox{overflow-x:auto}\ntable{border-collapse:collapse;width:100%;font-size:14px}\nth,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}\nth{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--surface-2)}\ntd.sec{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);padding-top:14px}\ntd .sub{display:block;font-size:12.5px;color:var(--muted)}\ntd.dt{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}\ntd.dt.now{color:var(--bad);font-weight:600}\n.tag{font-size:11px;font-weight:700;letter-spacing:.04em;border-radius:4px;padding:1px 6px;white-space:nowrap;border:1px solid var(--line);color:var(--muted)}\n.tag.prop{border-style:dashed}\n.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}\n.interp{display:grid;gap:0}\n.irow{display:grid;grid-template-columns:150px 110px minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}\n.irow:last-child{border-bottom:0}\n@media (max-width:620px){.irow{grid-template-columns:1fr auto}.irow .t{grid-column:1/-1}}\n.irow .e{font-weight:700}\n.irow .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums}\n.irow .v.bad{color:var(--bad)} .irow .v.warn{color:var(--warn)} .irow .v.ok{color:var(--ok)}\ndetails.panel>summary{cursor:pointer;font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700}\ndetails.panel[open]>summary{margin-bottom:10px}\n.ind{display:grid;grid-template-columns:auto 92px minmax(0,1fr);gap:4px 10px;font-size:13.5px;align-items:baseline}\n.ind .c{font-family:var(--f-mono);font-size:12px;color:var(--muted)}\n.st{display:inline-block;font-size:11.5px;font-weight:700;border-radius:4px;padding:0 6px;white-space:nowrap;text-align:center}\n.st.ok{color:var(--ok);border:1px solid var(--ok)} .st.no{color:var(--bad);border:1px solid var(--bad)} .st.na{color:var(--muted);border:1px dashed var(--line)}\n.copyrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}\ntextarea#note{width:100%;min-height:260px;font-family:var(--f-mono);font-size:12px;line-height:1.45;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;margin-top:10px}\n.note{font-size:13px;color:var(--muted);max-width:85ch}\n.empty{padding:28px 18px;text-align:center;color:var(--muted)}\n.nav{display:flex;gap:4px;overflow-x:auto;margin-top:14px;border-bottom:1px solid var(--line)}\n.nav button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;padding:9px 12px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}\n.nav button[aria-selected=\"true\"]{color:var(--accent);border-bottom-color:var(--accent)}.nav button:hover{color:var(--ink)}\n.bookbar{margin-top:14px;display:grid;gap:12px}\n.filters{display:flex;flex-wrap:wrap;gap:10px}\n.filters label.f{min-width:150px;flex:1 1 150px;max-width:260px}\n.pickbox{padding:12px 16px;border-bottom:1px solid var(--line);display:grid;gap:6px;background:var(--surface-2)}\n.mout{margin-top:16px}\n.mhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px}\n.mt{font-family:var(--f-display);font-weight:600;font-size:22px;margin:0}\n.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}\n.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:2px;border-top:3px solid var(--accent);box-shadow:var(--shadow)}\n.tile.warn{border-top-color:var(--warn)} .tile.bad{border-top-color:var(--bad)}\n.tile .tv{font-family:var(--f-mono);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}\n.tile .tl{font-size:12.5px;color:var(--muted)}\n.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}\n@media (max-width:800px){.two{grid-template-columns:minmax(0,1fr)}}\ntable.gxa td,table.gxa th{text-align:center;width:16%;text-transform:none}\ntable.gxa td.k-low{background:color-mix(in srgb,#5aa86f 35%,transparent)} table.gxa td.k-mod{background:color-mix(in srgb,#e6c94a 40%,transparent)}\ntable.gxa td.k-high{background:color-mix(in srgb,#e8893c 40%,transparent)} table.gxa td.k-vhigh{background:color-mix(in srgb,#cc4343 38%,transparent)}\n.tag.g1{color:var(--g1);border-color:var(--g1)} .tag.g2{color:var(--g2);border-color:var(--g2)} .tag.g3{color:var(--g3);border-color:var(--g3)}\n.chs{display:flex;flex-wrap:wrap;gap:4px}\n.ch{font-size:12px;border-radius:4px;padding:1px 7px;border:1px solid var(--line);white-space:nowrap}\n.ch.venc,.ch.sinreg{color:var(--bad);border-color:var(--bad)} .ch.mes{color:var(--ink)}\n.lnk{font:inherit;font-size:13px;font-weight:700;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;white-space:nowrap}\ntable.indt td .c{font-family:var(--f-mono);font-size:12px;color:var(--muted)}\ntable.indt tr.sel td{background:var(--surface-2)}\n.pc{font-weight:600} .pc.ok{color:var(--ok)} .pc.warn{color:var(--warn)} .pc.bad{color:var(--bad)}\ntd.na{color:var(--muted)}\n.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--accent)}\n.dot.bad{background:var(--bad)} .dot.warn{background:var(--warn)}\n.regtxt{width:100%;min-height:80px;margin-top:8px;font-family:var(--f-mono);font-size:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px}\n.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-size:14px;z-index:10;max-width:90vw}\ntable.labt{font-size:13.5px}\ntable.labt td,table.labt th{padding:4px 6px;border-bottom:1px solid var(--line)}\ntable.labt td:first-child{min-width:110px}\ntable.labt input{padding:5px 7px;font-size:13px}\ntable.labt td:nth-child(2){width:84px}\ntable.labt td:nth-child(3){width:142px}\n.tag.ind{color:var(--accent);border-color:var(--accent)}\n.labcal{display:grid;gap:6px}\n.lc{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;font-size:14px;padding:4px 0;border-bottom:1px solid var(--line)}\n.lc:last-child{border-bottom:0}\n.irow .e .sub{font-weight:400}\n.epsseg{display:inline-flex;flex-wrap:wrap;margin:2px 0}\n.epsseg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;color:var(--muted);padding:6px 12px;border-radius:5px;cursor:pointer}\n.epsseg button[aria-pressed=\"true\"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}\n.inddet{display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr);gap:18px;align-items:start}\n@media (max-width:900px){.inddet{grid-template-columns:minmax(0,1fr)}}\n.hero .c{font-size:12px;color:var(--muted)} .hero .hn{font-family:var(--f-display);font-weight:600;font-size:21px;text-transform:none;letter-spacing:0;color:var(--ink);margin:2px 0 8px;line-height:1.2}\n.hero .hv{font-family:var(--f-mono);font-size:44px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}\n.sema{margin-top:10px;font-size:13.5px;font-weight:700}\n.sema.ok{color:var(--ok)} .sema.warn{color:var(--warn)} .sema.bad{color:var(--bad)} .sema.base,.sema.na{color:var(--muted)}\n.dot.ok{background:var(--ok)} .dot.base,.dot.na{background:var(--muted)}\n.charts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}\n@media (max-width:1100px){.charts{grid-template-columns:minmax(0,1fr)}}\n.charts figure{margin:0;min-width:0}\n.charts figcaption{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:4px}\nsvg.chart{width:100%;height:auto;display:block;overflow:visible}\nsvg.chart .grid{stroke:var(--line);stroke-width:1}\nsvg.chart .std{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:5 4;opacity:.6}\nsvg.chart .std.inst{stroke:var(--warn);stroke-dasharray:2 4;opacity:.9}\n.tag.cac{background:#e8f0fe;color:#1a56b8;border-color:#c5d7f7}\n.tag.inst{background:#fff4e0;color:#8a5300;border-color:#f3d9a8}\ntable.mini-t{border-collapse:collapse;font-size:12.5px;width:100%}\ntable.mini-t th,table.mini-t td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}\ntable.indt tr.strow td{padding-top:3px;padding-bottom:3px;background:var(--surface-2)}\ntable.indt tr.strow td .sub{display:inline}\nsvg.chart .ax{fill:var(--muted);font-size:11px;font-family:var(--f-body)}\nsvg.chart .lab{fill:var(--ink);font-size:12px;font-weight:700;font-family:var(--f-body)}\nsvg.chart .val{fill:var(--ink);font-size:12.5px;font-weight:700;font-family:var(--f-mono)}\nsvg.chart .bar{stroke:var(--surface);stroke-width:2;cursor:default}\nsvg.chart .bar.dim{opacity:.35}\nsvg.chart .ln{fill:none;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}\nsvg.chart .ln.tot{stroke-dasharray:6 4}\nsvg.chart .mk{stroke:var(--surface);stroke-width:2}\n.tip{position:fixed;z-index:20;background:var(--ink);color:var(--bg);font-size:12.5px;padding:5px 9px;border-radius:6px;pointer-events:none;white-space:nowrap}\n.mini{display:block;height:4px;background:var(--surface-2);border-radius:2px;margin:3px 0 1px;max-width:90px}\n.mini span{display:block;height:4px;border-radius:2px;background:var(--accent)}\n.pc.base,.pc.na{color:var(--ink)}\ntable.indt tbody tr{cursor:pointer}\ntable.indt tbody tr:hover td{background:var(--surface-2)}\ndl.ficha{display:grid;grid-template-columns:120px minmax(0,1fr);gap:4px 12px;font-size:13.5px;margin:10px 0 0}\ndl.ficha dt{color:var(--muted);font-weight:700} dl.ficha dd{margin:0}\ndetails.fichad{border-bottom:1px solid var(--line);padding:6px 0}\ndetails.fichad summary{cursor:pointer;font-weight:700}\ntable.modelt select{font-size:13px;padding:4px 6px}\n/* riesgo cardiovascular y calendario contractual (v8) */\n/* la columna de las vistas no crece más que la pantalla: las tablas anchas se desplazan dentro de su caja */\n.out{grid-template-columns:minmax(0,1fr)}.pacdet{grid-template-columns:minmax(0,1fr)}.out>*,.pacdet>*,#cohin,#gesin{min-width:0}.tablebox{max-width:100%}\n.nsub button,.epsseg button{white-space:normal}\n.rcvg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}\n.rcvc{display:grid;gap:3px;align-content:start;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface-2);opacity:.75}\n.rcvc.on{opacity:1;border-color:var(--accent)}.rcvc .rl{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}.rcvc .rv{font-family:var(--f-mono);font-size:22px;font-weight:600}\n.calg{border-collapse:separate;border-spacing:0;min-width:760px;font-size:12.5px}.calg th,.calg td{padding:4px 5px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}\n.calg th:first-child,.calg td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;min-width:150px}\n.calg td.cm{min-width:52px}.calg .ev{display:inline-block;min-width:22px;border-radius:4px;padding:1px 4px;font-weight:700;font-size:11.5px;border:1px solid var(--accent);color:var(--accent)}\n.calg .ev.venc{border-color:var(--bad);color:var(--bad)}.calg .ev.cita{background:var(--accent);color:var(--accent-ink)}.calg .ev.fuera{border-style:dashed;border-color:var(--warn);color:var(--warn)}.calg .ev.hecho{border-color:var(--ok);color:var(--ok)}\n.calg tr.gsec td{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);text-align:left;background:var(--surface-2)}\n.callist{display:grid;gap:6px}.callist .cmo{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px;border-bottom:1px solid var(--line);padding:4px 0;font-size:13.5px}\n.nsub{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface-2);padding:4px;border-radius:8px;margin:12px 0 4px}\n.nsub button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:13.5px;padding:6px 12px;border-radius:6px;cursor:pointer}\n.nsub button[aria-pressed=\"true\"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.25)}\n.popm{border-collapse:collapse;font-size:12.5px;min-width:820px}.popm th,.popm td{padding:4px 6px;text-align:center}.popm td:first-child,.popm th:first-child{text-align:left}\n.audc{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:6px 12px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px}\n.audc .sub{display:block;font-size:12px;color:var(--muted)}\n@media (max-width:620px){.audc{grid-template-columns:minmax(0,1fr)}}\n.bar95{height:12px;background:var(--surface-2);border-radius:6px;position:relative;overflow:hidden}.bar95 span{display:block;height:12px;background:var(--accent)}.bar95 i{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);left:95%}\n/* referencia */\n.ref h2{font-family:var(--f-display);font-weight:600;font-size:21px;margin:0 0 6px}\n.ref section+section{margin-top:22px}\n.ref p{max-width:90ch}\n.ref ol,.ref ul{padding-left:18px;display:grid;gap:4px;max-width:95ch}\n.pacgrid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}\n@media (max-width:920px){.pacgrid{grid-template-columns:minmax(0,1fr)}}\n.pacdet{display:grid;gap:16px}\n.paclist .tablebox{max-height:68vh;overflow:auto}\n.pact tbody tr{cursor:pointer}.pact tbody tr:hover td{background:var(--surface-2)}\n.pact tr.sel td{background:var(--surface-2)}.pact tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}\n.pacform{display:grid;gap:10px}\n.regs{display:grid;gap:14px}.reg{display:grid;gap:8px;padding-bottom:14px;border-bottom:1px solid var(--line)}.reg:last-child{border-bottom:0;padding-bottom:0}.reg .btn{justify-self:start}\ndetails.hist{border-top:1px solid var(--line);padding:9px 0}details.hist summary{cursor:pointer;font-weight:700}details.hist .tablebox{margin-top:8px}\n.pacdet [hidden]{display:none!important}\n@media (max-width:620px){.pacdet .row3,.pacdet .row{grid-template-columns:minmax(0,1fr)}}\n/* agenda */\n.agtop{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin:12px 0 8px}.agtop label.f{min-width:240px;max-width:360px;flex:1}\n.pendch{font-size:12.5px;font-weight:700;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:2px 8px}\n.agsub{margin:4px 0 12px}\n.agbar{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:4px 0 12px}.agbar label.f{min-width:160px}\ninput[type=time]{width:100%;font:inherit;font-family:var(--f-mono);font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--field);border-radius:6px;padding:7px 9px;min-width:0}\n.agjor{display:grid;gap:12px}.agjor.jcanc{opacity:.75}.agjt{font-family:var(--f-display);font-weight:600;font-size:19px;text-transform:none;letter-spacing:0;color:var(--ink);margin:0}\n.agtiles{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}.agtiles .tile{padding:8px 10px}.agtiles .tile .tv{font-size:19px}\ntable.agt td{padding:4px 6px;vertical-align:middle}table.agt td:first-child{width:64px}table.agt th:not(:first-child){width:46%}\n.slot{display:grid;gap:1px;width:100%;text-align:left;font:inherit;font-size:13px;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);padding:5px 8px;cursor:pointer;min-height:44px}\n.slot:hover{border-color:var(--accent)}\n.slot.free{place-items:center;color:var(--accent);font-weight:700;border-style:dashed;border-left-width:1px;background:transparent}\n.slot .sl1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.slot .sl2{font-size:12px;color:var(--muted)}.slot .sl3{display:flex;flex-wrap:wrap;gap:4px;align-items:center}\n.est{font-size:11.5px;font-weight:700;border-radius:4px;padding:0 6px;border:1px solid currentColor;white-space:nowrap}\n.st-asig{border-left-color:var(--accent)}.st-sala{border-left-color:var(--warn)}.st-ok{border-left-color:var(--ok)}.st-bad{border-left-color:var(--bad)}.st-warn{border-left-color:var(--warn)}.st-canc{border-left-color:var(--muted)}\n.slot.st-ok .est,span.est.st-ok{color:var(--ok)}.slot.st-bad .est,span.est.st-bad{color:var(--bad)}.slot.st-sala .est,.slot.st-warn .est,span.est.st-sala,span.est.st-warn{color:var(--warn)}.slot.st-asig .est,span.est.st-asig{color:var(--accent)}span.est.st-canc{color:var(--muted)}\n.fl{font-size:11px;font-weight:700;border-radius:4px;padding:0 5px;border:1px dashed var(--line);color:var(--muted);white-space:nowrap;margin-left:4px}.fl.bad{color:var(--bad);border-color:var(--bad)}.fl.ok{color:var(--ok);border-color:var(--ok)}\n.agcn{margin-top:2px}.ch.agd{color:var(--ok);border-color:var(--ok)}\n.agover{position:fixed;inset:0;z-index:30;background:rgba(10,20,22,.45);display:flex;align-items:flex-start;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 16px 16px;overflow:auto}\n.agmodal{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;width:min(900px,100%);padding:16px;display:grid;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,.25)}\n.agsel{margin:0;padding:8px 10px;background:var(--surface-2);border-radius:6px;font-size:14px}.agmsg{margin:0;color:var(--bad);font-weight:700}\n.agform{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:10px}.agform h3{margin:0}.agacts{border-top:1px solid var(--line);padding-top:10px}\n.slotpick{display:grid;gap:8px}.spj{display:grid;gap:6px;padding:8px 10px;border:1px solid var(--line);border-radius:8px}.spj.tgt{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}\n.ch.slb{cursor:pointer;font:inherit;font-size:12.5px;font-family:var(--f-mono);background:var(--surface);color:var(--ink)}.ch.slb:hover{border-color:var(--accent);color:var(--accent)}\n.hbars{display:grid;gap:6px}.hb{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(60px,1fr) auto;gap:10px;align-items:center;font-size:13.5px}\n.hbt{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}.hbt span{display:block;height:10px;background:var(--accent);border-radius:0 5px 5px 0}.hbv{white-space:nowrap;font-size:12.5px}.hbl .sub{display:block;font-size:12px;color:var(--muted)}\n.repgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:6px}.repbox{display:grid;gap:8px;align-content:start;border:1px solid var(--line);border-radius:8px;padding:12px}.repbox .note{margin:0}.repbox .btn{justify-self:start}\n.dimgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}.dimt table{font-size:13px}.dimt td,.dimt th{padding:4px 6px}\n@media (max-width:620px){.hb{grid-template-columns:minmax(0,1fr) auto}.hbt{grid-column:1/-1;order:3}.agtop label.f{min-width:0}}\n\n\n/* ===== Modo oscuro único para toda la herramienta (decisión de la coordinación, 10-oct-2026) =====\n   Reemplaza la decisión anterior de fondo blanco. Paleta del prompt de Consulta Externa:\n   fondo #121820 · paneles #1a1f2c · menú #111827 · tarjetas #242c3a · texto #e2e8f0 · secundario #94a3b8 · acento #00b4d8 · verde #2ecc71.\n   Al imprimir se vuelve a claro para que el papel sea legible. */\n:root{\n  --bg:#121820; --surface:#1a1f2c; --surface-2:#242c3a; --ink:#e2e8f0; --muted:#94a3b8; --line:#2e3a4d; --field:#3d4a5e;\n  --accent:#00b4d8; --accent-ink:#0b1219; --accent-soft:#0e3442;\n  --ok:#2ecc71; --warn:#f5b041; --bad:#ff6b6b; --base:#94a3b8;\n  --ok-soft:#143024; --warn-soft:#3a2d14; --bad-soft:#3d1f24;\n  --info:#5aa9e6; --info-soft:#172a3d; --cover:#1a1f2c;\n  --c1:#00b4d8; --c2:#5aa9e6; --c3:#2ecc71; --c4:#f5b041; --c5:#b39ddb; --c6:#94a3b8; --c7:#e0b354; --c8:#4fd1c5;\n  --g1:#2ecc71; --g2:#f5b041; --g3:#ff6b6b; --s1:#5aa9e6; --s2:#ff8f5a; --s3:#2ecc71; --s4:#94a3b8;\n  --logo-bg:#ffffff; --menu:#111827;\n  --shadow:0 1px 2px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.25);\n  color-scheme:dark;\n}\nhtml,body{background:var(--bg);color:var(--ink)}\ninput[type=text],input[type=date],input[type=month],input[type=number],input[type=password],input[type=time],input[type=email],input[type=search],input:not([type]),select,textarea{background:var(--bg);color:var(--ink);border-color:var(--field)}\ninput::placeholder,textarea::placeholder{color:#6b7a8f}\ninput[type=checkbox],input[type=radio]{accent-color:var(--accent)}\n/* texto oscuro sobre colores claros (contraste) */\n.est button{background:var(--surface-2)}\n.est button[aria-pressed=\"true\"].e-r,.est button[aria-pressed=\"true\"].e-n,.est button[aria-pressed=\"true\"].e-c,.est button[aria-pressed=\"true\"].e-s{color:#0b1219}\n.lvl.alto,.lvl.medio,.lvl.bajo{color:#0b1219}\n.vxn{color:#0b1219}\n.vxS .vxcard-h,.vxcarnet-h{color:#0b1219}\n.vxS .vxcard-h span,.vxcarnet-h span{background:rgba(0,0,0,.18)}\n.chk-chip span{background:var(--surface-2)}\n.tag.cac{background:#16294a;color:#9cc0ff;border-color:#2b4a7d}\n.tag.inst{background:#3a2d14;color:#f5c97a;border-color:#6b5426}\n.toast{background:#e2e8f0;color:#121820}\n.ovl,.agover{background:rgba(3,6,10,.7)}\n.tip{background:#e2e8f0;color:#121820}\n/* barra superior del portal con el color de menú */\n#pxbar,.pxbar{background:var(--menu)}\n.calday.today .calnum{color:var(--accent-ink)}\n@media print{\n  :root{--bg:#ffffff;--surface:#ffffff;--surface-2:#f3f6f7;--ink:#111c22;--muted:#56666d;--line:#e1e7ea;--field:#cfd8dc;\n    --accent:#0d6b71;--accent-ink:#ffffff;--accent-soft:#e6f1f1;--ok:#2d7a4c;--warn:#a2650c;--bad:#b23434;--base:#5d6b73;\n    --ok-soft:#e8f3ec;--warn-soft:#fbf1e2;--bad-soft:#f9e9e9;--info:#2c5d8f;--info-soft:#e9f0f8;--cover:#f3f6f7;\n    --c1:#0d6b71;--c2:#2c5d8f;--c3:#2d7a4c;--c4:#a2650c;--c5:#7b3fa0;--c6:#5d6b73;--c7:#8a6418;--c8:#3d7f9a;\n    --g1:#2d7a4c;--g2:#a86a12;--g3:#b23434;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#6b7478;--menu:#ffffff;color-scheme:light}\n  html,body{background:#fff;color:#111c22}\n}\n<\/style>\n\n<div class=\"wrap\">\n  <header class=\"top\">\n    <div class=\"brand\">\n      <span class=\"logo\"><img src=\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIALsCCQMBIgACEQEDEQH/xAAyAAEAAwEBAQEAAAAAAAAAAAAABAUGAwECBwEBAAMBAQAAAAAAAAAAAAAAAAECAwQF/9oADAMBAAIQAxAAAALUgAfP1S2ykKfzp4dV7U23L6ARcA89AAAAB6eAAAAAAAAAAAAAAAAAAAAAAZ7Q1enNU/P189vmTb+useL1Qz3RJeez14OXnL6uo7Ul32eQFqAAAAAAAAAAAAAAAAAAAAAAD08AAjxqfXllfMX56eK5scr2y6NO49ebu9obGnw64/z65/TtbmLK7fFC1BBJymnkoBXRy5coBaKu0ACLALlHkAiEtnedmmUFxDuIAAEHnW9krRZI0iaeiQAAAACLKpL4wfn3zu8nyVazebvoIup+a3o7GLFx6Ynln98fq1HkmNXf60uXna82iHT5rKavKTGf1+Q1+q8GM46luqXeN7kddkc0DZY370j9IQZ2FqLI67I612lvU/WcwMx512jk182s4Ppf5y0be0/O/wBAynoKyBnYkuJxeyWMi+VLZQPiuut9iyuvxwmAAAAGe0NDryQ5Mab0cV6OL2PfA8iy0Al85jU5/Lpr/r5+uf09c897fDZTV5O0UGvyGv0XgxnHUt1S713uS1uRzmA+9JpFFvPzi3rNxkdbkja0N9k4Rtbkt/KYMpYnbZe0ZzX5DR6NQzvmTRs5fJookuJxezeWNB038+PFec/o31hHkdnjhNQAAAFXacrZZvt536vOvXPpx+qCQAGe0GVy6eUmLdZdtuOryWU1efllNbkrrWNic8ZyNNKi713uR2mLzmH+kfm/6QYym/SMJYhl42uX1FZlOd3WFuLtm89xlkdHg7xz0+Y3lmJ5/o6r8438j6hnYkuHw+0Wk2+OfuLHppyhrzAAAAAPn5zl8pldz97PO+5kH6mmkkZe95PQlkTLeXX1nLbC8gRJE0k2cKTj1dhFnHsPzvh+gZTWI3Hn92jlcyNPSfvB7zI1Uv6Rh9xJDmKT+cc9pnNo0lhEscZ/Pov6Jl9a1cqFys+vmTekTYfP1jYIAZ2JYxuT1rSxgzunzAtQAAAB74ByRn4Ev57OGP8AXw1w6dOXaK+dJMWq4j13fPb443MeNOXWLyvj7e1l9lt6MO4cjqhdSQhdSR7G4k58RiYhdjuh/RKROx1QOxJRvklo3pIRfSSr5h0QfslonIsHGMT3DwkOPwSXLqAAAAAAc6a9TTF/Wpz/AFcfCdV/WmNmrvazYQ+ft6dO33fY7e9Dl9AEq6x4lV83Yqlj9FNLseJHT+BUrzwr/ZfpXeWXM+IVl0IUS29IfGw6EHlYfZW9evpB9tPkgdpP2V0O37FD9Xgp5sn04Sfn6AAAAAAAAIFLqV6YjzcNMcncWil/PTPYAAAAAAAAB74AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD3wAAAAAAAAAAHp4D/8QAAv/aAAwDAQACAAMAAAAh88vSe844w88848888888888888888888888PVR0vYN88888888888888888888888484ekOcfc58w28640868ww0884a13088888scwILGx/0rA8oWF8DhhEb10oqJiy88888X7cMfMpyUtA8hGXoCAS8bU7woMnY88888teQ884rNUuS0jWC0jEAwkCOJto7M88888IQpgHNOI84OTWbdcoWBjts84iC88888stHmzvgUK384wAgkc0U0wsU40gAQ488888sMPD3y4SU8o4Ew8EkosckoUUQ4wU08888888oYDh0888888888s888888888888888888888888888888888888888888888888888888888888088888880888888888848/8QAAv/aAAwDAQACAAMAAAAQ/wDkG5v/AMn7/wD/AO//AP8A/wDv/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8AuPzfVv7/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP77v/jZPWcp0f8A6A/MG2/I/qA8/wD/AOgM/wD/APv/AP8AQ+smmz/N9+i/8t0qz7YOck/9rdkU/wD/AP8A/wCvvHInB+jfwv8Aynzqh0D2Er4CEau3/wD/AP8A6HD77/0ShxZbPTkdoWubTcz9Szwl7/8A/wD/AOewDTBTKD/+BAWif7qK9Xzz/wCIU/8A/wD/APv6sl2g3tQ+/wC/PLMOOsMOPNMN/iNutvv/AP8A88ul8z8Df+4AA2EwacScyAAU6QEAU/8A/v8A/wD+uADrc/8A/wD/AP8A/wD/AOv/APv/AP8A/wD/AP8A+/8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8Av/8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD3/wD/AP8A/wDv/wD/AP7/AP/EADMRAAEDAgQEBQMBCQAAAAAAAAIAAwQBEgUQESITITI0ICMxM0IUQFNzFSRgYoOSk6Lw/9oACAECAQE/AMosYpL1gquCQ+HaPWpMco7xtFnd95hT7bUql/yV423EsTfF6UZBlOkExHuHqQS3uJffvUV7jMgf3cHCnJG9zYCHDYtBtqCmYI3bdH6/xqtCArarFZMfguNF1pobiUUBBkBplzr6IgKnqGQg5X0BUEq8hVaEPrkIFX0DKmpeiGM9X4I2nA6g8BSWBK2pr6uP+RUIS508cCPx5QDVUtaFSsacvtZ/yJrG5Qde9Y/KCo8eP1mv2XOLeSNlxkrTCxYbJIHLC+eUbuAU/wBnKL26h9yakxxdH+dFyLSqw/2aowvetTTLcdu5VnjTpTTrcgVJZ4TnLOZ3T/6qphcird9Ey+9HeTZ3jr4sGL97osTqQQztzIBqWtVosTbEmdaqP7jaoovcAp/t5Ru3BQ+5NOyOE8AkpjF43gsP9mqjDrKOqnno2A5RCtepopwasqkZ6vwTjTgdQKZ3RpmZFajhcaePiyDIfmmBIGgGviivcGQBqTLimy4FXOtVpbnqsTr5NtFAZI5AXZR66PApokTPLJmlke0lD7g1iPuAocnUeESBoQ6Uydko1NZI27hyhtETlynO2t2oJxCOlikSCd+Cmd0abwpw276Go2HNsFcW8/HChOS3LR6VGgR2RtAE9EZfHQwU/DSilePQgbcMrQBN4aLTfFlH/TVIEVlk3pAfptooZNU43BsE82JgkOh9atiju8pSZgkNgKGYg7cSmmJubVSpU5pmW3Vvd1pyvmHWiYmDUbTRBHPd5SOSy0O1OOE6VxZy4zxyDIQUelrIUr46U1LRRJOHsNA1RxpA6JjcJp4nBG4EEmPI8o9h/jcR4W6y5fFcsTEm1+11jjPf9/amoJOuceV1/jWNSxKyOHw+7YlSI5XA4oeMMu7Xdhp+KzIHcvoCttKW7YmYrMcdgLEMVFsbGOtVqRFrX71jEJcfkLmxDj7lu5j/AHUjFZj1Lb7A/h3/xAA5EQABAwMCBAMDCAsAAAAAAAACAAMEAQUSIjIGEBETFCBTNUBCFSMzUmNzkqIWITBDUVRgYnKCk//aAAgBAwEBPwDldLg3Bim7VDxRcqvZVOmH+CgTBlxwdHnq984lhuSYOj4E2y4RY0BWKM5Gt4Ce7lZoIzpzbR7EVrgkz2Ow1grnD8FOfY966q8cRNxC7LOs18rTKuZ0P8it/Ez2QBKDMPUTbguN5iuG4NwpKblAGDX8TRng24Qt5q6PvSJz7joYHz68uq6rry68slmKyHyN26cYUMIrtQXyVcv5V38CcbcbLFwMPPfJhRLe4Y70OTzn9yt/DLdWQORv9NP8MQzH5rQa4NtrlXuxL2M6/wDRfpPZ2C7QnsUaZHlN5sOZrii0tvRPFAHzofn5HtQbuRbke1DXFUqj3LaKrXJYKtMUFedj9kRPuk7xTb2pBsutu6FOhQ7rF/WG/wCjcTrZNuGBfB5uLQIreFftVYgE7gwJKnIDcATET38uFJLjVxo3TYam4eEfy9JV3I0G7kW5HtXRCSNEWlByNCsxVKqx+yIn3SmWO6P3B/BjT3VBY8FAbac+BpTXRelvuD8bvmucTxcN5pW+BOZlNu9vQDqbcEx0+ThUBK40dLYC4hnDHtTnQ9bn0fKqHdyLciQIh5V2oC5HVAKwQhirF7Jg/dKRxdFYeNrsO6FduJ5U9urQU7Qee5XJmG3q3qbPlSXMiNMTZUUsmnlZ783N0O6HU8+yyObh4J67E+Xaif8ARFdbhIeCPFPR+8cQXcZGEIn8zZ51FalQEaDlUVRVBZEsSJDTpztFyt7VrigcpoD7X11cDE5r5D6vnOvQeqmQ7hKeN0m09Gca0kCbaZIsXdCehSo2Drez1ATN+beb7M9jP7ROsZxwdaf7Mf8AApd27Tfh4WgPU+uuFba4Oct34/cdX7J+HHkDiYKfYHA1NawQHKilpVZY5ZjFazUmRKlFrNWnh5x4wde0AgAQHAffX4Ed7eCrw9HqW9RrPDY1YZmqU6f05//EAEgQAAIBAgIECQgHBgMJAAAAAAECAwAEERIFECExEyAiMjRBUWFxFCMzUnKBkbEGFTBCYoKhFjVAUHPBJFNUQ0RjgKKy0eHw/9oACAEBAAE/AuKzBRiTTaRQc1caj0hGxwYZaBB/n99KWfJ1Dfr0dMTjGerd/P7rpEmuw6T+U8W6uRCnf1U80rnFnNR3E0RxDHwNQyrLGGH83voCfOL79W87KsbYxgs288W+bNcnuGvRb8qRPf8AzeWeOMco+6pblG5sK++lu3TcifCo9JKeeuH60rq4xU4jiaQTLNm9Ya9Fxnlyduwfza6u8nJTnUxJOJO3iQzvC2K+8VDKsqBhqnvI4tm9uyprmWbnYYdmoYZhmGI7KtpYpEHB/Di3ekLe1ZVlzcrdhX17Y/j+FWt3FdIXjxw3bddzpO2tnySZscOoV9e2P4/hUMqTRJIm5hjU+l7SCVo3zZl37Kh0vZzSBAxBO7EcS6u4rWMPJjgThsr69sfx/Cra4juIuETHDv13F9bW/pJNvZ10/wBII8eRCx78a/aH/gfrUen7cnlxsv61DcQzrjG4bjzX0UT5CDX1nD6rV9Zw9jV9ZwdjVHdQSc1x9vdTcFH39VHWllcN1AeNHR1wPVNSRSR89CK0fLklydTVeXHAps5x3cVJHjbMp21bzrNGGHv4n0h9Pb+wdWgeiv7Z16d6YPY1aN6BbewK0r+8bnxHy1aJ0h5QnBufOL+uv6QdDj/rD5HVoXoK+J1aT0sUJhgO37zdlEliSTie3iRTSQvnjbA1o3SC3abdkg5w/vxr/pTeA4tnesrBJDiDuP21++MwXsGu1tViGJ53brKhhgRTWnBzxPHuzbquyZLogbcNlR6NY898PCjoxeqRqmtpYecMR2jXo+XJNl6m+fE+kPp7f2Dq0D0V/bOvTvTB7GrRvQLb2BWlP3jc+I+WqOR4nV0ODDdVjeJdwhhzvvDs1fSDocf9YfI6tC9BXxNaWu/J7bk899g1QwyTyCOMYsattB2yDzvnG/Sm0bYkYeTJ8KvtCBVL22Psared7eZZV6qjkWSNHXcRjxb/AKU3gNVnaRTR5mxxxPXT6Nj+4xBp1KMVbeNVnJwkCHrw2/a3fSJP/urVZLmuB3DHjQ2yxvI/Wx1sARhU8fBTOnV1e/VGcJYz+McT6Q+ng9g6tA9Ff2zr070wexq0b0C29gVpT943PiPlW+iCCQd4qzu3tZg43feHbUMyTRq6HYa+kHQ4/wCsPkdWhegr4mtNTZ70r1IANWgrYLbmbrc7PAcTTFuIbskbnGPv1aClz2pT1G4t/wBKbwGrRvoPzHVfEG5bw1aN6P8AmPz+1vRhO3fq0f0g+x9lpLpI9jUm2SP21oa/pD6e39g6tA9Ff2zr070wexq0b0C29gVpT943PiPlUfpY/bHzrTOj8wNzGNo547dWir/yaTI58036Vp842UX9UfI6tC9BXxNXvTLn+q2rR65bK3H4BxPpDz7f82r6PttnHhTafVWYeTnYSN9ftCn+nb41+0Kf6c/GoZOFijkwwzKD8av+lN7I1Wt4sCZShO2n0kxHITDvNEknE79VvHwUKL2D7XSCc1/dqtXyXCd+z7LSJ/xP5Rqs0z3MY7NvE+kPp4PYOrQHRn9vXp0/438g1aN6Bb+wK0p+8bnxHyqP0sftjVpbR/k78JGPNsfgdT3jvZLbttyuCp7tWhegL4mtIpkvrgfjx+O3VoqThLCHuGHw4mn5A1zGnqr89WgE83O3fUqtwsnJPPNZH9U/Csj+qasuiW/9NflV/wBKbwHEALHBRjVpZZDnk39Q+2lQSIymhDKzMoXaDtryKQbTIq0rqRsYH7GaThZ3btPy1aMhwUy+tu8OJp+LGGOQfdbbq0NeLBKY3OCv89UkiRoXdsAKvLjym5eTq6vDVaR8FbRR9iitKfvG58R8qj9LH7Y+eqWNZUZGGINX1m9pNkPNPNOvQvQU8TWn7fB0nA2Hktq0RpAWshRz5t+vsNAhgCDs1Xl5FaxZnO3qHbU0rTStI29jq0bb8BaRod+8+JrKvYKyr2VlXsGq/wClN4DVZW0MsWLrica8gtfUpY405qgfbswUYk1caQJ2RfGiSxxJx1RXk0fXmHfUNwky7Phxbm+SLYu1qhuM9vwjjLRvVXZFEoWp7byjgWC4Y87wpVCqAOriTwrNE8bbmFXNvJbytG/V19uqG/vIRlSZsOzfU1xPP6SRm8dWh7EzSiZhyEOzvOrSn7xufEfKo/Sx+2PnrvLRLqEo2/7p7DU0TwyNG45Q1aF6AnianhSeJo3Gw1d2klrKUb3Ht1QXdzB6KVh3dVHS+kSPT/8ASKd3dszsWPadWiLAzSCZxyF3d541/wBKbwGrRvoPzH+AkkWNCzHACrm7ec9i9nFR2RsVO2ra5WUfi6xqmu4Yt7beyrjSEkmxeSKt7fhMZJNkY/Wp7jhNg2INwqztTIQ7jk/OprxYzlUYmoJRLGG4t3Zw3SZZB4Hsq50Pdwnkrwi91FHU4FSPdUcE0vMiZvAVZ6DdiGuNg9UUiIihVGAG4ar/AEfdy3s7pFipIw+FJou+DoeB+8OJpTR/lUeZPSru76+qr/8AyTWi4ZIbRUkXA4nVcW8VxGUkXEVc6DuEOMRzr+tSQzR8+Nl8RXuNRWd1NzIWPfVnoPAhrg4/gH96ACjADZxryCZ7glUxGFeSXP8AlGrBHSHBhgcT/AX91wsmUHkL86x4hUgA9R69SsVOIO2oLxJBlfYfnU+jcdsJ9xrgoYD5zzjeruWpp5JecdnUBuq1tRhw0+xeoVNes3Jj5I1WUeSEd+3+ZS5uDfLvw2V9W3vqj40dH3ij0fwNMHQ4MpB76x1RStH3jrFcDDMMYTgfUNMrIcGGB1JPKm56tZJZic4GXtp4rSCQtzmx2L2VLM8p2/DVaQcK+3mjixyq8QkG6hfQnybf54Er7qe5RJuDO/IW+FNebIskTOXXMB3CoLlZSVysrrvU76iuUklkjH3f1o3p4R1WB2CNgSO2o5EkQMp2U92cxEcTSZecR1U19AsCzbcpbDwqS4jj4L8bBR76e7IcrHC0mHOw6qe6CqnIYs25Ouku1JdXQo6rmyns7qimWSFZeojGvL9mfgHMXr/3qW5jQJvYvzQOuorgvmDQuhAx2014gihYAkyDFVG+opy+bPEyYDHbVvcJOhZfWwqe64J0RY2dmx2DuqK6Vw2wqyjEqajvZZMhFq+VsMD41FKsgbDqYimvG4WREgd8mGY1FdwysoTrXGpLsJI0YjZmCZsBUd67vl8lkGBwPdUUyyx5xupb+FvJt/nscvuqe4SHJm+82Aqa6jieJG3ucBSzAyvHhgV/UdteVKeaCTjgO+o5QxIIIYdR+2eNHGDKDVxosjlQH8p/tW0HAjA9hrGgcKS8xGWVM4/Wilk3NnK+IoeRpvcv4CpL1yMqDIuuCFpnwHvNRxrGoUcW1kQWbAthkzBseqoIQy2Ub9dq/wA1rl+V4PzkgcHv76tyBJY7f92b+1TTr5S0se0RRFSR6x3Ck4e3NtJLGqqOSxzev21aOiNe5mA8/wBfsirEHLM/3ZJCV8KsXQRyJjgyO2f3nHGhtBccx7sFe/vqdWjltoduHDqUP9q0cQsbxM3nEkfP7zjjXCIL9GzjK8WCHqxx3VdeculyH0cMmf8ANuqPl6KVEYZ+BGzGluYFtBIWGRV2/wDirZeAkteFGGNsFBPUeyuFmW4aJ3RgYy2wYYVB5uWwkdsEa1CD2t/61fS+aMSEcI5ygY1bcJFd5XiVBKmzA47U/wDVSkDSFvif9m9SsJLsmNsRHCwfDvqxXCC2PlTejXkEjsq0dAs2LD0zVEs7XV8I5VXlr93H7vjUcSW15CvUYyAT1tjjScrSshG4QAHxJq29Nef1R/2irSRVtHBbDJmDY9VW9vjDYxPsxt5fdiQauUn4MPNvDog+O+pknuXuTHEpGGRGLYYEbcfjVzJwtrBOrZW2D47xSqsVwq/d4PBaxDXIw+6hx9/8BcWsM45a7e3rq4sJ4No5a0GrNWNY1jWNW9pJNt5q1FEkS5VHGa2t3fO0Slu3DbWUY44bRRRSccoxwwp7eCQKHiUgbsRuoRRhcoQZeymUMMCMRTW1uz5zEubtw1SW1vKcZIlY94rKuA5I2bqKK2GIxwOIqS3glIMkSt4ijBEyCMxrl7MKjhiiXKiBR2Cls7VWDLAgI68K8lt+Ez8Eubtwp40kXK6gjsNRwRRjBI1XwoxRlODKDLhu6qS2gj5kSjwFFVOUkbt1SwQy4cJGrYdopURFyqoA7KFlZg4+Tx4+FNZ2rtmaBCe3ClRFxyqBjvqSKOVcrqGHYajijiXKiBR2CsoBJw376a2t3fO0SFu3CsoxDYbRRVW3igoAwAwrg0wwyjDHH30yK4wZQRSoqDBRh/BXGj7ebbhlbtFTaMuo+Zg47t9MJE56MviKDY7qis7qXdER7WyrfRqJypDmP6f8v/8A/8QAKxABAAIBAwIFBAMBAQEAAAAAAQARITFBURBhIHGBkaEwsfDxQFDB0eGA/9oACAEBAAE/IfClEBvGqXv0glPc5IAI/wB/Ub/qYxhjuXl8VhBv+4+QfaMYXR3PDYgt4E1sew0Q6sbpZ8zfX24/t6ULQo9osBACrtMGe3weFw8QeseicTHu/t7d5O5i2F3/APMew/Kkap+8aQqXkPBW7PkI9MoMfA/tstu54i5CtWPWwOPQZoBvx0+JyYZeQ06Mou7arltAA9HhVSwui9J344KB0K063f1WpO/G0DEWZzMl00WJxzrR4NLMdLy/qd2IrKtYVp1LwHDlQ6BOVILeden6Jzs+NGi1eCfpZ+nn6KKVY4+vYpqx6olVW3mMLUAtdCZer3Qix7Az3INveLb7PmT0mwqqqq5XwE6w9nznlNDhPoht8H9/BIK27GDo59vPgpb9f4fn/wARHrJqm18BRJ7m8p1f0R9EVzv8xEiq4HvDJ9X8Il6UqAZWg85Qy3r1NAI6k38cuGGGnbAEJvy01td3pJng6MzP3D8PohF8f4ZT31za8phKGOd1xHT6sKvQeWZc36z7Fkd2D2+5mvYS3vRoxfsNW3jszs68RzcvJyOpGQsQ9fGJKOC1EePBs2fMG6kzHJUV/g8xj6m0+UfZGDb3v8f74amqRr5D1VI1hgaG/L0UBt8rBx9Auvj+svyfGAoAtWj1gIIlI7VMz+jgSwodj4OH2u8N83L0ZJnfC8BF1W/d0da9H0fGLX6FB7C+mj9VK7iP+Rnzn3PpD1P9dDS5D5gwH0I6+P6y/J8ekS4CMGznpuwM9/MBBk689L+fT0Ibm98+Alu9dCGypTtVU7M/VZ+rzjQnil9QKcyOK3j4ytz/ACIEtNrzcy0Ba4DlYfmJ57/VxkaZRJc7xk9fpWeUvdei1GLP0/fiKrPh9QqeCpP+V5lXhn4/ljy6WI+TQJXz1Or266a44u/668Aw376ND6kPaO9gXmfsUaHg4YMdeGCvhfBGCr4n1t8gltalwg0rTY8VPbwMvxrRBCzhAzjCbpLmM4eR4K/bC7PTbdt2JuH4NasfczR7NJStBa4DznZrT8lx61UVnSRzkyc54NafR6h0onJ/1w6SixGXE2Y89Tclj0Q5pmfqp2HtP0UCuotcUwJuvuwz2D66WkGrEXEc9/KXxLlbnfeYx7D/AKl0ed9x4b/FbbErDDfiYUjnE87k3ggsCjwBDoGAznRsHPSlttWB5XFBrcgsHp0/HlH6dPyfHwVFlWrchTyWnv36zvkHTCpx6Y6aOvq9jFQ+wX7REm6pb0zzu/5GFgQMhZQc7P8A3Ll9BhCoJkeBC5hC7GWW3+nK69crN8P7emCpyEYoLXghoK5OHw6vJp6wgW5dfqRguNlRqvOiLD37L5w34qDbo8WyLIcyoZyc+A6L7JxP3RNrh3QYye55Rl2VoYrT3Cyn/wAJVZrhR7wQf8GUOCBoHicYhzfE/YE1Wy/gM+ce/QuDBiZ7GyDCtYaTAP4YsVS/K9I2dx2lHm7xTHThCM0Dld/OeUje7/zolrV/L6tfxa/gXlm30DviX1J2QkKhFxRoE1dGHejwuH4mXDs3k5JaSBs3iKzJ2rS8vBoNCEyfc94BVeA0MhfaOaFo47oAJtd7RW73Dj8LlOiFehcCBHf2a1O0Vz6Dp6y9MoS/ytCuO7LhIWnKeSZhaMTmWFWKxFxfMp03dG3niWpItw7reBLGv7DNQfbPZxFY7t3/AMzyIgFHchZf6sxczx7G2vOX4FJXGISRxxZVeLSHaEZfLTTfEQpe3yQAAYDlLxzHaXH9GqnePPxdTdsO1rLhEky17S+UTKfvgduQLm4mr6M/HEfapOdzZKeXMThv5TUSJwO/1q/nhJefgt0bbh1CkhLoRRNEmFXLsmc5ghrXzaglTXY1l5e8uANM9KETQeEiSq1Vy9YAzqOTJ7y2Nerht6pfgOV7yhwzBi31YGitO9nBXMUT72qpNstHPyiNFLaJYF6MFW9OVI+Rjdte3F59MH/jDhcLyIy0G5UHc5jpavrtQo+es1OFGpCuKPYhs52qP5EHnWN8VMqc5YtSDehhT0TKMTBuZjkwK/G5fEooDmhZXZkXpLgNpxjnRpcqT8rW81FaXfoyYQfKPFzHrN7FLixXR0UJsOHrjf5FDMxDpjmsvVE6e0XoQr8EC1tVNaxjpg9xNSPA2r3FHx/ApeBodEvgeU1PMndh0fP1HxXy7vlBIg8RDn+NEw6qEHgf1LbTUVmnaadTYJAckaExiJBJqMWPtu4vEqoBLCrsiwqCvDSpimsxskeBmiDGpDo8MRAuahRmLlqwESPK+8V3GiPqFkTCHUFXLGtRc0HaNi2cBrFAVdrh0nZws2sMAOwoggAGxrqRY2tqNsVaGwa1O0GS524oVASAq0GrpO+GoXEVqaEHgf1CKNLvJxKEhd0d4v28Vuzc7VgZVKeDH8L7KnLZHo3snyLBLVWXgIlgeY0/YeyBWA/vq/8AkD//xAArEAEAAgEDAwQBBAMBAQAAAAABABEhMUFREGFxIDCBkaFAscHwUNHh8XD/2gAIAQEAAT8Q9BD2NanBHY4aypL4M0J9jAZIliN2f550glwAjnQvwTylHeWO63Ot9vh9N5Y6xDzAFjZHTENP1D+tYEt1v+Ky8RpHnYfEs9NWj+7eXsRQ+7ufgK/MOn3PMcDkS/uhlarcYf4Gv0O3V0j7VGdXYniFpfxGapQC1hPUwPrD39Kg0PfZixFgLzgfZwf1O3rx0fdfW6SpMU5PARe566hX4ky7VmdQaf7Q84GPSmiWQ6WJEPMUWSjArhQnJqZt+ir3xv0F+86TQhAZpWof7sQslq2s8o1zPJALbuTR/wBxXMOTdbj0v7LGNc7rAE1tgD9nNxYGFOKwcXDoBDoe1IdagoDdpqm+h3Bb1kX1FwESUqej3SZcJTkR1qg3YDH3RS9BMIS5nQv7RxTtunDIvoYuxSz8QJtpUKbg44pQubIMtp3jyanq3gU2U2FPSLfUpujJJJ8qfpliWTzDT22XHNO77viIyRtWqxQLR1CWr2IaJrI1P0Wxv3eB/IRegVoZa8DEaopWNaK/yRRKqpuhyviPne3qveMYxnz8mxwd4r+XudcMOrqbby+kWQt69Gf1fGABAiIjkeYDAUfDt9CQWmWO5TzcEUY4lgF2wjuvSnifvE17qY7E0SKSFO6bel0I/QxLTQmgwnzCgkfq2g4qEyaw09t0lcNmc4ysfMs2RA3cAh4peauxwSipUO81IWJ3lfNJq3yJ2SPuKZ55YPdvCPyt3BNPtr8ghaUa20eSbXNUO/fXMo/JD0dfTwJ0x/Y8OiPTy7Ox5HRHWVh97erc2eehrcKecxVFJVtTau6x57cGw3XYJajQQo3spKJJWp/cUzFCbaL3UpFBA0opHiIpLxNGuObIbVeDsJv1etmk8oGoeBCLwQ1JnuXgYKamjwnZhEWiVErXJO+Wy9fb3dAlrm235fBg61EOsTKXfzNCBKgG0FImsvYoftXwxjtqVWcAP4ZcU3IexUlTrzI54IDdwCNfQdStQy+tO1/2mpAnmgeg41OjhxbvQF0+IXtOXD1OqXtPpIqGuhT0t7NJWmJY+ko7oofaGnsX1dGYyUP9f6xLPuxT0VmUSpREEhimpfhRjj/8SyjgHobqekhTXrjJ/e8JfLva4dsM0j3Ipr7u26GPWIwneAZL56fdVdE8KRwYm6r8839Qq2t41W7cG9HRtIjEcgM22hS966kcx110pXukvixgTXwiD0l6rdKZJdPXQE32j56lHT22X6sq705JglwUZ+JiGQfZOobvOyiLdwLWXtQ0fmC6r01Pc+vbb063v7HhP7njEBARKR3lmk0Ro/4KBPHudt34YHJ0vrKneMUunOkO3TD4UIyuuoq/z6WHs+rQli2vze0/pH8R3Pvq8RhiENEpMevr2lhC7LgC5aYrYaSYIZPcGKxzw7McGwxQHzpKNxMtsr3qEsYUoP7QsXL9Nx0dgjC3S1bg4OauLeQI0iUnm5ZdZPrq/wBO3j23Id1gvgc/BiqLL0BFWIJ2pIWWwAWrgBFWVXV5rpE/seENINtXtoijxJ23uS7JonRei8040lYxKZC7NK0zhNEE5GctoB9sBfHCKNaeI4DwSrMCuwGWVsF+QMz3+BP/AD0/8xAABQaB18vJT2qYHGjAAauUhgE4ARPdWCsHaNBBjz0lnwxwv6uX5gggwNExGBe6lp4g5XOtqehYPU1wftYLGBycg3PMbNNYMjsENXdXpCl1BUBANgK9AdFvzbkXINiE2ZmEbB5uBQ4pQXglh05WVbtoJdMZ2X+A/wATXTJ/Y8IGkdYZ4PxUkWfVGw2HIkHPQXkLGDsncYu5aslqSlBbeeTnOQ41JS/EEjDnBNvl6O/Cmmn/AAQA9dtaO3vMIYVhi5IHzGz3wxg4L0FGaRN+z2lbQX/odphrB1Af1CEXvyzuwtV+VK4O0fToDizcxlA9o18+IqMLAa7KywIVLro1PQx7iTRzcjNo4DufWZEAn4ll0aiqgx+8fPID74FANuj9MhAQJCp1TYAvWoNOBb+9w3JTiBVaOF6DZbDovL2YK7Ilya12bAzh+xFK7iNn5WCUzpE0fEDOLQqA7elcQc4NQEW5ICpiVF2Wbe5cdIpVs0KiA+ZYJc6w6wHm9IbTxez2YqeIuxlo2leXFI73EuQ7tuB5hZEd9iJT3iCKTTFHajfywbRjrXn28EGbR2cXbhLoXXdt1lE0Qz8PVUqUSp8dKLuI49FSjiHj0ViVUqGNvU5wyjPMAEK0PeYQCgi6ymIMDe6qiNO0xTKX9uIJ3IXmm5ZbP+HvHtdLZo9onDNjXwwMNFU0wHwxVXo0l8CNu4DG1pXaY422wRVFAsg97iEAKD0IiBQ60kltAMJhUxxu6JSp4BjJZ5g0VjKNZV7gjiaNMzh7jyRNFVYwcFzBQgDqThyENTiNldbKR3E2ZpTUAwGq7DoRQKhTukTWKTMdbNhs2F7RzutEIDk1qzFUd15M9ByxpXjrdYTA5qL6mlwpXmUR0tQFUuxrYPkCz0quzwY400BFcGBYCW1LvL8AOWDihwBXMGGHmBLVjI+ERJUB6wcFtsXfPFyciMMCpRiSs7oEEWmMHAsAwpcqPNkZKoVrhElRb0S6tS94+KhwxBKz5pGc0YbhPFQLBJTrBnqv4EDgw74C9rEF/wCPYb6bh2TFPrDtbFwVrDrs1B3Ma+2lwKYlxUkmiZn43X/diV+0x5AwopcrRSeElZW1VAhS3ltZrsWGk10zDPmubK0N0/Yl1FVVqtr5gtMQuka9g/7YEMdf9hp1YaD7AoVWhgAcmLSpwI17pANZqWqoxBOQKC3QLiNlktHmMIcpG4LsNeqCgZA+dhyGrawVmDlU3EpIlVEdsKVMJnyhkpIO6WRaRm9jfYhQzfblqFUXUZGKDMO2QUabBM96fsgKswLGEJoQwNoUC7tCEsSFlnDvSHrJIgLXzolQAUnffAGvsYAwhLFW66DAqPqgO9ayECyd/UcC0BfohzDWKDcib4zHovEPmunNGgAgFR0z2OYOlzKpa1iEMKd3bHlcBTz3bDSmUx12JvXiAstdehTCyUzuguWSJn0GDt36S+Y+otrQ2/M4Dh8Qo55GYkt8rG3llzRsNMLG75NQ095LlfSG08LEznt45A2GRqbkLmF3MFB3SoWuPMLGwWzD2wKr+15XdlY9J2ZVNcGWDqap+aCg7DSBLX2h3FuJhvyKGmBi38EEDkYg35oVidyA56k2gBurxUAAAA4lcDA6DywswgRS0JxGWEEIu8OHvDw3S6HFsLhwDJ2UaRilKGjhaEuJYcHIxKP891dazRKqqfDNCwZjyqFyMZUUUbKKjAcUVBFOhLGEcW1NzhpqBAa+JXdV6QC2UCA4ogt5lNMgkutWYTlUlJTVENAF80ARS2N0RfOZkCN0xfON5il7g1FnloCEgmqGdkTS0dzRUHYaSszAFgOhhYNVGi1a/bcSJE2xSl6c23cSKWp2QDbt1g/EPfYlxxa8wi4gtFYO6i1OcfvhK0nYEK/EPGg0qHenLGyDyUpOxAIADAEP81XPSuSapUqJ3gfoq/8AiNfr6/zB02989g9e/wCrPX//2Q==\" alt=\"UNO-P Unidad Oncológica del Putumayo\"><\/span>\n      <div>\n        <div class=\"eyebrow\">UNO-P · POSMÉDICA · Programa de Nefroprotección<\/div>\n        <h1>Ruta de Nefroprotección · valoración y gestión<\/h1>\n      <\/div>\n    <\/div>\n  <\/header>\n  <nav class=\"nav\" role=\"tablist\" aria-label=\"Secciones\">\n    <button role=\"tab\" data-v=\"calc\" aria-selected=\"true\">Valoración<\/button>\n    <button role=\"tab\" data-v=\"pac\">Pacientes<\/button>\n    <button role=\"tab\" data-v=\"agenda\">Agendas<\/button>\n    <button role=\"tab\" data-v=\"coh\">Cohortes<\/button>\n    <button role=\"tab\" data-v=\"ind\">Indicadores<\/button>\n    <button role=\"tab\" data-v=\"aud\">Auditoría GPC<\/button>\n    <button role=\"tab\" data-v=\"nom\">Nominal EPS<\/button>\n    <button role=\"tab\" data-v=\"cal\">Calidad del dato<\/button>\n    <button role=\"tab\" data-v=\"ref\">Referencia<\/button>\n  <\/nav>\n  <div class=\"bookbar panel\" id=\"bookbar\">\n    <div class=\"copyrow\">\n      <label class=\"btn primary\" for=\"bookfile\" id=\"booklabel\">Cargar libro de Excel<\/label><input type=\"file\" id=\"bookfile\" accept=\".xlsx,.xls\" hidden>\n      <button type=\"button\" class=\"btn\" id=\"bookdemo\">Ver con datos ficticios<\/button>\n      <button type=\"button\" class=\"btn\" id=\"bookexp\" hidden>Descargar libro actualizado<\/button>\n      <span class=\"note\" id=\"bookinfo\">Sin libro cargado. El archivo se lee solo en este navegador.<\/span>\n    <\/div>\n    <div class=\"filters\">\n      <label class=\"f\">Fecha de corte<input type=\"date\" id=\"corte\"><\/label>\n      <label class=\"f\">Mes a programar<input type=\"month\" id=\"mes\"><\/label>\n      <label class=\"f\">EPS<select id=\"f_eps\"><option value=\"\">Todas<\/option><option>EPS Familiar de Colombia<\/option><option>Nueva EPS<\/option><option>Mallamas EPS<\/option><option value=\"sin\">Sin EPS<\/option><\/select><\/label>\n      <label class=\"f\">Grupo<select id=\"f_grp\"><option value=\"\">Todos<\/option><option value=\"1\">Grupo 1<\/option><option value=\"2\">Grupo 2<\/option><option value=\"3\">Grupo 3<\/option><\/select><\/label>\n    <\/div>\n  <\/div>\n  <div class=\"toast\" id=\"toast\" role=\"status\" hidden><\/div>\n  <div id=\"agdlg\" class=\"agover\" hidden><\/div>\n  <div class=\"tip\" id=\"tip\" hidden><\/div>\n  <p class=\"privacy\">Se diligencia en cada valoración del programa. Nada de lo que escriba se guarda ni sale de este navegador; la herramienta propone y la decisión es del profesional.<\/p>\n\n  <div id=\"view-calc\" role=\"tabpanel\">\n  <div class=\"grid\">\n    <form class=\"panel\" id=\"frm\" autocomplete=\"off\">\n      <div class=\"examples\">\n        <button type=\"button\" class=\"btn\" data-ex=\"a\">HTA · TFG 50 · A1<\/button>\n        <button type=\"button\" class=\"btn\" data-ex=\"b\">DM2 descontrolado · G3b A2<\/button>\n        <button type=\"button\" class=\"btn\" data-ex=\"d\">G1 A3<\/button>\n        <button type=\"button\" class=\"btn\" data-ex=\"c\">G5 · TMND<\/button>\n        <button type=\"button\" class=\"btn\" data-ex=\"clear\">Limpiar<\/button>\n      <\/div>\n      <div class=\"pickbox\" id=\"pickbox\" hidden>\n        <label class=\"f\">Paciente del libro de cohorte<select id=\"pick\"><\/select><\/label>\n        <p class=\"hint\" id=\"pickmsg\"><\/p>\n      <\/div>\n\n      <details open>\n        <summary><span><span class=\"n\">1<\/span>Valoración y paciente<\/span><\/summary>\n        <div class=\"fs\">\n          <div class=\"row\">\n            <label class=\"f\">Profesional que valora<select id=\"prof\"><option value=\"nefro\">Nefrología<\/option><option value=\"exp\">Médico experto<\/option><option value=\"mi\">Medicina interna<\/option><option value=\"mg\">Medicina general<\/option><\/select><\/label>\n            <label class=\"f\">Tipo de valoración<select id=\"tipo\"><option value=\"control\">Control<\/option><option value=\"primera\">Primera vez<\/option><\/select><\/label>\n          <\/div>\n          <label class=\"f\">Causa probable de la ERC (CGA)\n            <select id=\"causa\"><option value=\"\">Sin registrar<\/option><option value=\"dm\">Enfermedad renal diabética<\/option><option value=\"hta\">Nefropatía hipertensiva<\/option><option value=\"glom\">Glomerulopatía<\/option><option value=\"pq\">Poliquistosis renal<\/option><option value=\"uro\">Uropatía obstructiva o litiasis<\/option><option value=\"nti\">Nefritis tubulointersticial o nefrotóxicos<\/option><option value=\"otra\">Otra<\/option><option value=\"desc\">No establecida, en estudio<\/option><\/select>\n          <\/label>\n          <label class=\"f\" id=\"box-cond\">Conducta de nefrología\n            <select id=\"conducta\"><option value=\"\">Sin definir<\/option><option value=\"sigue\">Continúa seguimiento por nefrología<\/option><option value=\"contra\">Contrarreferencia al médico del programa<\/option><option value=\"prep\">Inicia preparación para TRR<\/option><option value=\"tmnd\">Decisión de TMND<\/option><\/select>\n          <\/label>\n          <div class=\"row\">\n            <label class=\"f\">Código del paciente<input type=\"text\" id=\"pid\"><\/label>\n            <label class=\"f\">EPS<select id=\"eps\"><option value=\"\">—<\/option><option>EPS Familiar de Colombia<\/option><option>Nueva EPS<\/option><option>Mallamas EPS<\/option><\/select><\/label>\n          <\/div>\n          <div class=\"row3\">\n            <label class=\"f\">Fecha de nacimiento<input type=\"date\" id=\"fnac\"><\/label>\n            <label class=\"f\">Edad <span class=\"u\">años<\/span><input type=\"text\" id=\"edad\" inputmode=\"numeric\"><\/label>\n            <label class=\"f\">Sexo<select id=\"sexo\"><option value=\"\">—<\/option><option value=\"F\">Femenino<\/option><option value=\"M\">Masculino<\/option><\/select><\/label>\n          <\/div>\n          <label class=\"f\">Fecha de la consulta<input type=\"date\" id=\"fcons\"><\/label>\n          <p class=\"hint\" id=\"epsmodel\"><\/p>\n        <\/div>\n      <\/details>\n\n      <details open>\n        <summary><span><span class=\"n\">2<\/span>Precursoras y antecedentes<\/span><\/summary>\n        <div class=\"fs\">\n          <div class=\"row\">\n            <label class=\"chk\" style=\"align-self:end\"><input type=\"checkbox\" id=\"hta\"> Hipertensión arterial<\/label>\n            <label class=\"f\">Diabetes<select id=\"dm\"><option value=\"\">No<\/option><option value=\"2\">Tipo 2<\/option><option value=\"1\">Tipo 1<\/option><option value=\"otra\">Otra<\/option><\/select><\/label>\n          <\/div>\n          <div class=\"cols2\">\n            <label class=\"chk\"><input type=\"checkbox\" id=\"ecv\"> Enfermedad cardiovascular<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"fam\"> Familiar con ERC<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"aine\"> AINE u otros nefrotóxicos<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"uro\"> Litiasis o uropatía<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"tab\"> Tabaquismo actual<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"antihta\"> Recibe antihipertensivo<\/label>\n          <\/div>\n          <label class=\"f\">Otros antecedentes relevantes<input type=\"text\" id=\"otrosAnt\"><\/label>\n          <label class=\"f\">Situación renal\n            <select id=\"terapia\"><option value=\"\">Sin terapia de reemplazo<\/option><option value=\"tmnd\">G5 con TMND (manejo conservador)<\/option><option value=\"trr\">G5 en preparación para TRR<\/option><option value=\"dx\">En diálisis o trasplantado<\/option><\/select>\n          <\/label>\n        <\/div>\n      <\/details>\n\n      <details open>\n        <summary><span><span class=\"n\">3<\/span>Paraclínicos con fecha<\/span><span class=\"sm\" id=\"sm3\"><\/span><\/summary>\n        <div class=\"fs\">\n          <div class=\"seg\" role=\"radiogroup\" aria-label=\"Cómo ingresar la TFGe\">\n            <label><input type=\"radio\" name=\"modo\" value=\"creat\" id=\"modo-creat\" checked> Con creatinina<\/label>\n            <label><input type=\"radio\" name=\"modo\" value=\"tfg\" id=\"modo-tfg\"> TFGe reportada<\/label>\n          <\/div>\n          <label class=\"f\">Fecha por defecto (se usa si un examen no tiene fecha propia)<input type=\"date\" id=\"flab\"><\/label>\n          <div class=\"tablebox\"><table class=\"labt\"><thead><tr><th>Examen<\/th><th>Valor<\/th><th>Fecha de toma<\/th><\/tr><\/thead><tbody>\n          <tr id=\"tr-creat\"><td><label for=\"creat\">Creatinina<\/label> <span class=\"u\">mg/dL<\/span><span class=\"calc\" id=\"tfgcalc\"><\/span><\/td><td><input type=\"text\" id=\"creat\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_creat\" aria-label=\"Fecha de Creatinina\"><\/td><\/tr>\n          <tr id=\"tr-tfgdir\"><td><label for=\"tfgdir\">TFGe reportada<\/label> <span class=\"u\">ml/min<\/span><\/td><td><input type=\"text\" id=\"tfgdir\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_tfgdir\" aria-label=\"Fecha de TFGe reportada\"><\/td><\/tr>\n          <tr id=\"tr-rac\"><td><label for=\"rac\">RAC urinaria<\/label> <span class=\"u\">mg/g<\/span><\/td><td><input type=\"text\" id=\"rac\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_rac\" aria-label=\"Fecha de RAC urinaria\"><\/td><\/tr>\n          <tr id=\"tr-hba1c\"><td><label for=\"hba1c\">HbA1c<\/label> <span class=\"u\">%<\/span><\/td><td><input type=\"text\" id=\"hba1c\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_hba1c\" aria-label=\"Fecha de HbA1c\"><\/td><\/tr>\n          <tr id=\"tr-ldl\"><td><label for=\"ldl\">cLDL<\/label> <span class=\"u\">mg/dL<\/span><\/td><td><input type=\"text\" id=\"ldl\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_ldl\" aria-label=\"Fecha de cLDL\"><\/td><\/tr>\n          <tr id=\"tr-ct\"><td><label for=\"ct\">Colesterol total<\/label> <span class=\"u\">mg/dL<\/span><\/td><td><input type=\"text\" id=\"ct\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_ct\" aria-label=\"Fecha de Colesterol total\"><\/td><\/tr>\n          <tr id=\"tr-hdl\"><td><label for=\"hdl\">cHDL<\/label> <span class=\"u\">mg/dL<\/span><\/td><td><input type=\"text\" id=\"hdl\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_hdl\" aria-label=\"Fecha de cHDL\"><\/td><\/tr>\n          <tr id=\"tr-tg\"><td><label for=\"tg\">Triglicéridos<\/label> <span class=\"u\">mg/dL<\/span><\/td><td><input type=\"text\" id=\"tg\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_tg\" aria-label=\"Fecha de Triglicéridos\"><\/td><\/tr>\n          <tr id=\"tr-glu\"><td><label for=\"glu\">Glucemia basal<\/label> <span class=\"u\">mg/dL<\/span><\/td><td><input type=\"text\" id=\"glu\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_glu\" aria-label=\"Fecha de Glucemia basal\"><\/td><\/tr>\n          <tr id=\"tr-hb\"><td><label for=\"hb\">Hemoglobina<\/label> <span class=\"u\">g/dL<\/span><\/td><td><input type=\"text\" id=\"hb\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_hb\" aria-label=\"Fecha de Hemoglobina\"><\/td><\/tr>\n          <tr id=\"tr-k\"><td><label for=\"k\">Potasio<\/label> <span class=\"u\">mEq/L<\/span><\/td><td><input type=\"text\" id=\"k\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_k\" aria-label=\"Fecha de Potasio\"><\/td><\/tr>\n          <tr id=\"tr-ca\" class=\"compl\"><td><label for=\"ca\">Calcio<\/label> <span class=\"u\">mg/dL<\/span><\/td><td><input type=\"text\" id=\"ca\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_ca\" aria-label=\"Fecha de Calcio\"><\/td><\/tr>\n          <tr id=\"tr-fos\" class=\"compl\"><td><label for=\"fos\">Fósforo<\/label> <span class=\"u\">mg/dL<\/span><\/td><td><input type=\"text\" id=\"fos\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_fos\" aria-label=\"Fecha de Fósforo\"><\/td><\/tr>\n          <tr id=\"tr-pth\" class=\"compl\"><td><label for=\"pth\">PTH<\/label> <span class=\"u\">pg/mL<\/span><\/td><td><input type=\"text\" id=\"pth\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_pth\" aria-label=\"Fecha de PTH\"><\/td><\/tr>\n          <tr id=\"tr-hco3\" class=\"compl\"><td><label for=\"hco3\">Bicarbonato<\/label> <span class=\"u\">mmol/L<\/span><\/td><td><input type=\"text\" id=\"hco3\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_hco3\" aria-label=\"Fecha de Bicarbonato\"><\/td><\/tr>\n          <tr id=\"tr-alb\" class=\"compl\"><td><label for=\"alb\">Albúmina<\/label> <span class=\"u\">g/dL<\/span><\/td><td><input type=\"text\" id=\"alb\" inputmode=\"decimal\"><\/td><td><input type=\"date\" id=\"fd_alb\" aria-label=\"Fecha de Albúmina\"><\/td><\/tr>\n          <\/tbody><\/table><\/div>\n          <p class=\"hint\" id=\"hint-compl\" hidden>Calcio, fósforo, PTH, bicarbonato y albúmina aparecen con TFGe &lt; 60.<\/p>\n        <\/div>\n      <\/details>\n\n      <details open>\n        <summary><span><span class=\"n\">4<\/span>Diagnóstico de ERC<\/span><\/summary>\n        <div class=\"fs\">\n          <div class=\"sub-h\">Otros marcadores de daño renal<\/div>\n          <div class=\"cols2\">\n            <label class=\"chk\"><input type=\"checkbox\" id=\"mk_hem\"> Hematuria o sedimento anormal<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"mk_img\"> Alteración en imagen<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"mk_bx\"> Hallazgo histológico<\/label>\n          <\/div>\n          <div class=\"sub-h\">Cronicidad (resultado previo)<\/div>\n          <div class=\"row3\">\n            <label class=\"f\">TFGe previa<input type=\"text\" id=\"tfgprev\" inputmode=\"decimal\"><\/label>\n            <label class=\"f\">RAC previa<input type=\"text\" id=\"racprev\" inputmode=\"decimal\"><\/label>\n            <label class=\"f\">Fecha previa<input type=\"date\" id=\"fprev\"><\/label>\n          <\/div>\n          <label class=\"chk\"><input type=\"checkbox\" id=\"cronHC\"> Persistencia &gt; 3 meses documentada en la HC<\/label>\n          <label class=\"chk\"><input type=\"checkbox\" id=\"agudo\"> Sospecha de deterioro agudo<\/label>\n        <\/div>\n      <\/details>\n\n      <details open>\n        <summary><span><span class=\"n\">5<\/span>Control clínico de hoy<\/span><\/summary>\n        <div class=\"fs\">\n          <div class=\"row\">\n            <label class=\"f\">PA sistólica <span class=\"u\">mmHg<\/span><input type=\"text\" id=\"pas\" inputmode=\"numeric\"><\/label>\n            <label class=\"f\">PA diastólica <span class=\"u\">mmHg<\/span><input type=\"text\" id=\"pad\" inputmode=\"numeric\"><\/label>\n          <\/div>\n          <div class=\"row3\">\n            <label class=\"f\">Peso <span class=\"u\">kg<\/span><input type=\"text\" id=\"peso\" inputmode=\"decimal\"><\/label>\n            <label class=\"f\">Talla <span class=\"u\">cm<\/span><input type=\"text\" id=\"talla\" inputmode=\"decimal\"><\/label>\n            <label class=\"f\">Cintura <span class=\"u\">cm<\/span><input type=\"text\" id=\"cint\" inputmode=\"decimal\"><\/label>\n          <\/div>\n        <\/div>\n      <\/details>\n\n      <details open>\n        <summary><span><span class=\"n\">6<\/span>Tratamiento nefroprotector<\/span><\/summary>\n        <div class=\"fs\">\n          <div class=\"row\">\n            <label class=\"f\">IECA o ARA II<select id=\"m_raas\"><\/select><\/label>\n            <label class=\"f\">iSGLT2<select id=\"m_sglt2\"><\/select><\/label>\n          <\/div>\n          <div class=\"row\">\n            <label class=\"f\">Estatina ± ezetimiba<select id=\"m_stat\"><\/select><\/label>\n            <label class=\"f\" id=\"box-fin\">Finerenona<select id=\"m_fin\"><\/select><\/label>\n          <\/div>\n          <label class=\"chk\" id=\"box-dmaj\"><input type=\"checkbox\" id=\"dmaj\"> Ajusta hoy el tratamiento de la diabetes<\/label>\n          <label class=\"chk\"><input type=\"checkbox\" id=\"htares\"> HTA resistente<\/label>\n        <\/div>\n      <\/details>\n\n      <details open>\n        <summary><span><span class=\"n\">7<\/span>Síntomas y calidad de vida<\/span><span class=\"sm\" id=\"sm7\"><\/span><\/summary>\n        <div class=\"fs\">\n          <div class=\"cols2\" id=\"sintomas\"><\/div>\n          <label class=\"f\">En general, usted diría que su salud es (ítem 1 SF-36)\n            <select id=\"sf1\"><option value=\"\">Sin dato<\/option><option>Excelente<\/option><option>Muy buena<\/option><option>Buena<\/option><option>Regular<\/option><option>Mala<\/option><\/select>\n          <\/label>\n          <label class=\"f\" id=\"box-kps\">Estado funcional (Karnofsky)\n            <select id=\"kps\"><option value=\"\">Sin dato<\/option>\n              <option value=\"100\">100 · Normal, sin evidencia de enfermedad<\/option>\n              <option value=\"90\">90 · Actividad normal, signos menores<\/option>\n              <option value=\"80\">80 · Actividad normal con esfuerzo<\/option>\n              <option value=\"70\">70 · Se vale por sí mismo, no puede trabajar<\/option>\n              <option value=\"60\">60 · Requiere ayuda ocasional<\/option>\n              <option value=\"50\">50 · Requiere ayuda considerable<\/option>\n              <option value=\"40\">40 · Incapacitado<\/option>\n              <option value=\"30\">30 · Gravemente incapacitado<\/option>\n              <option value=\"20\">20 · Muy enfermo<\/option>\n              <option value=\"10\">10 · Moribundo<\/option>\n            <\/select>\n          <\/label>\n        <\/div>\n      <\/details>\n\n      <details open>\n        <summary><span><span class=\"n\">8<\/span>Atenciones en los últimos 12 meses<\/span><\/summary>\n        <div class=\"fs\">\n          <div class=\"cols2\">\n            <label class=\"chk\"><input type=\"checkbox\" id=\"at_nefro\"> Nefrología<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"at_nut\"> Nutrición<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"at_enf\"> Enfermería<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"at_psi\"> Psicología<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"at_ts\"> Trabajo social<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"at_edu\"> Educación estructurada<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"at_flu\"> Vacuna influenza<\/label>\n            <label class=\"chk\"><input type=\"checkbox\" id=\"at_rcv\"> RCV con escala validada (antes de hoy)<\/label>\n          <\/div>\n        <\/div>\n      <\/details>\n    <\/form>\n\n    <div class=\"out\" id=\"out\"><\/div>\n  <\/div>\n  <\/div>\n\n  <div id=\"view-pac\" role=\"tabpanel\" hidden><div class=\"out mout\" id=\"out-pac\"><\/div><\/div>\n  <div id=\"view-agenda\" role=\"tabpanel\" hidden><div class=\"out mout\" id=\"out-agenda\"><\/div><\/div>\n  <div id=\"view-coh\" role=\"tabpanel\" hidden><div class=\"out mout\" id=\"out-coh\"><\/div><\/div>\n  <div id=\"view-mes\" role=\"tabpanel\" hidden><div class=\"out mout\" id=\"out-mes\"><\/div><\/div>\n  <div id=\"view-venc\" role=\"tabpanel\" hidden><div class=\"out mout\" id=\"out-venc\"><\/div><\/div>\n  <div id=\"view-ind\" role=\"tabpanel\" hidden><div class=\"out mout\" id=\"out-ind\"><\/div><\/div>\n  <div id=\"view-aud\" role=\"tabpanel\" hidden><div class=\"out mout\" id=\"out-aud\"><\/div><\/div>\n  <div id=\"view-nom\" role=\"tabpanel\" hidden><div class=\"out mout\" id=\"out-nom\"><\/div><\/div>\n  <div id=\"view-alert\" role=\"tabpanel\" hidden><div class=\"out mout\" id=\"out-alert\"><\/div><\/div>\n  <div id=\"view-cal\" role=\"tabpanel\" hidden><div class=\"out mout\" id=\"out-cal\"><\/div><\/div>\n  <div id=\"view-ref\" role=\"tabpanel\" hidden>\n    <div class=\"panel ref\" style=\"margin-top:18px\">\n      <section>\n        <h2>Cómo decide la herramienta<\/h2>\n        <ol>\n          <li><strong>¿Tiene ERC?<\/strong> Sí, si hay TFGe &lt; 60 o un marcador de daño (RAC ≥ 30 mg/g, sedimento, imagen, histología) con persistencia &gt; 3 meses. Un resultado aislado da categorías provisionales y la fecha para repetir a los 3 meses. G1–G2 A1 sin otros marcadores es «sin ERC demostrada».<\/li>\n          <li><strong>Grupo del programa<\/strong> por TFGe: grupo 1 G1–G2, grupo 2 G3a–G3b, grupo 3 G4–G5 sin diálisis. La albuminuria no cambia el grupo; acorta las frecuencias (decisión de implementación adoptada).<\/li>\n          <li><strong>Frecuencia fija<\/strong>: se parte de la agenda base por G y A; se acorta si la PA o la HbA1c están fuera de meta, si hay ajuste de fármacos, progresión o síntomas de alarma. Siempre se toma el intervalo más corto que aplique.<\/li>\n        <\/ol>\n      <\/section>\n\n      <section>\n        <h2>Agenda base adoptada<\/h2>\n        <p class=\"note\">Propuesta operativa institucional construida sobre KDIGO 2024 (figura 13) y la herramienta CAC 2026 (tablas 8 y 9). No es una tabla oficial de CAC ni de KDIGO. Requiere adopción formal por el responsable clínico.<\/p>\n        <div class=\"tablebox\"><table>\n          <thead><tr><th>Categoría<\/th><th>Riesgo KDIGO<\/th><th>KDIGO: TFGe y RAC/año<\/th><th>Control médico<\/th><th>Creatinina/TFGe<\/th><th>RAC<\/th><\/tr><\/thead>\n          <tbody>\n            <tr><td>G1–G2 A1<\/td><td>Sin ERC demostrada*<\/td><td>1<\/td><td>6 m con HTA/DM; 12 m sin ellas<\/td><td>12 m<\/td><td>12 m<\/td><\/tr>\n            <tr><td>G1–G2 A2<\/td><td>Moderado<\/td><td>1<\/td><td>6 m con HTA/DM; 12 m sin ellas<\/td><td>12 m<\/td><td>12 m<\/td><\/tr>\n            <tr><td>G1–G2 A3<\/td><td>Alto<\/td><td>3<\/td><td>3 m<\/td><td>3 m<\/td><td>3 m<\/td><\/tr>\n            <tr><td>G3a A1<\/td><td>Moderado<\/td><td>1<\/td><td>6 m<\/td><td>6 m<\/td><td>12 m<\/td><\/tr>\n            <tr><td>G3a A2<\/td><td>Alto<\/td><td>2<\/td><td>6 m<\/td><td>6 m<\/td><td>6 m<\/td><\/tr>\n            <tr><td>G3a A3<\/td><td>Muy alto<\/td><td>3<\/td><td>3 m<\/td><td>3 m<\/td><td>3 m<\/td><\/tr>\n            <tr><td>G3b A1<\/td><td>Alto<\/td><td>2<\/td><td>6 m<\/td><td>6 m<\/td><td>6 m<\/td><\/tr>\n            <tr><td>G3b A2<\/td><td>Muy alto<\/td><td>3<\/td><td>3 m<\/td><td>3 m<\/td><td>4 m<\/td><\/tr>\n            <tr><td>G3b A3<\/td><td>Muy alto<\/td><td>3<\/td><td>3 m<\/td><td>3 m<\/td><td>3 m<\/td><\/tr>\n            <tr><td>G4 A1–A2<\/td><td>Muy alto<\/td><td>3<\/td><td>2 m<\/td><td>2 m<\/td><td>4 m<\/td><\/tr>\n            <tr><td>G4 A3<\/td><td>Muy alto<\/td><td>≥ 4<\/td><td>2 m<\/td><td>2 m<\/td><td>3 m<\/td><\/tr>\n            <tr><td>G5 (TMND o preparación TRR)<\/td><td>Muy alto<\/td><td>≥ 4<\/td><td>1 m<\/td><td>1 m<\/td><td>3 m<\/td><\/tr>\n          <\/tbody><\/table><\/div>\n        <p class=\"note\">*Con HTA o DM sigue en el programa por su condición precursora. Si falta la RAC, se usa la fila A2 y la RAC queda «ahora».<\/p>\n      <\/section>\n\n      <section>\n        <h2>Otros controles por estadio<\/h2>\n        <div class=\"tablebox\"><table>\n          <thead><tr><th>Actividad<\/th><th>G3a–G3b<\/th><th>G4<\/th><th>G5<\/th><th>Base<\/th><\/tr><\/thead>\n          <tbody>\n            <tr><td>Hemoglobina<\/td><td>6 m<\/td><td>3 m<\/td><td>3 m<\/td><td>Propuesta; CAC p. 46 dice semestral y p. 69 trimestral<\/td><\/tr>\n            <tr><td>Calcio y fósforo<\/td><td>12 m<\/td><td>6 m<\/td><td>3 m<\/td><td>CAC; KDIGO MBD 2017 da rangos<\/td><\/tr>\n            <tr><td>PTH<\/td><td>12 m<\/td><td>6 m<\/td><td>3 m<\/td><td>CAC; KDIGO MBD 2017 da rangos<\/td><\/tr>\n            <tr><td>Potasio<\/td><td colspan=\"3\">Con cada creatinina si recibe IECA/ARA II o finerenona, y en G4–G5<\/td><td>Propuesta<\/td><\/tr>\n            <tr><td>Tamizaje de desnutrición<\/td><td colspan=\"2\">6 m si &gt; 65 años (G1–G3); 6 m en G4<\/td><td>6 m<\/td><td>CAC<\/td><\/tr>\n          <\/tbody><\/table><\/div>\n        <p class=\"note\">Todos los grupos: HbA1c cada 6 meses en meta y cada 3 fuera de meta o con ajuste; perfil lipídico anual (8 semanas tras iniciar o ajustar estatina); antropometría, RCV, nutrición, educación y vacuna de influenza anuales. Enfermería, psicología y trabajo social: al menos una atención al año desde G3a (nefro_40). Bicarbonato y albúmina: según indicación, sin cuota fija.<\/p>\n      <\/section>\n\n      <section>\n        <h2>Reglas que adelantan la atención<\/h2>\n        <ul>\n          <li>PA o HbA1c fuera de meta: control de ajuste de metas al mes hasta lograrla (CAC: cada 1 a 2 meses). Lo hace el profesional que defina el modelo de la EPS; la valoración por nefrología conserva su frecuencia.<\/li>\n          <li>Modelo por EPS: EPS Familiar, médico experto cada mes que no hay valoración por nefrología, para formulación de medicamentos contratados. Nueva EPS, paquete con nefrología y equipo multidisciplinario: las frecuencias son las del riesgo del paciente (CAC/GPC) y el equipo se agenda el mismo día de nefrología.<\/li>\n          <li>Nutrición: mínimo anual (CAC). Cada 3 meses con fósforo fuera de meta, potasio ≥ 5,5, albúmina &lt; 3,5, IMC &lt; 20 o ≥ 35, o G5; cada 6 meses con G4, IMC 25–34,9 o HbA1c fuera de meta (propuesta institucional).<\/li>\n          <li>Paraclínicos individualizados: potasio 5,5–5,9 a la semana; fósforo fuera de meta a los 3 meses; anemia en G3 a los 3 meses; caída de TFGe &gt; 20 % o RAC duplicada a 1 mes; albúmina &lt; 3,5 a los 3 meses (propuestas). Lo que vence dentro de 35 días se adelanta a la misma toma.<\/li>\n          <li>Fosfatasa alcalina: no se programa de rutina (decisión del programa). Puede registrarse si se solicita por indicación clínica.<\/li>\n          <li>Inicio o aumento de IECA, ARA II, iSGLT2 o finerenona: PA, creatinina y potasio a las 2 semanas si TFGe &lt; 30 o K ≥ 5,0; a las 4 semanas en los demás (KDIGO 2024 PP 3.6.2 dice 2–4 semanas; fecha fija = propuesta).<\/li>\n          <li>Inicio o ajuste de estatina: perfil lipídico a las 8 semanas (ESC/EAS 2019: 8 ± 4 semanas).<\/li>\n          <li>Cambio de TFGe &gt; 20 % frente a la medición previa: revisión clínica. Duplicación de la RAC: verificar y adelantar valoración.<\/li>\n          <li>Nefrología al menos una vez al año (nefro_33) con TFGe &lt; 30, RAC &gt; 300, caída &gt; 5 ml/min/año, KFRE a 5 años ≥ 5 % o HTA resistente.<\/li>\n          <li>KFRE a 2 años &gt; 10 %: atención multidisciplinaria intensiva; &gt; 40 %: educación de modalidades y preparación de TRR o TMND (KDIGO 2024 PP 2.2.2–2.2.3).<\/li>\n        <\/ul>\n      <\/section>\n\n      <section>\n        <h2>Discrepancias que se mantienen visibles<\/h2>\n        <ul>\n          <li>Remisión por albuminuria: el indicador nefro_33 usa RAC &gt; 300; la tabla 7 de la herramienta 2026 usa RAC persistente &gt; 700 o ≥ 300 con hematuria. Se adoptó &gt; 300.<\/li>\n          <li>Tabla 9 de CAC: G4–G5 «&gt; 4 controles/año»; cada 3 meses no lo cumple. Por eso G4 queda cada 2 meses.<\/li>\n          <li>PTH: los rangos CAC (70–110 en G4, 150–300 en G5) son referencia de indicador; KDIGO 2017 dice que el nivel óptimo en ERC sin diálisis se desconoce. No disparan tratamiento por sí solos.<\/li>\n          <li>Hb &gt; 10 del indicador no define ausencia de anemia (KDIGO: &lt; 13 g/dL hombres, &lt; 12 g/dL mujeres).<\/li>\n          <li>Lípidos: KDIGO 2013 no exige perfil lipídico seriado después de iniciar estatina; CAC mide metas de cLDL. El control a 8 semanas responde a la meta CAC.<\/li>\n          <li>Población de los indicadores de HbA1c (nefro_03 &lt; 7 % vs nefro_12 &lt; 8 %) inferida de la ficha técnica; pendiente de confirmar.<\/li>\n        <\/ul>\n      <\/section>\n\n      <section>\n        <h2>Agenda, asistencia e inasistencias<\/h2>\n        <ul>\n          <li>La agenda se abre por jornadas: fecha, servicio, profesional, horario y duración del cupo. Nefrología trabaja con agenda espejo: agendas A y B a la misma hora (cupo de 20 minutos en cada una, 6 pacientes por hora).<\/li>\n          <li>Cada cita guarda fecha de solicitud, fecha deseada (o fecha límite del plan) y fecha de asignación, como pide la Res. 256 de 2016 para medir oportunidad.<\/li>\n          <li>Desenlaces: llegó (en sala), atendida, llegó y no fue atendida, no asistió, cancelada. Cualquier aviso antes de la hora de la cita es cancelación, no inasistencia (decisión del programa); se guarda la anticipación del aviso.<\/li>\n          <li>Motivos agrupados por responsable: paciente, barrera de acceso, EPS, IPS, otro. Separar lo atribuible a la EPS (autorizaciones) y a la IPS de lo atribuible al paciente es lo que permite actuar y negociar.<\/li>\n          <li>Nada se borra: cada cambio queda en la hoja Citas_log con fecha, hora, usuario y motivo. Una cita atendida cuenta como atención de su disciplina para los indicadores; no se registra dos veces.<\/li>\n          <li>Evidencia usada: el antecedente de inasistencia y el tiempo largo entre asignación y cita son los predictores más consistentes de inasistencia (Dantas et al., Health Policy 2018;122:412–21). Los recordatorios por mensaje de texto aumentan la asistencia frente a no recordar (RR 1,14; IC 95 % 1,03–1,26; evidencia de calidad moderada) y rinden igual que la llamada (Gurol-Urganci et al., Cochrane 2013, CD007458).<\/li>\n        <\/ul>\n      <\/section>\n\n      <section>\n        <h2>Versión 8: estructura y criterios<\/h2>\n        <ul>\n          <li><strong>Submódulos.<\/strong> Valoración, Pacientes (filtro por EPS y calendario de 12 meses), Agendas, Cohortes (caracterización y riesgo, gestión del mes en curso y del próximo, vencidos y alertas), Indicadores, Auditoría GPC y Nominal EPS.<\/li>\n          <li><strong>Herramienta CAC y GPC.<\/strong> La herramienta técnica de la CAC (2026) orienta la organización del programa (grupos, componentes y frecuencias mínimas) y el consenso de indicadores (2025) define cómo se mide. En las recomendaciones al profesional se cita la GPC que respalda cada frecuencia o meta (KDIGO 2024, KDIGO CKD-MBD 2017, KDIGO 2012 de anemia, ADA 2025, ACC/AHA 2017, ESH 2023, ESC 2021, ESC/EAS 2019, KDOQI 2020). Donde ninguna GPC fija la frecuencia, se dice explícitamente que es una decisión del programa ligada a un indicador.<\/li>\n          <li><strong>Calendario contractual.<\/strong> EPS Familiar: médico experto cada mes sin nefrología para formulación de los medicamentos contratados; si la PA o la HbA1c quedaron fuera de meta, ese control incluye el ajuste hasta la próxima valoración. Nueva EPS: paquete por nefrología; cada toma de laboratorios y el equipo multidisciplinario entran por la consulta de nefrología; el paquete admite frecuencia mensual, bimestral o trimestral y las frecuencias base mayores quedan señaladas como fuera del paquete.<\/li>\n          <li><strong>Riesgo cardiovascular.<\/strong> Categoría automática alta o muy alta con ECV establecida o ERC moderada o grave (ESC 2021). SCORE2 de la región de riesgo alto recalibrado para Colombia (PURE-Colombia: × 0,75 mujeres, × 0,61 hombres) entre 40 y 69 años sin DM. Framingham general 2008 × 0,75 (GPC colombiana de dislipidemias). PROCAM no se implementó: no se dispone de la tabla de puntajes verificada.<\/li>\n          <li><strong>Indicadores.<\/strong> Los 47 del consenso CAC 2025 con sus poblaciones de la tabla 1. Los que la CAC deja en «Definir» llevan meta institucional &gt; 70 % (Coordinación Asistencial). Atenciones programadas frente a atendidas con meta ≥ 95 %.<\/li>\n          <li><strong>Nominal EPS.<\/strong> Encabezados de los archivos de ejemplo de EPS Familiar (143 campos) y Nueva EPS (prediálisis 43, TMND 49). TFG por Cockcroft-Gault porque así lo piden; la estadificación clínica sigue con CKD-EPI 2021. Valores codificados solo por arrastre o por la tabla de codificación del programa.<\/li>\n        <\/ul>\n      <\/section>\n\n      <section>\n        <h2>Fuentes<\/h2>\n        <ol>\n          <li>Cuenta de Alto Costo. Herramienta técnica: contenidos mínimos y suficientes de un programa de nefroprotección. v1.0, 2026 (tablas 5, 7, 8, 9 y 10, según el documento de referencia interno).<\/li>\n          <li>Cuenta de Alto Costo. Actualización del consenso basado en la evidencia: indicadores mínimos HTA, DM y ERC 1–5 sin diálisis ni trasplante. 2025.<\/li>\n          <li>KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of CKD. Kidney Int. 2024;105(4S):S117–S314.<\/li>\n          <li>KDIGO 2017 CKD-MBD Guideline Update. Kidney Int Suppl. 2017;7:1–59. · KDIGO 2013 Lipid Management in CKD. Kidney Int Suppl. 2013;3:259–305. · KDIGO 2012 Anemia in CKD. Kidney Int Suppl. 2012;2:279–335. · KDIGO 2022 Diabetes Management in CKD. Kidney Int. 2022;102(5S):S1–S127.<\/li>\n          <li>Inker LA, et al. N Engl J Med. 2021;385:1737–49 (CKD-EPI 2021). · Tangri N, et al. JAMA. 2011;305:1553–9 y JAMA. 2016;315:164–74 (KFRE, calibración no norteamericana).<\/li>\n          <li>Mach F, et al. 2019 ESC/EAS Guidelines for the management of dyslipidaemias. Eur Heart J. 2020;41:111–88.<\/li>\n          <li>American Diabetes Association. Standards of Care in Diabetes—2025. Diabetes Care. 2025;48(Suppl 1). · Whelton PK, et al. 2017 ACC/AHA Guideline for high blood pressure in adults. Hypertension. 2018;71:e13–e115. · Mancia G, et al. 2023 ESH Guidelines for the management of arterial hypertension. J Hypertens. 2023;41:1874–2071. · KDIGO 2021 Clinical Practice Guideline for the Management of Blood Pressure in CKD. Kidney Int. 2021;99(3S):S1–S87.<\/li>\n          <li>Visseren FLJ, et al. 2021 ESC Guidelines on cardiovascular disease prevention. Eur Heart J. 2021;42:3227–337. · SCORE2 working group. Eur Heart J. 2021;42:2439–54. · López-López JP, et al. PURE-Colombia. Eur J Prev Cardiol. 2025;32(7):564–72. · D'Agostino RB Sr, et al. Circulation. 2008;117:743–53. · Cockcroft DW, Gault MH. Nephron. 1976;16:31–41.<\/li>\n          <li>Ikizler TA, et al. KDOQI Clinical Practice Guideline for Nutrition in CKD: 2020 update. Am J Kidney Dis. 2020;76(3 Suppl 1):S1–S107. · Davison SN, et al. Conservative kidney management and kidney supportive care. Kidney Int. 2024;105:35–45.<\/li>\n          <li>Lista de síntomas basada en IPOS-Renal (Cicely Saunders Institute, King's College London), registrada como sí/no; no reemplaza el puntaje validado. Calidad de vida: ítem 1 del SF-36 (RAND, dominio público) y escala de Karnofsky.<\/li>\n        <\/ol>\n        <p class=\"note\">Versión 8.0 · 11 de octubre de 2026 (sobre la 7.2). Indicadores: tablero de 15 fichas del programa; el semáforo usa la meta CAC y, donde la CAC no la fija, una meta institucional propuesta pendiente de adopción. El indicador nefro_33 usa solo los criterios de la CAC; la regla clínica de remisión (KFRE, HTA resistente) es más amplia.<\/p>\n      <\/section>\n    <\/div>\n  <\/div>\n<\/div>\n\n<script src=\"https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js\"><\/script>\n<script>\n/* ===================== RIESGO CARDIOVASCULAR Y FUNCIÓN RENAL (compartido portal / Nefroprotección) =====================\n   Fórmulas transcritas de las publicaciones; ninguna está validada por la IPS. La decisión clínica es del profesional.\n   - CKD-EPI 2021 sin raza: Inker LA et al. N Engl J Med 2021;385:1737-49.\n   - Cockcroft-Gault: Cockcroft DW, Gault MH. Nephron 1976;16:31-41 (depuración estimada en mL/min, no normalizada).\n     La piden los nominales de prediálisis/TMND de la EPS; la CAC usa CKD-EPI 2021 para estadificar.\n   - SCORE2 (SCORE2 working group, Eur Heart J 2021;42:2439-54): coeficientes, supervivencia basal y calibración de la\n     región de riesgo alto (la que aplicó PURE-Colombia). Recalibración para Colombia: López-López JP et al., PURE-Colombia,\n     Eur J Prev Cardiol 2025;32(7):564-72 (multiplicar por 0,75 en mujeres y 0,61 en hombres). Válido de 40 a 69 años,\n     sin diabetes ni enfermedad cardiovascular establecida.\n   - Framingham general (D'Agostino RB et al. Circulation 2008;117:743-53). Ajuste para Colombia de la GPC de dislipidemias\n     MinSalud-Colciencias (multiplicar por 0,75); la GPC no precisa la versión de Framingham. PURE-Colombia propone otros\n     factores (0,67 mujeres; 0,27 hombres) y se muestran aparte.\n   - Categoría automática por ERC: ESC 2021 (Visseren FLJ et al. Eur Heart J 2021;42:3227-337). La herramienta técnica de\n     la CAC también reconoce alto riesgo automático con TFGe < 45 o albuminuria persistente.\n*/\nconst RCV=(function(){\n\"use strict\";\nfunction ckdepi(scr,age,female){if(!(scr>0)||age==null)return null;const k=female?0.7:0.9,a=female?-0.241:-0.302;return 142*Math.pow(Math.min(scr/k,1),a)*Math.pow(Math.max(scr/k,1),-1.2)*Math.pow(0.9938,age)*(female?1.012:1);}\nfunction cockcroft(scr,age,kg,female){if(!(scr>0)||age==null||!(kg>0))return null;return(140-age)*kg/(72*scr)*(female?0.85:1);}\nconst MMOL=38.67; /* mg/dL de colesterol → mmol/L */\nconst S2={M:{age:0.3742,smk:0.6012,sbp:0.2777,tc:0.1458,hdl:-0.2698,xsmk:-0.0755,xsbp:-0.0255,xtc:-0.0281,xhdl:0.0426,s0:0.9605,sc1:0.3207,sc2:0.9360,col:0.61},\n          F:{age:0.4648,smk:0.7744,sbp:0.3131,tc:0.1002,hdl:-0.2606,xsmk:-0.1088,xsbp:-0.0277,xtc:-0.0226,xhdl:0.0613,s0:0.9776,sc1:0.5710,sc2:0.9369,col:0.75}};\nfunction score2(o){const s=o.sexo===\"F\"?\"F\":o.sexo===\"M\"?\"M\":null;const miss=[];if(!s)miss.push(\"sexo\");if(o.edad==null)miss.push(\"edad\");if(o.pas==null)miss.push(\"PA sistólica\");if(o.ct==null)miss.push(\"colesterol total\");if(o.hdl==null)miss.push(\"HDL\");if(o.tab==null)miss.push(\"tabaquismo\");\n  if(miss.length)return{ok:false,why:\"Falta: \"+miss.join(\", \")+\".\"};\n  if(o.edad<40||o.edad>69)return{ok:false,why:\"SCORE2 aplica de 40 a 69 años (para 70 o más existe SCORE2-OP, no recalibrado para Colombia).\"};\n  if(o.dm)return{ok:false,why:\"SCORE2 no aplica con diabetes (existe SCORE2-Diabetes, no recalibrado para Colombia).\"};\n  if(o.ecv)return{ok:false,why:\"No se calcula con enfermedad cardiovascular establecida: es riesgo muy alto.\"};\n  const b=S2[s],cage=(o.edad-60)/5,csbp=(o.pas-120)/20,ctc=o.ct/MMOL-6,chdl=(o.hdl/MMOL-1.3)/0.5,smk=o.tab?1:0;\n  const lp=b.age*cage+b.smk*smk+b.sbp*csbp+b.tc*ctc+b.hdl*chdl+b.xsmk*smk*cage+b.xsbp*csbp*cage+b.xtc*ctc*cage+b.xhdl*chdl*cage;\n  const unc=1-Math.pow(b.s0,Math.exp(lp));const reg=1-Math.exp(-Math.exp(b.sc1+b.sc2*Math.log(-Math.log(1-unc))));const col=reg*b.col;\n  const lim=o.edad<50?[2.5,7.5]:[5,10];const cat=col*100<lim[0]?\"Bajo a moderado\":col*100<lim[1]?\"Alto\":\"Muy alto\";\n  return{ok:true,r:col,rEU:reg,f:b.col,cat,lim,why:\"Región de riesgo alto × \"+String(b.col).replace(\".\",\",\")+\" (PURE-Colombia). Categoría con umbrales ESC 2021 para \"+(o.edad<50?\"< 50\":\"50–69\")+\" años (\"+String(lim[0]).replace(\".\",\",\")+\" y \"+String(lim[1]).replace(\".\",\",\")+\" %); esos umbrales no se validaron para la recalibración colombiana.\"};}\nconst FR={M:{age:3.06117,tc:1.12370,hdl:-0.93263,sbpU:1.93303,sbpT:1.99881,smk:0.65451,dm:0.57367,mean:23.9802,s0:0.88936,pure:0.27},\n          F:{age:2.32888,tc:1.20904,hdl:-0.70833,sbpU:2.76157,sbpT:2.82263,smk:0.52873,dm:0.69154,mean:26.1931,s0:0.95012,pure:0.67}};\nfunction framingham(o){const s=o.sexo===\"F\"?\"F\":o.sexo===\"M\"?\"M\":null;const miss=[];if(!s)miss.push(\"sexo\");if(o.edad==null)miss.push(\"edad\");if(o.pas==null)miss.push(\"PA sistólica\");if(o.ct==null)miss.push(\"colesterol total\");if(o.hdl==null)miss.push(\"HDL\");if(o.tab==null)miss.push(\"tabaquismo\");if(o.antiHTA==null)miss.push(\"tratamiento antihipertensivo\");\n  if(miss.length)return{ok:false,why:\"Falta: \"+miss.join(\", \")+\".\"};\n  if(o.edad<30||o.edad>74)return{ok:false,why:\"Framingham general se derivó en personas de 30 a 74 años.\"};\n  const b=FR[s];const lp=b.age*Math.log(o.edad)+b.tc*Math.log(o.ct)+b.hdl*Math.log(o.hdl)+(o.antiHTA?b.sbpT:b.sbpU)*Math.log(o.pas)+(o.tab?b.smk:0)+(o.dm?b.dm:0);\n  const r=1-Math.pow(b.s0,Math.exp(lp-b.mean));\n  return{ok:true,r0:r,r:r*0.75,rPure:r*b.pure,why:\"Framingham general 2008 × 0,75 (ajuste de la GPC colombiana de dislipidemias). Con el factor de PURE-Colombia (\"+String(b.pure).replace(\".\",\",\")+\") sería \"+(Math.round(r*b.pure*1000)/10).toString().replace(\".\",\",\")+\" %.\"+(o.ecv?\" Con enfermedad cardiovascular establecida la escala no aplica: riesgo muy alto.\":\"\")};}\n/* Categoría automática (sin escala) */\nfunction auto(o){const W=[];let cat=null;const up=c=>{const r={\"Alto\":1,\"Muy alto\":2};if(!cat||r[c]>r[cat])cat=c;};\n  if(o.ecv){up(\"Muy alto\");W.push(\"enfermedad cardiovascular aterosclerótica establecida\");}\n  const t=o.tfg,a=o.rac;\n  if(t!=null){if(t<30||(t<45&&a!=null&&a>30)){up(\"Muy alto\");W.push(\"ERC grave (TFGe < 30, o 30–44 con RAC > 30)\");}\n    else if((t<45&&(a==null||a<=30))||(t<60&&a!=null&&a>=30&&a<=300)||(a!=null&&a>300)){up(\"Alto\");W.push(\"ERC moderada (TFGe 30–44 con RAC < 30; 45–59 con RAC 30–300; o RAC > 300)\");}}\n  if(o.tfgG5)up(\"Muy alto\");\n  return cat?{cat,why:W.join(\"; \")+\" (ESC 2021).\"}:null;}\nfunction evalAll(o){const A=auto(o),S=score2(o),F=framingham(o);\n  let main=null;if(A)main={src:\"auto\",cat:A.cat,txt:A.cat+\" por \"+A.why};\n  else if(S.ok)main={src:\"score2\",cat:S.cat,r:S.r,txt:\"SCORE2-Colombia \"+pct(S.r)+\" · \"+S.cat};\n  else if(F.ok)main={src:\"fram\",r:F.r,txt:\"Framingham ajustado \"+pct(F.r)};\n  return{auto:A,score2:S,fram:F,main};}\nconst pct=r=>r==null?\"—\":(Math.round(r*1000)/10).toLocaleString(\"es-CO\",{minimumFractionDigits:1,maximumFractionDigits:1})+\" %\";\nconst REFS=[\"SCORE2 working group and ESC Cardiovascular risk collaboration. SCORE2 risk prediction algorithms. Eur Heart J. 2021;42:2439-54.\",\n \"López-López JP, et al. External validation and comparison of six cardiovascular risk prediction models in the PURE-Colombia study. Eur J Prev Cardiol. 2025;32(7):564-72.\",\n \"D'Agostino RB Sr, et al. General cardiovascular risk profile for use in primary care: the Framingham Heart Study. Circulation. 2008;117:743-53.\",\n \"Ministerio de Salud y Protección Social – Colciencias. Guía de práctica clínica de dislipidemias (Framingham recalibrado para Colombia: riesgo × 0,75).\",\n \"Visseren FLJ, et al. 2021 ESC Guidelines on cardiovascular disease prevention in clinical practice. Eur Heart J. 2021;42:3227-337.\",\n \"Inker LA, et al. New creatinine- and cystatin C-based equations to estimate GFR without race. N Engl J Med. 2021;385:1737-49.\",\n \"Cockcroft DW, Gault MH. Prediction of creatinine clearance from serum creatinine. Nephron. 1976;16:31-41.\"];\nreturn{ckdepi,cockcroft,score2,framingham,auto,evalAll,pct,REFS};\n})();\n<\/script>\n<script>\n/* ===================== MOTOR CLÍNICO (sin DOM) ===================== */\nconst NP=(function(){\n\"use strict\";\nconst AI=a=>[\"A1\",\"A2\",\"A3\"].indexOf(a);\nconst n=(v,d)=>v==null||!isFinite(v)?\"—\":Number(v).toLocaleString(\"es-CO\",{minimumFractionDigits:d||0,maximumFractionDigits:d||0});\nfunction ckd(scr,age,female){const k=female?0.7:0.9,a=female?-0.241:-0.302;return 142*Math.pow(Math.min(scr/k,1),a)*Math.pow(Math.max(scr/k,1),-1.2)*Math.pow(0.9938,age)*(female?1.012:1);}\nfunction kfre(age,male,tfg,rac){const L=-0.2201*(age/10-7.036)+0.2467*(male-0.5642)-0.5567*(tfg/5-7.222)+0.4510*(Math.log(Math.max(rac,1))-5.137);return{r2:1-Math.pow(0.9832,Math.exp(L)),r5:1-Math.pow(0.9365,Math.exp(L))};}\nfunction gStage(t){if(t==null||!isFinite(t))return null;if(t>=90)return\"G1\";if(t>=60)return\"G2\";if(t>=45)return\"G3a\";if(t>=30)return\"G3b\";if(t>=15)return\"G4\";return\"G5\";}\nfunction aCat(r){if(r==null||!isFinite(r))return null;if(r<30)return\"A1\";if(r<300)return\"A2\";return\"A3\";}\nconst RISK={G1:[\"bajo\",\"moderado\",\"alto\"],G2:[\"bajo\",\"moderado\",\"alto\"],G3a:[\"moderado\",\"alto\",\"muy alto\"],G3b:[\"alto\",\"muy alto\",\"muy alto\"],G4:[\"muy alto\",\"muy alto\",\"muy alto\"],G5:[\"muy alto\",\"muy alto\",\"muy alto\"]};\nconst KT={G1:[\"1\",\"1\",\"3\"],G2:[\"1\",\"1\",\"3\"],G3a:[\"1\",\"2\",\"3\"],G3b:[\"2\",\"3\",\"3\"],G4:[\"3\",\"3\",\"≥ 4\"],G5:[\"≥ 4\",\"≥ 4\",\"≥ 4\"]};\n/* Agenda base adoptada: [revisión clínica, creatinina/TFGe, RAC] en meses */\nconst AG={G12:{A1:[null,12,12],A2:[null,12,12],A3:[3,3,3]},G3a:{A1:[6,6,12],A2:[6,6,6],A3:[3,3,3]},G3b:{A1:[6,6,6],A2:[3,3,4],A3:[3,3,3]},G4:{A1:[2,2,4],A2:[2,2,4],A3:[2,2,3]},G5:{A1:[1,1,3],A2:[1,1,3],A3:[1,1,3]}};\nconst GDESC={G1:\"normal o alta\",G2:\"levemente disminuida\",G3a:\"leve a moderadamente disminuida\",G3b:\"moderada a gravemente disminuida\",G4:\"gravemente disminuida\",G5:\"falla renal\"};\nconst ADESC={A1:\"normal a levemente aumentada\",A2:\"moderadamente aumentada\",A3:\"gravemente aumentada\"};\nconst GRUPO={1:\"Grupo 1 · Riesgo y ERC temprana\",2:\"Grupo 2 · ERC moderada\",3:\"Grupo 3 · ERC avanzada sin diálisis\"};\nconst CAUSA={dm:\"enfermedad renal diabética\",hta:\"nefropatía hipertensiva\",glom:\"glomerulopatía\",pq:\"poliquistosis renal\",uro:\"uropatía obstructiva o litiasis\",nti:\"nefritis tubulointersticial o nefrotóxicos\",otra:\"otra causa\",desc:\"causa no establecida, en estudio\"};\nconst CONDUCTA={sigue:\"continúa en seguimiento por nefrología dentro del programa\",contra:\"contrarreferencia al médico del programa con control anual por nefrología\",prep:\"inicia preparación para terapia de reemplazo renal\",tmnd:\"decisión compartida de terapia médica no dialítica (manejo conservador)\"};\nconst MEDST={no:\"no recibe\",est:\"recibe a dosis estable\",aj:\"inicia o ajusta hoy\",ci:\"contraindicado o no tolerado\"};\nfunction addMonths(dt,m){const y=dt.getFullYear(),mo=dt.getMonth()+m,d=dt.getDate();const last=new Date(y,mo+1,0).getDate();return new Date(y,mo,Math.min(d,last));}\nfunction addDays(dt,k){const r=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate());r.setDate(r.getDate()+k);return r;}\nfunction days(a,b){return Math.round((Date.UTC(b.getFullYear(),b.getMonth(),b.getDate())-Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()))/86400000);}\nfunction fd(dt){if(!dt)return\"—\";const p=x=>String(x).padStart(2,\"0\");return p(dt.getDate())+\"/\"+p(dt.getMonth()+1)+\"/\"+dt.getFullYear();}\nconst cadaM=m=>m===1?\"Cada mes\":\"Cada \"+m+\" meses\";\n\nfunction classify(d){\n  const c={G:gStage(d.tfg),A:aCat(d.rac),flags:[]};\n  const conserv=d.terapia===\"tmnd\"||d.terapia===\"trr\";\n  if(conserv&&!c.G)c.G=\"G5\";\n  if(conserv&&c.G!==\"G5\")c.flags.push(\"Marcó manejo de G5, pero la TFGe corresponde a \"+c.G+\". Revise el dato.\");\n  c.risk=(c.G&&c.A)?RISK[c.G][AI(c.A)]:null;\n  c.kt=(c.G&&c.A)?KT[c.G][AI(c.A)]:null;\n  const crit=[];\n  if(d.tfg!=null&&d.tfg<60)crit.push(\"TFGe < 60\");\n  if(d.rac!=null&&d.rac>=30)crit.push(\"RAC ≥ 30 mg/g\");\n  (d.otros||[]).forEach(o=>crit.push(o));\n  c.crit=crit;\n  c.prevDays=(d.fPrev&&d.fLab)?days(d.fPrev,d.fLab):null;\n  const pd=c.prevDays;\n  const persT=pd!=null&&pd>=90&&d.tfgPrev!=null&&d.tfgPrev<60&&d.tfg!=null&&d.tfg<60;\n  const persR=pd!=null&&pd>=90&&d.racPrev!=null&&d.racPrev>=30&&d.rac!=null&&d.rac>=30;\n  c.pers=persT?\"TFGe previa de \"+n(d.tfgPrev)+\" el \"+fd(d.fPrev):persR?\"RAC previa de \"+n(d.racPrev)+\" mg/g el \"+fd(d.fPrev):d.cronHC?\"registrada en la HC\":conserv?\"G5 con manejo definido\":null;\n  if(d.terapia===\"dx\")c.erc=\"fuera\";\n  else if(d.agudo)c.erc=\"agudo\";\n  else if(!crit.length)c.erc=(d.tfg==null||d.rac==null)?\"indet\":\"no\";\n  else c.erc=c.pers?\"si\":\"prov\";\n  c.grupo=c.G?((c.G===\"G1\"||c.G===\"G2\")?1:(c.G===\"G3a\"||c.G===\"G3b\")?2:3):null;\n  c.conserv=conserv;\n  if(d.tfg!=null&&d.tfg<60&&d.rac!=null&&d.edad!=null&&d.sexo&&!conserv)c.kfre=kfre(d.edad,d.sexo===\"M\"?1:0,d.tfg,d.rac);\n  return c;\n}\n\nfunction goals(d,c){\n  const g=c.grupo,alb=c.A===\"A2\"||c.A===\"A3\";\n  const pa=(g===1&&!d.dm&&!(c.erc===\"si\"&&alb))?[140,90]:[130,80];\n  const a1c=g===1?7:8;\n  const muyAlto=!!(d.ecv||(d.tfg!=null&&d.tfg<30)||(d.tfg!=null&&d.tfg<45&&d.rac!=null&&d.rac>=30)||(d.dm&&d.rac!=null&&d.rac>=30)||c.conserv);\n  const ldl=g===1?100:(muyAlto?55:70);\n  return{pa,a1c,ldl,muyAlto,paTxt:\"< \"+pa[0]+\"/\"+pa[1]+\" mmHg\",a1cTxt:\"< \"+a1c+\" %\",ldlTxt:\"≤ \"+ldl+\" mg/dL\"};\n}\n\nfunction meds(d,c){\n  const out=[];\n  // IECA/ARA II\n  let r;\n  if(d.rac==null)r={ind:null,why:\"falta RAC para definir\"};\n  else if((d.hta||d.dm)&&d.rac>30)r={ind:true,why:\"HTA o DM con RAC > 30 mg/g (nefro_34; KDIGO 2024)\"};\n  else r={ind:false,why:\"sin indicación renal por albuminuria\"};\n  out.push(Object.assign({k:\"raas\",name:\"IECA o ARA II (no combinados)\"},r));\n  // iSGLT2\n  if(d.tfg==null)r={ind:null,why:\"falta TFGe\"};\n  else if(d.tfg<20)r={ind:false,why:\"TFGe < 20: no iniciar; si ya lo recibe, puede continuarse (KDIGO 2024)\"};\n  else if(d.dmTipo===\"2\")r={ind:true,why:\"DM2 con TFGe ≥ 20 (KDIGO 2024 1A; nefro_38)\"};\n  else if(c.erc===\"si\"&&d.rac!=null&&d.rac>=200)r={ind:true,why:\"ERC con TFGe ≥ 20 y RAC ≥ 200 (KDIGO 2024 1A). El consenso CAC señala que la indicación INVIMA es solo para DM: definir con nefrología\"};\n  else if(c.erc===\"si\"&&d.tfg<45)r={ind:\"cons\",why:\"ERC con TFGe 20–45 (KDIGO 2024 2B). Indicación INVIMA solo en DM: definir con nefrología\"};\n  else r={ind:false,why:\"sin indicación por estos criterios\"};\n  out.push(Object.assign({k:\"sglt2\",name:\"iSGLT2\"},r));\n  // Estatina\n  if(d.edad==null)r={ind:null,why:\"falta la edad\"};\n  else if(d.edad>=50&&d.tfg!=null&&d.tfg<60)r={ind:true,why:\"≥ 50 años con TFGe < 60 (KDIGO lípidos 2013 1A; nefro_29)\"};\n  else if(d.edad>=50&&c.erc===\"si\")r={ind:true,why:\"≥ 50 años con ERC y TFGe ≥ 60 (KDIGO lípidos 2013 1B)\"};\n  else if(d.ecv)r={ind:true,why:\"enfermedad cardiovascular establecida\"};\n  else if(c.erc===\"si\"&&d.dm)r={ind:true,why:\"18–49 años con ERC y DM (KDIGO lípidos 2013 2A)\"};\n  else if(d.dm&&d.edad>=40&&d.edad<=75)r={ind:true,why:\"DM de 40 a 75 años (ADA, nivel A)\"};\n  else r={ind:false,why:\"sin indicación por estos criterios\"};\n  out.push(Object.assign({k:\"stat\",name:\"Estatina ± ezetimiba\"},r));\n  // Finerenona (solo DM2 con albuminuria)\n  if(d.dmTipo===\"2\"&&d.rac!=null&&d.rac>=30){\n    if(d.tfg==null||d.tfg<25)r={ind:false,why:\"TFGe < 25: no iniciar\"};\n    else if(d.k!=null&&d.k>4.8)r={ind:false,why:\"potasio > 4,8: no iniciar\"};\n    else r={ind:\"cons\",why:\"DM2, TFGe ≥ 25 y RAC ≥ 30 con IECA/ARA II a dosis máxima tolerada (KDIGO 2022 DM-ERC 2A)\"};\n    out.push(Object.assign({k:\"fin\",name:\"Finerenona\"},r));\n  }\n  out.forEach(m=>{m.st=(d.meds&&d.meds[m.k])||\"no\";});\n  return out;\n}\n\nfunction interp(d,c,gl){\n  const L=[];const add=(e,v,cls,t)=>L.push({e,v,cls,t});\n  if(d.tfg!=null){\n    let t=c.G+\": función \"+GDESC[c.G]+\".\";\n    if(d.tfg>90)t+=\" Para el reporte CAC se registra 90.\";\n    if(d.tfgPrev!=null&&c.prevDays){\n      const ch=(d.tfg-d.tfgPrev)/d.tfgPrev*100, an=(d.tfgPrev-d.tfg)/c.prevDays*365;\n      t+=\" Cambio de \"+n(ch,0)+\" % frente a \"+n(d.tfgPrev)+\" del \"+fd(d.fPrev)+(c.prevDays>=90?\" (\"+n(an,1)+\" ml/min/año de pérdida).\":\".\");\n      if(ch<-20)t+=c.prevDays<90?\" Caída > 20 % en menos de 3 meses: descartar proceso agudo.\":\" Caída > 20 %: revisión clínica de la causa.\";\n    }\n    add(\"TFGe\"+(d.modo===\"creat\"?\" (cr \"+n(d.creat,2)+\")\":\"\"),n(d.tfg)+\" ml/min\",d.tfg<30?\"bad\":d.tfg<60?\"warn\":\"ok\",t);\n  }\n  if(d.rac!=null){\n    let t=c.A+\": albuminuria \"+ADESC[c.A]+\".\";\n    if(c.A!==\"A1\"&&c.erc!==\"si\")t+=\" Confirmar con 2 de 3 muestras en 3–6 meses; descartar infección urinaria, fiebre, ejercicio intenso o descompensación.\";\n    if(d.racPrev!=null&&d.racPrev>0&&d.rac>=2*d.racPrev)t+=\" Se duplicó frente a la previa (\"+n(d.racPrev)+\"): verificar y adelantar valoración.\";\n    if(d.rac>300)t+=\" Criterio de valoración por nefrología (nefro_33).\";\n    add(\"RAC\",n(d.rac)+\" mg/g\",c.A===\"A3\"?\"bad\":c.A===\"A2\"?\"warn\":\"ok\",t);\n  }\n  if(d.pas!=null&&d.pad!=null){const ok=d.pas<gl.pa[0]&&d.pad<gl.pa[1];add(\"Presión arterial\",n(d.pas)+\"/\"+n(d.pad),ok?\"ok\":\"bad\",(ok?\"En meta \":\"Fuera de meta \")+\"(\"+gl.paTxt+\"; ACC/AHA 2017 y ADA 2025 fijan < 130/80 con DM o ERC). KDIGO 2021 de PA en ERC sugiere PAS < 120 si se tolera (2B); la meta del programa es la del indicador.\");}\n  if(d.dm&&d.hba1c!=null){const ok=d.hba1c<gl.a1c;let t=(ok?\"En meta \":\"Fuera de meta \")+\"(\"+gl.a1cTxt+\").\";if(d.tfg!=null&&d.tfg<30)t+=\" Con TFGe < 30 la HbA1c pierde confiabilidad (anemia, hierro, transfusión): apoyarse en glucometrías (KDIGO 2022).\";add(\"HbA1c\",n(d.hba1c,1)+\" %\",ok?\"ok\":\"bad\",t);}\n  if(d.ldl!=null){const ok=d.ldl<=gl.ldl;let t=(ok?\"En meta \":\"Fuera de meta \")+\"(\"+gl.ldlTxt+(gl.muyAlto&&c.grupo>1?\", muy alto riesgo CV\":\"\")+\").\";if(c.grupo===1&&gl.muyAlto)t+=\" ESC/EAS 2019 propone < 55 en DM con daño de órgano blanco; el indicador nefro_05 del grupo 1 mide ≤ 100.\";if(c.grupo===3)t+=\" Meta del grupo 3 = extensión del criterio del grupo 2 (propuesta); el indicador nefro_05_1 mide ≤ 70.\";add(\"cLDL\",n(d.ldl)+\" mg/dL\",ok?\"ok\":\"bad\",t);}\n  if(d.imc!=null){const v=d.imc;let t=v<18.5?\"Bajo peso.\":v<25?\"Normal.\":v<30?\"Sobrepeso.\":\"Obesidad.\";t+=(v>=20&&v<=25)?\" Dentro del rango del indicador nefro_08 (20–25).\":\" Fuera del rango del indicador nefro_08 (20–25).\";add(\"IMC\",n(v,1)+\" kg/m²\",v>=20&&v<=25?\"ok\":\"warn\",t);}\n  if(d.cint!=null&&d.sexo){const lim=d.sexo===\"M\"?94:80,ok=d.cint<lim;add(\"Cintura\",n(d.cint)+\" cm\",ok?\"ok\":\"warn\",(ok?\"Bajo\":\"Por encima de\")+\" el punto de corte del indicador nefro_31 (< \"+lim+\" cm).\");}\n  if(d.hb!=null){const lim=d.sexo===\"M\"?13:12;let an=d.sexo?d.hb<lim:null;let t=an==null?\"Indique el sexo para interpretar.\":an?\"Anemia (KDIGO: < \"+lim+\" g/dL en \"+(d.sexo===\"M\"?\"hombres\":\"mujeres\")+\"). Estudiar: reticulocitos, ferritina, saturación de transferrina; B12 y folato según clínica. No prescribir solo por el umbral.\":\"Sin anemia por criterio KDIGO.\";if(an&&d.hb>10)t+=\" Ojo: Hb > 10 cumple los indicadores nefro_15_1/17_1 pero no descarta anemia.\";add(\"Hemoglobina\",n(d.hb,1)+\" g/dL\",an?\"warn\":\"ok\",t);}\n  if(d.k!=null){let cls=\"ok\",t=\"En rango.\";if(d.k<3.5){cls=\"warn\";t=\"Hipopotasemia: revisar diuréticos y pérdidas.\";}else if(d.k>=6.5){cls=\"bad\";t=\"Hiperpotasemia grave (≥ 6,5): manejo urgente y EKG.\";}else if(d.k>=6){cls=\"bad\";t=\"Hiperpotasemia moderada (6,0–6,4): valoración prioritaria y EKG.\";}else if(d.k>=5.5){cls=\"warn\";t=\"Hiperpotasemia leve (5,5–5,9): revisar dieta, IECA/ARA II, finerenona, AINE y acidosis.\";}else if(d.k>=5){cls=\"warn\";t=\"≥ 5,0: control a 2 semanas si ajusta IECA/ARA II\"+(d.k>4.8?\"; no iniciar finerenona\":\"\")+\".\";}add(\"Potasio\",n(d.k,1)+\" mEq/L\",cls,t);}\n  if(d.hco3!=null){let cls=d.hco3<18?\"bad\":d.hco3<22?\"warn\":\"ok\";let t=d.hco3<18?\"Acidosis metabólica (< 18): considerar tratamiento farmacológico con o sin intervención dietaria (KDIGO 2024).\":d.hco3<22?\"Bicarbonato bajo (< 22): repetir con la próxima creatinina y vigilar.\":\"En rango.\";add(\"Bicarbonato\",n(d.hco3,1)+\" mmol/L\",cls,t);}\n  if(d.ca!=null){let t=d.ca<8.5?\"Hipocalcemia (verificar con albúmina y rango del laboratorio).\":d.ca>10.5?\"Hipercalcemia: evitarla (KDIGO MBD 2017); revisar calcio y vitamina D.\":\"En rango usual (8,5–10,5; confirmar con el laboratorio).\";add(\"Calcio\",n(d.ca,1)+\" mg/dL\",(d.ca<8.5||d.ca>10.5)?\"warn\":\"ok\",t);}\n  if(d.fos!=null){const g5=c.G===\"G5\";const hi=g5?5.5:4.6;const ok=d.fos>=2.7&&d.fos<=hi;add(\"Fósforo\",n(d.fos,1)+\" mg/dL\",ok?\"ok\":\"warn\",(ok?\"En meta \":\"Fuera de meta \")+\"(2,7–\"+n(hi,1)+(g5?\", nefro_26_1\":\"\")+\"). \"+(ok?\"\":\"KDIGO MBD 2017: llevar hacia el rango normal; revisar dieta y quelantes.\"));}\n  if(d.pth!=null){const ref=c.G===\"G4\"?\"70–110\":c.G===\"G5\"?\"150–300\":null;let t=(ref?\"Rango del indicador de consenso \"+ref+\" pg/mL. \":\"\")+\"No es disparador automático de tratamiento: valorar tendencia, calcio, fósforo y 25-OH vitamina D (KDIGO MBD 2017: nivel óptimo desconocido en ERC sin diálisis).\";add(\"PTH\",n(d.pth)+\" pg/mL\",\"\",t);}\n  if(d.fa!=null){add(\"Fosfatasa alcalina\",n(d.fa)+\" U/L\",\"\",\"Comparar con el rango del laboratorio. Elevada junto con PTH alta orienta a recambio óseo alto (KDIGO MBD 2017).\");}\n  if(d.alb!=null){add(\"Albúmina\",n(d.alb,1)+\" g/dL\",d.alb<3.5?\"warn\":\"ok\",d.alb<3.5?\"Hipoalbuminemia: valorar estado nutricional, inflamación y proteinuria. No diagnostica desnutrición por sí sola.\":\"En rango.\");}\n  const EK={\"Fosfatasa alcalina\":\"fa\",\"Hemoglobina\":\"hb\",\"Potasio\":\"k\",\"Bicarbonato\":\"hco3\",\"Calcio\":\"ca\",\"Fósforo\":\"fos\",\"PTH\":\"pth\",\"Albúmina\":\"alb\",\"HbA1c\":\"hba1c\",\"cLDL\":\"ldl\",\"RAC\":\"rac\"};\n  const LDt=d.labDates||{};L.forEach(x=>{const k=x.e.startsWith(\"TFGe\")?(d.modo===\"creat\"?\"creat\":\"tfg\"):EK[x.e];if(k&&LDt[k])x.f=LDt[k];});\n  if(c.kfre){const k=c.kfre;let t=\"Calibración no norteamericana; validado en G3–G5, sin validación específica en Colombia.\";if(k.r2>0.4)t+=\" > 40 % a 2 años: educación de modalidades y preparación de TRR o TMND.\";else if(k.r2>0.1)t+=\" > 10 % a 2 años: atención multidisciplinaria intensiva.\";if(k.r5>=0.05)t+=\" ≥ 5 % a 5 años: criterio de nefrología (umbral institucional dentro del 3–5 % de KDIGO).\";add(\"KFRE 4 variables\",n(k.r2*100,1)+\" % / \"+n(k.r5*100,1)+\" %\",k.r2>0.4?\"bad\":k.r5>=0.05?\"warn\":\"ok\",\"2 y 5 años. \"+t);}\n  return L;\n}\n\nfunction plan(d,c){\n  const P={rows:[],actions:[],ind:[],meds:[],rev:null,goals:goals(d,c),labCal:[]};\n  const fc=d.fCons||new Date(),fl=d.fLab||fc,gl=P.goals,LD=d.labDates||{};\n  const ld=k=>LD[k]||fl;\n  P.interp=interp(d,c,gl);\n  const act=(lvl,t,when)=>P.actions.push({lvl,t,when});\n  if(c.erc===\"fuera\"){act(\"bad\",\"Paciente en diálisis o trasplantado: fuera de esta ruta. Aplicar la ruta de TRR.\");return P;}\n  if(!c.G){act(\"warn\",\"Falta la TFGe (o la creatinina con edad y sexo): no se puede estratificar.\");return P;}\n  if(c.erc===\"agudo\"){act(\"bad\",\"Sospecha de deterioro agudo: evaluación clínica inmediata. No aplicar el calendario estable ni clasificar ERC con este resultado.\",fc);P.rev={months:0,date:fc,who:\"Evaluación clínica\",short:\"sospecha de proceso agudo\"};P.next=P.rev;return P;}\n  P.meds=meds(d,c);\n  const meds0=d.meds||{},M=d.epsModel||{},epsN=d.eps||\"la EPS\";\n  const g3=c.G===\"G3a\"||c.G===\"G3b\",g4=c.G===\"G4\",g5=c.G===\"G5\",g12=!(g3||g4||g5);\n  let[rev0,cr,rac]=AG[g12?\"G12\":c.G][c.A||\"A2\"];\n  if(rev0==null)rev0=(d.hta||d.dm)?6:12;\n  const cat=c.G+\" \"+(c.A||\"sin RAC\");\n  const rk=c.erc===\"no\"?\"sin ERC demostrada\":c.risk?\"riesgo KDIGO \"+c.risk:\"riesgo incompleto por falta de RAC\";\n  const paOff=d.pas!=null&&d.pad!=null&&!(d.pas<gl.pa[0]&&d.pad<gl.pa[1]);\n  const a1cOff=d.dm&&d.hba1c!=null&&!(d.hba1c<gl.a1c);\n  const fosHi=g5?5.5:4.6,fosOff=d.fos!=null&&(d.fos<2.7||d.fos>fosHi);\n  const anem=d.hb!=null&&d.sexo&&d.hb<(d.sexo===\"M\"?13:12);\n  const low=s=>s.charAt(0).toLowerCase()+s.slice(1),cap=s=>s.charAt(0).toUpperCase()+s.slice(1);\n  const R=(o)=>{P.rows.push(o);return o;};\n\n  /* ===== Contactos médicos ===== */\n  const nefroLead=d.prof===\"nefro\"&&d.conducta!==\"contra\";\n  const baseName=nefroLead?\"Valoración por nefrología\":\"Control médico del programa\";\n  const bw=[];if(g5)bw.push(\"síntomas urémicos, volumen, potasio y acidosis; revisión de la decisión TRR/TMND\");\n  bw.push(\"PA, peso y edema, síntomas, adherencia, conciliación de medicamentos y nefrotóxicos, lectura de los paraclínicos del periodo\");\n  P.rev={months:rev0,date:addMonths(fc,rev0),who:baseName,short:\"Agenda base \"+cat};\n  R({sec:\"Control médico\",key:\"ctl\",act:baseName,what:cap(bw.join(\"; \"))+\".\",cada:cadaM(rev0),m:rev0,dt:P.rev.date,tag:\"Propuesta\",gpc:\"KDIGO 2024\",\n     why:\"Agenda base para \"+cat+\" (\"+rk+\"): \"+low(cadaM(rev0))+\".\"+(g5?\" G5: control mensual por decisión institucional.\":\"\")+\" No se acorta por PA o glucemia fuera de meta: ese ajuste va en el control de metas.\"});\n  const inter=M.inter===\"MEDICO EXPERTO\"&&rev0>(M.interMeses||1);\n  const ajusteNeeded=(paOff||a1cOff)&&rev0>1;\n  const ajWhat=[];if(paOff)ajWhat.push(\"titular antihipertensivos tras verificar técnica de toma y adherencia\");if(a1cOff)ajWhat.push(\"ajustar el tratamiento de la diabetes con revisión de glucometrías\");\n  const ajWhy=[];if(paOff)ajWhy.push(\"PA \"+n(d.pas)+\"/\"+n(d.pad)+\" fuera de meta (\"+gl.paTxt+\")\");if(a1cOff)ajWhy.push(\"HbA1c \"+n(d.hba1c,1)+\" % fuera de meta (\"+gl.a1cTxt+\")\");\n  if(inter){\n    const im=M.interMeses||1;\n    R({sec:\"Control médico\",key:\"experto\",act:\"Control por médico experto\"+(ajusteNeeded?\" con ajuste de metas\":\"\"),\n       what:cap((ajusteNeeded?ajWhat.join(\"; \")+\"; \":\"\")+\"formulación de medicamentos contratados, adherencia, PA y efectos adversos\")+\".\",\n       cada:cadaM(im),m:im,dt:addMonths(fc,im),tag:\"EPS\",\n       why:\"Modelo de atención de \"+epsN+\": en los meses sin valoración por nefrología el paciente asiste a médico experto para formulación.\"+(ajusteNeeded?\" Además \"+ajWhy.join(\" y \")+\": control mensual hasta lograr la meta (ACC/AHA 2017: seguimiento mensual tras iniciar o ajustar antihipertensivos, clase I; ADA 2025: reevaluar e intensificar sin inercia); se hace en esta misma consulta.\":\"\")});\n  }else if(ajusteNeeded){\n    const by=M.ajustePor===\"NEFROLOGIA\"?\"nefrología\":M.ajustePor===\"MEDICO EXPERTO\"?\"médico experto\":\"médico del programa\";\n    R({sec:\"Control médico\",key:\"ajuste\",act:\"Control de ajuste de metas (\"+by+\")\",what:cap(ajWhat.join(\"; \"))+\".\",cada:\"Cada mes hasta lograr la meta\",m:1,dt:addMonths(fc,1),tag:\"GPC\",\n       why:cap(ajWhy.join(\" y \"))+\": ACC/AHA 2017 indica seguimiento mensual tras iniciar o ajustar antihipertensivos hasta el control (clase I); ADA 2025 pide reevaluar e intensificar sin inercia en DM. Se fija 1 mes. La valoración por nefrología sigue \"+low(cadaM(rev0))+\".\"+(M.ajustePor?\" Profesional según el modelo de \"+epsN+\".\":\"\")});\n  }\n\n  /* ===== Paraclínicos: frecuencia base o individualizada por resultado ===== */\n  if(c.erc===\"prov\")act(\"warn\",\"ERC por confirmar: repetir creatinina y RAC para documentar persistencia > 3 meses.\",addMonths(ld(d.modo===\"creat\"?\"creat\":\"tfg\"),3));\n  if(c.erc===\"indet\")act(\"warn\",\"No se puede afirmar ni descartar ERC: \"+(d.rac==null?\"falta la RAC\":\"falta la TFGe\")+\".\",fc);\n  const t9=g12?\"1 por año\":g3?\"2 a 4 por año\":\"más de 4 por año\";\n  const labs=[];\n  const L=(key,dkey,a,w,iv,tag,y,ind)=>{ // iv: {m} meses o {wk} semanas\n    const base=ld(dkey);let dt=iv.wk?addDays(base,iv.wk*7):addMonths(base,iv.m),now=false;const due0=dt;\n    if(dt<fc){dt=fc;now=true;}\n    const o=R({sec:\"Laboratorio\",key,act:a,what:w,cada:iv.wk?\"A las \"+iv.wk+\" semana\"+(iv.wk>1?\"s\":\"\"):cadaM(iv.m),m:iv.m,wk:iv.wk,dt,now,tag:ind?\"Individualizado\":tag,\n      why:y+(now?\" El intervalo desde el último resultado (\"+fd(base)+\") ya se cumplió.\":\"\"),base,due0});\n    labs.push(o);return o;};\n  const tfgDrop=d.tfgPrev!=null&&c.prevDays&&(d.tfg-d.tfgPrev)/d.tfgPrev<-0.2;\n  const racDup=d.racPrev!=null&&d.racPrev>0&&d.rac!=null&&d.rac>=2*d.racPrev;\n  // creatinina\n  {const dk=d.modo===\"creat\"?\"creat\":\"tfg\";\n   if(c.erc===\"prov\")L(\"creat\",dk,\"Creatinina y TFGe\",\"Creatinina sérica; TFGe por CKD-EPI 2021.\",{m:Math.min(cr,3)},\"KDIGO\",\"Confirmar cronicidad: el diagnóstico de ERC exige persistencia > 3 meses.\",cr>3);\n   else if(tfgDrop||racDup)L(\"creat\",dk,\"Creatinina y TFGe\",\"Creatinina sérica; TFGe por CKD-EPI 2021.\",{m:1},\"KDIGO\",(tfgDrop?\"Caída de TFGe > 20 % frente a la previa\":\"RAC duplicada\")+\": se repite al mes para confirmar el cambio antes de reclasificar (KDIGO 2024 PP 2.1.3–2.1.5; intervalo = propuesta).\",true);\n   else L(\"creat\",dk,\"Creatinina y TFGe\",\"Creatinina sérica; TFGe por CKD-EPI 2021.\",{m:cr},\"Propuesta\",\"Para \"+cat+\" KDIGO 2024 (frecuencia de monitoreo por riesgo) indica \"+(c.kt||\"—\")+\" al año; se fija \"+low(cadaM(cr))+\".\");}\n  // RAC\n  if(!c.A){R({sec:\"Laboratorio\",key:\"rac\",act:\"RAC urinaria\",what:\"Relación albúmina/creatinina en orina.\",cada:\"Una vez\",dt:fc,now:true,tag:\"KDIGO\",why:\"Falta: sin RAC el riesgo KDIGO queda incompleto y no se puede asumir A1.\"});}\n  else if(c.erc===\"prov\"&&c.A!==\"A1\")L(\"rac\",\"rac\",\"RAC urinaria\",\"Relación albúmina/creatinina, de preferencia primera orina de la mañana.\",{m:3},\"KDIGO\",\"Confirmar albuminuria persistente (2 de 3 muestras en 3 a 6 meses).\");\n  else if(racDup)L(\"rac\",\"rac\",\"RAC urinaria\",\"Relación albúmina/creatinina, de preferencia primera orina de la mañana.\",{m:1},\"KDIGO\",\"RAC duplicada frente a la previa (\"+n(d.racPrev)+\" → \"+n(d.rac)+\"): repetir al mes y verificar contexto (infección, descompensación).\",true);\n  else L(\"rac\",\"rac\",\"RAC urinaria\",\"Relación albúmina/creatinina, de preferencia primera orina de la mañana.\",{m:rac},\"Propuesta\",\"Define la categoría A; para \"+cat+\" se fija \"+low(cadaM(rac))+\".\");\n  // control post-ajuste de fármacos hemodinámicos\n  const NM={raas:\"IECA/ARA II\",sglt2:\"iSGLT2\",fin:\"finerenona\"};\n  const aj=[\"raas\",\"sglt2\",\"fin\"].filter(k=>meds0[k]===\"aj\"&&(k!==\"fin\"||d.dmTipo===\"2\")).map(k=>NM[k]);\n  const wk=((d.tfg!=null&&d.tfg<30)||(d.k!=null&&d.k>=5))?2:4;\n  if(aj.length){P.wk=wk;const o=R({sec:\"Laboratorio\",key:\"postaj\",act:\"Control post-ajuste\",what:\"PA, creatinina y potasio.\",cada:\"A las \"+wk+\" semanas\",wk,dt:addDays(fc,wk*7),tag:\"Propuesta\",\n      why:\"Inicia o ajusta \"+aj.join(\" y \")+\" hoy: riesgo de hiperpotasemia y de caída hemodinámica de la TFGe. KDIGO 2024 indica 2 a 4 semanas; se fijan \"+wk+(wk===2?\" por \"+((d.tfg!=null&&d.tfg<30)?\"TFGe < 30\":\"potasio \"+n(d.k,1)+\" (≥ 5,0)\")+\".\":\".\")+\" Una caída de TFGe > 30 % amerita evaluación.\"});labs.push(o);}\n  // potasio\n  {const kW=[];if([\"est\",\"aj\"].includes(meds0.raas))kW.push(\"recibe IECA/ARA II\");if(d.dmTipo===\"2\"&&[\"est\",\"aj\"].includes(meds0.fin))kW.push(\"recibe finerenona\");if(g4||g5)kW.push(\"está en \"+c.G);\n   if(d.k!=null&&d.k>=5.5&&d.k<6)L(\"k\",\"k\",\"Potasio\",\"Potasio sérico.\",{wk:1},\"Propuesta\",\"Potasio \"+n(d.k,1)+\" (hiperpotasemia leve): repetir a la semana tras ajustar dieta y fármacos (intervalo = propuesta institucional).\",true);\n   else if(kW.length)L(\"k\",\"k\",\"Potasio\",\"Potasio sérico.\",{m:cr},\"Propuesta\",\"Se toma con cada creatinina porque \"+kW.join(\" y \")+\".\");}\n  // HbA1c\n  if(d.dm){const m=(a1cOff||d.dmAj)?3:6;L(\"hba1c\",\"hba1c\",\"HbA1c\",\"Hemoglobina glicosilada.\",{m},\"GPC\",a1cOff?\"Fuera de meta (\"+n(d.hba1c,1)+\" % vs \"+gl.a1cTxt+\"): cada 3 meses (ADA 2025, sección 6: trimestral si no está en meta o cambia el tratamiento).\":d.dmAj?\"Se ajusta hoy el tratamiento: control a los 3 meses (ADA 2025, sección 6).\":d.hba1c==null?\"Sin dato: ADA 2025 indica al menos 2 veces al año en meta y trimestral fuera de meta; se fija 6.\":\"En meta y estable: cada 6 meses (ADA 2025, sección 6: al menos 2 veces al año).\",a1cOff||d.dmAj);}\n  // lípidos\n  if(meds0.stat===\"aj\"){const o=R({sec:\"Laboratorio\",key:\"ldl\",act:\"Perfil lipídico\",what:\"Colesterol total, HDL, triglicéridos y cLDL.\",cada:\"A las 8 semanas\",wk:8,dt:addDays(fc,56),tag:\"Individualizado\",why:\"Inicia o ajusta estatina: verificar respuesta frente a la meta \"+gl.ldlTxt+\" (ESC/EAS 2019: 8 ± 4 semanas; se fijan 8). Luego anual.\"});labs.push(o);}\n  else L(\"ldl\",\"ldl\",\"Perfil lipídico\",\"Colesterol total, HDL, triglicéridos y cLDL.\",{m:12},\"GPC\",\"Anual: ADA 2025 (sección 10) para DM; ESC/EAS 2019 para ajustar la meta. KDIGO 2013 de lípidos no exige control seriado en la mayoría; el control anual sostiene los indicadores nefro_04 y nefro_30. Meta \"+gl.ldlTxt+(d.ldl!=null&&d.ldl>gl.ldl?\"; hoy fuera de meta: si ajusta la estatina, marque «inicia o ajusta hoy» para fecharlo a 8 semanas.\":\".\"));\n  // hemoglobina\n  if(g3)L(\"hb\",\"hb\",\"Hemoglobina\",\"Hemograma.\",{m:anem?3:6},\"GPC\",anem?\"Anemia en ERC G3: control a los 3 meses mientras se estudia y trata (propuesta institucional).\":\"KDIGO 2012 de anemia: al menos una vez al año en G3; el programa la toma cada 6 meses para cumplir el indicador nefro_14_1.\",anem);\n  if(g4||g5)L(\"hb\",\"hb\",\"Hemoglobina\",\"Hemograma.\",{m:3},\"Propuesta\",\"KDIGO 2012 de anemia: al menos 2 veces al año en \"+c.G+\"; el programa la toma trimestral para cumplir el indicador nefro_16_1.\");\n  if(anem)R({sec:\"Laboratorio\",key:\"anemia\",act:\"Estudio de anemia\",what:\"Reticulocitos, ferritina y saturación de transferrina (B12 y folato según clínica).\",cada:\"Una vez\",dt:fc,now:true,tag:\"KDIGO\",why:\"Hb \"+n(d.hb,1)+\" g/dL por debajo del umbral KDIGO (\"+(d.sexo===\"M\"?\"13\":\"12\")+\"): definir la causa antes de tratar.\"});\n  // metabolismo mineral\n  if(g3||g4||g5){\n    const f=g3?12:g4?6:3;\n    const MBD={G3a:\"calcio y fósforo cada 6–12 meses; PTH según el valor basal\",G3b:\"calcio y fósforo cada 6–12 meses; PTH según el valor basal\",G4:\"calcio y fósforo cada 3–6 meses; PTH cada 6–12 meses\",G5:\"calcio y fósforo cada 1–3 meses; PTH cada 3–6 meses\"}[c.G];\n    if(fosOff&&f>3)L(\"cap\",\"fos\",\"Calcio y fósforo\",\"Calcio y fósforo séricos.\",{m:3},\"GPC\",\"Fósforo \"+n(d.fos,1)+\" fuera de meta (2,7–\"+n(fosHi,1)+\"): control a los 3 meses tras ajustar dieta o quelante (individualizado; KDIGO CKD-MBD 2017: \"+MBD+\").\",true);\n    else L(\"cap\",\"fos\",\"Calcio y fósforo\",\"Calcio y fósforo séricos.\",{m:f},\"GPC\",\"KDIGO CKD-MBD 2017 en \"+c.G+\": \"+MBD+\". Se fija \"+low(cadaM(f))+\".\");\n    L(\"pth\",\"pth\",\"PTH\",\"PTH intacta.\",{m:f},\"GPC\",\"KDIGO CKD-MBD 2017 en \"+c.G+\": \"+MBD+\". Se fija \"+low(cadaM(f))+\"; se interpreta la tendencia, no un valor aislado.\");\n  }\n  if(d.hco3!=null&&d.hco3<22)L(\"hco3\",\"hco3\",\"Bicarbonato\",\"Bicarbonato sérico.\",{m:cr},\"Propuesta\",\"Valor actual \"+n(d.hco3,1)+\" mmol/L (< 22): se repite con la creatinina.\",true);\n  if(d.alb!=null&&d.alb<3.5)L(\"alb\",\"alb\",\"Albúmina\",\"Albúmina sérica.\",{m:3},\"Propuesta\",\"Albúmina \"+n(d.alb,1)+\" g/dL: repetir a los 3 meses junto con la intervención de nutrición (propuesta).\",true);\n  // Agrupar tomas: lo que vence dentro de 30 días se adelanta a la toma más próxima (nunca se atrasa)\n  const mon=labs.filter(o=>!o.wk&&!o.now).sort((a,b)=>a.dt-b.dt);\n  let anchor=null;mon.forEach(o=>{if(anchor&&days(anchor,o.dt)<=35){const dd=days(anchor,o.dt);if(dd>0){o.why+=\" Se adelanta \"+dd+\" días para tomarlo junto con los demás del \"+fd(anchor)+\".\";o.dt=anchor;}}else anchor=o.dt;});\n  const cal={};P.rows.filter(r=>r.sec===\"Laboratorio\").forEach(r=>{const k=fd(r.dt);(cal[k]=cal[k]||{dt:r.dt,items:[]}).items.push(r.act);});\n  P.labCal=Object.values(cal).sort((a,b)=>a.dt-b.dt);\n\n  /* ===== Estudio inicial ===== */\n  const una=(sec,key,a,w,tag,y)=>R({sec,key,act:a,what:w,cada:\"Una vez\",dt:fc,now:true,tag,why:y});\n  if(d.tipo===\"primera\"){\n    una(\"Estudio inicial\",\"uro\",\"Uroanálisis con sedimento\",\"Buscar hematuria, cilindros o leucocituria que orienten la causa.\",\"GPC\",\"Evaluación de la causa y clasificación CGA (KDIGO 2024, capítulo 1).\");\n    una(\"Estudio inicial\",\"eco\",\"Ecografía renal y de vías urinarias\",\"Tamaño, ecogenicidad, asimetría, quistes u obstrucción.\",\"GPC\",\"Imagen renal en la evaluación de la causa (KDIGO 2024, capítulo 1; NICE NG203). No se repite anualmente por defecto.\");\n  }\n\n  /* ===== Clínica ===== */\n  const every=(sec,key,a,w,m,tag,y)=>R({sec,key,act:a,what:w,cada:cadaM(m),m,dt:addMonths(fc,m),tag,why:y});\n  const due=(sec,key,a,w,done,m,tag,y,dtOverride)=>R({sec,key,act:a,what:w,cada:cadaM(m),m,dt:done?(dtOverride||addMonths(fc,m)):fc,now:!done,tag,why:y+(done?\" Hecho en el último año; la fecha es el límite para repetirla.\":\" Sin registro en el último año.\")});\n  every(\"Clínica\",\"antropo\",\"Antropometría\",\"Peso, talla, IMC y circunferencia de cintura.\",12,\"Indicador\",\"Las GPC no fijan periodicidad; el programa la mide cada año para los indicadores nefro_08 (IMC) y nefro_31 (cintura).\");\n  due(\"Clínica\",\"rcv\",\"Riesgo cardiovascular\",\"SCORE2 recalibrado para Colombia o Framingham ajustado (ver calculadora).\",d.at.rcv||!!d.rcvHoy,12,\"GPC\",\"ESC 2021: estimar el riesgo con una escala calibrada para el país y repetir; con ERC moderada o grave la categoría es alta o muy alta sin escala. Indicador nefro_42.\");\n  if(c.kfre){const rr=P.rows.find(r=>r.key===\"rac\");R({sec:\"Clínica\",key:\"kfre\",act:\"KFRE\",what:\"Recalcular con la nueva TFGe y RAC.\",cada:\"Con cada RAC\",dt:rr?rr.dt:addMonths(fc,rac),tag:\"Propuesta\",why:\"Hoy \"+n(c.kfre.r2*100,1)+\" % a 2 años y \"+n(c.kfre.r5*100,1)+\" % a 5 años. Orienta remisión, intensidad y preparación de TRR (KDIGO 2024).\"});}\n  if(g4||g5||(d.edad!=null&&d.edad>65))every(\"Clínica\",\"desnut\",\"Tamizaje de desnutrición\",\"Valoración global subjetiva u otra herramienta validada.\",6,\"GPC\",(g4||g5)?\"ERC \"+c.G+\": tamizaje nutricional al menos 2 veces al año (KDIGO 2024; KDOQI 2020 de nutrición en ERC).\":\"Mayor de 65 años: tamizaje al menos 2 veces al año (KDIGO 2024).\");\n\n  /* ===== Equipo ===== */\n  const pkg=M.multi===\"PAQUETE\"&&nefroLead;\n  const alignM=m=>pkg&&m>=rev0?Math.floor(m/rev0)*rev0:m;\n  const pkgTxt=m=>pkg&&m>=rev0?\" Paquete de \"+epsN+\": frecuencia según riesgo (GPC) y se agenda el mismo día de la valoración por nefrología\"+(alignM(m)!==m?\" (queda \"+low(cadaM(alignM(m)))+\")\":\"\")+\".\":\"\";\n  // Nutrición individualizada\n  const n3=[],n6=[];\n  if(fosOff&&!g12)n3.push(\"fósforo fuera de meta\");\n  if(d.k!=null&&d.k>=5.5)n3.push(\"potasio ≥ 5,5\");\n  if(d.alb!=null&&d.alb<3.5)n3.push(\"albúmina < 3,5\");\n  if(d.imc!=null&&d.imc<20)n3.push(\"IMC < 20\");\n  if(d.imc!=null&&d.imc>=35)n3.push(\"IMC ≥ 35\");\n  if(g5)n3.push(\"ERC G5\");\n  if(g4)n6.push(\"ERC G4\");\n  if(d.imc!=null&&d.imc>=25&&d.imc<35)n6.push((d.imc<30?\"sobrepeso\":\"obesidad\")+\" (IMC \"+n(d.imc,1)+\")\");\n  if(a1cOff)n6.push(\"HbA1c fuera de meta\");\n  const nm=n3.length?3:n6.length?6:12;\n  const nutWhy=nm<12?\"Se intensifica a \"+low(cadaM(nm))+\" por \"+(n3.length?n3:n6).join(\", \")+(n3.length&&n6.length?\" (además \"+n6.join(\", \")+\")\":\"\")+\". Ninguna guía fija el número; KDOQI 2020 recomienda terapia nutricional médica por nutricionista en ERC. La frecuencia mayor es propuesta institucional.\":\"Mínimo anual: KDOQI 2020 (terapia nutricional médica en ERC) y ADA 2025 sección 5 (terapia nutricional al diagnóstico y en el seguimiento)\"+(c.grupo===1?\"; desde el diagnóstico.\":\".\")+\" Sin hallazgos que obliguen a intensificar.\";\n  R({sec:\"Equipo\",key:\"nut\",act:\"Nutrición\",what:\"Plan alimentario según estadio: proteína, sodio, potasio y fósforo; peso.\",cada:cadaM(nm),m:nm,\n     dt:d.at.nut?addMonths(fc,alignM(nm)):fc,now:!d.at.nut,\n     tag:nm<12?\"Individualizado\":\"GPC\",why:nutWhy+pkgTxt(nm)+(d.at.nut?\"\":\" Sin registro en el último año: programar ahora.\")});\n  const team=(key,a,w,done,y)=>due(\"Equipo\",key,a,w,done,12,\"Indicador\",y+pkgTxt(12),addMonths(fc,alignM(12)));\n  due(\"Equipo\",\"edu\",\"Educación estructurada\",\"Enfermedad, nefrotóxicos, metas y autocuidado\"+(g4||g5?\"; modalidades de TRR y TMND\":\"\")+\".\",d.at.edu,12,\"GPC\",\"Educación para el automanejo (KDIGO 2024; ADA 2025 sección 5: al diagnóstico, anual, ante complicaciones y transiciones)\"+(c.erc===\"si\"?\"; indicador nefro_41.\":\".\"));\n  if(g3||g4||g5){\n    team(\"enf\",\"Enfermería\",\"Valoración, educación y seguimiento telefónico entre controles.\",d.at.enf,\"Mínimo una atención al año desde G3a (nefro_40).\");\n    team(\"psi\",\"Psicología\",\"Tamizaje de ansiedad, depresión y adaptación a la enfermedad.\",d.at.psi,\"Mínimo una atención al año desde G3a (nefro_40).\");\n    team(\"ts\",\"Trabajo social\",\"Red de apoyo, barreras de acceso y transporte.\",d.at.ts,\"Mínimo una atención al año desde G3a (nefro_40).\");\n  }\n  const nef=[];\n  if(d.tfg<30)nef.push(\"TFGe < 30\");\n  if(d.rac!=null&&d.rac>300)nef.push(\"RAC > 300\");\n  if(d.tfgPrev!=null&&c.prevDays>=90&&(d.tfgPrev-d.tfg)/c.prevDays*365>5)nef.push(\"caída > 5 ml/min/año\");\n  if(c.kfre&&c.kfre.r5>=0.05)nef.push(\"KFRE 5 años ≥ 5 %\");\n  if(d.htaRes)nef.push(\"HTA resistente\");\n  P.nef=nef;\n  if(!nefroLead&&d.prof!==\"nefro\"&&nef.length)due(\"Equipo\",\"nefro\",\"Nefrología\",\"Valoración por especialista.\",d.at.nefro,12,\"Indicador\",\"Cumple criterio de nefro_33: \"+nef.join(\", \")+\".\");\n  if(d.prof===\"nefro\"&&d.conducta===\"contra\"&&nef.length)every(\"Equipo\",\"nefro\",\"Nefrología\",\"Control por especialista tras la contrarreferencia.\",12,\"Indicador\",\"Mantiene criterio de nefro_33 (\"+nef.join(\", \")+\"): mínimo una valoración al año.\");\n  if(d.terapia===\"tmnd\"||d.conducta===\"tmnd\")R({sec:\"Equipo\",key:\"paliativo\",act:\"Soporte renal / cuidado paliativo\",what:\"Control de síntomas y planificación anticipada del cuidado.\",cada:\"Cada mes\",m:1,dt:addMonths(fc,1),tag:\"GPC\",why:\"G5 en TMND: manejo conservador integral con cuidado de soporte renal (KDIGO 2024; Davison SN et al., Kidney Int 2024). Frecuencia mensual = decisión del programa.\"});\n  const ajAll=aj.concat(meds0.stat===\"aj\"?[\"estatina\"]:[]);\n  if(ajAll.length)R({sec:\"Equipo\",key:\"qf\",act:\"Química farmacéutica\",what:\"Educación del medicamento nuevo, adherencia, interacciones y nefrotóxicos.\",cada:\"Con el control post-ajuste\",dt:addDays(fc,(aj.length?wk:8)*7),tag:\"GPC\",why:\"Inicio o ajuste de \"+ajAll.join(\", \")+\": revisión farmacoterapéutica y de seguridad de medicamentos en ERC (KDIGO 2024, capítulo 4).\"});\n  due(\"Equipo\",\"flu\",\"Vacuna de influenza\",\"Dosis anual.\",d.at.flu,12,\"Indicador\",\"Anual en todas las poblaciones (nefro_32).\");\n\n  /* ===== Preparación para TRR ===== */\n  if(d.terapia===\"trr\"||d.conducta===\"prep\"||(c.kfre&&c.kfre.r2>0.4)){\n    const pw=d.terapia===\"trr\"||d.conducta===\"prep\"?\"G5 o decisión de preparación para TRR.\":\"KFRE a 2 años > 40 % (KDIGO 2024).\";\n    una(\"Preparación para TRR\",\"trr_edu\",\"Educación en modalidades\",\"Hemodiálisis, diálisis peritoneal, trasplante y TMND, con decisión compartida con paciente y cuidador.\",\"KDIGO\",pw);\n    una(\"Preparación para TRR\",\"hepb\",\"Hepatitis B\",\"Serología (HBsAg, anti-HBs, anti-HBc) y vacunación con verificación de respuesta.\",\"KDIGO\",\"ERC con alto riesgo de progresión (KDIGO 2012, 1B); requisito antes de hemodiálisis.\");\n    una(\"Preparación para TRR\",\"tx\",\"Valoración para trasplante renal\",\"Remisión para evaluar candidatura.\",\"KDIGO\",\"Evaluar candidatura antes del inicio previsto de diálisis para permitir trasplante anticipado (KDIGO 2020, candidatos a trasplante).\");\n    R({sec:\"Preparación para TRR\",key:\"acceso\",act:\"Acceso para diálisis\",what:\"Fístula arteriovenosa o catéter peritoneal según la modalidad elegida.\",cada:\"Al definir modalidad\",dt:null,tag:\"Propuesta\",why:\"Evitar iniciar diálisis por catéter venoso de urgencia.\"});\n  }\n\n  /* ===== Próximo contacto ===== */\n  const ctlRows=P.rows.filter(r=>r.sec===\"Control médico\");\n  const nx=ctlRows.slice().sort((a,b)=>a.dt-b.dt)[0];\n  P.next={date:nx.dt,who:nx.act,short:nx.key===\"ctl\"?P.rev.short:(nx.key===\"ajuste\"?\"Ajuste de metas\":\"Formulación / control intermedio\")};\n\n  /* ===== Acciones de hoy ===== */\n  if(paOff)act(\"warn\",\"PA fuera de meta (\"+gl.paTxt+\"): ajustar tratamiento; control al mes hasta lograr la meta.\",addMonths(fc,1));\n  if(a1cOff)act(\"warn\",\"HbA1c fuera de meta (\"+gl.a1cTxt+\"): ajustar tratamiento; control al mes y HbA1c a los 3 meses.\",addMonths(fc,1));\n  if(d.tipo===\"primera\"&&!d.causa)act(\"info\",\"Registre la causa probable de la ERC para completar la clasificación CGA.\");\n  P.meds.forEach(m=>{\n    if(m.ind===true&&m.st===\"no\")act(\"warn\",m.name+\": indicado y no lo recibe (\"+m.why+\"). Iniciar o registrar el motivo.\");\n    if(m.ind===\"cons\"&&m.st===\"no\")act(\"info\",m.name+\": considerar (\"+m.why+\").\");\n    if(m.st===\"ci\")act(\"info\",m.name+\": contraindicado o no tolerado. Registrar el motivo en la HC.\");\n    if(m.k===\"fin\"&&m.ind===false&&m.st===\"aj\")act(\"bad\",\"Finerenona: \"+m.why+\".\");\n  });\n  if(meds0.stat===\"est\"&&d.ldl!=null&&d.ldl>gl.ldl)act(\"warn\",\"cLDL fuera de meta con estatina: ajustar dosis o agregar ezetimiba y marcar «inicia o ajusta hoy» para fechar el control a 8 semanas.\");\n  if(nef.length&&!d.at.nefro&&d.prof!==\"nefro\")act(\"bad\",\"Remitir a nefrología: \"+nef.join(\", \")+\" (nefro_33).\",fc);\n  if(c.kfre&&c.kfre.r2>0.4)act(\"bad\",\"KFRE a 2 años > 40 %: educación de modalidades y preparación de TRR o planeación de TMND.\");\n  else if(c.kfre&&c.kfre.r2>0.1)act(\"warn\",\"KFRE a 2 años > 10 %: atención multidisciplinaria intensiva.\");\n  if(tfgDrop)act(\"warn\",\"TFGe cayó > 20 % frente a la previa: revisar la causa (no diagnosticar progresión automáticamente).\");\n  if(racDup)act(\"warn\",\"RAC duplicada frente a la previa: verificar resultado y contexto.\");\n  const on=(d.sint||[]).filter(s=>s.on).map(s=>s.id);\n  if(on.includes(\"olig\")||on.includes(\"hemat\")||(on.includes(\"disnea\")&&on.includes(\"edema\")))act(\"bad\",\"Síntomas de alarma: valoración prioritaria; descartar deterioro agudo o sobrecarga de volumen.\",fc);\n  if((g4||g5)&&(on.length>=3||(d.kps!=null&&d.kps<=50)))act(\"warn\",\"Carga de síntomas o funcional relevante: integrar soporte renal o cuidado paliativo y psicología.\");\n  if(on.includes(\"animo\"))act(\"info\",\"Ansiedad o ánimo deprimido: tamizaje y valoración por psicología.\");\n  if(d.k!=null&&d.k>=6)act(\"bad\",\"Potasio ≥ 6,0: valoración prioritaria y EKG.\",fc);\n  P.ind=indicators(d,c,gl,fl,fc,nef);\n  return P;\n}\n\nfunction indicators(d,c,gl,fl,fc,nef){\n  const I=[],w=days(fl,fc);const add=(code,t,s,det)=>I.push({code,t,s,det});\n  const st=(cond)=>cond==null?\"na\":cond?\"ok\":\"no\";\n  const inUse=k=>d.meds&&[\"est\",\"aj\"].includes(d.meds[k]);\n  add(\"nefro_39\",\"RAC y TFGe en el último año\",st(d.tfg!=null&&d.rac!=null&&w<=365));\n  add(\"nefro_04\",\"cLDL medido en el último año\",st(d.ldl!=null&&w<=365));\n  add(\"nefro_08\",\"IMC 20–25 kg/m²\",d.imc==null?\"na\":st(d.imc>=20&&d.imc<=25));\n  if(d.dm){\n    add(\"nefro_02\",\"HbA1c en los últimos 6 meses\",st(d.hba1c!=null&&w<=180));\n    if(d.hba1c!=null)add(c.grupo===1?\"nefro_03\":\"nefro_12\",\"HbA1c \"+(c.grupo===1?\"< 7 %\":\"< 8 %\"),st(d.hba1c<gl.a1c),\"población inferida; confirmar en la ficha\");\n  }\n  if(d.ldl!=null)add(c.grupo===1?\"nefro_05\":\"nefro_05_1\",\"cLDL \"+(c.grupo===1?\"≤ 100\":\"≤ 70\")+\" mg/dL\",st(d.ldl<=(c.grupo===1?100:70)));\n  if(d.edad!=null&&d.edad>=50&&d.tfg!=null&&d.tfg<60)add(\"nefro_29\",\"Estatina en ≥ 50 años con ERC 3a–5\",st(inUse(\"stat\")));\n  if((d.hta||d.dm)&&c.erc===\"si\"&&d.rac!=null&&d.rac>30)add(\"nefro_34\",\"IECA o ARA II con RAC > 30\",st(inUse(\"raas\")),d.meds.raas===\"ci\"?\"contraindicación registrada\":\"\");\n  if(d.dmTipo===\"2\"&&d.tfg!=null&&d.tfg>=20)add(\"nefro_38\",\"iSGLT2 en DM2 con TFGe ≥ 20\",st(inUse(\"sglt2\")));\n  if(nef.length)add(\"nefro_33\",\"Valoración por nefrología en el año\",st(d.at.nefro||d.prof===\"nefro\"),nef.join(\", \")+(d.prof===\"nefro\"?\"; valorado hoy\":\"\"));\n  if(c.G&&![\"G1\",\"G2\"].includes(c.G)){const miss=[[\"nut\",\"nutrición\"],[\"enf\",\"enfermería\"],[\"psi\",\"psicología\"],[\"ts\",\"trabajo social\"]].filter(x=>!d.at[x[0]]).map(x=>x[1]);add(\"nefro_40\",\"Equipo multidisciplinario completo\",st(!miss.length),miss.length?\"falta: \"+miss.join(\", \"):\"\");}\n  if(c.erc===\"si\")add(\"nefro_41\",\"Educación estructurada en ERC\",st(d.at.edu));\n  add(\"nefro_32\",\"Vacuna de influenza anual\",st(d.at.flu));\n  add(\"nefro_42\",\"RCV con escala validada\",st(d.at.rcv));\n  if(c.G===\"G5\"){\n    add(\"nefro_24_2\",\"Fósforo en el último trimestre\",st(d.fos!=null&&w<=90),\"población inferida\");\n    if(d.fos!=null)add(\"nefro_26_1\",\"Fósforo 2,7–5,5 mg/dL\",st(d.fos>=2.7&&d.fos<=5.5),\"población inferida\");\n    add(\"nefro_22\",\"PTH en el último trimestre\",st(d.pth!=null&&w<=90),\"población inferida\");\n    if(d.pth!=null)add(\"nefro_23\",\"PTH 150–300 pg/mL\",st(d.pth>=150&&d.pth<=300),\"población inferida\");\n  }\n  return I;\n}\n\nfunction note(d,c,P){\n  const L=[];const gl=P.goals;\n  const sexo=d.sexo===\"M\"?\"Paciente masculino\":d.sexo===\"F\"?\"Paciente femenina\":\"Paciente\";\n  const prec=[];if(d.hta)prec.push(\"hipertensión arterial\");if(d.dm)prec.push(\"diabetes mellitus\"+(d.dmTipo===\"2\"?\" tipo 2\":d.dmTipo===\"1\"?\" tipo 1\":\"\"));\n  const fr=[];if(d.ecv)fr.push(\"enfermedad cardiovascular\");if(d.fam)fr.push(\"antecedente familiar de ERC\");if(d.aine)fr.push(\"uso de AINE u otros nefrotóxicos\");if(d.uro)fr.push(\"litiasis o uropatía\");if(d.tab)fr.push(\"tabaquismo\");if(d.imc!=null&&d.imc>=30)fr.push(\"obesidad\");if(d.otrosAnt)fr.push(d.otrosAnt);\n  const PROF={nefro:\"NEFROLOGÍA\",mi:\"MEDICINA INTERNA\",mg:\"MEDICINA GENERAL\",exp:\"MÉDICO EXPERTO\"};\n  L.push(\"VALORACIÓN POR \"+(PROF[d.prof]||\"MEDICINA\")+\" · PROGRAMA DE NEFROPROTECCIÓN · \"+(d.tipo===\"primera\"?\"PRIMERA VEZ\":\"CONTROL\"));\n  L.push(\"\");\n  L.push(\"ENFERMEDAD ACTUAL\");\n  let s=sexo+(d.edad!=null?\" de \"+n(d.edad)+\" años\":\"\")+(d.tipo===\"primera\"?\" que ingresa al programa de nefroprotección. \":\" en seguimiento por el programa de nefroprotección. \");\n  s+=\"Condiciones precursoras: \"+(prec.length?prec.join(\" y \"):\"no registra HTA ni DM\")+\". \";\n  s+=\"Otros factores de riesgo renal: \"+(fr.length?fr.join(\", \"):\"no refiere\")+\".\";\n  L.push(s);\n  const LDn=d.labDates||{},fdl=k=>fd(LDn[k]||d.fLab||d.fCons);const lp=[];\n  if(d.modo===\"creat\"&&d.creat!=null)lp.push(\"creatinina \"+n(d.creat,2)+\" mg/dL (\"+fdl(\"creat\")+\")\");\n  if(d.tfg!=null)lp.push(\"TFGe \"+n(d.tfg)+\" ml/min/1,73 m²\"+(d.modo===\"creat\"?\" (CKD-EPI 2021)\":\" (\"+fdl(\"tfg\")+\")\"));\n  if(d.rac!=null)lp.push(\"RAC \"+n(d.rac)+\" mg/g (\"+fdl(\"rac\")+\")\");\n  let lab=\"Paraclínicos: \"+lp.join(\", \")+\".\";\n  if(d.fPrev&&(d.tfgPrev!=null||d.racPrev!=null))lab+=\" Resultado previo del \"+fd(d.fPrev)+\": \"+[d.tfgPrev!=null?\"TFGe \"+n(d.tfgPrev):null,d.racPrev!=null?\"RAC \"+n(d.racPrev)+\" mg/g\":null].filter(Boolean).join(\", \")+\".\";\n  L.push(lab);\n  let dx=\"Algoritmo diagnóstico (KDIGO 2024): \";\n  if(c.erc===\"fuera\")dx+=\"paciente en diálisis o trasplantado; fuera de la ruta.\";\n  else if(c.erc===\"agudo\")dx+=\"sospecha de deterioro agudo; no se clasifica ERC con este resultado.\";\n  else if(c.erc===\"no\")dx+=\"TFGe ≥ 60 y RAC < 30 sin otros marcadores de daño. Conclusión: sin ERC demostrada (\"+c.G+\" \"+c.A+\"); continúa en el programa por su condición precursora.\";\n  else if(c.erc===\"indet\")dx+=\"datos incompletos (\"+(d.rac==null?\"sin RAC\":\"sin TFGe\")+\"); no es posible confirmar ni descartar ERC.\";\n  else{\n    dx+=\"criterios presentes: \"+c.crit.join(\"; \")+\". \";\n    dx+=c.erc===\"si\"?\"Persistencia > 3 meses documentada (\"+c.pers+\"). Conclusión: ERC confirmada, \":\"Sin cronicidad demostrada. Conclusión: ERC por confirmar, categorías provisionales \";\n    dx+=c.G+(c.A?\" \"+c.A:\" (sin RAC)\")+(c.risk?\", riesgo KDIGO \"+c.risk:\"\")+\".\";\n    dx+=\" Causa probable: \"+(CAUSA[d.causa]||\"no registrada\")+\".\";\n  }\n  L.push(dx);\n  if(c.grupo&&c.erc!==\"fuera\"&&c.erc!==\"agudo\")L.push(\"Clasificación del programa: \"+GRUPO[c.grupo]+(c.G===\"G5\"&&d.terapia?(d.terapia===\"tmnd\"?\", subruta TMND (manejo conservador)\":\", subruta preparación para TRR\"):\"\")+\".\");\n  const ctl=[];\n  if(d.pas!=null&&d.pad!=null)ctl.push(\"PA \"+n(d.pas)+\"/\"+n(d.pad)+\" mmHg (\"+((d.pas<gl.pa[0]&&d.pad<gl.pa[1])?\"en meta\":\"fuera de meta\")+\" \"+gl.paTxt+\")\");\n  if(d.dm&&d.hba1c!=null)ctl.push(\"HbA1c \"+n(d.hba1c,1)+\" % (\"+(d.hba1c<gl.a1c?\"en meta\":\"fuera de meta\")+\" \"+gl.a1cTxt+\")\");\n  if(d.ldl!=null)ctl.push(\"cLDL \"+n(d.ldl)+\" mg/dL (\"+(d.ldl<=gl.ldl?\"en meta\":\"fuera de meta\")+\" \"+gl.ldlTxt+\")\");\n  if(d.imc!=null)ctl.push(\"IMC \"+n(d.imc,1)+\" kg/m²\");\n  if(ctl.length)L.push(\"Control de enfermedades de base: \"+ctl.join(\"; \")+\".\");\n  if(P.meds&&P.meds.length)L.push(\"Tratamiento nefroprotector: \"+P.meds.map(m=>m.name+\" \"+MEDST[m.st]).join(\"; \")+\".\");\n  const S=d.sint||[];const pos=S.filter(x=>x.on).map(x=>x.label.toLowerCase()),neg=S.filter(x=>!x.on).map(x=>x.label.toLowerCase());\n  if(S.length)L.push(pos.length?\"Síntomas: refiere \"+pos.join(\", \")+\".\"+(neg.length?\" Niega \"+neg.join(\", \")+\".\":\"\"):\"Asintomático desde el punto de vista renal: niega \"+neg.join(\", \")+\".\");\n  const q=[];if(d.sf1)q.push(\"salud autopercibida «\"+d.sf1.toLowerCase()+\"» (ítem 1 SF-36)\");if(d.kps!=null)q.push(\"Karnofsky \"+d.kps+\" %\");\n  L.push(\"Calidad de vida: \"+(q.length?q.join(\"; \"):\"no evaluada en esta consulta\")+\".\");\n  L.push(\"\");\n  L.push(\"ANÁLISIS DE PARACLÍNICOS\");\n  (P.interp||[]).forEach(i=>L.push(\"- \"+i.e+\" \"+i.v+\": \"+i.t));\n  if(c.flags.length)c.flags.forEach(f=>L.push(\"- \"+f));\n  L.push(\"\");\n  L.push(\"PLAN\");\n  if(P.actions.length){L.push(\"Acciones de esta consulta:\");P.actions.forEach(a=>L.push(\"- \"+a.t+(a.when?\" Fecha: \"+fd(a.when)+\".\":\"\")));}\n  if(d.prof===\"nefro\"&&d.conducta)L.push(\"Conducta de nefrología: \"+CONDUCTA[d.conducta]+\".\");\n  if(P.rows.length){L.push(\"Seguimiento programado:\");P.rows.forEach(r=>{const full=r.sec===\"Control médico\";const showWhy=full||r.now||r.tag===\"Individualizado\"||r.tag===\"EPS\"||/^A las|^Con el/.test(r.cada);L.push(\"- \"+r.act+(full?\" (\"+r.what.replace(/\\.$/,\"\")+\")\":\"\")+\": \"+r.cada.toLowerCase()+\"; próxima \"+(r.dt?(r.now?\"ahora, \"+fd(r.dt):fd(r.dt)):\"por definir\")+\".\"+(showWhy?\" Motivo: \"+r.why:\"\"));});}\n  if(P.labCal&&P.labCal.length)L.push(\"Próximos paraclínicos: \"+P.labCal.map(x=>fd(x.dt)+\" (\"+x.items.join(\", \").toLowerCase()+\")\").join(\"; \")+\".\");\n  if(P.next&&P.next.date)L.push(\"Próximo contacto médico: \"+fd(P.next.date)+\" (\"+P.next.who.toLowerCase()+\").\");\n  if(P.rev&&P.rev.months)L.push(P.rev.who+\": \"+fd(P.rev.date)+\".\");\n  if(d.rcvTxt)L.push(\"Riesgo cardiovascular: \"+d.rcvTxt+\".\");\n  L.push(\"Recomendaciones (KDIGO 2024, ADA 2025): consejería en tabaco y alcohol, actividad física regular adaptada, alimentación según plan de nutrición, adherencia y signos de alarma.\");\n  return L.join(\"\\n\");\n}\n\nreturn{ckd,kfre,gStage,aCat,classify,plan,note,goals,addMonths,addDays,fd,days,GRUPO,MEDST,CAUSA};\n})();\n/* Modelo de atención por EPS (confirmado 6 oct 2026; en la versión con base de datos se lee de eps_modelo_atencion) */\nconst EPSMODEL_DEF={\"EPS Familiar de Colombia\":{inter:\"MEDICO EXPERTO\",interMeses:1,ajustePor:\"MEDICO EXPERTO\",multi:\"PROGRAMA\",meds:true},\"Nueva EPS\":{inter:\"NINGUNO\",interMeses:1,ajustePor:\"NEFROLOGIA\",multi:\"PAQUETE\",meds:false},\"Mallamas EPS\":{inter:\"NINGUNO\",interMeses:1,ajustePor:\"MEDICO DEL PROGRAMA\",multi:\"PROGRAMA\",meds:false}};\nwindow.EPSMODEL=JSON.parse(JSON.stringify(EPSMODEL_DEF));\ntry{const sv=JSON.parse(localStorage.getItem(\"nefro_epsmodel\")||\"null\");if(sv)Object.keys(sv).forEach(k=>{if(window.EPSMODEL[k])Object.assign(window.EPSMODEL[k],sv[k]);});}catch(e){}\n<\/script>\n\n<script>\n/* ===================== INTERFAZ ===================== */\n(function(){\n\"use strict\";\nconst $=id=>document.getElementById(id);\nconst esc=s=>String(s).replace(/[&<>\"]/g,m=>({\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",'\"':\"&quot;\"}[m]));\nfunction num(id){const v=$(id).value.trim().replace(\",\",\".\");if(v===\"\")return null;const x=parseFloat(v);return isFinite(x)?x:null;}\nfunction dt(id){const s=$(id).value;if(!s)return null;const[y,m,d]=s.split(\"-\").map(Number);return new Date(y,m-1,d);}\nfunction iso(d){const p=x=>String(x).padStart(2,\"0\");return d.getFullYear()+\"-\"+p(d.getMonth()+1)+\"-\"+p(d.getDate());}\nconst SINT=[[\"fatiga\",\"Fatiga o debilidad\"],[\"prurito\",\"Prurito\"],[\"apetito\",\"Pérdida de apetito\"],[\"nausea\",\"Náuseas o vómito\"],[\"sueno\",\"Alteración del sueño o somnolencia\"],[\"edema\",\"Edema\"],[\"disnea\",\"Disnea\"],[\"calambres\",\"Calambres o piernas inquietas\"],[\"dolor\",\"Dolor\"],[\"animo\",\"Ansiedad o ánimo deprimido\"],[\"espuma\",\"Orina espumosa\"],[\"olig\",\"Disminución del volumen urinario\"],[\"hemat\",\"Hematuria macroscópica\"]];\n$(\"sintomas\").innerHTML=SINT.map(s=>'<label class=\"chk\"><input type=\"checkbox\" id=\"s_'+s[0]+'\"> '+s[1]+'<\/label>').join(\"\");\nconst MOPT='<option value=\"no\">No recibe<\/option><option value=\"est\">Recibe, dosis estable<\/option><option value=\"aj\">Inicia o ajusta hoy<\/option><option value=\"ci\">Contraindicado / no tolerado<\/option>';\n[\"m_raas\",\"m_sglt2\",\"m_stat\",\"m_fin\"].forEach(id=>$(id).innerHTML=MOPT);\nlet isExample=false;\n\nfunction read(){\n  const d={};\n  d.prof=$(\"prof\").value;d.tipo=$(\"tipo\").value;d.causa=$(\"causa\").value;d.conducta=d.prof===\"nefro\"?$(\"conducta\").value:\"\";\n  d.pid=$(\"pid\").value.trim();d.edad=num(\"edad\");d.sexo=$(\"sexo\").value;d.eps=$(\"eps\").value;d.epsModel=(window.EPSMODEL||{})[d.eps]||{};\n  d.fCons=dt(\"fcons\")||new Date();d.fnac=dt(\"fnac\");\n  if(d.fnac){d.edad=Math.floor(NP.days(d.fnac,d.fCons)/365.25);$(\"edad\").value=d.edad;}\n  const fdef=dt(\"flab\")||d.fCons;d.labDates={};\n  [\"creat\",\"tfgdir\",\"rac\",\"hba1c\",\"ldl\",\"ct\",\"hdl\",\"tg\",\"glu\",\"hb\",\"k\",\"ca\",\"fos\",\"pth\",\"hco3\",\"alb\"].forEach(k=>{d.labDates[k===\"tfgdir\"?\"tfg\":k]=dt(\"fd_\"+k)||fdef;});\n  d.hta=$(\"hta\").checked;d.dmTipo=$(\"dm\").value;d.dm=d.dmTipo!==\"\";\n  [\"ecv\",\"fam\",\"aine\",\"uro\",\"tab\"].forEach(k=>d[k]=$(k).checked);d.antiHTA=$(\"antihta\").checked;\n  d.otrosAnt=$(\"otrosAnt\").value.trim();d.terapia=$(\"terapia\").value;\n  d.modo=document.querySelector('input[name=\"modo\"]:checked').value;\n  d.creat=num(\"creat\");d.tfg=null;d.tfgNote=\"\";\n  if(d.modo===\"creat\"){if(d.creat!=null&&d.edad!=null&&d.sexo)d.tfg=NP.ckd(d.creat,d.edad,d.sexo===\"F\");else if(d.creat!=null)d.tfgNote=\"Falta edad o sexo\";}\n  else d.tfg=num(\"tfgdir\");\n  d.rac=num(\"rac\");d.fLab=d.modo===\"creat\"?d.labDates.creat:d.labDates.tfg;\n  d.otros=[];if($(\"mk_hem\").checked)d.otros.push(\"hematuria o sedimento anormal\");if($(\"mk_img\").checked)d.otros.push(\"alteración estructural en imagen\");if($(\"mk_bx\").checked)d.otros.push(\"hallazgo histológico\");\n  d.tfgPrev=num(\"tfgprev\");d.racPrev=num(\"racprev\");d.fPrev=dt(\"fprev\");d.cronHC=$(\"cronHC\").checked;d.agudo=$(\"agudo\").checked;\n  d.pas=num(\"pas\");d.pad=num(\"pad\");d.hba1c=num(\"hba1c\");d.ldl=num(\"ldl\");\n  const peso=num(\"peso\"),talla=num(\"talla\");d.peso=peso;d.talla=talla;d.imc=(peso&&talla)?peso/Math.pow(talla/100,2):null;d.cint=num(\"cint\");\n  [\"hb\",\"k\",\"ca\",\"fos\",\"pth\",\"hco3\",\"alb\",\"ct\",\"hdl\",\"tg\",\"glu\"].forEach(k=>d[k]=num(k));\n  d.meds={raas:$(\"m_raas\").value,sglt2:$(\"m_sglt2\").value,stat:$(\"m_stat\").value,fin:d.dmTipo===\"2\"?$(\"m_fin\").value:\"no\"};\n  d.dmAj=d.dm&&$(\"dmaj\").checked;d.htaRes=$(\"htares\").checked;\n  d.sint=SINT.map(s=>({id:s[0],label:s[1],on:$(\"s_\"+s[0]).checked}));\n  d.sf1=$(\"sf1\").value;d.kps=$(\"kps\").value?Number($(\"kps\").value):null;\n  d.at={};[\"nefro\",\"nut\",\"enf\",\"psi\",\"ts\",\"edu\",\"flu\",\"rcv\"].forEach(k=>d.at[k]=$(\"at_\"+k).checked);\n  return d;\n}\n\nconst ERC_TXT={si:[\"ERC: SÍ\",\"Confirmada\"],no:[\"ERC: NO\",\"Sin ERC demostrada\"],prov:[\"ERC: POR CONFIRMAR\",\"Alteración sin cronicidad demostrada\"],indet:[\"ERC: SIN DEFINIR\",\"Faltan datos\"],agudo:[\"AGUDO\",\"Sospecha de deterioro agudo\"],fuera:[\"FUERA DE RUTA\",\"Diálisis o trasplante\"]};\nfunction render(){\n  const d=read();\n  $(\"tr-creat\").hidden=d.modo!==\"creat\";$(\"tr-tfgdir\").hidden=d.modo!==\"tfg\";\n  $(\"tfgcalc\").textContent=d.modo===\"creat\"?(d.tfg!=null?Math.round(d.tfg)+\" ml/min/1,73 m²\":(d.tfgNote||\"—\")):\"\";\n  const showCompl=(d.tfg!=null&&d.tfg<60)||d.terapia===\"tmnd\"||d.terapia===\"trr\";\n  document.querySelectorAll(\"tr.compl\").forEach(t=>t.hidden=!showCompl);$(\"hint-compl\").hidden=showCompl;\n  $(\"box-cond\").hidden=d.prof!==\"nefro\";\n  $(\"tr-hba1c\").hidden=!d.dm;\n  const em=d.epsModel;$(\"epsmodel\").textContent=d.eps?(\"Modelo de \"+d.eps+\": \"+(em.inter===\"MEDICO EXPERTO\"?\"médico experto cada \"+(em.interMeses||1)+\" mes(es) entre valoraciones de nefrología; \":\"sin control intermedio; \")+\"equipo multidisciplinario \"+(em.multi===\"PAQUETE\"?\"en paquete con nefrología\":\"según programa\")+\"; ajuste de metas por \"+({\"MEDICO EXPERTO\":\"médico experto\",\"NEFROLOGIA\":\"nefrología\"}[em.ajustePor]||\"médico del programa\")+\".\"):\"\";$(\"box-dmaj\").hidden=!d.dm;$(\"box-fin\").hidden=d.dmTipo!==\"2\";\n  const G=NP.gStage(d.tfg);$(\"box-kps\").hidden=!(G===\"G4\"||G===\"G5\"||d.terapia===\"tmnd\"||d.terapia===\"trr\");\n  const nS=d.sint.filter(s=>s.on).length;$(\"sm7\").textContent=nS?nS+\" síntoma\"+(nS>1?\"s\":\"\"):\"\";\n  const out=$(\"out\");\n  if(d.tfg==null&&d.rac==null&&!d.terapia){\n    out.innerHTML='<div class=\"panel empty\"><p style=\"font-size:16px;color:var(--ink);margin:0 0 6px\"><strong>Escriba la creatinina (con edad y sexo) o la TFGe, y la RAC.<\/strong><\/p><p style=\"margin:0\">Con eso aparece si tiene ERC, el grupo, la agenda con fechas fijas y la nota para la historia clínica. También puede cargar un ejemplo.<\/p><\/div>';return;\n  }\n  const c=NP.classify(d);\n  d.rcv=RCV.evalAll({sexo:d.sexo,edad:d.edad,pas:d.pas,ct:d.ct,hdl:d.hdl,tab:d.tab,dm:d.dm,ecv:d.ecv,antiHTA:d.antiHTA,tfg:d.tfg,rac:d.rac,tfgG5:c.G===\"G5\"});\n  d.rcvHoy=!!d.rcv.main;d.rcvTxt=d.rcv.main?d.rcv.main.txt:\"\";\n  const P=NP.plan(d,c);\n  $(\"sm3\").textContent=(c.G||\"\")+(c.A?\" \"+c.A:\"\");\n  const gc=c.grupo?\"var(--g\"+c.grupo+\")\":\"var(--line)\";\n  const et=ERC_TXT[c.erc];\n  let h='<section class=\"panel verdict\" style=\"--gc:'+gc+'\"><div>';\n  h+='<div class=\"eyebrow\">Resultado'+(isExample?'<span class=\"exflag\">Ejemplo, no es un paciente real<\/span>':'')+(d.pid?' · '+esc(d.pid):'')+'<\/div>';\n  h+='<div class=\"erc\" style=\"margin-top:8px\"><span class=\"pill '+c.erc+'\">'+et[0]+'<\/span><span class=\"erc-txt\">'+et[1]+'<\/span><\/div>';\n  if(c.grupo&&c.erc!==\"fuera\")h+='<h2>'+NP.GRUPO[c.grupo]+(c.G===\"G5\"&&d.terapia===\"tmnd\"?' · TMND':c.G===\"G5\"&&d.terapia===\"trr\"?' · preparación TRR':'')+'<\/h2>';\n  h+='<div class=\"chips\">';\n  if(c.G)h+='<span class=\"chip\">Estadio <b>'+c.G+(c.A?' '+c.A:'')+'<\/b><\/span>';\n  if(c.risk)h+='<span class=\"chip\">Riesgo KDIGO <b>'+(c.erc===\"no\"?\"sin ERC\":c.risk)+'<\/b><\/span>';\n  if(d.tfg!=null)h+='<span class=\"chip\">TFGe <b>'+Math.round(d.tfg)+'<\/b><\/span>';\n  if(c.kfre)h+='<span class=\"chip\">KFRE 2/5 a <b>'+(c.kfre.r2*100).toFixed(1).replace(\".\",\",\")+' / '+(c.kfre.r5*100).toFixed(1).replace(\".\",\",\")+' %<\/b><\/span>';\n  h+='<\/div>';\n  const fl=[...c.flags];if(c.erc===\"si\"&&c.pers)fl.unshift(\"Cronicidad: \"+c.pers+\".\");if(c.erc===\"prov\")fl.unshift(\"Criterios: \"+c.crit.join(\"; \")+\". Falta demostrar persistencia > 3 meses.\");\n  if(fl.length)h+='<ul class=\"flags\">'+fl.map(x=>'<li>'+esc(x)+'<\/li>').join(\"\")+'<\/ul>';\n  h+='<\/div>';\n  if(P.rev){const nx=P.next||P.rev;h+='<div class=\"next\"><div class=\"l\">Próximo contacto médico<\/div><div class=\"d\">'+NP.fd(nx.date)+'<\/div><div class=\"w\">'+esc(nx.who)+'<\/div>'+(nx.date!==P.rev.date&&P.rev.months?'<div class=\"w\" style=\"margin-top:6px\"><strong>'+esc(P.rev.who)+':<\/strong> '+NP.fd(P.rev.date)+'<\/div>':'')+(P.labCal&&P.labCal.length?'<div class=\"w\" style=\"margin-top:6px\"><strong>Paraclínicos:<\/strong> '+NP.fd(P.labCal[0].dt)+'<\/div>':'')+'<\/div>';}\n  h+='<\/section>';\n\n  if(P.actions.length){\n    const ord={bad:0,warn:1,info:2};P.actions.sort((a,b)=>ord[a.lvl]-ord[b.lvl]);\n    h+='<section class=\"panel\"><h3>Para hacer en esta consulta<\/h3><div class=\"alerts\">'+P.actions.map(a=>'<div class=\"alert '+a.lvl+'\"><p>'+esc(a.t)+(a.when?' <span class=\"when\">'+NP.fd(a.when)+'<\/span>':'')+'<\/p><\/div>').join(\"\")+'<\/div><\/section>';\n  }\n  if(P.rows.length){\n    if(P.labCal&&P.labCal.length)h+='<section class=\"panel\"><h3>Calendario de paraclínicos<\/h3><div class=\"labcal\">'+P.labCal.map(x=>'<div class=\"lc\"><span class=\"mono\">'+NP.fd(x.dt)+'<\/span><span>'+esc(x.items.join(\", \"))+'<\/span><\/div>').join(\"\")+'<\/div><p class=\"note\" style=\"margin:8px 0 0\">Cada fecha sale del resultado previo de ese examen más su intervalo (por frecuencia o individualizado). Lo que vence dentro de 35 días se adelanta para tomarlo en la misma muestra.<\/p><\/section>';\n    h+='<section class=\"panel\"><h3>Agenda del paciente<\/h3><div class=\"tablebox\"><table class=\"agenda\"><thead><tr><th>Intervención<\/th><th>Cuándo<\/th><th>Por qué<\/th><\/tr><\/thead><tbody>';\n    let sec=\"\";\n    P.rows.forEach(r=>{if(r.sec!==sec){sec=r.sec;h+='<tr><td class=\"sec\" colspan=\"3\">'+sec+'<\/td><\/tr>';}\n      h+='<tr><td><strong>'+esc(r.act)+'<\/strong><span class=\"sub\">'+esc(r.what)+'<\/span><\/td><td class=\"when\"><span class=\"dt'+(r.now?' now':'')+'\">'+(r.dt?(r.now?'Ahora':NP.fd(r.dt)):'Por definir')+'<\/span><span class=\"fq\">'+esc(r.cada)+'<\/span><\/td><td class=\"why\">'+esc(r.why)+' <span class=\"tag'+(r.tag===\"Propuesta\"?' prop':r.tag===\"Individualizado\"?' ind':'')+'\">'+r.tag+'<\/span><\/td><\/tr>';});\n    h+='<\/tbody><\/table><\/div><p class=\"note\" style=\"margin:10px 0 0\">«Propuesta» = frecuencia fija adoptada para la IPS dentro de los rangos de CAC/KDIGO; pendiente de adopción formal.<\/p><\/section>';\n  }\n  if(P.interp&&P.interp.length){\n    h+='<section class=\"panel\"><h3>Interpretación de resultados<\/h3><div class=\"interp\">'+P.interp.map(i=>'<div class=\"irow\"><span class=\"e\">'+esc(i.e)+(i.f?'<span class=\"sub mono\">'+NP.fd(i.f)+'<\/span>':'')+'<\/span><span class=\"v '+i.cls+'\">'+esc(i.v)+'<\/span><span class=\"t\">'+esc(i.t)+'<\/span><\/div>').join(\"\")+'<\/div><\/section>';\n  }\n  h+=rcvPanel(d);\n  if(P.ind&&P.ind.length){\n    const ok=P.ind.filter(i=>i.s===\"ok\").length,app=P.ind.filter(i=>i.s!==\"na\").length;\n    h+='<details class=\"panel\"><summary>Indicadores CAC del paciente · cumple '+ok+' de '+app+'<\/summary><div class=\"ind\">'+P.ind.map(i=>'<span class=\"c\">'+i.code+'<\/span><span class=\"st '+i.s+'\">'+(i.s===\"ok\"?\"Cumple\":i.s===\"no\"?\"No cumple\":\"Sin dato\")+'<\/span><span>'+esc(i.t)+(i.det?' <span class=\"note\">· '+esc(i.det)+'<\/span>':'')+'<\/span>').join(\"\")+'<\/div><p class=\"note\" style=\"margin:10px 0 0\">Asume que los resultados ingresados son de la fecha de laboratorio indicada. La evaluación de cohorte se hace con el nominal mensual.<\/p><\/details>';\n  }\n  h+='<section class=\"panel\"><h3>Nota para la historia clínica<\/h3><div class=\"copyrow\"><button type=\"button\" class=\"btn primary\" id=\"btncopy\">Copiar enfermedad actual, análisis y plan<\/button><span class=\"note\" id=\"copymsg\"><\/span><\/div><details><summary class=\"note\" style=\"cursor:pointer;margin-top:8px\">Ver o editar el texto antes de copiar<\/summary><textarea id=\"note\" aria-label=\"Nota para la historia clínica\">'+esc(NP.note(d,c,P))+'<\/textarea><\/details><\/section>';\n  const BK=window.MG&&window.MG.book;\n  if(BK&&d.pid&&BK.pac.some(x=>x.codigo===d.pid)&&P.next&&P.next.date){const sv=/nefrolog/i.test(P.next.who)?\"NEFROLOGIA\":/experto/i.test(P.next.who)?\"MEDICO EXPERTO\":(P.next.who.indexOf(\"ajuste\")>=0&&(d.epsModel||{}).ajustePor===\"NEFROLOGIA\")?\"NEFROLOGIA\":\"MEDICO PROGRAMA\";\n    h+='<section class=\"panel\"><h3>Agendar antes de que salga<\/h3><p class=\"note\" style=\"margin:0 0 10px\">Próximo contacto: <strong>'+NP.fd(P.next.date)+'<\/strong> ('+esc(P.next.who.toLowerCase())+'). Asignar la cita en la consulta evita que el paciente quede sin fecha.<\/p><div class=\"copyrow\"><button type=\"button\" class=\"btn primary\" id=\"btnagd\">Agendar '+esc(sv===\"NEFROLOGIA\"?\"nefrología\":sv===\"MEDICO EXPERTO\"?\"médico experto\":\"control médico\")+'<\/button><\/div><\/section>';\n    setTimeout(()=>{const b=$(\"btnagd\");if(b)b.addEventListener(\"click\",()=>window.MG.agendar(d.pid,sv,P.next.date));},0);}\n  const DBM=window.MG&&window.MG.dbMode;\n  if(DBM)h+='<section class=\"panel\"><h3>Guardar en la base de datos<\/h3><p class=\"note\" style=\"margin:0 0 10px\">Guarda la valoración, los paraclínicos nuevos con su fecha y el plan con sus fechas programadas. Los registros guardados no se editan: si hay un error se anulan con motivo.'+(d.pid?'':' <strong style=\"color:var(--bad)\">Seleccione o escriba el código del paciente.<\/strong>')+'<\/p><div class=\"copyrow\"><button type=\"button\" class=\"btn primary\" id=\"btnsave\">Guardar valoración<\/button><span class=\"note\" id=\"savemsg\"><\/span><\/div><\/section>';\n  const INBOOK=BK&&!DBM&&d.pid&&BK.pac.some(x=>x.codigo===d.pid);\n  h+='<section class=\"panel\"'+(DBM?' hidden':'')+'><h3>Registrar en el libro de cohorte<\/h3>'+(INBOOK?'<div class=\"copyrow\" style=\"margin:0 0 10px\"><button type=\"button\" class=\"btn primary\" id=\"btnaddbook\">Agregar esta valoración al libro<\/button><span class=\"note\" id=\"addmsg\">Agrega la valoración, los paraclínicos nuevos con su fecha y las atenciones (incluida la estimación del RCV). Luego descargue el libro actualizado.<\/span><\/div>':'')+'<p class=\"note\" style=\"margin:0 0 10px\">'+(INBOOK?'O copie cada bloque y péguelo en el Excel:':'Copie cada bloque y péguelo en la primera fila vacía (columna A) de la hoja indicada del libro de Excel.'+(BK&&d.pid?' <strong>El código '+esc(d.pid)+' no está en el libro cargado.<\/strong>':''))+(d.pid?'':' <strong style=\"color:var(--bad)\">Escriba el código del paciente en el paso 1.<\/strong>')+'<\/p><div class=\"copyrow\"><button type=\"button\" class=\"btn\" data-copy=\"val\">Copiar fila · Valoraciones<\/button><button type=\"button\" class=\"btn\" data-copy=\"lab\">Copiar filas · Laboratorios<\/button><button type=\"button\" class=\"btn\" data-copy=\"at\">Copiar fila · Atenciones<\/button><span class=\"note\" id=\"regmsg\"><\/span><\/div><textarea id=\"regtxt\" class=\"regtxt\" hidden aria-label=\"Filas para el libro\"><\/textarea><\/section>';\n  out.innerHTML=h;\n  if(DBM)$(\"btnsave\").addEventListener(\"click\",async()=>{const b=$(\"btnsave\");b.disabled=true;$(\"savemsg\").textContent=\"Guardando…\";try{const r=await window.MG.saveValoracion(d,c,P,$(\"note\").value);$(\"savemsg\").textContent=r;}catch(e){const m=$(\"savemsg\");m.textContent=\"No se guardó: \"+(e.message||e);b.disabled=false;const B=window.MG.book;if(d.pid&&!(B&&B.ids&&B.ids[d.pid])){const nb=document.createElement(\"button\");nb.type=\"button\";nb.className=\"btn\";nb.textContent=\"Crear paciente con este código\";nb.style.marginLeft=\"8px\";nb.addEventListener(\"click\",()=>window.MG.newPatientFrom(d));m.appendChild(nb);}}});\n  const RG=regRows(d,c,P);\n  if($(\"btnaddbook\"))$(\"btnaddbook\").addEventListener(\"click\",()=>{const r=window.MG.addValoracion(regObjs(d,c,P));$(\"addmsg\").textContent=r;});\n  out.querySelectorAll(\"[data-copy]\").forEach(b=>b.addEventListener(\"click\",()=>{const k=b.dataset.copy,rows=RG[k];const t=$(\"regtxt\");\n    if(!d.pid){$(\"regmsg\").textContent=\"Falta el código del paciente.\";return;}\n    if(!rows.length){$(\"regmsg\").textContent=\"No hay filas nuevas para esta hoja.\";return;}\n    const txt=rows.map(r=>r.map(x=>x==null?\"\":String(x).replace(/[\\t\\n]/g,\" \")).join(\"\\t\")).join(\"\\n\");t.value=txt;\n    const sheet={val:\"Valoraciones\",lab:\"Laboratorios\",at:\"Atenciones\"}[k];\n    const ok=()=>{t.hidden=true;$(\"regmsg\").textContent=rows.length+\" fila(s) copiada(s) para la hoja \"+sheet+\".\";};\n    const fb=()=>{t.hidden=false;t.focus();t.select();$(\"regmsg\").textContent=\"Texto seleccionado: use Ctrl+C y pegue en la hoja \"+sheet+\".\";};\n    try{navigator.clipboard.writeText(txt).then(ok,fb);}catch(e){fb();}}));\n  $(\"btncopy\").addEventListener(\"click\",()=>{const t=$(\"note\");const ok=()=>{$(\"copymsg\").textContent=\"Copiado.\";};const fb=()=>{t.closest(\"details\").open=true;t.focus();t.select();$(\"copymsg\").textContent=\"Texto seleccionado: use Ctrl+C.\";};try{navigator.clipboard.writeText(t.value).then(ok,fb);}catch(e){fb();}});\n}\n\n/* Panel de riesgo cardiovascular (fórmulas en RCV; citas en RCV.REFS) */\nfunction rcvPanel(d){const R=d.rcv;if(!R)return\"\";const P=RCV.pct;const S=R.score2,F=R.fram,A=R.auto;\n  let h='<section class=\"panel rcvp\"><h3>Riesgo cardiovascular<\/h3><div class=\"rcvg\">';\n  h+='<div class=\"rcvc'+(A?' on':'')+'\"><span class=\"rl\">Categoría automática<\/span><span class=\"rv\">'+(A?esc(A.cat):\"No aplica\")+'<\/span><span class=\"sub\">'+(A?esc(A.why):\"Sin ECV establecida ni ERC moderada o grave (ESC 2021).\")+'<\/span><\/div>';\n  h+='<div class=\"rcvc'+(S.ok?' on':'')+'\"><span class=\"rl\">SCORE2 recalibrado para Colombia<\/span><span class=\"rv\">'+(S.ok?P(S.r):\"—\")+'<\/span><span class=\"sub\">'+(S.ok?esc(S.cat)+\". \"+esc(S.why):esc(S.why))+'<\/span><\/div>';\n  h+='<div class=\"rcvc'+(F.ok?' on':'')+'\"><span class=\"rl\">Framingham ajustado (GPC Colombia)<\/span><span class=\"rv\">'+(F.ok?P(F.r):\"—\")+'<\/span><span class=\"sub\">'+esc(F.why)+'<\/span><\/div><\/div>';\n  h+='<p class=\"note\" style=\"margin:10px 0 0\">'+(A?\"Con categoría automática alta o muy alta la conducta preventiva intensiva ya está indicada; las escalas pueden subestimar el riesgo en ERC (ESC 2021; herramienta técnica CAC).\":\"Use la escala que aplique a la edad y condición del paciente.\")+' Necesita colesterol total, HDL, PA sistólica, tabaquismo y, para Framingham, si recibe antihipertensivo.<\/p>';\n  h+='<details><summary class=\"note\" style=\"cursor:pointer;margin-top:6px\">Fuentes de las fórmulas<\/summary><ol class=\"note\" style=\"margin:6px 0 0;padding-left:18px\">'+RCV.REFS.map(r=>'<li>'+esc(r)+'<\/li>').join(\"\")+'<\/ol><\/details><\/section>';\n  return h;}\n/* Ejemplos (no son pacientes reales) */\nconst today=new Date();\nconst EX={\n  a:{eps:\"EPS Familiar de Colombia\",causa:\"hta\",conducta:\"sigue\",edad:\"64\",sexo:\"M\",hta:true,antihta:true,tab:true,modo:\"tfg\",tfgdir:\"50\",rac:\"12\",tfgprev:\"54\",fprev:-6,pas:\"138\",pad:\"84\",ldl:\"118\",ct:\"196\",hdl:\"44\",tg:\"170\",peso:\"82\",talla:\"170\",cint:\"99\",hb:\"13,4\",k:\"4,6\",ca:\"9,3\",fos:\"3,8\",pth:\"72\",m_raas:\"est\",sf1:\"Buena\",at_nut:true,at_enf:true,at_edu:true,at_flu:true,at_rcv:true,fdl:{ldl:-2,hb:-1,ca:-7,fos:-7,pth:-7}},\n  b:{eps:\"Nueva EPS\",causa:\"dm\",conducta:\"sigue\",edad:\"58\",sexo:\"F\",hta:true,antihta:true,dm:\"2\",modo:\"tfg\",tfgdir:\"31\",rac:\"180\",ct:\"178\",hdl:\"42\",tg:\"210\",glu:\"168\",tfgprev:\"38\",racprev:\"150\",fprev:-12,pas:\"146\",pad:\"88\",hba1c:\"9,4\",ldl:\"96\",peso:\"78\",talla:\"158\",cint:\"98\",hb:\"11,2\",k:\"5,1\",ca:\"9,0\",fos:\"5,1\",pth:\"95\",hco3:\"21\",alb:\"3,8\",m_raas:\"est\",m_stat:\"est\",dmaj:true,s_fatiga:true,s_calambres:true,sf1:\"Regular\",at_nut:true,at_enf:true,at_edu:true,at_rcv:true,fdl:{hba1c:-1,ldl:-3,pth:-5}},\n  d:{eps:\"Nueva EPS\",causa:\"dm\",conducta:\"sigue\",tipo:\"primera\",edad:\"45\",sexo:\"F\",dm:\"2\",modo:\"tfg\",tfgdir:\"95\",rac:\"450\",racprev:\"410\",fprev:-4,pas:\"128\",pad:\"78\",hba1c:\"6,8\",ldl:\"88\",k:\"4,4\",m_raas:\"aj\",m_sglt2:\"est\",m_stat:\"est\",sf1:\"Buena\",at_nut:true,at_edu:true,at_flu:true,at_rcv:true,fdl:{}},\n  c:{eps:\"EPS Familiar de Colombia\",causa:\"hta\",conducta:\"tmnd\",edad:\"79\",sexo:\"M\",hta:true,terapia:\"tmnd\",modo:\"creat\",creat:\"4,6\",rac:\"520\",tfgprev:\"14\",fprev:-6,pas:\"134\",pad:\"72\",ldl:\"84\",peso:\"61\",talla:\"166\",hb:\"9,6\",k:\"5,4\",ca:\"8,7\",fos:\"5,2\",pth:\"210\",hco3:\"18\",alb:\"3,4\",m_raas:\"est\",m_stat:\"est\",s_fatiga:true,s_prurito:true,s_apetito:true,s_sueno:true,sf1:\"Mala\",kps:\"60\",at_nefro:true,at_nut:true,at_enf:true,at_psi:true,at_ts:true,at_edu:true,at_flu:true,at_rcv:true,fdl:{ldl:-4}}\n};\nconst LABK=[\"creat\",\"tfgdir\",\"rac\",\"hba1c\",\"ldl\",\"ct\",\"hdl\",\"tg\",\"glu\",\"hb\",\"k\",\"ca\",\"fos\",\"pth\",\"hco3\",\"alb\"];\nconst TXT=[\"pid\",\"edad\",\"tfgprev\",\"racprev\",\"pas\",\"pad\",\"peso\",\"talla\",\"cint\",\"otrosAnt\"].concat(LABK);\nconst CHKS=()=>Array.from(document.querySelectorAll('#frm input[type=checkbox]')).map(e=>e.id);\nconst SELS=[\"prof\",\"tipo\",\"causa\",\"conducta\",\"eps\",\"sexo\",\"dm\",\"terapia\",\"m_raas\",\"m_sglt2\",\"m_stat\",\"m_fin\",\"sf1\",\"kps\"];\nfunction load(k){\n  if($(\"pickmsg\"))$(\"pickmsg\").textContent=\"\";\n  TXT.forEach(i=>$(i).value=\"\");CHKS().forEach(i=>$(i).checked=false);SELS.forEach(i=>$(i).selectedIndex=0);\n  LABK.forEach(i=>$(\"fd_\"+i).value=\"\");$(\"fnac\").value=\"\";\n  $(\"modo-creat\").checked=true;$(\"fcons\").value=iso(today);$(\"flab\").value=iso(today);$(\"fprev\").value=\"\";\n  if(k!==\"clear\"){const e=EX[k];Object.keys(e).forEach(key=>{const v=e[key];\n    if(key===\"modo\")$(\"modo-\"+(v===\"tfg\"?\"tfg\":\"creat\")).checked=true;\n    else if(key===\"fprev\")$(\"fprev\").value=iso(NP.addMonths(today,v));\n    else if(key===\"fdl\")Object.keys(v).forEach(x=>{$(\"fd_\"+x).value=iso(NP.addMonths(today,v[x]));});\n    else if(typeof v===\"boolean\")$(key).checked=v;else $(key).value=v;});isExample=true;}\n  else isExample=false;\n  render();\n}\ndocument.querySelectorAll(\"[data-ex]\").forEach(b=>b.addEventListener(\"click\",()=>load(b.dataset.ex)));\n$(\"frm\").addEventListener(\"input\",()=>{isExample=false;render();});\n$(\"frm\").addEventListener(\"change\",()=>{isExample=false;render();});\n$(\"frm\").addEventListener(\"submit\",e=>e.preventDefault());\n/* Filas para el libro / la base de datos */\nconst MEDTXT={no:\"NO RECIBE\",est:\"ESTABLE\",aj:\"INICIA O AJUSTA\",ci:\"CONTRAINDICADO\"},PROFTXT={nefro:\"NEFROLOGIA\",exp:\"MEDICO EXPERTO\",mi:\"MEDICINA INTERNA\",mg:\"MEDICINA GENERAL\"},CONDTXT={sigue:\"CONTINUA NEFROLOGIA\",contra:\"CONTRARREFERENCIA\",prep:\"PREPARACION TRR\",tmnd:\"TMND\"},CAUSATXT={dm:\"DIABETICA\",hta:\"HIPERTENSIVA\",glom:\"GLOMERULOPATIA\",pq:\"POLIQUISTOSIS\",uro:\"UROPATIA OBSTRUCTIVA\",nti:\"TUBULOINTERSTICIAL\",otra:\"OTRA\",desc:\"NO ESTABLECIDA\"},ERCTXT={si:\"SI\",no:\"NO\",prov:\"POR CONFIRMAR\",indet:\"SIN DEFINIR\",agudo:\"SOSPECHA AGUDO\",fuera:\"FUERA DE RUTA\"};\nwindow.CODES={MEDTXT,PROFTXT,CONDTXT,CAUSATXT,ERCTXT};\nconst dec=v=>v==null?\"\":String(Math.round(v*100)/100).replace(\".\",\",\");\nconst LABMAP=[[\"CREATININA\",\"creat\",\"creat\"],[\"TFGE_REPORTADA\",\"tfg\",\"tfg\"],[\"RAC\",\"rac\",\"rac\"],[\"HBA1C\",\"hba1c\",\"hba1c\"],[\"LDL\",\"ldl\",\"ldl\"],[\"COLESTEROL_TOTAL\",\"ct\",\"ct\"],[\"HDL\",\"hdl\",\"hdl\"],[\"TRIGLICERIDOS\",\"tg\",\"tg\"],[\"GLICEMIA\",\"glu\",\"glu\"],[\"HEMOGLOBINA\",\"hb\",\"hb\"],[\"POTASIO\",\"k\",\"k\"],[\"CALCIO\",\"ca\",\"ca\"],[\"FOSFORO\",\"fos\",\"fos\"],[\"PTH\",\"pth\",\"pth\"],[\"BICARBONATO\",\"hco3\",\"hco3\"],[\"ALBUMINA\",\"alb\",\"alb\"],[\"FOSFATASA_ALCALINA\",\"fa\",\"fa\"]];\nfunction labList(d){ // [{examen, valor, fecha}]\n  const B=window.MG&&window.MG.book,ex=(B&&B.L[d.pid])||[];\n  return LABMAP.map(([E,dk,bk])=>{let v=dk===\"creat\"?(d.modo===\"creat\"?d.creat:null):dk===\"tfg\"?(d.modo===\"tfg\"?d.tfg:null):dk===\"hba1c\"?(d.dm?d.hba1c:null):d[dk];\n    const f=(d.labDates||{})[dk]||d.fLab;return{E,bk,v,f};}).filter(x=>x.v!=null&&!ex.some(l=>l.k===x.bk&&NP.days(l.fecha,x.f)===0));\n}\nfunction regRows(d,c,P){\n  const fc=NP.fd(d.fCons),code=d.pid;\n  const val=[[code,fc,PROFTXT[d.prof]||\"\",d.tipo===\"primera\"?\"PRIMERA VEZ\":\"CONTROL\",dec(d.pas),dec(d.pad),dec(d.peso),dec(d.talla),dec(d.cint),MEDTXT[d.meds.raas],MEDTXT[d.meds.sglt2],MEDTXT[d.meds.stat],d.dmTipo===\"2\"?MEDTXT[d.meds.fin]:\"\",d.dm?(d.dmAj?\"SI\":\"NO\"):\"\",d.htaRes?\"SI\":\"NO\",d.cronHC?\"SI\":\"NO\",CONDTXT[d.conducta]||\"\",CAUSATXT[d.causa]||\"\",d.sf1?d.sf1.toUpperCase():\"\",d.kps==null?\"\":d.kps,d.sint.filter(s=>s.on).map(s=>s.label).join(\"; \"),ERCTXT[c.erc]||\"\",c.G||\"\",c.A||\"\",c.grupo||\"\",P.rev&&P.rev.date?NP.fd(P.rev.date):\"\",\"\"]];\n  const lab=labList(d).map(x=>[code,NP.fd(x.f),x.E,dec(x.v),\"\"]);\n  const at=d.prof?[[code,fc,PROFTXT[d.prof],\"REALIZADA\",\"\"]]:[];\n  return{val,lab,at};\n}\n/* Las mismas filas como registros con clave (para agregarlas al libro cargado en el navegador) */\nfunction regObjs(d,c,P){\n  const fc=NP.fd(d.fCons),code=d.pid;const R=regRows(d,c,P);const v=R.val[0];\n  const val={codigo:code,fecha:fc,profesional:v[2],tipo:v[3],pa_sistolica:v[4],pa_diastolica:v[5],peso_kg:v[6],talla_cm:v[7],cintura_cm:v[8],ieca_ara_ii:v[9],isglt2:v[10],estatina:v[11],finerenona:v[12],ajuste_dm:v[13],hta_resistente:v[14],cronicidad_en_hc:v[15],conducta:v[16],causa_erc:v[17],salud_autopercibida:v[18],karnofsky:v[19],sintomas:v[20],erc:v[21],estadio:v[22],albuminuria:v[23],grupo:v[24],proximo_control:v[25],\n    tabaquismo:d.tab?\"SI\":\"NO\",antihipertensivo:d.antiHTA?\"SI\":\"NO\",rcv:d.rcvTxt||\"\"};\n  const lab=R.lab.map(r=>({codigo:r[0],fecha:r[1],examen:r[2],valor:r[3]}));\n  const at=R.at.map(r=>({codigo:r[0],fecha:r[1],disciplina:r[2],estado:r[3]}));\n  if(d.rcvHoy)at.push({codigo:code,fecha:fc,disciplina:\"RCV\",estado:\"REALIZADA\"});\n  return{val,lab,at};\n}\nwindow.APP={read,labList,regRows,regObjs};\n/* Precarga desde el libro o la base de datos */\n$(\"pick\").addEventListener(\"change\",()=>{const code=$(\"pick\").value;if(!code||!window.MG)return;const fc=dt(\"fcons\")||new Date();const S=window.MG.snapshotFor(code,fc);if(!S)return;\n  const keepProf=$(\"prof\").value;load(\"clear\");$(\"fcons\").value=iso(fc);$(\"prof\").value=keepProf;$(\"pick\").value=code;\n  const p=S.p,set=(id,v)=>{$(id).value=v==null?\"\":String(typeof v===\"number\"?Math.round(v*100)/100:v).replace(\".\",\",\");};\n  set(\"pid\",p.codigo);if(p.fnac)$(\"fnac\").value=iso(p.fnac);set(\"edad\",COH.age(p.fnac,fc));$(\"sexo\").value=p.sexo||\"\";$(\"eps\").value=p.eps||\"\";\n  $(\"hta\").checked=p.hta;$(\"dm\").value=p.dmTipo||\"\";$(\"ecv\").checked=p.ecv;\n  $(\"causa\").value=S.d.causa||\"\";$(\"terapia\").value=p.terapia||\"\";$(\"tipo\").value=S.lv?\"control\":\"primera\";\n  if(S.tl){if(S.tl.cr!=null){$(\"modo-creat\").checked=true;set(\"creat\",S.tl.cr);$(\"fd_creat\").value=iso(S.tl.fecha);}else{$(\"modo-tfg\").checked=true;set(\"tfgdir\",Math.round(S.tl.v));$(\"fd_tfgdir\").value=iso(S.tl.fecha);}$(\"flab\").value=iso(S.tl.fecha);}\n  if(S.rl){set(\"rac\",S.rl.v);$(\"fd_rac\").value=iso(S.rl.fecha);}\n  if(S.tprev){set(\"tfgprev\",Math.round(S.tprev.v));$(\"fprev\").value=iso(S.tprev.fecha);}else if(S.rprev){set(\"racprev\",S.rprev.v);$(\"fprev\").value=iso(S.rprev.fecha);}\n  $(\"cronHC\").checked=!!(S.lv&&S.lv.cron);\n  [\"hba1c\",\"ldl\",\"hb\",\"k\",\"ca\",\"fos\",\"pth\",\"hco3\",\"alb\"].forEach(k=>{const l=S.last(k);if(!l)return;set(k,l.v);$(\"fd_\"+k).value=iso(l.fecha);});\n  if(S.lv){[\"raas\",\"sglt2\",\"stat\",\"fin\"].forEach(k=>{$(\"m_\"+k).value=S.lv[k]===\"aj\"?\"est\":(S.lv[k]||\"no\");});$(\"htares\").checked=!!S.lv.htaRes;}\n  Object.keys(S.d.at).forEach(k=>{$(\"at_\"+k).checked=!!S.d.at[k];});\n  isExample=false;render();\n  $(\"pickmsg\").textContent=\"Cargado: datos del paciente, último resultado de cada examen con su fecha, tratamiento de la última valoración y atenciones del último año. Registre hoy PA, peso, síntomas y cambios de tratamiento; actualice los exámenes nuevos con su fecha.\";\n});\nload(\"a\");\n})();\n<\/script>\n\n<script>\n/* ===================== MOTOR DE COHORTE (libro de Excel o base de datos) ===================== */\nconst COH=(function(){\n\"use strict\";\nconst EPS=[\"EPS Familiar de Colombia\",\"Nueva EPS\",\"Mallamas EPS\"];\nconst norm=s=>String(s==null?\"\":s).normalize(\"NFD\").replace(/[̀-ͯ]/g,\"\").trim().toUpperCase();\nconst key=k=>norm(k).toLowerCase().replace(/[^a-z0-9]+/g,\"_\").replace(/^_+|_+$/g,\"\");\nfunction toDate(v){\n  if(v==null||v===\"\")return null;\n  if(v instanceof Date&&!isNaN(v))return new Date(v.getFullYear(),v.getMonth(),v.getDate());\n  if(typeof v===\"number\"&&v>0&&v<80000){const d=new Date(Math.round((v-25569)*86400000));return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());}\n  const s=String(v).trim();let m=s.match(/^(\\d{1,2})[\\/\\-.](\\d{1,2})[\\/\\-.](\\d{4})$/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);\n  m=s.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);return null;\n}\nfunction toNum(v){if(v==null||v===\"\")return null;if(typeof v===\"number\")return isFinite(v)?v:null;const t=String(v).trim().replace(\",\",\".\");if(!/^-?\\d+(\\.\\d+)?$/.test(t))return null;return parseFloat(t);}\nconst EX={CREATININA:\"creat\",TFGE_REPORTADA:\"tfg\",\"TFGE REPORTADA\":\"tfg\",TFGE:\"tfg\",RAC:\"rac\",HBA1C:\"hba1c\",LDL:\"ldl\",HEMOGLOBINA:\"hb\",POTASIO:\"k\",CALCIO:\"ca\",FOSFORO:\"fos\",PTH:\"pth\",BICARBONATO:\"hco3\",ALBUMINA:\"alb\",FOSFATASA_ALCALINA:\"fa\",\"FOSFATASA ALCALINA\":\"fa\",\n  COLESTEROL_TOTAL:\"ct\",\"COLESTEROL TOTAL\":\"ct\",HDL:\"hdl\",TRIGLICERIDOS:\"tg\",GLICEMIA:\"glu\",GLUCEMIA:\"glu\",ALBUMINURIA:\"albu\",CREATININA_ORINA_24H:\"cr24\",\"CREATININA ORINA 24H\":\"cr24\",ANTI_HBS:\"ahbs\",\"ANTI HBS\":\"ahbs\",PARCIAL_ORINA:\"po\",\"PARCIAL DE ORINA\":\"po\",QUIMICO_ORINA:\"qo\",\"QUIMICO DE ORINA\":\"qo\"};\nconst EXNAME={creat:\"Creatinina\",tfg:\"TFGe reportada\",rac:\"RAC\",hba1c:\"HbA1c\",ldl:\"cLDL\",hb:\"Hemoglobina\",k:\"Potasio\",ca:\"Calcio\",fos:\"Fósforo\",pth:\"PTH\",hco3:\"Bicarbonato\",alb:\"Albúmina\",fa:\"Fosfatasa alcalina\",ct:\"Colesterol total\",hdl:\"cHDL\",tg:\"Triglicéridos\",glu:\"Glucemia basal\",albu:\"Albuminuria\",cr24:\"Creatinina en orina de 24 h\",ahbs:\"Anticuerpos anti-HBs\",po:\"Parcial de orina\",qo:\"Químico de orina\"};\nconst MED={\"NO RECIBE\":\"no\",ESTABLE:\"est\",\"INICIA O AJUSTA\":\"aj\",CONTRAINDICADO:\"ci\"};\nconst CAUSA={DIABETICA:\"dm\",HIPERTENSIVA:\"hta\",GLOMERULOPATIA:\"glom\",POLIQUISTOSIS:\"pq\",\"UROPATIA OBSTRUCTIVA\":\"uro\",TUBULOINTERSTICIAL:\"nti\",OTRA:\"otra\",\"NO ESTABLECIDA\":\"desc\"};\nconst COND={\"CONTINUA NEFROLOGIA\":\"sigue\",CONTRARREFERENCIA:\"contra\",\"PREPARACION TRR\":\"prep\",TMND:\"tmnd\"};\nconst SIT={\"SIN TRR\":\"\",\"G5 TMND\":\"tmnd\",\"G5 PREPARACION TRR\":\"trr\"};\nconst DMT={NO:\"\",\"TIPO 2\":\"2\",\"TIPO 1\":\"1\",OTRA:\"otra\"};\nconst PROFC={NEFROLOGIA:\"nefro\",\"MEDICO EXPERTO\":\"exp\",\"MEDICINA INTERNA\":\"mi\",\"MEDICINA GENERAL\":\"mg\"};\nconst RANGE={creat:[0.2,25],tfg:[1,200],rac:[0,20000],hba1c:[3,20],ldl:[5,500],hb:[3,22],k:[1.5,9],ca:[4,16],fos:[0.5,15],pth:[1,4000],hco3:[5,45],alb:[1,6.5],fa:[10,3000],ct:[50,600],hdl:[5,150],tg:[20,4000],glu:[20,900],albu:[0,20000],cr24:[0,5000],ahbs:[0,100000]};\nfunction matchEps(v){const n=norm(v);if(!n)return\"\";if(n.includes(\"FAMILIAR\"))return EPS[0];if(n.includes(\"NUEVA\"))return EPS[1];if(n.includes(\"MALLAMAS\"))return EPS[2];return\"\";}\nfunction rows(wb,name){const sn=wb.SheetNames.find(n=>norm(n)===norm(name));if(!sn)return null;return XLSX.utils.sheet_to_json(wb.Sheets[sn],{raw:true,defval:null}).map((r,i)=>{const o={_row:i+2};for(const k in r)o[key(k)]=r[k];return o;});}\nconst isEx=c=>/^EJEMPLO/i.test(String(c||\"\"));\nconst code=v=>String(v==null?\"\":v).trim();\nconst si=v=>v===true||norm(v)===\"SI\";\nconst str=v=>v==null?\"\":String(v);\n\nfunction sheetsFromWb(wb){const S={};[\"Pacientes\",\"Laboratorios\",\"Valoraciones\",\"Atenciones\",\"Novedades\",\"Jornadas\",\"Citas\",\"Citas_log\",\"Contactos\"].forEach(s=>S[s]=rows(wb,s));return S;}\nfunction parse(wb){return parseRows(sheetsFromWb(wb));}\nfunction parseRows(S){\n  const B={pac:[],lab:[],val:[],at:[],nov:[],jor:[],cit:[],clog:[],ctc:[],issues:[],missing:[]};\n  [\"Pacientes\",\"Laboratorios\",\"Valoraciones\",\"Atenciones\"].forEach(s=>{if(!S[s])B.missing.push(s);});\n  const today=new Date();const iss=(sheet,row,c,txt,lvl)=>B.issues.push({sheet,row,c,txt,lvl:lvl||\"warn\"});\n  const seen={};\n  (S.Pacientes||[]).forEach(r=>{const c=code(r.codigo);if(!c||isEx(c))return;\n    if(seen[c]){iss(\"Pacientes\",r._row,c,\"Código duplicado: se usa la primera fila\",\"bad\");return;}seen[c]=1;\n    const p={codigo:c,id:r._id||null,tipodoc:str(r.tipo_documento),doc:str(r.documento),nombre:str(r.nombre_completo),fnac:toDate(r.fecha_nacimiento),\n      sexo:norm(r.sexo)===\"F\"?\"F\":norm(r.sexo)===\"M\"?\"M\":\"\",eps:matchEps(r.eps),municipio:str(r.municipio),\n      ap1:str(r.primer_apellido),ap2:str(r.segundo_apellido),n1:str(r.primer_nombre),n2:str(r.segundo_nombre),tel:str(r.telefono||r.telefono_1),tel2:str(r.telefono_2),dir:str(r.direccion),acud:str(r.acudiente||r.acudiente_nombre),acudTel:str(r.telefono_acudiente||r.acudiente_telefono),\n      fing:toDate(r.fecha_ingreso),hta:si(r.hta),dmTipo:DMT[norm(r.diabetes)]||\"\",ecv:si(r.enfermedad_cardiovascular),causa:CAUSA[norm(r.causa_erc)]||\"\",\n      terapia:SIT[norm(r.situacion_renal)]||\"\",estado:norm(r.estado)||\"ACTIVO\",festado:toDate(r.fecha_estado),correo:str(r.correo),obs:str(r.observaciones)};\n    if(!p.fnac)iss(\"Pacientes\",r._row,c,\"Sin fecha de nacimiento: no se puede calcular edad ni TFGe\",\"bad\");\n    if(!p.sexo)iss(\"Pacientes\",r._row,c,\"Sin sexo: no se puede calcular TFGe\",\"bad\");\n    if(!p.eps)iss(\"Pacientes\",r._row,c,\"EPS vacía o no reconocida (\"+(r.eps||\"vacía\")+\")\");\n    if(!p.tel&&!p.tel2&&!p.acudTel&&p.estado===\"ACTIVO\")iss(\"Pacientes\",r._row,c,\"Sin teléfono de contacto\",\"warn\");\n    if(!p.hta&&!p.dmTipo&&!p.causa)iss(\"Pacientes\",r._row,c,\"Sin HTA, DM ni causa de ERC registradas\",\"info\");\n    B.pac.push(p);});\n  (S.Laboratorios||[]).forEach(r=>{const c=code(r.codigo);if(!c||isEx(c))return;\n    if(!seen[c]){iss(\"Laboratorios\",r._row,c,\"El código no existe en Pacientes\",\"bad\");return;}\n    const k=EX[norm(r.examen)],f=toDate(r.fecha),v=toNum(r.valor);\n    if(!k){iss(\"Laboratorios\",r._row,c,\"Examen no reconocido: \"+(r.examen||\"vacío\"));return;}\n    if(!f){iss(\"Laboratorios\",r._row,c,\"Fecha vacía o inválida\");return;}\n    if(f>today)iss(\"Laboratorios\",r._row,c,\"Fecha futura (\"+NP.fd(f)+\")\",\"bad\");\n    if(v==null&&(k===\"po\"||k===\"qo\")){if(r.valor==null||String(r.valor).trim()===\"\"){iss(\"Laboratorios\",r._row,c,\"Resultado vacío\");return;}B.lab.push({c,fecha:f,k,v:String(r.valor).trim(),id:r._id||null,txt:true});return;}\n    if(v==null){iss(\"Laboratorios\",r._row,c,\"Valor no numérico: \"+(r.valor==null?\"vacío\":r.valor),\"bad\");return;}\n    const rg=RANGE[k];if(rg&&(v<rg[0]||v>rg[1]))iss(\"Laboratorios\",r._row,c,EXNAME[k]+\" \"+v+\" fuera de rango plausible: verifique valor y unidad\",\"bad\");\n    B.lab.push({c,fecha:f,k,v,id:r._id||null});});\n  (S.Valoraciones||[]).forEach(r=>{const c=code(r.codigo);if(!c||isEx(c))return;\n    if(!seen[c]){iss(\"Valoraciones\",r._row,c,\"El código no existe en Pacientes\",\"bad\");return;}\n    const f=toDate(r.fecha);if(!f){iss(\"Valoraciones\",r._row,c,\"Fecha vacía o inválida\");return;}\n    B.val.push({c,id:r._id||null,fecha:f,prof:norm(r.profesional),tipo:norm(r.tipo),pas:toNum(r.pa_sistolica),pad:toNum(r.pa_diastolica),peso:toNum(r.peso_kg),talla:toNum(r.talla_cm),cint:toNum(r.cintura_cm),\n      raas:MED[norm(r.ieca_ara_ii)]||\"no\",sglt2:MED[norm(r.isglt2)]||\"no\",stat:MED[norm(r.estatina)]||\"no\",fin:MED[norm(r.finerenona)]||\"no\",dmAj:si(r.ajuste_dm),htaRes:si(r.hta_resistente),cron:si(r.cronicidad_en_hc),\n      conducta:COND[norm(r.conducta)]||\"\",causa:CAUSA[norm(r.causa_erc)]||\"\",sf1:r.salud_autopercibida?str(r.salud_autopercibida):\"\",kps:toNum(r.karnofsky),prox:toDate(r.proximo_control),\n      tab:r.tabaquismo==null||r.tabaquismo===\"\"?null:si(r.tabaquismo),antiHTA:r.antihipertensivo==null||r.antihipertensivo===\"\"?null:si(r.antihipertensivo)});});\n  (S.Atenciones||[]).forEach(r=>{const c=code(r.codigo);if(!c||isEx(c))return;\n    if(!seen[c]){iss(\"Atenciones\",r._row,c,\"El código no existe en Pacientes\",\"bad\");return;}\n    const f=toDate(r.fecha);if(!f){iss(\"Atenciones\",r._row,c,\"Fecha vacía o inválida\");return;}\n    B.at.push({c,id:r._id||null,fecha:f,dis:norm(r.disciplina),estado:norm(r.estado)||\"REALIZADA\"});});\n  (S.Novedades||[]).forEach(r=>{const c=code(r.codigo);if(!c||isEx(c))return;const f=toDate(r.fecha);if(!f)return;B.nov.push({c,fecha:f,tipo:norm(r.tipo),det:str(r.detalle)});});\n  /* Agenda: jornadas, citas, bitácora y contactos (hojas opcionales) */\n  (S.Jornadas||[]).forEach(r=>{const id=str(r.id_jornada).trim(),f=toDate(r.fecha);if(!id||!f){if(id||f)iss(\"Jornadas\",r._row,id,\"Jornada sin ID o sin fecha\");return;}\n    B.jor.push({id,fecha:f,serv:norm(r.servicio)||\"NEFROLOGIA\",prof:str(r.profesional),hIni:hm(r.hora_inicio)||\"07:00\",hFin:hm(r.hora_fin)||\"12:00\",dur:toNum(r.duracion_cupo_min)||20,nAg:toNum(r.agendas_simultaneas)===2?2:1,estado:norm(r.estado)||\"ABIERTA\",motivo:str(r.motivo_cancelacion),obs:str(r.observaciones),usuario:str(r.usuario),reg:str(r.registrado)});});\n  const jids=new Set(B.jor.map(j=>j.id));\n  (S.Citas||[]).forEach(r=>{const id=str(r.id_cita).trim(),c=code(r.codigo),f=toDate(r.fecha);if(!id&&!c)return;\n    if(!id||!c||!f){iss(\"Citas\",r._row,c,\"Cita sin ID, código o fecha\",\"bad\");return;}\n    if(!seen[c]){iss(\"Citas\",r._row,c,\"El código no existe en Pacientes\",\"bad\");return;}\n    if(!jids.has(str(r.id_jornada)))iss(\"Citas\",r._row,c,\"La cita \"+id+\" apunta a una jornada que no existe\");\n    const est=norm(r.estado)||\"ASIGNADA\";\n    B.cit.push({id,c,jor:str(r.id_jornada),fecha:f,hora:hm(r.hora),ag:str(r.agenda)||\"A\",serv:norm(r.servicio),tipo:norm(r.tipo),origen:norm(r.origen),fSol:toDate(r.fecha_solicitud),fDes:toDate(r.fecha_deseada),fAsig:toDate(r.fecha_asignacion),estado:est,conf:norm(r.confirmacion),hLleg:hm(r.hora_llegada),hAten:hm(r.hora_atencion),resp:norm(r.responsable),motivo:str(r.motivo),avisoH:toNum(r.aviso_horas),deId:str(r.cita_anterior),reId:str(r.reprogramada_en),obs:str(r.observaciones),usuario:str(r.usuario),act:str(r.actualizado)});});\n  (S.Citas_log||[]).forEach(r=>{if(!r.id&&!r.accion)return;B.clog.push({fh:str(r.fecha_y_hora),id:str(r.id),c:str(r.codigo),acc:str(r.accion),de:str(r.estado_anterior),a:str(r.estado_nuevo),motivo:str(r.motivo),usuario:str(r.usuario)});});\n  (S.Contactos||[]).forEach(r=>{if(!r.codigo)return;B.ctc.push({fh:str(r.fecha_y_hora),c:code(r.codigo),cita:str(r.id_cita),medio:norm(r.medio),res:norm(r.resultado),obs:str(r.observaciones),usuario:str(r.usuario)});});\n  B.L=idxBy(B.lab);B.V=idxBy(B.val);B.N=idxBy(B.nov);B.C={};B.atBase=B.at;reindexCitas(B);\n  return B;\n}\nconst idxBy=(arr)=>{const o={};arr.forEach(x=>{(o[x.c]=o[x.c]||[]).push(x);});for(const k in o)o[k].sort((a,b)=>a.fecha-b.fecha);return o;};\nfunction hm(v){if(v==null||v===\"\")return\"\";if(typeof v===\"number\"){if(v>=0&&v<1){const m=Math.round(v*1440);return String(Math.floor(m/60)).padStart(2,\"0\")+\":\"+String(m%60).padStart(2,\"0\");}return\"\";}\n  if(v instanceof Date)return String(v.getHours()).padStart(2,\"0\")+\":\"+String(v.getMinutes()).padStart(2,\"0\");const m=/^(\\d{1,2}):(\\d{2})/.exec(String(v).trim());return m?m[1].padStart(2,\"0\")+\":\"+m[2]:\"\";}\n/* Una cita atendida cuenta como atención realizada de su disciplina: la hoja Citas es la fuente; no se duplica en Atenciones */\nconst SERV2DIS={NEFROLOGIA:\"NEFROLOGIA\",NUTRICION:\"NUTRICION\",ENFERMERIA:\"ENFERMERIA\",PSICOLOGIA:\"PSICOLOGIA\",\"TRABAJO SOCIAL\":\"TRABAJO SOCIAL\",EDUCACION:\"EDUCACION\",\"SOPORTE PALIATIVO\":\"SOPORTE PALIATIVO\",\"QUIMICA FARMACEUTICA\":\"QUIMICA FARMACEUTICA\",\"MEDICO EXPERTO\":\"MEDICO EXPERTO\",\"MEDICO PROGRAMA\":\"MEDICINA GENERAL\"};\nfunction reindexCitas(B){B.CI=idxBy(B.cit);const der=[];B.cit.forEach(x=>{if(x.estado!==\"ATENDIDA\")return;let dis=SERV2DIS[x.serv];if(x.serv===\"VACUNACION\")dis=/INFLUENZA/.test(x.tipo||\"\")?\"VACUNA INFLUENZA\":null;if(dis)der.push({c:x.c,fecha:x.fecha,dis,estado:\"REALIZADA\",cita:x.id});});B.at=(B.atBase||[]).concat(der);B.A=idxBy(B.at);}\n/* Base de datos (PostgREST) -> mismas estructuras que el libro */\nfunction fromApi(D){\n  const epsN={};D.eps.forEach(e=>epsN[e.id]=e.nombre);const byId={};D.pac.forEach(p=>byId[p.id]=p.codigo);\n  const yn=b=>b==null?\"\":(b?\"SI\":\"NO\");\n  const S={\n    Pacientes:D.pac.map((p,i)=>({_row:\"id \"+p.id,_id:p.id,codigo:p.codigo,tipo_documento:p.tipo_documento,documento:p.documento,nombre_completo:p.nombre_completo,fecha_nacimiento:p.fecha_nacimiento,sexo:p.sexo,eps:epsN[p.eps_id]||\"\",municipio:p.municipio,telefono_1:p.telefono_1,telefono_2:p.telefono_2,direccion:p.direccion,acudiente_nombre:p.acudiente_nombre,acudiente_telefono:p.acudiente_telefono,fecha_ingreso:p.fecha_ingreso,hta:yn(p.hta),diabetes:p.diabetes,enfermedad_cardiovascular:yn(p.enf_cardiovascular),causa_erc:p.causa_erc,situacion_renal:p.situacion_renal,estado:p.estado,fecha_estado:p.fecha_estado,correo:p.correo,observaciones:p.observaciones})),\n    Laboratorios:D.lab.map(l=>({_row:\"id \"+l.id,_id:l.id,codigo:byId[l.paciente_id],fecha:l.fecha_toma,examen:l.examen,valor:Number(l.valor)})),\n    Valoraciones:D.val.map(v=>({_row:\"id \"+v.id,_id:v.id,codigo:byId[v.paciente_id],fecha:v.fecha,profesional:v.profesional,tipo:v.tipo,pa_sistolica:v.pa_sistolica,pa_diastolica:v.pa_diastolica,peso_kg:v.peso_kg==null?null:Number(v.peso_kg),talla_cm:v.talla_cm==null?null:Number(v.talla_cm),cintura_cm:v.cintura_cm==null?null:Number(v.cintura_cm),ieca_ara_ii:v.ieca_ara_ii,isglt2:v.isglt2,estatina:v.estatina,finerenona:v.finerenona,ajuste_dm:yn(v.ajuste_dm),hta_resistente:yn(v.hta_resistente),cronicidad_en_hc:yn(v.cronicidad_en_hc),conducta:v.conducta,causa_erc:v.causa_erc,salud_autopercibida:v.salud_autopercibida,karnofsky:v.karnofsky,proximo_control:v.proximo_control})),\n    Atenciones:D.at.map(a=>({_row:\"id \"+a.id,_id:a.id,codigo:byId[a.paciente_id],fecha:a.fecha,disciplina:a.disciplina,estado:a.estado})),\n    Novedades:D.nov.map(n=>({_row:\"id \"+n.id,codigo:byId[n.paciente_id],fecha:n.fecha,tipo:n.tipo,detalle:n.detalle}))};\n  const B=parseRows(S);B.ids={};D.pac.forEach(p=>B.ids[p.codigo]=p.id);B.epsIds={};D.eps.forEach(e=>B.epsIds[e.nombre]=e.id);\n  (D.con||[]).forEach(x=>{const c=byId[x.paciente_id];if(!c)return;(B.C[c]=B.C[c]||[]).push({fecha:new Date(x.fecha_hora),medio:x.medio,resultado:x.resultado,cita:toDate(x.cita_fecha),obs:[x.motivo,x.observaciones].filter(Boolean).join(\" · \")});});\n  for(const k in B.C)B.C[k].sort((a,b)=>a.fecha-b.fecha);\n  return B;\n}\n\nconst LABKEYS={creat:[\"creat\",\"tfg\"],rac:[\"rac\"],k:[\"k\"],hba1c:[\"hba1c\"],ldl:[\"ldl\",\"ct\",\"hdl\"],hb:[\"hb\"],cap:[\"fos\",\"ca\"],pth:[\"pth\"],fa:[\"fa\"],hco3:[\"hco3\"],alb:[\"alb\"]};\nconst ATK={nut:\"NUTRICION\",edu:\"EDUCACION\",enf:\"ENFERMERIA\",psi:\"PSICOLOGIA\",ts:\"TRABAJO SOCIAL\",nefro:\"NEFROLOGIA\",flu:\"VACUNA INFLUENZA\",rcv:\"RCV\",desnut:\"TAMIZAJE DESNUTRICION\",paliativo:\"SOPORTE PALIATIVO\"};\nconst age=(fnac,dt)=>fnac?Math.floor(NP.days(fnac,dt)/365.25):null;\n\nfunction snapshot(p,B,corte,opts){\n  opts=opts||{};\n  const labs=(B.L[p.codigo]||[]).filter(l=>l.fecha<=corte);\n  const by={};labs.forEach(l=>{(by[l.k]=by[l.k]||[]).push(l);});\n  const last=k=>by[k]&&by[k].length?by[k][by[k].length-1]:null;\n  const lastD=ks=>{let m=null;ks.forEach(k=>{const l=last(k);if(l&&(!m||l.fecha>m))m=l.fecha;});return m;};\n  const tf=[];(by.creat||[]).forEach(l=>{const a=age(p.fnac,l.fecha);if(a!=null&&p.sexo)tf.push({fecha:l.fecha,v:NP.ckd(l.v,a,p.sexo===\"F\"),cr:l.v});});\n  (by.tfg||[]).forEach(l=>tf.push({fecha:l.fecha,v:l.v,cr:null}));tf.sort((a,b)=>a.fecha-b.fecha);\n  const tl=tf.length?tf[tf.length-1]:null;\n  const tprev=tl?[...tf].reverse().find(x=>NP.days(x.fecha,tl.fecha)>=90):null;\n  const rl=last(\"rac\");const rprev=rl?[...by.rac].reverse().find(x=>NP.days(x.fecha,rl.fecha)>=90):null;\n  const vals=(B.V[p.codigo]||[]).filter(v=>v.fecha<=corte);const lv=vals.length?vals[vals.length-1]:null;\n  const nv=vals.filter(v=>v.prof===\"NEFROLOGIA\");const lnef=nv.length?nv[nv.length-1]:null;\n  const ats=(B.A[p.codigo]||[]).filter(a=>a.fecha<=corte&&a.estado===\"REALIZADA\");\n  const lastAt=dis=>{let m=null;ats.forEach(a=>{if(a.dis===dis&&(!m||a.fecha>m))m=a.fecha;});if(dis===\"NEFROLOGIA\"&&lnef&&(!m||lnef.fecha>m))m=lnef.fecha;return m;};\n  const within=(dt,dd)=>!!dt&&NP.days(dt,corte)<=dd;\n  const fLab=tl?tl.fecha:(rl?rl.fecha:corte);\n  const lvOk=lv&&within(lv.fecha,365);\n  const LD={};[\"creat\",\"tfg\",\"rac\",\"hba1c\",\"ldl\",\"ct\",\"hdl\",\"tg\",\"glu\",\"hb\",\"k\",\"ca\",\"fos\",\"pth\",\"hco3\",\"alb\",\"fa\"].forEach(k=>{const l=last(k);if(l)LD[k]=l.fecha;});\n  if(tl&&tl.cr==null)LD.tfg=tl.fecha;\n  const lv1=k=>{const l=last(k);return l?l.v:null;};\n  const d={pid:p.codigo,edad:age(p.fnac,corte),sexo:p.sexo,eps:p.eps,epsModel:(window.EPSMODEL||{})[p.eps]||{},fCons:corte,fLab,labDates:LD,hta:p.hta,dmTipo:p.dmTipo,dm:p.dmTipo!==\"\",ecv:p.ecv,otrosAnt:\"\",terapia:p.terapia,\n    modo:tl&&tl.cr!=null?\"creat\":\"tfg\",creat:tl?tl.cr:null,tfg:tl?tl.v:null,rac:rl?rl.v:null,otros:[],\n    tfgPrev:tprev?tprev.v:null,racPrev:(!tprev&&rprev)?rprev.v:null,fPrev:tprev?tprev.fecha:(rprev?rprev.fecha:null),cronHC:!!(lv&&lv.cron),agudo:false,\n    pas:lvOk?lv.pas:null,pad:lvOk?lv.pad:null,hba1c:lv1(\"hba1c\"),ldl:lv1(\"ldl\"),imc:(lvOk&&lv.peso&&lv.talla)?lv.peso/Math.pow(lv.talla/100,2):null,cint:lvOk?lv.cint:null,peso:lvOk?lv.peso:null,\n    hb:lv1(\"hb\"),k:lv1(\"k\"),ca:lv1(\"ca\"),fos:lv1(\"fos\"),pth:lv1(\"pth\"),hco3:lv1(\"hco3\"),alb:lv1(\"alb\"),fa:lv1(\"fa\"),ct:lv1(\"ct\"),hdl:lv1(\"hdl\"),tg:lv1(\"tg\"),glu:lv1(\"glu\"),tab:!!(lv&&lv.tab),antiHTA:!!(lv&&lv.antiHTA),\n    meds:lv?{raas:lv.raas,sglt2:lv.sglt2,stat:lv.stat,fin:lv.fin}:{raas:\"no\",sglt2:\"no\",stat:\"no\",fin:\"no\"},\n    dmAj:!!(lv&&lv.dmAj),htaRes:!!(lv&&lv.htaRes),sint:[],sf1:lv?lv.sf1:\"\",kps:lv?lv.kps:null,\n    prof:lnef?\"nefro\":(lv?(PROFC[lv.prof]||\"\"):\"\"),tipo:lv?\"control\":\"primera\",causa:(lv&&lv.causa)||p.causa,conducta:lnef?lnef.conducta:\"\",\n    at:{nefro:within(lastAt(\"NEFROLOGIA\"),365),nut:within(lastAt(\"NUTRICION\"),365),enf:within(lastAt(\"ENFERMERIA\"),365),psi:within(lastAt(\"PSICOLOGIA\"),365),ts:within(lastAt(\"TRABAJO SOCIAL\"),365),edu:within(lastAt(\"EDUCACION\"),365),flu:within(lastAt(\"VACUNA INFLUENZA\"),365),rcv:within(lastAt(\"RCV\"),365)}};\n  if(opts.formOnly)return{p,d,tl,tprev,rl,rprev,lv,by,last};\n  const c=NP.classify(d),P=NP.plan(d,c);\n  /* Agenda de gestión: fecha límite = último registro de esa actividad + intervalo */\n  const items=[];const ctlRow=P.rows.find(r=>r.key===\"ctl\");let ctlDue=null;\n  const mxD=(a,b)=>!a?b:!b?a:(a>b?a:b);\n  const lastCita=sv=>{let m=null;((B.CI||{})[p.codigo]||[]).forEach(c=>{if(c.estado===\"ATENDIDA\"&&c.fecha<=corte&&sv.includes(c.serv)&&(!m||c.fecha>m))m=c.fecha;});return m;};\n  P.rows.forEach(r=>{\n    const k=r.key;\n    if(k===\"ctl\"){const base=mxD(d.prof===\"nefro\"&&lnef?lnef.fecha:(lv?lv.fecha:null),lastCita(/nefrolog/i.test(r.act)?[\"NEFROLOGIA\"]:[\"NEFROLOGIA\",\"MEDICO EXPERTO\",\"MEDICO PROGRAMA\"]));ctlDue=base?NP.addMonths(base,r.m):null;items.push({k,tipo:\"Atención\",grp:\"Médico\",nombre:r.act,last:base,due:ctlDue,why:r.why});return;}\n    if(k===\"experto\"||k===\"ajuste\"){const base=mxD(lv?lv.fecha:null,lastCita([\"NEFROLOGIA\",\"MEDICO EXPERTO\",\"MEDICO PROGRAMA\"]));const due=base?NP.addMonths(base,r.m):null;if(k===\"experto\"&&due&&ctlDue&&Math.abs(NP.days(due,ctlDue))<=20)return;items.push({k,tipo:\"Atención\",grp:\"Médico\",nombre:r.act,last:base,due,why:r.why});return;}\n    if(k===\"postaj\"){if(lv&&[\"raas\",\"sglt2\",\"fin\"].some(x=>lv[x]===\"aj\")){const cd=lastD([\"creat\",\"tfg\"]);if(!cd||cd<=lv.fecha)items.push({k,tipo:\"Laboratorio\",nombre:\"Control post-ajuste (PA, creatinina, potasio)\",last:lv.fecha,due:NP.addDays(lv.fecha,(P.wk||4)*7),why:r.why});}return;}\n    if(k===\"ldl\"&&r.wk){if(lv&&lv.stat===\"aj\"){const ld=lastD([\"ldl\"]);if(!ld||ld<=lv.fecha)items.push({k,tipo:\"Laboratorio\",nombre:\"Perfil lipídico (8 semanas post-ajuste)\",last:lv.fecha,due:NP.addDays(lv.fecha,56),why:r.why});}return;}\n    if(LABKEYS[k]&&(r.m||r.wk)){const ld=lastD(LABKEYS[k]);items.push({k,tipo:\"Laboratorio\",nombre:r.act,last:ld,due:ld?(r.now?(r.due0||r.dt):r.dt):null,why:r.why});return;}\n    if(ATK[k]&&r.m){let ld=lastAt(ATK[k]);let due=ld?NP.addMonths(ld,r.m):null;if(/Con cada valoración/.test(r.cada))due=ctlDue;items.push({k,tipo:\"Atención\",grp:\"Equipo\",nombre:r.act,last:ld,due,why:r.why});}\n  });\n  /* Indicadores: consenso CAC 2025 (tabla 2, 47 indicadores) con sus poblaciones (tabla 1) + KFRE institucional */\n  const w=(ks,dd)=>within(lastD(ks),dd);\n  const inUse=k=>[\"est\",\"aj\"].includes(d.meds[k]);\n  const ind={};const I=(code,applies,ok,det)=>{if(applies)ind[code]={ok:!!ok,det:det||\"\"};};\n  const G=c.G,g3=G===\"G3a\"||G===\"G3b\",g4=G===\"G4\",g5=G===\"G5\",g35=g3||g4||g5;\n  const fdt=x=>x?NP.fd(x.fecha):\"sin registro\";\n  const lastIn=(k,dd)=>{const l=last(k);return l&&within(l.fecha,dd)?l:null;};\n  const vtxt=(nm,l,u)=>l?nm+\" \"+String(l.v).replace(\".\",\",\")+(u||\"\")+\" (\"+NP.fd(l.fecha)+\")\":\"sin \"+nm+\" en la ventana\";\n  /* tipo de población CAC (tabla 1): PG siempre; DM y HTA por diagnóstico; «solo»/«HTA y DM» sin ERC; estadio con TFGe CKD-EPI 2021 */\n  const ercSi=c.erc===\"si\";let stp=null;\n  if(G===\"G3a\")stp=\"ERC3a\";else if(G===\"G3b\")stp=\"ERC3b\";else if(G===\"G4\")stp=\"ERC4\";else if(G===\"G5\")stp=d.terapia===\"tmnd\"?\"ERC5T\":\"ERC5\";else if((G===\"G1\"||G===\"G2\")&&ercSi)stp=\"ERC12\";\n  const pops=[\"PG\"];if(d.dm)pops.push(\"DM\");if(d.hta)pops.push(\"HTA\");\n  if(!stp){if(d.dm&&!d.hta)pops.push(\"SDM\");if(d.hta&&!d.dm)pops.push(\"SHTA\");if(d.hta&&d.dm)pops.push(\"HDM\");}else pops.push(stp);\n  const inPop=Lp=>Lp.some(x=>pops.includes(x));const S35=[\"ERC3a\",\"ERC3b\",\"ERC4\",\"ERC5\",\"ERC5T\"],E3=[\"ERC3a\",\"ERC3b\"],E5=[\"ERC5\",\"ERC5T\"];\n  /* par de TFGe para pérdida de función: última del año y la más antigua dentro de los 12 meses previos, separadas ≥ 90 días; TFGe > 90 se registra como 90 (CAC) */\n  const tLast=tl&&within(tl.fecha,365)?tl:null;\n  const tPrev=tLast?tf.filter(x=>NP.days(x.fecha,tLast.fecha)>=90&&NP.days(x.fecha,tLast.fecha)<=365)[0]||null:null;\n  const caida=tLast&&tPrev?Math.min(tPrev.v,90)-Math.min(tLast.v,90):null;\n  const pas=lv&&within(lv.fecha,180)&&lv.pas!=null?lv:null;const age80=d.edad!=null&&d.edad<=80;\n  const paTxt=pas?\"PA \"+pas.pas+\"/\"+pas.pad+\" (\"+NP.fd(pas.fecha)+\")\":\"sin PA en el último semestre\";\n  I(\"nefro_01\",inPop([\"PG\",\"HTA\",\"SHTA\",\"ERC12\"])&&age80,pas&&pas.pas<140&&pas.pad<90,paTxt);\n  I(\"nefro_01_1\",inPop([\"DM\",\"SDM\",\"HDM\"].concat(S35))&&age80,pas&&pas.pas<130&&pas.pad<80,paTxt);\n  const h6=lastIn(\"hba1c\",180);\n  I(\"nefro_02\",d.dm,!!h6,h6?\"última \"+NP.fd(h6.fecha):\"sin HbA1c en 6 meses\");\n  I(\"nefro_03\",d.dm&&inPop([\"DM\",\"HTA\",\"SDM\",\"HDM\",\"ERC12\"]),h6&&h6.v<7,vtxt(\"HbA1c\",h6,\" %\"));\n  I(\"nefro_12\",d.dm&&inPop(S35),h6&&h6.v<8,vtxt(\"HbA1c\",h6,\" %\"));\n  const l12=lastIn(\"ldl\",365);\n  I(\"nefro_04\",true,!!l12,l12?\"último \"+NP.fd(l12.fecha):\"sin cLDL en el año\");\n  I(\"nefro_05\",inPop([\"PG\",\"DM\",\"HTA\",\"SDM\",\"SHTA\",\"HDM\",\"ERC12\"]),l12&&l12.v<=100,vtxt(\"cLDL\",l12));\n  I(\"nefro_05_1\",inPop(S35),l12&&l12.v<=70,vtxt(\"cLDL\",l12));\n  const cr12=w([\"creat\",\"tfg\"],365);\n  I(\"nefro_06\",inPop([\"PG\",\"DM\",\"HTA\",\"SDM\",\"SHTA\",\"HDM\",\"ERC12\"]),cr12,\"última \"+(tl?NP.fd(tl.fecha):\"sin registro\"));\n  I(\"nefro_13\",inPop(S35),w([\"creat\",\"tfg\"],90),\"última \"+(tl?NP.fd(tl.fecha):\"sin registro\"));\n  I(\"nefro_07_1\",true,w([\"rac\"],365),\"última RAC \"+fdt(last(\"rac\")));\n  const imcOk=lv&&within(lv.fecha,365)&&lv.peso&&lv.talla?lv.peso/Math.pow(lv.talla/100,2):null;\n  I(\"nefro_08\",true,imcOk!=null&&imcOk>=20&&imcOk<=25,imcOk!=null?\"IMC \"+imcOk.toFixed(1).replace(\".\",\",\"):\"sin peso y talla en el año\");\n  I(\"nefro_10\",caida!=null,caida!=null&&caida<=5,caida!=null?\"TFGe \"+Math.round(Math.min(tPrev.v,90))+\" (\"+NP.fd(tPrev.fecha)+\") → \"+Math.round(Math.min(tLast.v,90))+\" (\"+NP.fd(tLast.fecha)+\"): \"+(Math.abs(caida)<0.05?\"sin cambio\":(caida>0?\"pierde \":\"gana \")+String(Math.abs(Math.round(caida*10)/10)).replace(\".\",\",\")+\" ml/min\"):\"\");\n  const hb6=lastIn(\"hb\",180),hb3=lastIn(\"hb\",90);\n  I(\"nefro_14_1\",inPop(E3),!!hb6,\"última Hb \"+fdt(last(\"hb\")));\n  I(\"nefro_15_1\",inPop(E3),hb6&&hb6.v>10,vtxt(\"Hb\",hb6,\" g/dL\"));\n  I(\"nefro_16_1\",inPop([\"ERC4\"].concat(E5)),!!hb3,\"última Hb \"+fdt(last(\"hb\")));\n  I(\"nefro_17_1\",inPop([\"ERC4\"].concat(E5)),hb3&&hb3.v>10,vtxt(\"Hb\",hb3,\" g/dL\"));\n  const p12=lastIn(\"pth\",365),p6=lastIn(\"pth\",180),p3=lastIn(\"pth\",90);\n  I(\"nefro_18\",inPop(E3),!!p12,\"última PTH \"+fdt(last(\"pth\")));\n  I(\"nefro_19\",inPop(E3),p12&&p12.v>=35&&p12.v<=70,vtxt(\"PTH\",p12));\n  I(\"nefro_20\",inPop([\"ERC4\"]),!!p6,\"última PTH \"+fdt(last(\"pth\")));\n  I(\"nefro_21\",inPop([\"ERC4\"]),p6&&p6.v>=70&&p6.v<=110,vtxt(\"PTH\",p6));\n  I(\"nefro_22\",inPop(E5),!!p3,\"última PTH \"+fdt(last(\"pth\")));\n  I(\"nefro_23\",inPop(E5),p3&&p3.v>=150&&p3.v<=300,vtxt(\"PTH\",p3));\n  const f12=lastIn(\"fos\",365),f6=lastIn(\"fos\",180),f3=lastIn(\"fos\",90);\n  I(\"nefro_24\",inPop(E3),!!f12,\"último fósforo \"+fdt(last(\"fos\")));\n  I(\"nefro_25\",inPop(E3),f12&&f12.v>=2.7&&f12.v<=4.6,vtxt(\"fósforo\",f12));\n  I(\"nefro_24_1\",inPop([\"ERC4\"]),!!f6,\"último fósforo \"+fdt(last(\"fos\")));\n  I(\"nefro_25_1\",inPop([\"ERC4\"]),f6&&f6.v>=2.7&&f6.v<=4.6,vtxt(\"fósforo\",f6));\n  I(\"nefro_24_2\",inPop(E5),!!f3,\"último fósforo \"+fdt(last(\"fos\")));\n  I(\"nefro_26_1\",inPop(E5),f3&&f3.v>=2.7&&f3.v<=5.5,vtxt(\"fósforo\",f3));\n  const a12=lastIn(\"alb\",365),a6=lastIn(\"alb\",180);\n  I(\"nefro_27\",inPop(E3),!!a12,\"última albúmina \"+fdt(last(\"alb\")));\n  I(\"nefro_28\",inPop(E3),a12&&a12.v>=4,vtxt(\"albúmina\",a12,\" g/dL\"));\n  I(\"nefro_27_1\",inPop([\"ERC4\"].concat(E5)),!!a6,\"última albúmina \"+fdt(last(\"alb\")));\n  I(\"nefro_28_1\",inPop([\"ERC4\"].concat(E5)),a6&&a6.v>=4,vtxt(\"albúmina\",a6,\" g/dL\"));\n  I(\"nefro_29\",inPop(S35)&&d.edad!=null&&d.edad>=50,inUse(\"stat\"),\"estatina: \"+(NP.MEDST[d.meds.stat]||\"sin dato\"));\n  const ct12=lastIn(\"ct\",365),hd12=lastIn(\"hdl\",365);const nh=ct12&&hd12?ct12.v-hd12.v:null;\n  I(\"nefro_30\",true,nh!=null&&nh<100,nh!=null?\"no-HDL \"+Math.round(nh)+\" mg/dL\":\"sin colesterol total y HDL en el año\");\n  const cint=lv&&within(lv.fecha,365)&&lv.cint!=null?lv.cint:null;\n  I(\"nefro_31\",true,cint!=null&&!!p.sexo&&cint<(p.sexo===\"M\"?94:80),cint!=null?\"cintura \"+cint+\" cm\":\"sin cintura en el año\");\n  I(\"nefro_32\",true,d.at.flu,d.at.flu?\"\":\"sin vacuna en 12 meses\");\n  const cr33=[];if((d.hta||d.dm)&&d.tfg!=null&&d.tfg<30)cr33.push(\"TFGe < 30\");if(ercSi&&d.rac!=null&&d.rac>300)cr33.push(\"RAC > 300\");if(ercSi&&caida!=null&&caida>5)cr33.push(\"caída > 5 ml/min en un año\");\n  I(\"nefro_33\",cr33.length>0,d.at.nefro,cr33.join(\", \")+(d.at.nefro?\"\":\" · sin nefrología en 12 meses\"));\n  I(\"nefro_34\",inPop([\"ERC12\",\"ERC3a\",\"ERC3b\",\"ERC4\"])&&(d.hta||d.dm)&&d.rac!=null&&d.rac>30,inUse(\"raas\"),\"IECA/ARA II: \"+(NP.MEDST[d.meds.raas]||\"sin dato\"));\n  I(\"nefro_35\",inPop([\"PG\",\"DM\",\"HTA\",\"SDM\",\"SHTA\",\"HDM\",\"ERC12\"]),cr12,\"última TFGe \"+(tl?NP.fd(tl.fecha):\"sin registro\"));\n  I(\"nefro_36\",inPop([\"ERC3a\",\"ERC3b\",\"ERC4\"]),w([\"creat\",\"tfg\"],180),\"última TFGe \"+(tl?NP.fd(tl.fecha):\"sin registro\"));\n  I(\"nefro_37\",inPop(E5),w([\"creat\",\"tfg\"],90),\"última TFGe \"+(tl?NP.fd(tl.fecha):\"sin registro\"));\n  I(\"nefro_38\",inPop([\"ERC12\",\"ERC3a\",\"ERC3b\",\"ERC4\"])&&d.dmTipo===\"2\"&&d.tfg!=null&&d.tfg>=20,inUse(\"sglt2\"),\"iSGLT2: \"+(NP.MEDST[d.meds.sglt2]||\"sin dato\"));\n  I(\"nefro_39\",true,w([\"creat\",\"tfg\"],365)&&w([\"rac\"],365),(!w([\"creat\",\"tfg\"],365)?\"sin TFGe en 12 meses \":\"\")+(!w([\"rac\"],365)?\"sin RAC en 12 meses\":\"\"));\n  I(\"nefro_40\",inPop(S35),d.at.nut&&d.at.enf&&d.at.psi&&d.at.ts,[[\"nut\",\"nutrición\"],[\"enf\",\"enfermería\"],[\"psi\",\"psicología\"],[\"ts\",\"trabajo social\"]].filter(x=>!d.at[x[0]]).map(x=>\"falta \"+x[1]).join(\", \"));\n  I(\"nefro_41\",inPop([\"ERC12\"].concat(S35)),d.at.edu,d.at.edu?\"\":\"sin educación en 12 meses\");\n  I(\"nefro_42\",true,d.at.rcv,d.at.rcv?\"\":\"sin RCV en 12 meses\");\n  /* institucional */\n  I(\"KFRE_DOC\",g35&&!c.conserv,!!c.kfre&&w([\"rac\"],365)&&!!tLast,c.kfre?\"KFRE 2 años \"+(Math.round(c.kfre.r2*1000)/10)+\" %\"+(w([\"rac\"],365)?\"\":\" · RAC de más de 12 meses\"):\"no calculable: \"+(!last(\"rac\")?\"sin RAC\":!d.edad||!d.sexo?\"falta edad o sexo\":\"faltan datos\"));\n  /* intervalo de cada ítem (para el calendario) */\n  items.forEach(it=>{const r=P.rows.find(x=>x.key===it.k);if(r){it.m=r.m;it.wk=r.wk;it.tag=r.tag;it.cada=r.cada;}});\n  /* riesgo cardiovascular con el último dato (CT y HDL del año, PA del semestre) */\n  const rcv=RCV.evalAll({sexo:p.sexo,edad:d.edad,pas:pas?pas.pas:null,ct:ct12?ct12.v:null,hdl:hd12?hd12.v:null,tab:lv&&lv.tab!=null?lv.tab:null,dm:d.dm,ecv:p.ecv,antiHTA:lv&&lv.antiHTA!=null?lv.antiHTA:null,tfg:d.tfg,rac:d.rac,tfgG5:g5});\n  return{p,d,c,P,lv,lnef,items,ind,pops,rcv,last,tl,rl,lastLab:lastD([\"creat\",\"tfg\"]),inas:(B.A[p.codigo]||[]).filter(a=>a.estado===\"INASISTENCIA\"&&NP.days(a.fecha,corte)<=180&&a.fecha<=corte).length+((B.CI||{})[p.codigo]||[]).filter(x=>x.estado===\"INASISTENCIA\"&&x.fecha<=corte&&NP.days(x.fecha,corte)<=180).length};\n}\nfunction activeAt(p,dt){if(p.fing&&p.fing>dt)return false;if(p.estado===\"ACTIVO\")return true;return !!(p.festado&&p.festado>dt);}\n\n/* Fichas técnicas: Cuenta de Alto Costo, actualización del consenso basado en la evidencia, indicadores mínimos HTA, DM y ERC 1–4 y 5\n   sin diálisis ni trasplante (2025), tabla 2 (47 indicadores). cac = [cumple >, medio ≥] de la CAC. Los que la CAC deja en «Definir» (análisis prospectivo\n   para establecer la línea de base) llevan meta institucional > 70 % por decisión de Coordinación Asistencial (11-oct-2026). */\nconst POPL={PG:\"PG\",DM:\"DM\",HTA:\"HTA\",SDM:\"Solo DM\",SHTA:\"Solo HTA\",HDM:\"HTA y DM\",ERC12:\"ERC 1–2\",ERC3a:\"ERC 3a\",ERC3b:\"ERC 3b\",ERC4:\"ERC 4\",ERC5:\"ERC 5\",ERC5T:\"ERC 5 TMND\"};\nconst POPK=Object.keys(POPL);\nconst ALLP=POPK.slice(),S35P=[\"ERC3a\",\"ERC3b\",\"ERC4\",\"ERC5\",\"ERC5T\"],E3P=[\"ERC3a\",\"ERC3b\"],E5P=[\"ERC5\",\"ERC5T\"],PG7=[\"PG\",\"DM\",\"HTA\",\"SDM\",\"SHTA\",\"HDM\",\"ERC12\"];\nconst INST70={inst:[70,70],instJ:\"La CAC lo deja en línea de base («Definir»). Meta institucional > 70 % fijada por Coordinación Asistencial el 11-oct-2026.\"};\nconst FX=[\n /* [código, sección, nombre, tipo, numerador, denominador, poblaciones, ventana, corte CAC o null, nota] */\n [\"nefro_01\",\"Control de PA y metabólico\",\"PA < 140/90 mmHg\",\"Resultado\",\"Personas con PA < 140/90 mmHg en la medición más reciente del último semestre.\",\"Personas del tipo de población ≤ 80 años.\",[\"PG\",\"HTA\",\"SHTA\",\"ERC12\"],\"6 meses\",[60,40]],\n [\"nefro_01_1\",\"Control de PA y metabólico\",\"PA < 130/80 mmHg\",\"Resultado\",\"Personas con PA < 130/80 mmHg en la medición más reciente del último semestre.\",\"Personas del tipo de población ≤ 80 años.\",[\"DM\",\"SDM\",\"HDM\"].concat(S35P),\"6 meses\",null],\n [\"nefro_02\",\"Control de PA y metabólico\",\"HbA1c en los últimos 6 meses\",\"Proceso\",\"Personas a quienes se les realizó HbA1c en los últimos 6 meses.\",\"Personas con DM del tipo de población.\",[\"DM\",\"HTA\",\"SDM\",\"HDM\",\"ERC12\"].concat(S35P),\"6 meses\",[60,40],\"Solo personas con DM.\"],\n [\"nefro_03\",\"Control de PA y metabólico\",\"HbA1c < 7 %\",\"Resultado\",\"Personas con HbA1c < 7 % en los últimos 6 meses.\",\"Personas con DM del tipo de población.\",[\"DM\",\"HTA\",\"SDM\",\"HDM\",\"ERC12\"],\"6 meses\",[50,30],\"Solo personas con DM.\"],\n [\"nefro_12\",\"Control de PA y metabólico\",\"HbA1c < 8 %\",\"Resultado\",\"Personas con HbA1c < 8 % en los últimos 6 meses.\",\"Personas con DM del tipo de población.\",S35P,\"6 meses\",[50,30],\"Solo personas con DM.\"],\n [\"nefro_04\",\"Control de PA y metabólico\",\"cLDL medido en el último año\",\"Proceso\",\"Personas con medición de LDL en el último año.\",\"Total de personas del tipo de población.\",ALLP,\"12 meses\",[60,40]],\n [\"nefro_05\",\"Control de PA y metabólico\",\"cLDL ≤ 100 mg/dL\",\"Resultado\",\"Personas con LDL ≤ 100 mg/dL en el último año.\",\"Total de personas del tipo de población.\",PG7,\"12 meses\",[50,30]],\n [\"nefro_05_1\",\"Control de PA y metabólico\",\"cLDL ≤ 70 mg/dL\",\"Resultado\",\"Personas con LDL ≤ 70 mg/dL en el último año.\",\"Total de personas del tipo de población.\",S35P,\"12 meses\",null],\n [\"nefro_08\",\"Control de PA y metabólico\",\"IMC 20–25 kg/m²\",\"Resultado\",\"Personas con IMC entre 20 y 25 kg/m² en el último año.\",\"Total de personas del tipo de población.\",ALLP,\"12 meses\",[30,20]],\n [\"nefro_30\",\"Control de PA y metabólico\",\"No-HDL < 100 mg/dL\",\"Resultado\",\"Personas con colesterol no-HDL < 100 mg/dL.\",\"Total de personas del tipo de población.\",ALLP,\"12 meses\",null,\"No-HDL = colesterol total − HDL del último año. Sin ambos datos cuenta como no cumple.\"],\n [\"nefro_31\",\"Control de PA y metabólico\",\"Cintura < 94 cm (H) / < 80 cm (M)\",\"Resultado\",\"Personas con circunferencia de cintura < 94 cm en hombres y < 80 cm en mujeres.\",\"Total de personas del tipo de población.\",ALLP,\"12 meses\",null],\n [\"nefro_06\",\"Función renal y albuminuria\",\"Creatinina en el último año\",\"Proceso\",\"Personas con medición de creatinina en el último año.\",\"Total de personas del tipo de población.\",PG7,\"12 meses\",[70,50]],\n [\"nefro_35\",\"Función renal y albuminuria\",\"TFGe en el último año\",\"Proceso\",\"Personas a las que se les midió TFGe en el último año.\",\"Total de personas del tipo de población.\",PG7,\"12 meses\",null],\n [\"nefro_13\",\"Función renal y albuminuria\",\"Creatinina en los últimos 3 meses\",\"Proceso\",\"Personas con medición de creatinina en los últimos 3 meses.\",\"Total de personas del tipo de población.\",S35P,\"3 meses\",[70,50],\"La agenda base pide creatinina cada 6 meses en G3: un G3 al día con su plan puede no cumplir este indicador.\"],\n [\"nefro_36\",\"Función renal y albuminuria\",\"TFGe en los últimos 6 meses\",\"Proceso\",\"Personas a las que se les midió TFGe en los últimos 6 meses.\",\"Total de personas del tipo de población.\",[\"ERC3a\",\"ERC3b\",\"ERC4\"],\"6 meses\",null],\n [\"nefro_37\",\"Función renal y albuminuria\",\"TFGe en los últimos 3 meses\",\"Proceso\",\"Personas a las que se les midió TFGe en los últimos 3 meses.\",\"Total de personas del tipo de población.\",E5P,\"3 meses\",null],\n [\"nefro_07_1\",\"Función renal y albuminuria\",\"RAC en el último año\",\"Proceso\",\"Personas con medición de relación albuminuria/creatinuria en el último año.\",\"Total de personas del tipo de población.\",ALLP,\"12 meses\",[60,40]],\n [\"nefro_39\",\"Función renal y albuminuria\",\"RAC y TFGe en el último año\",\"Proceso\",\"Personas a las que se les realizó RAC y TFGe en el último año.\",\"Total de personas del tipo de población.\",ALLP,\"12 meses\",null],\n [\"nefro_10\",\"Función renal y albuminuria\",\"Sin pérdida de TFGe > 5 ml/min en un año\",\"Resultado\",\"Personas sin disminución de la TFGe de más de 5 ml/min/1,73 m² en un año.\",\"Personas del tipo de población con dos TFGe evaluables (≥ 3 meses entre ellas, dentro del año).\",ALLP,\"12 meses\",[50,40],\"CKD-EPI 2021; TFGe > 90 se registra como 90.\"],\n [\"nefro_14_1\",\"Anemia\",\"Hemoglobina en el último semestre\",\"Proceso\",\"Personas a quienes se les realizó hemoglobina en el último semestre.\",\"Total de personas del tipo de población.\",E3P,\"6 meses\",null],\n [\"nefro_15_1\",\"Anemia\",\"Hemoglobina > 10 g/dL (semestre)\",\"Resultado\",\"Personas con hemoglobina > 10 g/dL.\",\"Total de personas del tipo de población.\",E3P,\"6 meses\",null,\"Hb > 10 no descarta anemia (KDIGO: < 13 H, < 12 M).\"],\n [\"nefro_16_1\",\"Anemia\",\"Hemoglobina en el último trimestre\",\"Proceso\",\"Personas a quienes se les realizó hemoglobina en el último trimestre.\",\"Total de personas del tipo de población.\",[\"ERC4\"].concat(E5P),\"3 meses\",null],\n [\"nefro_17_1\",\"Anemia\",\"Hemoglobina > 10 g/dL (trimestre)\",\"Resultado\",\"Personas con hemoglobina > 10 g/dL.\",\"Total de personas del tipo de población.\",[\"ERC4\"].concat(E5P),\"3 meses\",null],\n [\"nefro_18\",\"Trastorno mineral óseo\",\"PTH en el último año\",\"Proceso\",\"Personas con medición de PTH en el último año.\",\"Total de personas del tipo de población.\",E3P,\"12 meses\",null],\n [\"nefro_19\",\"Trastorno mineral óseo\",\"PTH 35–70 pg/mL\",\"Resultado\",\"Personas con PTH entre 35 y 70 pg/mL.\",\"Total de personas del tipo de población.\",E3P,\"12 meses\",null,\"KDIGO CKD-MBD 2017: nivel óptimo de PTH sin diálisis desconocido.\"],\n [\"nefro_20\",\"Trastorno mineral óseo\",\"PTH en el último semestre\",\"Proceso\",\"Personas con medición de PTH en el último semestre.\",\"Total de personas del tipo de población.\",[\"ERC4\"],\"6 meses\",[50,30]],\n [\"nefro_21\",\"Trastorno mineral óseo\",\"PTH 70–110 pg/mL\",\"Resultado\",\"Personas con PTH entre 70 y 110 pg/mL.\",\"Total de personas del tipo de población.\",[\"ERC4\"],\"6 meses\",[50,30]],\n [\"nefro_22\",\"Trastorno mineral óseo\",\"PTH en el último trimestre\",\"Proceso\",\"Personas con medición de PTH en el último trimestre.\",\"Total de personas del tipo de población.\",E5P,\"3 meses\",[60,40]],\n [\"nefro_23\",\"Trastorno mineral óseo\",\"PTH 150–300 pg/mL\",\"Resultado\",\"Personas con PTH entre 150 y 300 pg/mL.\",\"Total de personas del tipo de población.\",E5P,\"3 meses\",[60,40]],\n [\"nefro_24\",\"Trastorno mineral óseo\",\"Fósforo en el último año\",\"Proceso\",\"Personas con medición de fósforo en el último año.\",\"Total de personas del tipo de población.\",E3P,\"12 meses\",null],\n [\"nefro_25\",\"Trastorno mineral óseo\",\"Fósforo 2,7–4,6 mg/dL (año)\",\"Resultado\",\"Personas con fósforo entre 2,7 y 4,6 mg/dL.\",\"Total de personas del tipo de población.\",E3P,\"12 meses\",null],\n [\"nefro_24_1\",\"Trastorno mineral óseo\",\"Fósforo en el último semestre\",\"Proceso\",\"Personas con medición de fósforo en el último semestre.\",\"Total de personas del tipo de población.\",[\"ERC4\"],\"6 meses\",null],\n [\"nefro_25_1\",\"Trastorno mineral óseo\",\"Fósforo 2,7–4,6 mg/dL (semestre)\",\"Resultado\",\"Personas con fósforo entre 2,7 y 4,6 mg/dL.\",\"Total de personas del tipo de población.\",[\"ERC4\"],\"6 meses\",null],\n [\"nefro_24_2\",\"Trastorno mineral óseo\",\"Fósforo en el último trimestre\",\"Proceso\",\"Personas con medición de fósforo en el último trimestre.\",\"Total de personas del tipo de población.\",E5P,\"3 meses\",[90,60]],\n [\"nefro_26_1\",\"Trastorno mineral óseo\",\"Fósforo 2,7–5,5 mg/dL\",\"Resultado\",\"Personas con fósforo entre 2,7 y 5,5 mg/dL.\",\"Total de personas del tipo de población.\",E5P,\"3 meses\",[80,40]],\n [\"nefro_27\",\"Estado nutricional\",\"Albúmina en el último año\",\"Proceso\",\"Personas con medición de albúmina en el último año.\",\"Total de personas del tipo de población.\",E3P,\"12 meses\",null],\n [\"nefro_28\",\"Estado nutricional\",\"Albúmina ≥ 4 g/dL (año)\",\"Resultado\",\"Personas con albúmina ≥ 4 g/dL.\",\"Total de personas del tipo de población.\",E3P,\"12 meses\",null],\n [\"nefro_27_1\",\"Estado nutricional\",\"Albúmina en el último semestre\",\"Proceso\",\"Personas con medición de albúmina en el último semestre.\",\"Total de personas del tipo de población.\",[\"ERC4\"].concat(E5P),\"6 meses\",null],\n [\"nefro_28_1\",\"Estado nutricional\",\"Albúmina ≥ 4 g/dL (semestre)\",\"Resultado\",\"Personas con albúmina ≥ 4 g/dL.\",\"Total de personas del tipo de población.\",[\"ERC4\"].concat(E5P),\"6 meses\",null],\n [\"nefro_29\",\"Tratamiento\",\"Estatina en ≥ 50 años con ERC 3a–5\",\"Proceso\",\"Personas con estatina y/o ezetimiba en el periodo.\",\"Personas ≥ 50 años con ERC 3a a 5.\",S35P,\"Periodo\",null,\"La herramienta registra la estatina; la ezetimiba sola no se registra aparte.\"],\n [\"nefro_34\",\"Tratamiento\",\"IECA o ARA II con RAC > 30\",\"Proceso\",\"Personas a las que se les prescribe IECA o ARA II (excluyentes) en el periodo.\",\"Personas con HTA o DM y ERC con RAC > 30 mg/g.\",[\"ERC12\",\"ERC3a\",\"ERC3b\",\"ERC4\"],\"Periodo\",null],\n [\"nefro_38\",\"Tratamiento\",\"iSGLT2 en DM2 con TFGe ≥ 20\",\"Proceso\",\"Personas a las que se les prescribe iSGLT2 para evitar la progresión.\",\"Personas con TFGe ≥ 20 y DM tipo 2.\",[\"ERC12\",\"ERC3a\",\"ERC3b\",\"ERC4\"],\"Periodo\",null],\n [\"nefro_32\",\"Atención integral\",\"Vacuna de influenza anual\",\"Proceso\",\"Personas que reciben anualmente vacunación contra influenza.\",\"Total de personas del tipo de población.\",ALLP,\"12 meses\",null],\n [\"nefro_33\",\"Atención integral\",\"Valoración por nefrología con criterio de remisión\",\"Proceso\",\"Personas valoradas por nefrología al menos una vez al año.\",\"Personas con HTA y/o DM y TFGe < 30; o ERC con RAC > 300, caída de TFGe > 5 ml/min en un año o TFGe < 30.\",ALLP,\"12 meses\",null],\n [\"nefro_40\",\"Atención integral\",\"Equipo multidisciplinario\",\"Proceso\",\"Personas con al menos una atención de nutrición, enfermería, psicología y trabajo social en el periodo.\",\"Total de personas del tipo de población.\",S35P,\"12 meses\",null],\n [\"nefro_41\",\"Atención integral\",\"Educación estructurada en ERC\",\"Proceso\",\"Personas con ERC que reciben programa de educación estructurado.\",\"Total de personas del tipo de población.\",[\"ERC12\"].concat(S35P),\"12 meses\",null,\"Hoy cuenta cualquier atención de educación registrada.\"],\n [\"nefro_42\",\"Atención integral\",\"Evaluación de riesgo cardiovascular\",\"Proceso\",\"Personas valoradas para RCV con escalas validadas para Colombia.\",\"Total de personas del tipo de población.\",ALLP,\"12 meses\",null,\"Cuenta la atención «RCV» registrada; la valoración la genera al estimarlo.\"]\n];\nconst FICHAS={};\nFX.forEach(([code,sec,n,tipo,num,den,pp,vent,cac,nota])=>{FICHAS[code]=Object.assign({tab:1,sec,n,tipo,num,den,pp,pob:pp.map(x=>POPL[x]).join(\", \")+(code===\"nefro_01\"||code===\"nefro_01_1\"?\" · ≤ 80 años\":\"\"),vent,cac,fuente:\"Cuenta de Alto Costo, consenso basado en la evidencia 2025, tabla 2 (código \"+code+\").\"+(nota?\" \"+nota:\"\")},cac?{}:INST70);});\nFICHAS.KFRE_DOC={sec:\"Institucional\",n:\"KFRE calculable con datos vigentes\",tipo:\"Proceso (institucional)\",num:\"Personas con KFRE calculado con TFGe y RAC de los últimos 12 meses.\",den:\"Personas activas con ERC G3a–G5 sin TMND ni preparación de TRR.\",pp:[\"ERC3a\",\"ERC3b\",\"ERC4\",\"ERC5\"],pob:\"G3a–G5 activos (sin TMND).\",vent:\"12 meses\",cac:null,inst:[60,40],instJ:\"Propuesta acotada por la disponibilidad de RAC, igual que nefro_07_1 (> 60 %); pendiente de adopción.\",fuente:\"Indicador institucional. KFRE de Tangri (4 variables), calibración no norteamericana; no validado en Colombia.\"};\nconst SECS=[\"Control de PA y metabólico\",\"Función renal y albuminuria\",\"Anemia\",\"Trastorno mineral óseo\",\"Estado nutricional\",\"Tratamiento\",\"Atención integral\",\"Institucional\"];\nconst ORDER=FX.map(x=>x[0]).concat([\"KFRE_DOC\"]);\nreturn{parse,parseRows,sheetsFromWb,fromApi,snapshot,activeAt,EPS,EXNAME,toDate,toNum,norm,age,FICHAS,ORDER,SECS,POPL,POPK,matchEps,reindexCitas,key,idxBy,TEXTEX:[\"po\",\"qo\"]};\n})();\n<\/script>\n\n<script>\n/* ===================== GESTIÓN DEL PROGRAMA ===================== */\n(function(){\n\"use strict\";\nconst $=id=>document.getElementById(id);\nconst esc=s=>String(s==null?\"\":s).replace(/[&<>\"]/g,m=>({\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",'\"':\"&quot;\"}[m]));\nconst fd=NP.fd;\nconst iso=d=>{const p=x=>String(x).padStart(2,\"0\");return d.getFullYear()+\"-\"+p(d.getMonth()+1)+\"-\"+p(d.getDate());};\nconst pdate=s=>{if(!s)return null;const[y,m,d]=s.split(\"-\").map(Number);return new Date(y,m-1,d);};\nconst ST={book:null,name:\"\",demo:false,db:false,snaps:[],indSel:\"nefro_01_1\",trend:null};\nconst VERSION=\"8.0\";\nlet DL=null;try{if(window.claude&&window.claude.use)window.claude.use(\"downloads\").then(x=>{DL=x;}).catch(()=>{});}catch(e){}\n\n/* ---------- API (PostgREST detrás de nginx en /api) ---------- */\nconst API=\"api/\";\nasync function apiGet(path){const r=await fetch(API+path,{headers:{Accept:\"application/json\"}});if(!r.ok)throw new Error(r.status+\" \"+(await r.text()).slice(0,300));return r.json();}\nasync function apiRpc(fn,payload){const r=await fetch(API+\"rpc/\"+fn,{method:\"POST\",headers:{\"Content-Type\":\"application/json\",Accept:\"application/json\"},body:JSON.stringify({p:payload})});const t=await r.text();if(!r.ok){let m=t;try{m=JSON.parse(t).message||t;}catch(e){}throw new Error(m);}return t?JSON.parse(t):null;}\nasync function apiPost(path,body){const r=await fetch(API+path,{method:\"POST\",headers:{\"Content-Type\":\"application/json\",Prefer:\"return=minimal\"},body:JSON.stringify(body)});if(!r.ok){let m=await r.text();try{m=JSON.parse(m).message||m;}catch(e){}throw new Error(m);}}\nasync function probe(){if(!/^https?:$/.test(location.protocol)||/claude/.test(location.hostname))return false;\n  try{const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),3500);const r=await fetch(API+\"eps?select=id,nombre\",{signal:ctl.signal,headers:{Accept:\"application/json\"}});clearTimeout(to);if(!r.ok)return false;const j=await r.json();return Array.isArray(j)&&j.length>0&&\"nombre\" in j[0];}catch(e){return false;}}\nasync function loadDb(){\n  $(\"bookinfo\").textContent=\"Cargando la base de datos…\";\n  const[eps,pac,lab,val,at,nov,mod,con]=await Promise.all([apiGet(\"eps?select=id,nombre\"),apiGet(\"paciente?select=*\"),\n    apiGet(\"laboratorio?anulado=is.false&select=id,paciente_id,fecha_toma,examen,valor\"),\n    apiGet(\"valoracion?anulado=is.false&select=id,paciente_id,fecha,profesional,tipo,pa_sistolica,pa_diastolica,peso_kg,talla_cm,cintura_cm,ieca_ara_ii,isglt2,estatina,finerenona,ajuste_dm,hta_resistente,cronicidad_en_hc,conducta,causa_erc,salud_autopercibida,karnofsky,proximo_control\"),\n    apiGet(\"atencion?anulado=is.false&select=id,paciente_id,fecha,disciplina,estado\"),apiGet(\"novedad?select=id,paciente_id,fecha,tipo,detalle\"),apiGet(\"v_eps_modelo_vigente\"),apiGet(\"contacto_gestion?select=paciente_id,fecha_hora,medio,resultado,cita_fecha,motivo,observaciones\").catch(()=>[])]);\n  mod.forEach(m=>{window.EPSMODEL[m.eps]={inter:m.contacto_intermedio,interMeses:m.contacto_meses,ajustePor:m.ajuste_metas_por,multi:m.multidisciplinario,meds:m.medicamentos_contratados,vigente:m.vigente_desde,obs:m.observaciones};});\n  setBook(COH.fromApi({eps,pac,lab,val,at,nov,con}),\"Base de datos del programa\",false,true);\n}\nwindow.MG={show,get book(){return ST.book;},get dbMode(){return ST.db;},snapshotFor,saveValoracion,patients:()=>ST.book?ST.book.pac:[]};\nasync function saveValoracion(d,c,P,note){\n  const B=ST.book;const pid=B&&B.ids&&B.ids[d.pid];\n  if(!pid)throw new Error(\"El código «\"+d.pid+\"» no existe en la base. Regístrelo primero (importación del libro o creación del paciente).\");\n  const C=window.CODES,r1=v=>v==null?null:Math.round(v*10)/10;\n  const v={paciente_id:pid,fecha:iso(d.fCons),profesional:C.PROFTXT[d.prof],tipo:d.tipo===\"primera\"?\"PRIMERA VEZ\":\"CONTROL\",pa_sistolica:d.pas,pa_diastolica:d.pad,peso_kg:d.peso,talla_cm:d.talla,cintura_cm:d.cint,\n    ieca_ara_ii:C.MEDTXT[d.meds.raas],isglt2:C.MEDTXT[d.meds.sglt2],estatina:C.MEDTXT[d.meds.stat],finerenona:d.dmTipo===\"2\"?C.MEDTXT[d.meds.fin]:null,ajuste_dm:d.dm?d.dmAj:null,hta_resistente:d.htaRes,cronicidad_en_hc:d.cronHC,\n    conducta:C.CONDTXT[d.conducta]||null,causa_erc:C.CAUSATXT[d.causa]||null,salud_autopercibida:d.sf1?d.sf1.toUpperCase():null,karnofsky:d.kps,sintomas:d.sint.filter(s=>s.on).map(s=>s.label),\n    erc:C.ERCTXT[c.erc],estadio:c.G,albuminuria:c.A,riesgo_kdigo:c.risk,grupo:c.grupo,tfge:r1(d.tfg),kfre_2a:c.kfre?r1(c.kfre.r2*100):null,kfre_5a:c.kfre?r1(c.kfre.r5*100):null,\n    proximo_control:P.rev&&P.rev.date?iso(P.rev.date):null,nota_hc:note,version_herramienta:VERSION};\n  const labs=window.APP.labList(d).map(x=>({fecha_toma:iso(x.f),examen:x.E,valor:x.v}));\n  const plan=P.rows.map(r=>({seccion:r.sec,clave:r.key||null,actividad:r.act,descripcion:r.what,frecuencia:r.cada,intervalo_meses:r.m||(r.wk?Math.round(r.wk/4.345*100)/100:null),fecha_programada:r.dt?iso(r.dt):null,base:r.tag,motivo:r.why}));\n  const res=await apiRpc(\"registrar_valoracion\",{valoracion:v,laboratorios:labs,plan});\n  await loadDb();\n  return \"Guardado: valoración n.º \"+res.valoracion_id+\", \"+res.laboratorios+\" paraclínico(s) nuevo(s) y \"+res.plan+\" ítems del plan.\";\n}\nasync function importToDb(wb){\n  const S=COH.sheetsFromWb(wb);const B=COH.parseRows(S);\n  if(B.missing.length)throw new Error(\"Faltan hojas: \"+B.missing.join(\", \"));\n  const isoD=d=>d?iso(d):null,T=COH.toDate,N=COH.toNum,yn=v=>COH.norm(v)===\"SI\";\n  const DM={NO:\"NO\",\"TIPO 2\":\"TIPO 2\",\"TIPO 1\":\"TIPO 1\",OTRA:\"OTRA\"};\n  const pac=(S.Pacientes||[]).filter(r=>r.codigo&&!/^EJEMPLO/i.test(r.codigo)).map(r=>({codigo:String(r.codigo).trim(),tipo_documento:r.tipo_documento?COH.norm(r.tipo_documento):null,documento:r.documento==null?null:String(r.documento),nombre_completo:r.nombre_completo||\"\",fecha_nacimiento:isoD(T(r.fecha_nacimiento)),sexo:COH.norm(r.sexo)||null,eps:COH.matchEps(r.eps)||null,municipio:r.municipio||null,direccion:r.direccion||null,telefono_1:r.telefono==null?(r.telefono_1==null?null:String(r.telefono_1)):String(r.telefono),telefono_2:r.telefono_2==null?null:String(r.telefono_2),acudiente_nombre:r.acudiente||null,acudiente_telefono:r.telefono_acudiente==null?null:String(r.telefono_acudiente),fecha_ingreso:isoD(T(r.fecha_ingreso)),hta:yn(r.hta),diabetes:DM[COH.norm(r.diabetes)]||\"NO\",enf_cardiovascular:yn(r.enfermedad_cardiovascular),causa_erc:r.causa_erc?COH.norm(r.causa_erc):null,situacion_renal:r.situacion_renal?COH.norm(r.situacion_renal):\"SIN TRR\",estado:r.estado?COH.norm(r.estado):\"ACTIVO\",fecha_estado:isoD(T(r.fecha_estado)),observaciones:r.observaciones||null}));\n  const EXN={creat:\"CREATININA\",tfg:\"TFGE_REPORTADA\",rac:\"RAC\",hba1c:\"HBA1C\",ldl:\"LDL\",hb:\"HEMOGLOBINA\",k:\"POTASIO\",ca:\"CALCIO\",fos:\"FOSFORO\",pth:\"PTH\",hco3:\"BICARBONATO\",alb:\"ALBUMINA\",fa:\"FOSFATASA_ALCALINA\"};\n  const lab=B.lab.map(l=>({codigo:l.c,fecha_toma:iso(l.fecha),examen:EXN[l.k],valor:l.v}));\n  const nv=v=>v==null?null:v;\n  const val=(S.Valoraciones||[]).filter(r=>r.codigo&&!/^EJEMPLO/i.test(r.codigo)&&T(r.fecha)).map(r=>({codigo:String(r.codigo).trim(),fecha:iso(T(r.fecha)),profesional:COH.norm(r.profesional)||\"MEDICINA GENERAL\",tipo:r.tipo?COH.norm(r.tipo):\"CONTROL\",pa_sistolica:nv(N(r.pa_sistolica)),pa_diastolica:nv(N(r.pa_diastolica)),peso_kg:N(r.peso_kg),talla_cm:N(r.talla_cm),cintura_cm:N(r.cintura_cm),ieca_ara_ii:r.ieca_ara_ii?COH.norm(r.ieca_ara_ii):null,isglt2:r.isglt2?COH.norm(r.isglt2):null,estatina:r.estatina?COH.norm(r.estatina):null,finerenona:r.finerenona?COH.norm(r.finerenona):null,ajuste_dm:r.ajuste_dm?yn(r.ajuste_dm):null,hta_resistente:yn(r.hta_resistente),cronicidad_en_hc:yn(r.cronicidad_en_hc),conducta:r.conducta?COH.norm(r.conducta):null,causa_erc:r.causa_erc?COH.norm(r.causa_erc):null,salud_autopercibida:r.salud_autopercibida?COH.norm(r.salud_autopercibida):null,karnofsky:N(r.karnofsky),proximo_control:isoD(T(r.proximo_control))}));\n  const at=(S.Atenciones||[]).filter(r=>r.codigo&&!/^EJEMPLO/i.test(r.codigo)&&T(r.fecha)).map(r=>({codigo:String(r.codigo).trim(),fecha:iso(T(r.fecha)),disciplina:COH.norm(r.disciplina),estado:r.estado?COH.norm(r.estado):\"REALIZADA\"}));\n  const nov=(S.Novedades||[]).filter(r=>r.codigo&&!/^EJEMPLO/i.test(r.codigo)&&T(r.fecha)).map(r=>({codigo:String(r.codigo).trim(),fecha:iso(T(r.fecha)),tipo:COH.norm(r.tipo),detalle:r.detalle||null}));\n  const res=await apiRpc(\"importar_libro\",{pacientes:pac,laboratorios:lab,valoraciones:val,atenciones:at,novedades:nov});\n  await loadDb();\n  return res;\n}\n\n/* ---------- Pacientes: crear, editar, registrar y anular ---------- */\nconst PST={sel:null,q:\"\",estado:\"ACTIVO\",eps:\"\",nuevo:false,pre:null,anular:null,msg:\"\"};\nconst CAP=a=>a.map(x=>Array.isArray(x)?x:[x,x.charAt(0)+x.slice(1).toLowerCase()]);\nconst OPT=(arr,val)=>arr.map(o=>{const[v,l]=Array.isArray(o)?o:[o,o];return'<option value=\"'+esc(v)+'\"'+(String(val==null?\"\":val)===String(v)?\" selected\":\"\")+'>'+esc(l)+'<\/option>';}).join(\"\");\nconst L_TIPODOC=[[\"\",\"—\"],\"CC\",\"TI\",\"CE\",\"PA\",\"PT\",\"RC\",\"AS\",\"MS\"];\nconst L_CAUSA=[[\"\",\"Sin registrar\"],[\"DIABETICA\",\"Enfermedad renal diabética\"],[\"HIPERTENSIVA\",\"Nefropatía hipertensiva\"],[\"GLOMERULOPATIA\",\"Glomerulopatía\"],[\"POLIQUISTOSIS\",\"Poliquistosis renal\"],[\"UROPATIA OBSTRUCTIVA\",\"Uropatía obstructiva o litiasis\"],[\"TUBULOINTERSTICIAL\",\"Tubulointersticial o nefrotóxicos\"],[\"OTRA\",\"Otra\"],[\"NO ESTABLECIDA\",\"No establecida\"]];\nconst L_DM=[[\"NO\",\"No\"],[\"TIPO 2\",\"Tipo 2\"],[\"TIPO 1\",\"Tipo 1\"],[\"OTRA\",\"Otra\"]];\nconst L_SIT=[[\"SIN TRR\",\"Sin terapia de reemplazo\"],[\"G5 TMND\",\"G5 con TMND\"],[\"G5 PREPARACION TRR\",\"G5 en preparación para TRR\"]];\nconst L_ESTADO=[[\"ACTIVO\",\"Activo\"],[\"EGRESO\",\"Egreso\"],[\"TRR\",\"En diálisis o trasplante\"],[\"FALLECIDO\",\"Fallecido\"],[\"TRASLADO\",\"Traslado\"]];\nconst L_NOV=[\"INGRESO\",\"CAMBIO EPS\",\"HOSPITALIZACION\",\"INICIO DIALISIS\",\"TRASPLANTE\",\"FALLECIMIENTO\",\"EGRESO VOLUNTARIO\",\"TRASLADO\",\"OTRA\"];\nconst L_DISC=[\"NUTRICION\",\"ENFERMERIA\",\"PSICOLOGIA\",\"TRABAJO SOCIAL\",\"EDUCACION\",\"VACUNA INFLUENZA\",\"RCV\",\"TAMIZAJE DESNUTRICION\",\"QUIMICA FARMACEUTICA\",\"SOPORTE PALIATIVO\",\"NEFROLOGIA\",\"MEDICO EXPERTO\",\"MEDICINA GENERAL\",\"MEDICINA INTERNA\"];\nconst L_EX=[[\"CREATININA\",\"Creatinina (mg/dL)\"],[\"TFGE_REPORTADA\",\"TFGe reportada\"],[\"RAC\",\"RAC (mg/g)\"],[\"ALBUMINURIA\",\"Albuminuria (mg/L)\"],[\"HBA1C\",\"HbA1c (%)\"],[\"GLICEMIA\",\"Glucemia basal (mg/dL)\"],[\"COLESTEROL_TOTAL\",\"Colesterol total (mg/dL)\"],[\"HDL\",\"cHDL (mg/dL)\"],[\"LDL\",\"cLDL (mg/dL)\"],[\"TRIGLICERIDOS\",\"Triglicéridos (mg/dL)\"],[\"CREATININA_ORINA_24H\",\"Creatinina en orina 24 h\"],[\"ANTI_HBS\",\"Anti-HBs (mUI/mL)\"],[\"PARCIAL_ORINA\",\"Parcial de orina (texto)\"],[\"QUIMICO_ORINA\",\"Químico de orina (texto)\"],[\"HEMOGLOBINA\",\"Hemoglobina (g/dL)\"],[\"POTASIO\",\"Potasio (mEq/L)\"],[\"CALCIO\",\"Calcio (mg/dL)\"],[\"FOSFORO\",\"Fósforo (mg/dL)\"],[\"PTH\",\"PTH (pg/mL)\"],[\"BICARBONATO\",\"Bicarbonato (mmol/L)\"],[\"ALBUMINA\",\"Albúmina (g/dL)\"]];\nconst CAUSA_X={dm:\"DIABETICA\",hta:\"HIPERTENSIVA\",glom:\"GLOMERULOPATIA\",pq:\"POLIQUISTOSIS\",uro:\"UROPATIA OBSTRUCTIVA\",nti:\"TUBULOINTERSTICIAL\",otra:\"OTRA\",desc:\"NO ESTABLECIDA\"};\nconst SIT_X={\"\":\"SIN TRR\",tmnd:\"G5 TMND\",trr:\"G5 PREPARACION TRR\"};\nconst DM_X={\"\":\"NO\",\"2\":\"TIPO 2\",\"1\":\"TIPO 1\",otra:\"OTRA\"};\nconst EXK={creat:\"CREATININA\",tfg:\"TFGE_REPORTADA\",rac:\"RAC\",hba1c:\"HBA1C\",ldl:\"LDL\",hb:\"HEMOGLOBINA\",k:\"POTASIO\",ca:\"CALCIO\",fos:\"FOSFORO\",pth:\"PTH\",hco3:\"BICARBONATO\",alb:\"ALBUMINA\",fa:\"FOSFATASA_ALCALINA\"};\nasync function apiPatch(path,body){const r=await fetch(API+path,{method:\"PATCH\",headers:{\"Content-Type\":\"application/json\",Prefer:\"return=minimal\"},body:JSON.stringify(body)});if(!r.ok){let m=await r.text();try{m=JSON.parse(m).message||m;}catch(e){}throw new Error(m);}}\nfunction nextCode(){const B=ST.book;let mx=0;(B?B.pac:[]).forEach(p=>{const m=/^NP-(\\d+)$/.exec(p.codigo);if(m)mx=Math.max(mx,+m[1]);});return\"NP-\"+String(mx+1).padStart(4,\"0\");}\nasync function copyText(txt,msgEl,label){try{await navigator.clipboard.writeText(txt);msgEl.textContent=label+\" copiada. Péguela en la primera fila vacía (columna A) de la hoja correspondiente del libro.\";}catch(e){msgEl.textContent=\"No se pudo copiar automáticamente. Seleccione el texto, cópielo y péguelo en la columna A: \";const ta=document.createElement(\"textarea\");ta.readOnly=true;ta.rows=2;ta.style.width=\"100%\";ta.value=txt;msgEl.appendChild(ta);ta.select();}}\nconst tsv=row=>row.map(x=>x==null?\"\":String(x).replace(/[\\t\\n]/g,\" \")).join(\"\\t\");\nconst fdi=d=>d?fd(d):\"\";\nwindow.MG.newPatientFrom=function(d){PST.nuevo=true;PST.sel=null;PST.pre={codigo:d.pid,fnac:d.fnac,sexo:d.sexo,eps:d.eps,hta:d.hta,dm:DM_X[d.dmTipo]||\"NO\",ecv:d.ecv,causa:CAUSA_X[d.causa]||\"\",sit:SIT_X[d.terapia]||\"SIN TRR\"};show(\"pac\");window.scrollTo(0,0);};\n\nfunction rPac(out){\n  const B=ST.book;const all=B?B.pac:[];\n  const q=COH.norm(PST.q);\n  const list=all.filter(p=>(PST.estado===\"TODOS\"||p.estado===PST.estado)&&(!PST.eps||(PST.eps===\"sin\"?!p.eps:p.eps===PST.eps))&&(!q||COH.norm(p.codigo+\" \"+p.nombre+\" \"+p.doc).includes(q))).sort((a,b)=>a.codigo.localeCompare(b.codigo));\n  let h=head(\"Pacientes\",ST.db?\"Crear y actualizar pacientes, registrar atenciones, paraclínicos, novedades y gestión de contacto. Todo queda auditado con su usuario.\":(B?\"Los cambios se guardan en el libro cargado; descárguelo al terminar.\":\"Sin libro cargado: el formulario genera la fila para pegar en el Excel.\"),'<button type=\"button\" class=\"btn primary\" id=\"pacnew\">Nuevo paciente<\/button>');\n  h+='<div class=\"pacgrid\"><section class=\"panel paclist\"><label class=\"f\">Buscar por código, nombre o documento<input type=\"text\" id=\"pacq\" value=\"'+esc(PST.q)+'\"><\/label><div class=\"row\" style=\"margin-top:8px\"><label class=\"f\">EPS<select id=\"paceps\">'+OPT([[\"\",\"Todas\"]].concat(COH.EPS.map(e=>[e,epsShort(e)])).concat([[\"sin\",\"Sin EPS\"]]),PST.eps)+'<\/select><\/label><label class=\"f\">Estado<select id=\"pacest\">'+OPT([[\"ACTIVO\",\"Activos\"],[\"TODOS\",\"Todos\"],[\"EGRESO\",\"Egreso\"],[\"TRR\",\"TRR\"],[\"FALLECIDO\",\"Fallecidos\"],[\"TRASLADO\",\"Traslados\"]],PST.estado)+'<\/select><\/label><\/div>';\n  const epsN=COH.EPS.map(e=>[e,list.filter(p=>p.eps===e).length]).filter(x=>x[1]);\n  h+='<p class=\"note\" style=\"margin:8px 0\">'+list.length+' paciente(s)'+(epsN.length>1?' · '+epsN.map(([e,n])=>esc(epsShort(e))+' '+n).join(\" · \"):'')+(list.length>300?'; se muestran 300, afine la búsqueda':'')+'.<\/p><div class=\"tablebox\"><table class=\"pact\"><thead><tr><th>Código<\/th><th>Nombre<\/th><th>EPS<\/th><th>Estadio<\/th><th>Estado<\/th><\/tr><\/thead><tbody>'+\n    list.slice(0,300).map(p=>{const s=ST.smap&&ST.smap[p.codigo];return'<tr data-pac=\"'+esc(p.codigo)+'\"'+(PST.sel===p.codigo?' class=\"sel\"':'')+'><td class=\"mono\">'+esc(p.codigo)+'<\/td><td>'+esc(p.nombre)+'<span class=\"sub\">'+esc((p.tipodoc||\"\")+\" \"+(p.doc||\"\"))+'<\/span><\/td><td>'+esc(epsShort(p.eps))+'<\/td><td class=\"mono\">'+(s?esc(stage(s)):\"—\")+'<\/td><td>'+esc(p.estado.toLowerCase())+'<\/td><\/tr>';}).join(\"\")+'<\/tbody><\/table><\/div><\/section>';\n  h+='<div class=\"pacdet\">'+pacDetail()+'<\/div><\/div>';\n  out.innerHTML=h;\n  $(\"pacq\").addEventListener(\"input\",e=>{PST.q=e.target.value;const pos=e.target.selectionStart;renderMg(\"pac\");const el=$(\"pacq\");el.focus();el.setSelectionRange(pos,pos);});\n  $(\"pacest\").addEventListener(\"change\",e=>{PST.estado=e.target.value;renderMg(\"pac\");});\n  $(\"paceps\").addEventListener(\"change\",e=>{PST.eps=e.target.value;renderMg(\"pac\");});\n  if($(\"calexp\"))$(\"calexp\").addEventListener(\"click\",()=>{const s=ST.smap[PST.sel];if(s)calExport(s);});\n  $(\"pacnew\").addEventListener(\"click\",()=>{PST.nuevo=true;PST.sel=null;PST.pre=null;PST.msg=\"\";renderMg(\"pac\");});\n  out.querySelectorAll(\"tr[data-pac]\").forEach(tr=>tr.addEventListener(\"click\",()=>{PST.sel=tr.dataset.pac;PST.nuevo=false;PST.anular=null;PST.msg=\"\";renderMg(\"pac\");if(window.innerWidth<=920){const d=document.querySelector(\".pacdet\");if(d)d.scrollIntoView({block:\"start\"});}}));\n  bindPac(out);\n}\nfunction pacDetail(){\n  const B=ST.book;const p=PST.sel&&B?B.pac.find(x=>x.codigo===PST.sel):null;\n  if(!p&&!PST.nuevo)return'<div class=\"panel empty\"><p style=\"margin:0\">Seleccione un paciente de la lista o cree uno nuevo.<\/p><\/div>';\n  const pre=PST.pre||{};const isNew=!p;\n  const v=p?{codigo:p.codigo,tipodoc:p.tipodoc,doc:p.doc,nombre:p.nombre,n1:p.n1,n2:p.n2,ap1:p.ap1,ap2:p.ap2,fnac:p.fnac,sexo:p.sexo,eps:p.eps,municipio:p.municipio,dir:p.dir,tel:p.tel,tel2:p.tel2,correo:p.correo||\"\",acud:p.acud,acudTel:p.acudTel,fing:p.fing,hta:p.hta,dm:DM_X[p.dmTipo]||\"NO\",ecv:p.ecv,causa:CAUSA_X[p.causa]||\"\",sit:SIT_X[p.terapia]||\"SIN TRR\",estado:p.estado,festado:p.festado,obs:p.obs||\"\"}\n    :{codigo:pre.codigo||nextCode(),tipodoc:\"CC\",doc:\"\",nombre:\"\",n1:\"\",n2:\"\",ap1:\"\",ap2:\"\",fnac:pre.fnac||null,sexo:pre.sexo||\"\",eps:pre.eps||\"\",municipio:\"Mocoa\",dir:\"\",tel:\"\",tel2:\"\",correo:\"\",acud:\"\",acudTel:\"\",fing:new Date(),hta:!!pre.hta,dm:pre.dm||\"NO\",ecv:!!pre.ecv,causa:pre.causa||\"\",sit:pre.sit||\"SIN TRR\",estado:\"ACTIVO\",festado:null,obs:\"\"};\n  const D=x=>x?iso(x):\"\";\n  let h='';const sp=p&&ST.smap&&ST.smap[p.codigo];\n  if(sp)h+='<section class=\"panel\"><h3>'+esc(p.codigo)+' · '+esc(p.nombre||\"\")+'<\/h3><div class=\"chips\"><span class=\"chip\">'+esc(epsShort(p.eps))+'<\/span><span class=\"chip\">Estadio <b>'+esc(stage(sp))+'<\/b><\/span>'+(sp.c.grupo?'<span class=\"chip\">'+esc(NP.GRUPO[sp.c.grupo])+'<\/span>':'')+(sp.d.tfg!=null?'<span class=\"chip\">TFGe <b>'+Math.round(sp.d.tfg)+'<\/b><\/span>':'')+(sp.rcv&&sp.rcv.main?'<span class=\"chip\">RCV <b>'+esc(sp.rcv.main.txt)+'<\/b><\/span>':'')+'<\/div><\/section>'+calHtml(sp);\n  else if(p&&p.estado!==\"ACTIVO\")h+='<div class=\"alert info\"><p>Paciente '+esc(p.estado.toLowerCase())+': no tiene calendario de actividades.<\/p><\/div>';\n  h+='<section class=\"panel\"><h3>'+(isNew?\"Nuevo paciente\":\"Datos del paciente · \"+esc(p.codigo))+'<\/h3><form id=\"pacform\" class=\"pacform\" autocomplete=\"off\">';\n  h+='<div class=\"row3\"><label class=\"f\">Código *<input type=\"text\" id=\"pf_codigo\" value=\"'+esc(v.codigo)+'\"><\/label><label class=\"f\">Tipo doc.<select id=\"pf_tipodoc\">'+OPT(L_TIPODOC,v.tipodoc)+'<\/select><\/label><label class=\"f\">Documento<input type=\"text\" id=\"pf_doc\" inputmode=\"numeric\" value=\"'+esc(v.doc)+'\"><\/label><\/div>';\n  h+='<label class=\"f\">Nombre completo *<input type=\"text\" id=\"pf_nombre\" value=\"'+esc(v.nombre)+'\"><\/label>';\n  h+='<div class=\"row\"><label class=\"f\">Primer nombre<input type=\"text\" id=\"pf_n1\" value=\"'+esc(v.n1||\"\")+'\"><\/label><label class=\"f\">Segundo nombre<input type=\"text\" id=\"pf_n2\" value=\"'+esc(v.n2||\"\")+'\"><\/label><\/div><div class=\"row\"><label class=\"f\">Primer apellido<input type=\"text\" id=\"pf_ap1\" value=\"'+esc(v.ap1||\"\")+'\"><\/label><label class=\"f\">Segundo apellido<input type=\"text\" id=\"pf_ap2\" value=\"'+esc(v.ap2||\"\")+'\"><\/label><\/div><p class=\"hint\">Nombres y apellidos separados: los piden los nominales de las EPS y la Res. 256.<\/p>';\n  h+='<div class=\"row3\"><label class=\"f\">Fecha de nacimiento *<input type=\"date\" id=\"pf_fnac\" value=\"'+D(v.fnac)+'\"><\/label><label class=\"f\">Sexo *<select id=\"pf_sexo\">'+OPT([[\"\",\"—\"],[\"F\",\"Femenino\"],[\"M\",\"Masculino\"]],v.sexo)+'<\/select><\/label><label class=\"f\">EPS *<select id=\"pf_eps\">'+OPT([[\"\",\"—\"]].concat(COH.EPS),v.eps)+'<\/select><\/label><\/div>';\n  h+='<div class=\"sub-h\">Contacto<\/div><div class=\"row3\"><label class=\"f\">Teléfono 1<input type=\"text\" id=\"pf_tel\" inputmode=\"tel\" value=\"'+esc(v.tel)+'\"><\/label><label class=\"f\">Teléfono 2<input type=\"text\" id=\"pf_tel2\" inputmode=\"tel\" value=\"'+esc(v.tel2)+'\"><\/label><label class=\"f\"'+(ST.db?'':' hidden')+'>Correo<input type=\"text\" id=\"pf_correo\" value=\"'+esc(v.correo)+'\"><\/label><\/div>';\n  h+='<div class=\"row\"><label class=\"f\">Dirección<input type=\"text\" id=\"pf_dir\" value=\"'+esc(v.dir)+'\"><\/label><label class=\"f\">Municipio<input type=\"text\" id=\"pf_mun\" value=\"'+esc(v.municipio)+'\"><\/label><\/div>';\n  h+='<div class=\"row\"><label class=\"f\">Acudiente<input type=\"text\" id=\"pf_acud\" value=\"'+esc(v.acud)+'\"><\/label><label class=\"f\">Teléfono acudiente<input type=\"text\" id=\"pf_acudtel\" inputmode=\"tel\" value=\"'+esc(v.acudTel)+'\"><\/label><\/div>';\n  h+='<div class=\"sub-h\">Condición clínica<\/div><div class=\"row3\"><label class=\"chk\" style=\"align-self:end\"><input type=\"checkbox\" id=\"pf_hta\"'+(v.hta?\" checked\":\"\")+'> HTA<\/label><label class=\"f\">Diabetes<select id=\"pf_dm\">'+OPT(L_DM,v.dm)+'<\/select><\/label><label class=\"chk\" style=\"align-self:end\"><input type=\"checkbox\" id=\"pf_ecv\"'+(v.ecv?\" checked\":\"\")+'> Enf. cardiovascular<\/label><\/div>';\n  h+='<div class=\"row\"><label class=\"f\">Causa de ERC<select id=\"pf_causa\">'+OPT(L_CAUSA,v.causa)+'<\/select><\/label><label class=\"f\">Situación renal<select id=\"pf_sit\">'+OPT(L_SIT,v.sit)+'<\/select><\/label><\/div>';\n  h+='<div class=\"sub-h\">Programa<\/div><div class=\"row3\"><label class=\"f\">Fecha de ingreso<input type=\"date\" id=\"pf_fing\" value=\"'+D(v.fing)+'\"><\/label><label class=\"f\">Estado<select id=\"pf_estado\">'+OPT(L_ESTADO,v.estado)+'<\/select><\/label><label class=\"f\">Fecha del estado<input type=\"date\" id=\"pf_festado\" value=\"'+D(v.festado)+'\"><\/label><\/div>';\n  h+='<div class=\"row\" id=\"pf_novbox\" hidden><label class=\"f\">Novedad del cambio de estado *<select id=\"pf_novtipo\">'+OPT(CAP([[\"\",\"—\"]].concat(L_NOV)),\"\")+'<\/select><\/label><label class=\"f\">Detalle<input type=\"text\" id=\"pf_novdet\"><\/label><\/div>';\n  h+='<label class=\"f\">Observaciones<input type=\"text\" id=\"pf_obs\" value=\"'+esc(v.obs)+'\"><\/label>';\n  h+='<div class=\"copyrow\" style=\"margin-top:6px\"><button type=\"submit\" class=\"btn primary\">'+(ST.db||ST.raw&&ST.book?(isNew?\"Crear paciente\":\"Guardar cambios\"):\"Copiar fila para la hoja Pacientes\")+'<\/button>'+(p?'<button type=\"button\" class=\"btn\" data-open=\"'+esc(p.codigo)+'\">Valorar<\/button><button type=\"button\" class=\"btn\" data-agnew=\"'+esc(p.codigo)+'\">Agendar cita<\/button>':'')+'<span class=\"note\" id=\"pacmsg\">'+esc(PST.msg)+'<\/span><\/div><\/form><\/section>';\n  if(p){\n    h+='<section class=\"panel\"><h3>Registrar<\/h3><div class=\"regs\">';\n    const today=iso(new Date());\n    h+='<form class=\"reg\" data-reg=\"at\"><div class=\"sub-h\">Atención<\/div><div class=\"row3\"><label class=\"f\">Fecha<input type=\"date\" name=\"fecha\" value=\"'+today+'\"><\/label><label class=\"f\">Disciplina<select name=\"disciplina\">'+OPT(CAP(L_DISC),\"NUTRICION\")+'<\/select><\/label><label class=\"f\">Estado<select name=\"estado\">'+OPT(CAP([\"REALIZADA\"]),\"REALIZADA\")+'<\/select><\/label><\/div><p class=\"note\" style=\"margin:0\">Para atenciones sin cita (por ejemplo, educación grupal). Citas, llegadas, inasistencias y cancelaciones se registran en Agenda.<\/p><button type=\"submit\" class=\"btn\">'+(ST.db||ST.raw?\"Registrar atención\":\"Copiar fila · Atenciones\")+'<\/button><\/form>';\n    h+='<form class=\"reg\" data-reg=\"lab\"><div class=\"sub-h\">Paraclínico<\/div><div class=\"row3\"><label class=\"f\">Fecha de toma<input type=\"date\" name=\"fecha\" value=\"'+today+'\"><\/label><label class=\"f\">Examen<select name=\"examen\">'+OPT(L_EX,\"CREATININA\")+'<\/select><\/label><label class=\"f\">Valor<input type=\"text\" name=\"valor\" inputmode=\"decimal\"><\/label><\/div><button type=\"submit\" class=\"btn\">'+(ST.db||ST.raw?\"Registrar paraclínico\":\"Copiar fila · Laboratorios\")+'<\/button><\/form>';\n    h+='<form class=\"reg\" data-reg=\"nov\"><div class=\"sub-h\">Novedad<\/div><div class=\"row3\"><label class=\"f\">Fecha<input type=\"date\" name=\"fecha\" value=\"'+today+'\"><\/label><label class=\"f\">Tipo<select name=\"tipo\">'+OPT(CAP(L_NOV),\"HOSPITALIZACION\")+'<\/select><\/label><label class=\"f\">Detalle<input type=\"text\" name=\"detalle\"><\/label><\/div><button type=\"submit\" class=\"btn\">'+(ST.db||ST.raw?\"Registrar novedad\":\"Copiar fila · Novedades\")+'<\/button><\/form>';\n    if(ST.db)h+='<form class=\"reg\" data-reg=\"con\"><div class=\"sub-h\">Gestión de contacto<\/div><div class=\"row3\"><label class=\"f\">Medio<select name=\"medio\">'+OPT(CAP([\"LLAMADA\",\"WHATSAPP\",\"SMS\",\"PRESENCIAL\",\"OTRO\"]),\"LLAMADA\")+'<\/select><\/label><label class=\"f\">Resultado<select name=\"resultado\">'+OPT(CAP([\"CONTACTADO\",\"NO CONTESTA\",\"NUMERO ERRADO\",\"REPROGRAMADO\",\"RECHAZA\"]),\"CONTACTADO\")+'<\/select><\/label><label class=\"f\">Cita asignada<input type=\"date\" name=\"cita\"><\/label><\/div><label class=\"f\">Motivo u observaciones<input type=\"text\" name=\"obs\"><\/label><button type=\"submit\" class=\"btn\">Registrar contacto<\/button><\/form>';\n    h+='<\/div><p class=\"note\" id=\"regmsg2\"><\/p><\/section>';\n    h+=pacHistory(p);\n  }\n  return h;\n}\nfunction pacHistory(p){\n  const B=ST.book,c=p.codigo;const an=(t,id,lbl)=>ST.db&&id?'<button type=\"button\" class=\"lnk\" data-anular=\"'+t+'|'+id+'|'+esc(lbl)+'\">Anular<\/button>':'';\n  const labs=(B.L[c]||[]).slice().reverse(),vals=(B.V[c]||[]).slice().reverse(),ats=(B.A[c]||[]).slice().reverse(),novs=(B.N[c]||[]).slice().reverse(),cons=((B.C||{})[c]||[]).slice().reverse();\n  let h='<section class=\"panel\"><h3>Historial<\/h3>';\n  if(PST.anular&&ST.db)h+='<div class=\"alert warn\"><p>Anular <strong>'+esc(PST.anular.lbl)+'<\/strong>. El registro no se borra: queda marcado como anulado con el motivo y su usuario.<\/p><div class=\"row\" style=\"margin-top:8px\"><label class=\"f\">Motivo *<input type=\"text\" id=\"anmotivo\"><\/label><div class=\"copyrow\" style=\"align-self:end\"><button type=\"button\" class=\"btn primary\" id=\"anok\">Confirmar anulación<\/button><button type=\"button\" class=\"btn\" id=\"anno\">Cancelar<\/button><\/div><\/div><\/div>';\n  const T=(title,head,rows)=>'<details class=\"hist\"'+(rows.length?'':'')+'><summary>'+title+' ('+rows.length+')<\/summary>'+(rows.length?'<div class=\"tablebox\"><table><thead><tr>'+head.map(x=>'<th>'+x+'<\/th>').join(\"\")+'<\/tr><\/thead><tbody>'+rows.join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\">Sin registros.<\/p>')+'<\/details>';\n  h+=T(\"Paraclínicos\",[\"Fecha\",\"Examen\",\"Valor\",\"\"],labs.map(l=>'<tr><td class=\"mono\">'+fd(l.fecha)+'<\/td><td>'+esc(COH.EXNAME[l.k]||l.k)+'<\/td><td class=\"mono\">'+esc(String(l.v).replace(\".\",\",\"))+'<\/td><td>'+an(\"laboratorio\",l.id,(COH.EXNAME[l.k]||l.k)+\" del \"+fd(l.fecha))+'<\/td><\/tr>'));\n  h+=T(\"Valoraciones\",[\"Fecha\",\"Profesional\",\"PA\",\"Conducta\",\"\"],vals.map(v=>'<tr><td class=\"mono\">'+fd(v.fecha)+'<\/td><td>'+esc((v.prof||\"\").toLowerCase())+'<\/td><td class=\"mono\">'+(v.pas!=null?v.pas+\"/\"+v.pad:\"—\")+'<\/td><td>'+esc(v.conducta||\"\")+'<\/td><td>'+an(\"valoracion\",v.id,\"valoración del \"+fd(v.fecha))+'<\/td><\/tr>'));\n  h+=T(\"Atenciones\",[\"Fecha\",\"Disciplina\",\"Estado\",\"\"],ats.map(a=>'<tr><td class=\"mono\">'+fd(a.fecha)+'<\/td><td>'+esc(a.dis.toLowerCase())+'<\/td><td>'+esc(a.estado.toLowerCase())+'<\/td><td>'+an(\"atencion\",a.id,a.dis.toLowerCase()+\" del \"+fd(a.fecha))+'<\/td><\/tr>'));\n  h+=T(\"Novedades\",[\"Fecha\",\"Tipo\",\"Detalle\"],novs.map(n=>'<tr><td class=\"mono\">'+fd(n.fecha)+'<\/td><td>'+esc(n.tipo.toLowerCase())+'<\/td><td>'+esc(n.det)+'<\/td><\/tr>'));\n  const cits=((B.CI||{})[c]||[]).slice().reverse();\n  h+=T(\"Citas\",[\"Fecha\",\"Servicio\",\"Estado\",\"Motivo\",\"\"],cits.map(x=>'<tr><td class=\"mono\">'+fd(x.fecha)+' '+esc(x.hora)+'<\/td><td>'+esc(AG_SN(x.serv))+'<\/td><td>'+esc(AG_EST[x.estado]||x.estado)+'<\/td><td>'+esc(x.motivo||\"\")+'<\/td><td><button type=\"button\" class=\"lnk\" data-agopen=\"'+esc(x.id)+'\">Abrir<\/button><\/td><\/tr>'));\n  if(ST.db)h+=T(\"Gestión de contacto\",[\"Fecha\",\"Medio\",\"Resultado\",\"Cita\",\"Observaciones\"],cons.map(x=>'<tr><td class=\"mono\">'+fd(x.fecha)+'<\/td><td>'+esc(x.medio.toLowerCase())+'<\/td><td>'+esc(x.resultado.toLowerCase())+'<\/td><td class=\"mono\">'+(x.cita?fd(x.cita):\"—\")+'<\/td><td>'+esc(x.obs||\"\")+'<\/td><\/tr>'));\n  return h+'<\/section>';\n}\nfunction bindPac(out){\n  const f=$(\"pacform\");if(!f)return;\n  const B=ST.book;const p=PST.sel&&B?B.pac.find(x=>x.codigo===PST.sel):null;\n  const est0=p?p.estado:\"ACTIVO\";\n  const tog=()=>{$(\"pf_novbox\").hidden=!p||$(\"pf_estado\").value===est0;};$(\"pf_estado\").addEventListener(\"change\",tog);tog();\n  f.addEventListener(\"submit\",async e=>{e.preventDefault();const msg=$(\"pacmsg\");\n    const g=id=>$(id).value.trim();\n    const P={codigo:g(\"pf_codigo\"),tipo_documento:g(\"pf_tipodoc\")||null,documento:g(\"pf_doc\")||null,nombre_completo:g(\"pf_nombre\"),fecha_nacimiento:g(\"pf_fnac\")||null,sexo:g(\"pf_sexo\")||null,eps:g(\"pf_eps\")||null,\n      municipio:g(\"pf_mun\")||null,direccion:g(\"pf_dir\")||null,telefono_1:g(\"pf_tel\")||null,telefono_2:g(\"pf_tel2\")||null,correo:g(\"pf_correo\")||null,acudiente_nombre:g(\"pf_acud\")||null,acudiente_telefono:g(\"pf_acudtel\")||null,\n      fecha_ingreso:g(\"pf_fing\")||null,hta:$(\"pf_hta\").checked,diabetes:g(\"pf_dm\"),enf_cardiovascular:$(\"pf_ecv\").checked,causa_erc:g(\"pf_causa\")||null,situacion_renal:g(\"pf_sit\"),estado:g(\"pf_estado\"),fecha_estado:g(\"pf_festado\")||null,observaciones:g(\"pf_obs\")||null};\n    const errs=[];if(!P.codigo)errs.push(\"código\");if(!P.nombre_completo)errs.push(\"nombre\");if(!P.fecha_nacimiento)errs.push(\"fecha de nacimiento\");if(!P.sexo)errs.push(\"sexo\");if(!P.eps)errs.push(\"EPS\");\n    if(errs.length){msg.textContent=\"Falta: \"+errs.join(\", \")+\".\";return;}\n    if(P.fecha_nacimiento&&pdate(P.fecha_nacimiento)>new Date()){msg.textContent=\"La fecha de nacimiento es futura.\";return;}\n    if(!p&&B&&B.pac.some(x=>x.codigo===P.codigo)){msg.textContent=\"Ya existe un paciente con el código \"+P.codigo+\".\";return;}\n    if(P.documento&&B&&B.pac.some(x=>x.doc===P.documento&&x.tipodoc===(P.tipo_documento||\"\")&&(!p||x.codigo!==p.codigo))){msg.textContent=\"Ya existe un paciente con ese documento.\";return;}\n    if(p&&P.estado!==est0&&!g(\"pf_novtipo\")){msg.textContent=\"Indique la novedad del cambio de estado.\";return;}\n    const warn=(!P.telefono_1&&!P.telefono_2&&!P.acudiente_telefono)?\" Sin teléfono de contacto: no saldrá con contacto en la agenda.\":\"\";\n    if(!ST.db&&ST.raw&&B){const o={codigo:P.codigo,tipo_documento:P.tipo_documento||\"\",documento:P.documento||\"\",nombre_completo:P.nombre_completo,primer_nombre:g(\"pf_n1\"),segundo_nombre:g(\"pf_n2\"),primer_apellido:g(\"pf_ap1\"),segundo_apellido:g(\"pf_ap2\"),fecha_nacimiento:P.fecha_nacimiento?fd(pdate(P.fecha_nacimiento)):\"\",sexo:P.sexo,eps:P.eps,municipio:P.municipio||\"\",direccion:P.direccion||\"\",telefono:P.telefono_1||\"\",telefono_2:P.telefono_2||\"\",acudiente:P.acudiente_nombre||\"\",telefono_acudiente:P.acudiente_telefono||\"\",fecha_ingreso:P.fecha_ingreso?fd(pdate(P.fecha_ingreso)):\"\",hta:P.hta?\"SI\":\"NO\",diabetes:P.diabetes,enfermedad_cardiovascular:P.enf_cardiovascular?\"SI\":\"NO\",causa_erc:P.causa_erc||\"\",situacion_renal:P.situacion_renal,estado:P.estado,fecha_estado:P.fecha_estado?fd(pdate(P.fecha_estado)):\"\",observaciones:P.observaciones||\"\"};\n      if(p){rawUpd(\"Pacientes\",p.codigo,o);if(P.estado!==est0)rawAdd(\"Novedades\",{codigo:P.codigo,fecha:P.fecha_estado?fd(pdate(P.fecha_estado)):fd(new Date()),tipo:g(\"pf_novtipo\"),detalle:g(\"pf_novdet\")});}\n      else{rawAdd(\"Pacientes\",o);rawAdd(\"Novedades\",{codigo:P.codigo,fecha:o.fecha_ingreso||fd(new Date()),tipo:\"INGRESO\",detalle:\"Ingreso al programa\"});}\n      rawRebuild();PST.sel=P.codigo;PST.nuevo=false;PST.pre=null;PST.msg=(p?\"Cambios guardados en el libro.\":\"Paciente creado en el libro con novedad de ingreso.\")+warn+\" Descargue el libro para conservarlo.\";renderMg(\"pac\");return;}\n    if(!ST.db){const r=[P.codigo,P.tipo_documento,P.documento,P.nombre_completo,P.fecha_nacimiento?fd(pdate(P.fecha_nacimiento)):\"\",P.sexo,P.eps,P.municipio,P.direccion,P.telefono_1,P.telefono_2,P.acudiente_nombre,P.acudiente_telefono,P.fecha_ingreso?fd(pdate(P.fecha_ingreso)):\"\",P.hta?\"SI\":\"NO\",P.diabetes,P.enf_cardiovascular?\"SI\":\"NO\",P.causa_erc,P.situacion_renal,P.estado,P.fecha_estado?fd(pdate(P.fecha_estado)):\"\",P.observaciones];\n      await copyText(tsv(r),msg,p?\"Fila actualizada (reemplace la fila del paciente)\":\"Fila del paciente\");msg.textContent+=warn;return;}\n    try{msg.textContent=\"Guardando…\";if(p)P.id=B.ids[p.codigo];\n      const res=await apiRpc(\"guardar_paciente\",{paciente:P,novedad_tipo:g(\"pf_novtipo\")||null,novedad_detalle:g(\"pf_novdet\")||null});\n      await loadDb();PST.sel=P.codigo;PST.nuevo=false;PST.pre=null;PST.msg=(res.nuevo?\"Paciente creado con novedad de ingreso.\":\"Cambios guardados.\")+warn;show(\"pac\");}\n    catch(err){msg.textContent=\"No se guardó: \"+err.message;}\n  });\n  out.querySelectorAll(\"form.reg\").forEach(fr=>fr.addEventListener(\"submit\",async e=>{e.preventDefault();const msg=$(\"regmsg2\");const t=fr.dataset.reg;const fv=n=>(fr.elements[n]&&fr.elements[n].value||\"\").trim();\n    const pid=B.ids?B.ids[p.codigo]:null;\n    try{\n      if(!ST.db&&ST.raw){const F=x=>fd(pdate(fv(x)));\n        if(t===\"at\"){if(!fv(\"fecha\"))throw new Error(\"Falta la fecha.\");rawAdd(\"Atenciones\",{codigo:p.codigo,fecha:F(\"fecha\"),disciplina:fv(\"disciplina\"),estado:fv(\"estado\")});}\n        if(t===\"lab\"){const ex=fv(\"examen\");const txt=ex===\"PARCIAL_ORINA\"||ex===\"QUIMICO_ORINA\";const val=txt?fv(\"valor\"):COH.toNum(fv(\"valor\"));if(!fv(\"fecha\")||val==null||val===\"\")throw new Error(txt?\"Fecha y resultado son obligatorios.\":\"Fecha y valor numérico son obligatorios.\");if(pdate(fv(\"fecha\"))>new Date())throw new Error(\"La fecha de toma es futura.\");\n          if(ST.raw.Laboratorios.some(r=>String(r.codigo).trim()===p.codigo&&COH.norm(r.examen)===ex&&COH.toDate(r.fecha)&&NP.days(COH.toDate(r.fecha),pdate(fv(\"fecha\")))===0))throw new Error(\"duplicate\");rawAdd(\"Laboratorios\",{codigo:p.codigo,fecha:F(\"fecha\"),examen:ex,valor:txt?val:String(val).replace(\".\",\",\")});}\n        if(t===\"nov\"){if(!fv(\"fecha\"))throw new Error(\"Falta la fecha.\");rawAdd(\"Novedades\",{codigo:p.codigo,fecha:F(\"fecha\"),tipo:fv(\"tipo\"),detalle:fv(\"detalle\")});}\n        rawRebuild();PST.msg=\"Registrado en el libro. Descárguelo para conservarlo.\";renderMg(\"pac\");toast(\"Registrado en el libro.\");return;}\n      if(t===\"at\"){if(!fv(\"fecha\"))throw new Error(\"Falta la fecha.\");if(ST.db){await apiPost(\"atencion\",[{paciente_id:pid,fecha:fv(\"fecha\"),disciplina:fv(\"disciplina\"),estado:fv(\"estado\")}]);PST.msg=\"\";await loadDb();show(\"pac\");toast(\"Atención registrada.\");}else await copyText(tsv([p.codigo,fd(pdate(fv(\"fecha\"))),fv(\"disciplina\"),fv(\"estado\"),\"\"]),msg,\"Fila de atención\");}\n      if(t===\"lab\"){const val=COH.toNum(fv(\"valor\"));if(!fv(\"fecha\")||val==null)throw new Error(\"Fecha y valor numérico son obligatorios.\");if(pdate(fv(\"fecha\"))>new Date())throw new Error(\"La fecha de toma es futura.\");\n        if(ST.db){await apiPost(\"laboratorio\",[{paciente_id:pid,fecha_toma:fv(\"fecha\"),examen:fv(\"examen\"),valor:val}]);await loadDb();show(\"pac\");toast(\"Paraclínico registrado.\");}else await copyText(tsv([p.codigo,fd(pdate(fv(\"fecha\"))),fv(\"examen\"),String(val).replace(\".\",\",\"),\"\"]),msg,\"Fila de laboratorio\");}\n      if(t===\"nov\"){if(!fv(\"fecha\"))throw new Error(\"Falta la fecha.\");if(ST.db){await apiPost(\"novedad\",[{paciente_id:pid,fecha:fv(\"fecha\"),tipo:fv(\"tipo\"),detalle:fv(\"detalle\")||null}]);await loadDb();show(\"pac\");toast(\"Novedad registrada.\");}else await copyText(tsv([p.codigo,fd(pdate(fv(\"fecha\"))),fv(\"tipo\"),fv(\"detalle\")]),msg,\"Fila de novedad\");}\n      if(t===\"con\"){await apiPost(\"contacto_gestion\",[{paciente_id:pid,medio:fv(\"medio\"),resultado:fv(\"resultado\"),cita_fecha:fv(\"cita\")||null,observaciones:fv(\"obs\")||null}]);await loadDb();show(\"pac\");toast(\"Contacto registrado.\");}\n    }catch(err){msg.textContent=/duplicate|unico/i.test(err.message)?\"Ya existe ese examen con esa fecha para el paciente.\":\"No se registró: \"+err.message;}\n  }));\n  out.querySelectorAll(\"[data-agnew]\").forEach(b=>b.addEventListener(\"click\",()=>window.MG.agendar(b.dataset.agnew,\"\",null)));\n  out.querySelectorAll(\"[data-agopen]\").forEach(b=>b.addEventListener(\"click\",()=>{show(\"agenda\");openDlg({t:\"cita\",id:b.dataset.agopen});}));\n  out.querySelectorAll(\"[data-anular]\").forEach(b=>b.addEventListener(\"click\",()=>{const[t,id,lbl]=b.dataset.anular.split(\"|\");PST.anular={t,id,lbl};renderMg(\"pac\");const m=$(\"anmotivo\");if(m)m.focus();}));\n  if($(\"anno\"))$(\"anno\").addEventListener(\"click\",()=>{PST.anular=null;renderMg(\"pac\");});\n  if($(\"anok\"))$(\"anok\").addEventListener(\"click\",async()=>{const m=$(\"anmotivo\").value.trim();if(!m){$(\"anmotivo\").focus();return;}\n    try{await apiPatch(PST.anular.t+\"?id=eq.\"+PST.anular.id,{anulado:true,motivo_anulacion:m});PST.anular=null;await loadDb();show(\"pac\");toast(\"Registro anulado con motivo.\");}catch(err){toast(\"No se anuló: \"+err.message);}});\n}\n\n\n/* ---------- AGENDA: jornadas, cupos espejo, citas, asistencia e inasistencias ---------- */\nconst AG_SERV=[[\"NEFROLOGIA\",\"Nefrología\"],[\"MEDICO EXPERTO\",\"Médico experto\"],[\"MEDICO PROGRAMA\",\"Médico del programa\"],[\"NUTRICION\",\"Nutrición\"],[\"ENFERMERIA\",\"Enfermería\"],[\"PSICOLOGIA\",\"Psicología\"],[\"TRABAJO SOCIAL\",\"Trabajo social\"],[\"EDUCACION\",\"Educación\"],[\"QUIMICA FARMACEUTICA\",\"Química farmacéutica\"],[\"SOPORTE PALIATIVO\",\"Soporte paliativo\"],[\"TOMA DE MUESTRAS\",\"Toma de muestras\"],[\"VACUNACION\",\"Vacunación\"]];\nconst AG_SN=k=>(AG_SERV.find(x=>x[0]===k)||[k,k||\"—\"])[1];\nconst AG_TIPOS={NEFROLOGIA:[\"CONTROL\",\"PRIMERA VEZ\",\"AJUSTE DE METAS\",\"PRIORITARIA\"],\"MEDICO EXPERTO\":[\"CONTROL Y FORMULACION\",\"AJUSTE DE METAS\",\"CONTROL POST-AJUSTE\",\"PRIMERA VEZ\"],\"MEDICO PROGRAMA\":[\"CONTROL\",\"AJUSTE DE METAS\",\"CONTROL POST-AJUSTE\",\"PRIMERA VEZ\"],\"TOMA DE MUESTRAS\":[\"PARACLINICOS DEL PLAN\",\"CONTROL POST-AJUSTE\",\"CONFIRMACION DE ERC\"],VACUNACION:[\"INFLUENZA\",\"HEPATITIS B\",\"OTRA\"],_:[\"CONTROL\",\"PRIMERA VEZ\"]};\nconst AG_ORIG=[[\"PLAN\",\"Plan del programa\"],[\"SOLICITUD PACIENTE\",\"Solicitud del paciente\"],[\"REPROGRAMACION\",\"Reprogramación\"],[\"PRIORITARIA\",\"Prioritaria por alerta clínica\"],[\"REMISION\",\"Remisión\"],[\"REGISTRO POSTERIOR\",\"Registro posterior (fecha pasada, contingencia)\"]];\nconst AG_EST={ASIGNADA:\"Asignada\",\"EN SALA\":\"Llegó · en sala\",ATENDIDA:\"Atendida\",\"NO ATENDIDA\":\"Llegó, no atendida\",INASISTENCIA:\"No asistió\",CANCELADA:\"Cancelada\"};\nconst AG_CLS={ASIGNADA:\"asig\",\"EN SALA\":\"sala\",ATENDIDA:\"ok\",\"NO ATENDIDA\":\"warn\",INASISTENCIA:\"bad\",CANCELADA:\"canc\"};\nconst AG_RESP={PACIENTE:\"Paciente\",ACCESO:\"Barrera de acceso\",EPS:\"EPS\",IPS:\"IPS\",OTRO:\"Otro o fuerza mayor\"};\nconst AG_MOT=[\n [\"P_OLVIDO\",\"PACIENTE\",\"Olvidó la cita\"],[\"P_BIEN\",\"PACIENTE\",\"Se sentía bien, no lo consideró necesario\"],[\"P_ENFERMO\",\"PACIENTE\",\"Enfermo el día de la cita\"],[\"P_HOSP\",\"PACIENTE\",\"Hospitalizado\"],[\"P_TRABAJO\",\"PACIENTE\",\"Compromiso laboral o familiar\"],[\"P_ACOMP\",\"PACIENTE\",\"Sin acompañante\"],[\"P_NOQUIERE\",\"PACIENTE\",\"No desea continuar en el programa\"],\n [\"A_COSTO\",\"ACCESO\",\"Sin dinero para el transporte\"],[\"A_RURAL\",\"ACCESO\",\"Distancia o zona rural dispersa\"],[\"A_VIA\",\"ACCESO\",\"Vía cerrada, clima u orden público\"],\n [\"E_AUT\",\"EPS\",\"Autorización no emitida o vencida\"],[\"E_AFIL\",\"EPS\",\"Cambio o retiro de EPS, afiliación inactiva\"],[\"E_CONTRATO\",\"EPS\",\"Servicio no contratado o sin red\"],\n [\"I_PROF\",\"IPS\",\"Profesional no disponible\"],[\"I_ERROR\",\"IPS\",\"Error de agendamiento (fecha, hora o doble cita)\"],[\"I_NOTIF\",\"IPS\",\"No se le informó la cita\"],[\"I_LAB\",\"IPS\",\"Paraclínicos previos no tomados o sin resultado\"],[\"I_DEMORA\",\"IPS\",\"Demora en la atención: se retiró\"],\n [\"O_FALLECE\",\"OTRO\",\"Falleció\"],[\"O_TRASLADO\",\"OTRO\",\"Cambio de domicilio o traslado\"],[\"O_SINCONT\",\"OTRO\",\"No se logró contactar: motivo desconocido\"],[\"O_OTRO\",\"OTRO\",\"Otro (detallar en observaciones)\"]];\nconst AG_MOTL=k=>{const m=AG_MOT.find(x=>x[0]===k);return m?m[2]:\"\";};\nconst AG_MOTR=k=>{const m=AG_MOT.find(x=>x[0]===k);return m?m[1]:\"\";};\nconst AG_REC=[[\"CONFIRMA\",\"Confirma asistencia\"],[\"NO CONTESTA\",\"No contesta\"],[\"NUMERO ERRADO\",\"Número errado\"],[\"MENSAJE ENVIADO\",\"Mensaje enviado, sin respuesta\"],[\"CANCELA\",\"Cancela\"]];\nconst AG_DIAS=[\"Domingo\",\"Lunes\",\"Martes\",\"Miércoles\",\"Jueves\",\"Viernes\",\"Sábado\"];\nconst AST={sub:\"dia\",date:\"\",user:\"\",dlg:null,desde:\"\",hasta:\"\",serv:\"\",eps:\"\",pserv:\"NEFROLOGIA\",phor:\"\"};\ntry{AST.user=localStorage.getItem(\"nefro_usuario\")||\"\";}catch(e){}\nconst TODAY=()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());};\nAST.date=iso(TODAY());\n{const t=TODAY();AST.desde=iso(new Date(t.getFullYear(),t.getMonth()-2,1));AST.hasta=iso(t);AST.phor=iso(NP.addMonths(t,1));}\nconst hm2m=s=>{const m=/^(\\d{1,2}):(\\d{2})/.exec(s||\"\");return m?(+m[1])*60+(+m[2]):null;};\nconst m2hm=m=>String(Math.floor(m/60)).padStart(2,\"0\")+\":\"+String(m%60).padStart(2,\"0\");\nconst nowHM=()=>{const d=new Date();return m2hm(d.getHours()*60+d.getMinutes());};\nconst fdt=d=>d?fd(d)+\" \"+m2hm(d.getHours()*60+d.getMinutes()):\"\";\nfunction agSlots(j){const a=hm2m(j.hIni),b=hm2m(j.hFin),out=[];if(a==null||b==null||!(j.dur>0))return out;for(let t=a;t+j.dur<=b;t+=j.dur)out.push(m2hm(t));return out;}\nconst agLetters=j=>j.nAg===2?[\"A\",\"B\"]:[\"A\"];\nconst citaDT=c=>{const m=hm2m(c.hora)||0;return new Date(c.fecha.getFullYear(),c.fecha.getMonth(),c.fecha.getDate(),Math.floor(m/60),m%60);};\nconst pOf=code=>ST.pmap&&ST.pmap[code];\nconst sOf=code=>ST.smap&&ST.smap[code];\nconst motOpts=(sel,only)=>Object.keys(AG_RESP).filter(r=>!only||only.includes(r)).map(r=>'<optgroup label=\"'+esc(AG_RESP[r])+'\">'+AG_MOT.filter(m=>m[1]===r).map(m=>'<option value=\"'+m[0]+'\"'+(sel===m[0]?\" selected\":\"\")+'>'+esc(m[2])+'<\/option>').join(\"\")+'<\/optgroup>').join(\"\");\nconst motKey=label=>{const m=AG_MOT.find(x=>COH.norm(x[2])===COH.norm(label));return m?m[0]:\"\";};\n/* prioridad clínica para ordenar candidatos y reprogramaciones */\nfunction agPrio(s){if(!s)return 0;let p=(s.c.grupo||0)*10;if((s.P.actions||[]).some(a=>a.lvl===\"bad\"))p+=100;if(s.c.kfre&&s.c.kfre.r2>0.4)p+=50;return p;}\n/* qué servicio atiende cada ítem de la agenda de gestión */\nfunction itemServ(s,it){\n  if(it.tipo===\"Laboratorio\")return\"TOMA DE MUESTRAS\";\n  const k=it.k,n=it.nombre||\"\";\n  if(k===\"ctl\")return /nefrolog/i.test(n)?\"NEFROLOGIA\":\"MEDICO PROGRAMA\";\n  if(k===\"experto\")return\"MEDICO EXPERTO\";\n  if(k===\"ajuste\")return /nefrolog/i.test(n)?\"NEFROLOGIA\":/experto/i.test(n)?\"MEDICO EXPERTO\":\"MEDICO PROGRAMA\";\n  return({nut:\"NUTRICION\",desnut:\"NUTRICION\",enf:\"ENFERMERIA\",psi:\"PSICOLOGIA\",ts:\"TRABAJO SOCIAL\",edu:\"EDUCACION\",nefro:\"NEFROLOGIA\",flu:\"VACUNACION\",paliativo:\"SOPORTE PALIATIVO\"})[k]||null;\n}\nconst activeFut=(code,serv)=>((ST.book.CI||{})[code]||[]).filter(c=>(c.estado===\"ASIGNADA\"||c.estado===\"EN SALA\")&&c.fecha>=TODAY()&&(!serv||c.serv===serv)).sort((a,b)=>citaDT(a)-citaDT(b));\nconst inasCount=(code,before,dd)=>((ST.book.CI||{})[code]||[]).filter(c=>c.estado===\"INASISTENCIA\"&&c.fecha<before&&NP.days(c.fecha,before)<=(dd||365)).length;\n/* candidatos: pacientes con ítems de ese servicio vencidos, sin registro o que vencen antes del horizonte, sin cita futura en ese servicio */\nfunction agCands(serv,hasta,excludeJor){\n  const out=[];const T=TODAY();\n  ST.snaps.forEach(s=>{\n    const its=s.items.filter(it=>itemServ(s,it)===serv&&(!it.due||it.due<=hasta));\n    if(!its.length)return;\n    if(activeFut(s.p.codigo,serv).length)return;\n    if(excludeJor&&ST.book.cit.some(c=>c.jor===excludeJor&&c.c===s.p.codigo&&c.estado!==\"CANCELADA\"))return;\n    const dues=its.map(i=>i.due).filter(Boolean).sort((a,b)=>a-b);const due=dues[0]||null;\n    const st=!due?\"sinreg\":due<T?\"venc\":\"prox\";\n    out.push({s,its,due,st,prio:agPrio(s)+(st===\"sinreg\"?30:st===\"venc\"?20+Math.min(60,NP.days(due,T)/10):0)});});\n  return out.sort((a,b)=>b.prio-a.prio||((a.due||0)-(b.due||0)));\n}\nfunction agNextId(){let mx=0;ST.book.cit.forEach(c=>{const m=/(\\d+)$/.exec(c.id);if(m)mx=Math.max(mx,+m[1]);});return\"C-\"+String(mx+1).padStart(6,\"0\");}\nfunction agLog(c,acc,de,a,mot){ST.book.clog.push({fh:new Date(),id:c.id,c:c.c,acc,de:de||\"\",a:a||\"\",motivo:mot||\"\",usuario:AST.user});c.usuario=AST.user;c.act=fdt(new Date());}\nfunction agChanged(){ST.dirty=true;COH.reindexCitas(ST.book);compute();bookInfo();}\nfunction needUser(){if(AST.user.trim())return false;toast(\"Escriba su nombre en «Usuario que registra» antes de modificar la agenda.\");const u=$(\"aguser\");if(u)u.focus();return true;}\nfunction agCreate(o){const c=Object.assign({id:agNextId(),estado:\"ASIGNADA\",conf:\"\",hLleg:\"\",hAten:\"\",resp:\"\",motivo:\"\",avisoH:null,deId:\"\",reId:\"\",obs:\"\",fAsig:TODAY()},o);ST.book.cit.push(c);agLog(c,\"ASIGNA\",\"\",\"ASIGNADA\",c.origen===\"REPROGRAMACION\"?\"Reprograma \"+c.deId:\"\");return c;}\nfunction agSet(c,estado,mot,extra){const de=c.estado;Object.assign(c,extra||{});c.estado=estado;agLog(c,\"CAMBIO DE ESTADO\",de,estado,mot);}\n\n/* ---------- vista principal ---------- */\nfunction rAgenda(out){\n  const B=ST.book;\n  let h=head(\"Agenda del programa\",\"Jornadas por fecha, cupos con agenda espejo, llegada o inasistencia de cada cita y caracterización de inasistencias y cancelaciones.\"+(ST.db?\" <strong>Modo base de datos: la agenda aún no se guarda en la base; descargue las hojas de agenda al terminar.<\/strong>\":\"\"),'<button type=\"button\" class=\"btn primary\" data-ag=\"exp\">'+(ST.db?\"Descargar hojas de agenda\":\"Descargar libro actualizado\")+'<\/button>');\n  h+='<div class=\"agtop\"><label class=\"f\">Usuario que registra *<input type=\"text\" id=\"aguser\" value=\"'+esc(AST.user)+'\" placeholder=\"Nombre de quien maneja la agenda\"><\/label>'+(ST.dirty?'<span class=\"pendch\">Cambios sin descargar<\/span>':'')+'<\/div>';\n  h+='<div class=\"seg epsseg agsub\" role=\"group\" aria-label=\"Secciones de la agenda\">'+[[\"dia\",\"Día\"],[\"pend\",\"Por agendar y reprogramar\"],[\"jor\",\"Jornadas\"],[\"est\",\"Asistencia y reportes\"]].map(([k,l])=>'<button type=\"button\" data-ag=\"sub|'+k+'\" aria-pressed=\"'+(AST.sub===k)+'\">'+l+'<\/button>').join(\"\")+'<\/div>';\n  if(ST.corte&&iso(ST.corte)!==iso(TODAY()))h+='<div class=\"alert warn\"><p>La fecha de corte de la cohorte es '+fd(ST.corte)+', no hoy: los pendientes y vencidos de la agenda se calculan a esa fecha. <button type=\"button\" class=\"lnk\" data-ag=\"cortehoy\">Usar hoy<\/button><\/p><\/div>';\n  h+=({dia:vDia,pend:vPend,jor:vJor,est:vEst})[AST.sub]();\n  out.innerHTML=h;\n  out.onclick=agClick;\n  out.onchange=e=>{const t=e.target;if(t.dataset&&t.dataset.cfg){const[k,x]=t.dataset.cfg.split(\"|\");if(k===\"eap\")AST.cfg.eaps[x]=t.value.trim();else if(k===\"t256\")AST.cfg.t256[x]=t.value;else AST.cfg[k]=t.value.trim();saveCfg();toast(\"Código guardado en este navegador.\");return;}\n    if(!t.dataset||!t.dataset.agf)return;AST[t.dataset.agf]=t.value;if(t.dataset.agf!==\"user\"&&!/^r(mes|base|eps|sem)$/.test(t.dataset.agf))renderMg(\"agenda\");};\n  const u=$(\"aguser\");if(u)u.addEventListener(\"input\",()=>{AST.user=u.value;try{localStorage.setItem(\"nefro_usuario\",u.value);}catch(e){}});\n  EXPORTS.agest=agExportStats;EXPORTS.agpend=agExportPend;EXPORTS.rep1552=rep1552;EXPORTS.rep256=rep256;EXPORTS.repeps=repEPS;\n}\nfunction agClick(e){\n  const b=e.target.closest(\"[data-ag]\");if(!b)return;const p=b.dataset.ag.split(\"|\");const B=ST.book;\n  if(p[0]===\"sub\"){AST.sub=p[1];renderMg(\"agenda\");return;}\n  if(p[0]===\"day\"){const d=pdate(AST.date)||TODAY();AST.date=iso(NP.addDays(d,+p[1]));renderMg(\"agenda\");return;}\n  if(p[0]===\"goto\"){AST.date=p[1];AST.sub=\"dia\";renderMg(\"agenda\");return;}\n  if(p[0]===\"exp\"){agExportBook();return;}\n  if(p[0]===\"cortehoy\"){$(\"corte\").value=iso(TODAY());ST.trend=null;compute();renderMg(\"agenda\");return;}\n  if(p[0]===\"xjor\"){agExportJor(p[1]);return;}\n  if(p[0]===\"newjor\"){if(needUser())return;openDlg({t:\"newjor\",fecha:AST.date,serv:\"NEFROLOGIA\"});return;}\n  if(p[0]===\"canjor\"){if(needUser())return;openDlg({t:\"canjor\",id:p[1]});return;}\n  if(p[0]===\"asig\"){if(needUser())return;const j=B.jor.find(x=>x.id===p[1]);openDlg({t:\"asig\",serv:j.serv,jor:p[1],hora:p[2],ag:p[3],pat:null,q:\"\"});return;}\n  if(p[0]===\"agendar\"){if(needUser())return;openDlg({t:\"asig\",serv:p[2],pat:p[1],fDes:p[3]?pdate(p[3]):null,q:\"\"});return;}\n  if(p[0]===\"cita\"){openDlg({t:\"cita\",id:p[1],form:p[2]||null});return;}\n}\n\n/* ---------- Día ---------- */\nfunction vDia(){\n  const B=ST.book,d=pdate(AST.date)||TODAY();\n  const J=B.jor.filter(j=>NP.days(j.fecha,d)===0).sort((a,b)=>hm2m(a.hIni)-hm2m(b.hIni)||a.serv.localeCompare(b.serv));\n  let h='<div class=\"agbar\"><button type=\"button\" class=\"btn\" data-ag=\"day|-1\" aria-label=\"Día anterior\">‹<\/button><label class=\"f\">Fecha<input type=\"date\" data-agf=\"date\" value=\"'+esc(AST.date)+'\"><\/label><button type=\"button\" class=\"btn\" data-ag=\"day|1\" aria-label=\"Día siguiente\">›<\/button><span class=\"note\">'+AG_DIAS[d.getDay()]+'<\/span><button type=\"button\" class=\"btn primary\" data-ag=\"newjor\">Abrir jornada<\/button><\/div>';\n  const sinCierre=B.cit.filter(c=>(c.estado===\"ASIGNADA\"||c.estado===\"EN SALA\")&&c.fecha<TODAY()).length;\n  if(sinCierre)h+='<div class=\"alert warn\"><p>'+sinCierre+' cita(s) de días anteriores siguen «asignadas»: falta marcar si el paciente llegó o no. Sin ese cierre la tasa de inasistencia queda subestimada. <button type=\"button\" class=\"lnk\" data-ag=\"sub|pend\">Ver cuáles<\/button><\/p><\/div>';\n  if(!J.length){\n    const nx=B.jor.filter(j=>j.fecha>=TODAY()&&j.estado!==\"CANCELADA\").sort((a,b)=>a.fecha-b.fecha).slice(0,8);\n    h+='<div class=\"panel empty\"><p style=\"margin:0 0 6px;color:var(--ink)\"><strong>No hay jornadas este día.<\/strong><\/p><p style=\"margin:0\">Use «Abrir jornada» para crearla con su horario y duración de cupo.<\/p>'+(nx.length?'<p style=\"margin:10px 0 0\">Próximas: '+nx.map(j=>'<button type=\"button\" class=\"lnk\" data-ag=\"goto|'+iso(j.fecha)+'\">'+fd(j.fecha)+' '+esc(AG_SN(j.serv))+'<\/button>').join(\" · \")+'<\/p>':'')+'<\/div>';\n    return h;}\n  J.forEach(j=>{h+=jorCard(j);});\n  return h;\n}\nfunction jorStats(j){const S=agSlots(j),L=agLetters(j),C=ST.book.cit.filter(c=>c.jor===j.id);const act=C.filter(c=>c.estado!==\"CANCELADA\");const cnt=k=>C.filter(c=>c.estado===k).length;\n  return{S,L,C,cupos:S.length*L.length,asig:act.length,libres:Math.max(0,S.length*L.length-act.length),aten:cnt(\"ATENDIDA\"),sala:cnt(\"EN SALA\"),inas:cnt(\"INASISTENCIA\"),noat:cnt(\"NO ATENDIDA\"),canc:cnt(\"CANCELADA\"),pend:cnt(\"ASIGNADA\")};}\nfunction jorCard(j){\n  const st=jorStats(j),canc=j.estado===\"CANCELADA\";\n  let h='<section class=\"panel agjor'+(canc?' jcanc':'')+'\"><div class=\"mhead\"><div><h3 class=\"agjt\">'+esc(AG_SN(j.serv))+(j.prof?' · '+esc(j.prof):'')+'<\/h3><p class=\"note\" style=\"margin:0\">'+fd(j.fecha)+' · '+j.hIni+'–'+j.hFin+' · cupo de '+j.dur+' min'+(st.L.length===2?' · agenda espejo A y B a la misma hora ('+Math.round(120/j.dur)+' pacientes por hora)':'')+' · '+esc(j.id)+(canc?' · <strong style=\"color:var(--bad)\">JORNADA CANCELADA: '+esc(j.motivo)+'<\/strong>':'')+'<\/p><\/div><div class=\"copyrow\"><button type=\"button\" class=\"btn\" data-ag=\"xjor|'+esc(j.id)+'\">Lista para llamar<\/button>'+(!canc&&j.fecha>=TODAY()?'<button type=\"button\" class=\"btn\" data-ag=\"canjor|'+esc(j.id)+'\">Cancelar jornada<\/button>':'')+'<\/div><\/div>';\n  h+='<div class=\"tiles agtiles\">'+tile(\"Cupos\",st.cupos,\"\")+tile(\"Asignados\",st.asig+\" (\"+(st.cupos?Math.round(st.asig/st.cupos*100):0)+\" %)\",\"\")+tile(\"Libres\",st.libres,\"\")+tile(\"Atendidos\",st.aten,\"\")+tile(\"En sala\",st.sala,\"\")+tile(\"No asistieron\",st.inas,st.inas?\"bad\":\"\")+tile(\"Canceladas\",st.canc,st.canc?\"warn\":\"\")+tile(\"Sin marcar\",st.pend,\"\")+'<\/div>';\n  h+='<div class=\"tablebox\"><table class=\"agt\"><thead><tr><th>Hora<\/th>'+st.L.map(a=>'<th>Agenda '+a+'<\/th>').join(\"\")+'<\/tr><\/thead><tbody>';\n  st.S.forEach(t=>{h+='<tr><td class=\"mono\">'+t+'<\/td>'+st.L.map(a=>'<td>'+slotCell(j,t,a,st.C)+'<\/td>').join(\"\")+'<\/tr>';});\n  return h+'<\/tbody><\/table><\/div><\/section>';\n}\nfunction slotCell(j,t,a,C){\n  const here=C.filter(c=>c.hora===t&&c.ag===a);const act=here.filter(c=>c.estado!==\"CANCELADA\"),cn=here.filter(c=>c.estado===\"CANCELADA\");\n  let h=\"\";\n  act.forEach(c=>{const p=pOf(c.c)||{},s=sOf(c.c);const prev=inasCount(c.c,c.fecha,365);\n    h+='<button type=\"button\" class=\"slot st-'+AG_CLS[c.estado]+'\" data-ag=\"cita|'+esc(c.id)+'\"><span class=\"sl1\"><strong>'+esc(c.c)+'<\/strong> '+esc((p.nombre||\"\").split(\" \").slice(0,3).join(\" \"))+'<\/span><span class=\"sl2\">'+esc(epsShort(p.eps))+(s&&s.c.grupo?' · G'+s.c.grupo:'')+' · '+esc((c.tipo||\"\").toLowerCase())+'<\/span><span class=\"sl3\"><span class=\"est\">'+esc(AG_EST[c.estado])+'<\/span>'+(c.conf===\"CONFIRMADA\"?'<span class=\"fl ok\">confirmada<\/span>':c.conf?'<span class=\"fl\">'+esc(c.conf.toLowerCase())+'<\/span>':'')+(prev?'<span class=\"fl bad\">'+prev+' inasist. previa'+(prev>1?'s':'')+'<\/span>':'')+(p.estado&&p.estado!==\"ACTIVO\"?'<span class=\"fl bad\">paciente '+esc(p.estado.toLowerCase())+'<\/span>':'')+'<\/span><\/button>';});\n  if(!act.length)h+=j.estado===\"ABIERTA\"?'<button type=\"button\" class=\"slot free\" data-ag=\"asig|'+esc(j.id)+'|'+t+'|'+a+'\">+ Asignar<\/button>':'<span class=\"note\">—<\/span>';\n  if(cn.length)h+='<span class=\"sub agcn\">'+cn.map(c=>'<button type=\"button\" class=\"lnk\" data-ag=\"cita|'+esc(c.id)+'\">cancelada '+esc(c.c)+'<\/button>').join(\" \")+'<\/span>';\n  return h;\n}\n\n/* ---------- Por agendar y reprogramar ---------- */\nfunction vPend(){\n  const B=ST.book,T=TODAY();const hor=pdate(AST.phor)||NP.addMonths(T,1);\n  let h='';\n  const rep=B.cit.filter(c=>[\"INASISTENCIA\",\"CANCELADA\",\"NO ATENDIDA\"].includes(c.estado)&&!c.reId&&NP.days(c.fecha,T)<=120&&!(c.estado===\"CANCELADA\"&&c.resp===\"OTRO\"&&/Falleció|traslado/i.test(c.motivo))&&(pOf(c.c)||{}).estado===\"ACTIVO\"&&!activeFut(c.c,c.serv).length).sort((a,b)=>agPrio(sOf(b.c))-agPrio(sOf(a.c))||a.fecha-b.fecha);\n  const sc=B.cit.filter(c=>(c.estado===\"ASIGNADA\"||c.estado===\"EN SALA\")&&c.fecha<T).sort((a,b)=>a.fecha-b.fecha);\n  if(sc.length)h+='<section class=\"panel\"><h3>Sin cierre · '+sc.length+'<\/h3><p class=\"note\" style=\"margin:0 0 8px\">Citas de fechas pasadas sin marcar llegada ni inasistencia.<\/p>'+citaTable(sc,false)+'<\/section>';\n  h+='<section class=\"panel\"><h3>Por reprogramar · '+rep.length+'<\/h3><p class=\"note\" style=\"margin:0 0 8px\">Inasistencias, cancelaciones y pacientes que llegaron y no fueron atendidos en los últimos 120 días, sin nueva cita. Ordenados por riesgo clínico (grupo 3 y alertas primero).<\/p>'+(rep.length?citaTable(rep,true):'<p class=\"note\">Ninguna.<\/p>')+'<\/section>';\n  const cands=agCands(AST.pserv,hor);\n  h+='<section class=\"panel\"><div class=\"mhead\"><h3 style=\"margin:0\">Pacientes por agendar · '+esc(AG_SN(AST.pserv))+' · '+cands.length+'<\/h3><button type=\"button\" class=\"btn\" data-x=\"agpend\">Exportar<\/button><\/div><div class=\"filters\" style=\"margin:10px 0\"><label class=\"f\">Servicio<select data-agf=\"pserv\">'+AG_SERV.map(([k,l])=>'<option value=\"'+k+'\"'+(AST.pserv===k?\" selected\":\"\")+'>'+l+'<\/option>').join(\"\")+'<\/select><\/label><label class=\"f\">Con fecha límite hasta<input type=\"date\" data-agf=\"phor\" value=\"'+esc(AST.phor)+'\"><\/label><\/div><p class=\"note\" style=\"margin:0 0 8px\">Sale de la agenda de gestión de cada paciente (plan del programa). Excluye a quien ya tiene cita futura en este servicio. «Inasistencia previa» es el principal predictor de una nueva inasistencia: confírmele la cita con más insistencia.<\/p>';\n  h+=cands.length?'<div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Grupo<\/th><th>Pendiente<\/th><th>Alertas<\/th><th><\/th><\/tr><\/thead><tbody>'+cands.slice(0,400).map(x=>{const s=x.s,prev=inasCount(s.p.codigo,T,365);const bad=(s.P.actions||[]).filter(a=>a.lvl===\"bad\").length;\n    return'<tr><td>'+pname(s)+'<\/td><td>'+esc(epsShort(s.p.eps))+'<\/td><td>'+contact(s)+'<\/td><td>'+grpTag(s)+'<\/td><td><div class=\"chs\">'+x.its.map(i=>'<span class=\"ch '+(i.due?(i.due<T?\"venc\":\"mes\"):\"sinreg\")+'\" title=\"'+esc(i.why||\"\")+'\">'+esc(i.nombre)+' · '+(i.due?(i.due<T?\"vencido \":\"\")+fd(i.due):\"sin registro\")+'<\/span>').join(\"\")+'<\/div><\/td><td>'+(bad?'<span class=\"fl bad\">'+bad+' prioritaria'+(bad>1?'s':'')+'<\/span>':'')+(prev?'<span class=\"fl bad\">'+prev+' inasist. en 12 m<\/span>':'')+'<\/td><td><button type=\"button\" class=\"btn\" data-ag=\"agendar|'+esc(s.p.codigo)+'|'+esc(AST.pserv)+'|'+(x.due?iso(x.due):\"\")+'\">Agendar<\/button><\/td><\/tr>';}).join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\">Nadie pendiente para este servicio en el horizonte elegido.<\/p>';\n  h+='<\/section>';\n  EXPORTS.agpend=null;\n  ST._cands=cands;\n  return h;\n}\nfunction citaTable(L,repro){\n  return'<div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Grupo<\/th><th>Cita<\/th><th>Estado<\/th><th>Motivo<\/th><th><\/th><\/tr><\/thead><tbody>'+L.map(c=>{const s=sOf(c.c),p=pOf(c.c)||{codigo:c.c};const fake={p,c:s?s.c:{},P:s?s.P:{}};\n    return'<tr><td>'+pname(fake)+'<\/td><td>'+esc(epsShort(p.eps))+'<\/td><td>'+contact(fake)+'<\/td><td>'+(s?grpTag(s):'—')+'<\/td><td class=\"mono\">'+fd(c.fecha)+' '+esc(c.hora)+'<span class=\"sub\">'+esc(AG_SN(c.serv))+'<\/span><\/td><td><span class=\"est st-'+AG_CLS[c.estado]+'\">'+esc(AG_EST[c.estado])+'<\/span><\/td><td>'+esc(c.motivo||\"—\")+(c.resp?'<span class=\"sub\">'+esc(AG_RESP[c.resp]||c.resp)+'<\/span>':'')+'<\/td><td><button type=\"button\" class=\"btn\" data-ag=\"cita|'+esc(c.id)+(repro?'|repro':'')+'\">'+(repro?\"Reprogramar\":\"Abrir\")+'<\/button><\/td><\/tr>';}).join(\"\")+'<\/tbody><\/table><\/div>';\n}\n\n/* ---------- Jornadas ---------- */\nfunction vJor(){\n  const B=ST.book;const L=B.jor.slice().sort((a,b)=>b.fecha-a.fecha||hm2m(a.hIni)-hm2m(b.hIni));\n  let h='<div class=\"agbar\"><button type=\"button\" class=\"btn primary\" data-ag=\"newjor\">Abrir jornada<\/button><\/div>';\n  h+='<section class=\"panel\"><h3>Jornadas registradas · '+L.length+'<\/h3>'+(L.length?'<div class=\"tablebox\"><table><thead><tr><th>Fecha<\/th><th>Servicio<\/th><th>Profesional<\/th><th>Horario<\/th><th>Cupos<\/th><th>Asignados<\/th><th>Atendidos<\/th><th>No asistieron<\/th><th>Canceladas<\/th><th>Estado<\/th><th><\/th><\/tr><\/thead><tbody>'+L.map(j=>{const s=jorStats(j);return'<tr><td class=\"mono\">'+fd(j.fecha)+'<span class=\"sub\">'+AG_DIAS[j.fecha.getDay()]+'<\/span><\/td><td>'+esc(AG_SN(j.serv))+'<\/td><td>'+esc(j.prof||\"—\")+'<\/td><td class=\"mono\">'+j.hIni+'–'+j.hFin+'<span class=\"sub\">'+j.dur+' min'+(j.nAg===2?' · A/B':'')+'<\/span><\/td><td class=\"mono\">'+s.cupos+'<\/td><td class=\"mono\">'+s.asig+'<\/td><td class=\"mono\">'+s.aten+'<\/td><td class=\"mono\">'+s.inas+'<\/td><td class=\"mono\">'+s.canc+'<\/td><td>'+esc(j.estado.toLowerCase())+(j.motivo?'<span class=\"sub\">'+esc(j.motivo)+'<\/span>':'')+'<\/td><td><button type=\"button\" class=\"lnk\" data-ag=\"goto|'+iso(j.fecha)+'\">Ver día<\/button><\/td><\/tr>';}).join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\">Aún no hay jornadas. Ábralas por fecha con su horario.<\/p>')+'<\/section>';\n  return h;\n}\n\n/* ---------- Diálogo ---------- */\nfunction openDlg(o){AST.dlg=o;drawDlg();}\nfunction closeDlg(){AST.dlg=null;const d=$(\"agdlg\");d.hidden=true;d.innerHTML=\"\";}\nfunction drawDlg(){\n  const D=AST.dlg,box=$(\"agdlg\");if(!D){closeDlg();return;}\n  let h='<div class=\"agmodal\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"agdlgt\"><div class=\"mhead\"><h3 id=\"agdlgt\" style=\"margin:0\">'+dlgTitle(D)+'<\/h3><button type=\"button\" class=\"btn\" data-dl=\"close\">Cerrar<\/button><\/div>';\n  h+=({newjor:dNewJor,canjor:dCanJor,asig:dAsig,cita:dCita})[D.t](D);\n  h+=(D.msg?'<p class=\"agmsg\">'+esc(D.msg)+'<\/p>':'')+'<\/div>';\n  box.innerHTML=h;box.hidden=false;\n  box.onclick=dlgClick;\n  const q=box.querySelector(\"[data-dq]\");if(q){q.addEventListener(\"input\",()=>{D.q=q.value;const c=$(\"agcands\");if(c)c.innerHTML=candList(D);});if(!D.pat)q.focus();}\n}\nfunction dlgTitle(D){if(D.t===\"newjor\")return\"Abrir jornada\";if(D.t===\"canjor\")return\"Cancelar jornada\";if(D.t===\"asig\")return\"Asignar cita\"+(D.serv?\" · \"+esc(AG_SN(D.serv)):\"\");const c=ST.book.cit.find(x=>x.id===D.id);return\"Cita \"+esc(D.id)+(c?\" · \"+esc(AG_SN(c.serv)):\"\");}\nconst fv=id=>{const e=$(id);return e?String(e.value).trim():\"\";};\nfunction dNewJor(D){\n  return'<div class=\"pacform\"><div class=\"row3\"><label class=\"f\">Fecha *<input type=\"date\" id=\"nj_fecha\" value=\"'+esc(D.fecha)+'\"><\/label><label class=\"f\">Servicio *<select id=\"nj_serv\">'+AG_SERV.map(([k,l])=>'<option value=\"'+k+'\"'+(D.serv===k?\" selected\":\"\")+'>'+l+'<\/option>').join(\"\")+'<\/select><\/label><label class=\"f\">Profesional<input type=\"text\" id=\"nj_prof\" placeholder=\"Nombre del profesional\"><\/label><\/div>'+\n    '<div class=\"row3\"><label class=\"f\">Hora de inicio *<input type=\"time\" id=\"nj_ini\" value=\"07:00\" step=\"300\"><\/label><label class=\"f\">Hora de fin *<input type=\"time\" id=\"nj_fin\" value=\"12:00\" step=\"300\"><\/label><label class=\"f\">Duración del cupo (min) *<input type=\"text\" id=\"nj_dur\" inputmode=\"numeric\" value=\"20\"><\/label><\/div>'+\n    '<label class=\"f\">Agendas simultáneas<select id=\"nj_nag\"><option value=\"2\"'+(D.serv===\"NEFROLOGIA\"?\" selected\":\"\")+'>Dos: agenda espejo A y B a la misma hora<\/option><option value=\"1\"'+(D.serv!==\"NEFROLOGIA\"?\" selected\":\"\")+'>Una agenda<\/option><\/select><\/label>'+\n    '<label class=\"f\">Observaciones<input type=\"text\" id=\"nj_obs\"><\/label><p class=\"note\" id=\"nj_prev\"><\/p><div class=\"copyrow\"><button type=\"button\" class=\"btn primary\" data-dl=\"nj_ok\">Abrir jornada<\/button><\/div><\/div>';\n}\nfunction dCanJor(D){const j=ST.book.jor.find(x=>x.id===D.id);const st=jorStats(j);\n  return'<p>'+esc(AG_SN(j.serv))+' del '+fd(j.fecha)+' ('+j.hIni+'–'+j.hFin+'). Tiene <strong>'+st.pend+'<\/strong> cita(s) asignada(s): quedarán canceladas por la IPS con el motivo elegido y pasarán a «Por reprogramar». La jornada no se borra.<\/p><div class=\"row\"><label class=\"f\">Motivo *<select id=\"cj_mot\"><option value=\"\">—<\/option>'+motOpts(\"\",[\"IPS\",\"OTRO\"])+'<\/select><\/label><label class=\"f\">Detalle<input type=\"text\" id=\"cj_det\"><\/label><\/div><div class=\"copyrow\" style=\"margin-top:8px\"><button type=\"button\" class=\"btn primary\" data-dl=\"cj_ok\">Cancelar jornada<\/button><\/div>';}\nfunction candList(D){\n  const T=TODAY(),q=COH.norm(D.q||\"\");let L;\n  if(q){L=ST.snaps.filter(s=>COH.norm(s.p.codigo+\" \"+s.p.nombre+\" \"+s.p.doc).includes(q)).slice(0,30).map(s=>({s,its:s.items.filter(it=>itemServ(s,it)===D.serv),due:null}));}\n  else{const j=D.jor?ST.book.jor.find(x=>x.id===D.jor):null;L=agCands(D.serv,NP.addMonths(j?j.fecha:T,1),D.jor).slice(0,40);}\n  if(!L.length)return'<p class=\"note\">'+(q?\"Sin coincidencias entre pacientes activos.\":\"Nadie pendiente para este servicio. Busque por código, nombre o documento.\")+'<\/p>';\n  return'<div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Grupo<\/th><th>Pendiente de '+esc(AG_SN(D.serv))+'<\/th><th><\/th><\/tr><\/thead><tbody>'+L.map(x=>{const s=x.s,prev=inasCount(s.p.codigo,T,365),fut=activeFut(s.p.codigo,D.serv);\n    return'<tr><td>'+pname(s)+(prev?'<span class=\"fl bad\">'+prev+' inasist. en 12 m<\/span>':'')+'<\/td><td>'+esc(epsShort(s.p.eps))+'<\/td><td>'+grpTag(s)+'<\/td><td>'+(x.its.length?x.its.map(i=>esc(i.nombre)+' · '+(i.due?(i.due<T?\"vencido \":\"\")+fd(i.due):\"sin registro\")).join(\"<br>\"):'<span class=\"note\">sin pendiente en el plan<\/span>')+(fut.length?'<span class=\"sub\" style=\"color:var(--warn)\">Ya tiene cita '+fd(fut[0].fecha)+' '+esc(fut[0].hora)+'<\/span>':'')+'<\/td><td><button type=\"button\" class=\"btn\" data-dl=\"pick|'+esc(s.p.codigo)+'\">Elegir<\/button><\/td><\/tr>';}).join(\"\")+'<\/tbody><\/table><\/div>';\n}\nfunction slotPicker(serv,fDes,code){\n  const T=TODAY();const J=ST.book.jor.filter(j=>j.serv===serv&&j.estado===\"ABIERTA\"&&j.fecha>=T).sort((a,b)=>a.fecha-b.fecha||hm2m(a.hIni)-hm2m(b.hIni));\n  if(!J.length)return'<div class=\"alert warn\"><p>No hay jornadas abiertas de '+esc(AG_SN(serv))+' desde hoy. Ábrala primero en Agenda › Abrir jornada.<\/p><\/div>';\n  const now=new Date();let target=fDes?J.find(j=>j.fecha>=fDes):null;if(!target)target=J[0];\n  return'<p class=\"note\" style=\"margin:0 0 6px\">Cupos libres'+(fDes?'. Fecha deseada o límite del plan: <strong>'+fd(fDes)+'<\/strong>':'')+'.<\/p><div class=\"slotpick\">'+J.slice(0,12).map(j=>{const st=jorStats(j);const occ=new Set(st.C.filter(c=>c.estado!==\"CANCELADA\").map(c=>c.hora+\"|\"+c.ag));const mine=st.C.some(c=>c.c===code&&c.estado!==\"CANCELADA\");\n    const free=[];st.S.forEach(t=>st.L.forEach(a=>{if(!occ.has(t+\"|\"+a)){const dt=new Date(j.fecha.getFullYear(),j.fecha.getMonth(),j.fecha.getDate(),Math.floor(hm2m(t)/60),hm2m(t)%60);if(dt>now)free.push([t,a]);}}));\n    return'<div class=\"spj'+(j===target?' tgt':'')+'\"><div><strong>'+fd(j.fecha)+'<\/strong> '+AG_DIAS[j.fecha.getDay()].toLowerCase()+' · '+j.hIni+'–'+j.hFin+(j.prof?' · '+esc(j.prof):'')+(fDes&&j.fecha>fDes?' <span class=\"fl bad\">después de la fecha deseada<\/span>':'')+(mine?' <span class=\"fl\">ya tiene cita en esta jornada<\/span>':'')+'<\/div><div class=\"chs\">'+(free.length?free.map(([t,a])=>'<button type=\"button\" class=\"ch slb\" data-dl=\"slot|'+esc(j.id)+'|'+t+'|'+a+'\">'+t+(st.L.length>1?' '+a:'')+'<\/button>').join(\"\"):'<span class=\"note\">sin cupos libres<\/span>')+'<\/div><\/div>';}).join(\"\")+'<\/div>';\n}\nfunction dAsig(D){\n  const B=ST.book,T=TODAY();let h=\"\";\n  if(!D.serv){return'<label class=\"f\">Servicio<select id=\"as_serv\"><option value=\"\">—<\/option>'+AG_SERV.map(([k,l])=>'<option value=\"'+k+'\">'+l+'<\/option>').join(\"\")+'<\/select><\/label><div class=\"copyrow\" style=\"margin-top:8px\"><button type=\"button\" class=\"btn primary\" data-dl=\"servok\">Continuar<\/button><\/div>';}\n  const j=D.jor?B.jor.find(x=>x.id===D.jor):null;\n  if(j)h+='<p class=\"agsel\">'+fd(j.fecha)+' · '+esc(D.hora)+(j.nAg===2?' · agenda '+esc(D.ag):'')+' · '+esc(AG_SN(j.serv))+(j.prof?' · '+esc(j.prof):'')+(D.fixedSlot?'':' <button type=\"button\" class=\"lnk\" data-dl=\"unslot\">cambiar cupo<\/button>')+'<\/p>';\n  if(!D.pat){\n    h+='<label class=\"f\">Buscar paciente activo (código, nombre o documento)<input type=\"text\" data-dq=\"1\" value=\"'+esc(D.q||\"\")+'\"><\/label><p class=\"note\" style=\"margin:6px 0\">Sin texto de búsqueda se muestran los pendientes de '+esc(AG_SN(D.serv))+' ordenados por riesgo clínico y atraso.<\/p><div id=\"agcands\">'+candList(D)+'<\/div>';\n    return h;}\n  const s=sOf(D.pat),p=pOf(D.pat)||{};\n  h+='<p class=\"agsel\"><strong>'+esc(D.pat)+'<\/strong> '+esc(p.nombre||\"\")+' · '+esc(epsShort(p.eps))+(s&&s.c.grupo?' · grupo '+s.c.grupo:'')+' · tel. '+esc([p.tel,p.tel2].filter(Boolean).join(\" / \")||\"sin teléfono\")+(D.fixedPat?'':' <button type=\"button\" class=\"lnk\" data-dl=\"unpat\">cambiar paciente<\/button>')+'<\/p>';\n  const prev=inasCount(D.pat,T,365);if(prev)h+='<div class=\"alert warn\"><p>Tiene '+prev+' inasistencia(s) en los últimos 12 meses. Antecedente de inasistencia es el predictor más consistente de una nueva (Dantas 2018): programe recordatorio y revise barreras con trabajo social.<\/p><\/div>';\n  const its=s?s.items.filter(it=>itemServ(s,it)===D.serv):[];\n  const fDes=D.fDes||(its.map(i=>i.due).filter(Boolean).sort((a,b)=>a-b)[0])||null;\n  if(!j){h+=slotPicker(D.serv,fDes,D.pat);return h;}\n  const fut=activeFut(D.pat,D.serv).filter(c=>c.id!==D.deId);\n  if(fut.length)h+='<div class=\"alert warn\"><p>Ya tiene cita de '+esc(AG_SN(D.serv))+' el '+fd(fut[0].fecha)+' a las '+esc(fut[0].hora)+'. Si esta la reemplaza, cancele la anterior.<\/p><\/div>';\n  const clash=B.cit.filter(c=>c.c===D.pat&&c.estado===\"ASIGNADA\"&&NP.days(c.fecha,j.fecha)===0&&c.hora===D.hora&&c.id!==D.deId);\n  if(clash.length)h+='<div class=\"alert bad\"><p>Ya tiene otra cita a esa misma hora ('+esc(AG_SN(clash[0].serv))+').<\/p><\/div>';\n  if(p.eps&&(window.EPSMODEL[p.eps]||{}).multi===\"PAQUETE\"&&D.serv===\"NEFROLOGIA\"&&s){\n    const team=[\"NUTRICION\",\"ENFERMERIA\",\"PSICOLOGIA\",\"TRABAJO SOCIAL\",\"EDUCACION\"].filter(sv=>s.items.some(it=>itemServ(s,it)===sv&&(!it.due||it.due<=NP.addMonths(j.fecha,1)))&&!activeFut(D.pat,sv).length);\n    if(team.length){const same=B.jor.filter(x=>x.estado===\"ABIERTA\"&&NP.days(x.fecha,j.fecha)===0&&team.includes(x.serv));h+='<div class=\"alert\"><p>Paquete de '+esc(p.eps)+': también le corresponde '+team.map(AG_SN).join(\", \").toLowerCase()+'. Agéndelo el mismo día. '+(same.length?'Hay jornada abierta ese día de: '+same.map(x=>AG_SN(x.serv)).join(\", \")+'.':'No hay jornadas abiertas de esos servicios ese día.')+'<\/p><\/div>';}\n  }\n  const tipos=AG_TIPOS[D.serv]||AG_TIPOS._;\n  const tipo0=D.serv===\"NEFROLOGIA\"&&s&&!s.lv?\"PRIMERA VEZ\":D.serv===\"NEFROLOGIA\"&&its.some(i=>i.k===\"ajuste\")&&!its.some(i=>i.k===\"ctl\")?\"AJUSTE DE METAS\":tipos[0];\n  h+='<div class=\"pacform\"><div class=\"row\"><label class=\"f\">Tipo de cita<select id=\"as_tipo\">'+tipos.map(t=>'<option'+(t===tipo0?\" selected\":\"\")+'>'+esc(t)+'<\/option>').join(\"\")+'<\/select><\/label><label class=\"f\">Origen<select id=\"as_orig\">'+AG_ORIG.map(([k,l])=>'<option value=\"'+k+'\"'+((j.fecha<T?\"REGISTRO POSTERIOR\":D.deId?\"REPROGRAMACION\":\"PLAN\")===k?\" selected\":\"\")+'>'+l+'<\/option>').join(\"\")+'<\/select><\/label><\/div>';\n  if(j.fecha<T)h+='<div class=\"alert warn\"><p>La jornada ya pasó. Solo use esto para pasar a la herramienta citas que se manejaron por fuera (contingencia en papel). Queda como «registro posterior» y no entra al cálculo de oportunidad.<\/p><\/div>';\n  h+='<div class=\"row\"><label class=\"f\">Fecha de solicitud<input type=\"date\" id=\"as_fsol\" value=\"'+iso(T)+'\"><\/label><label class=\"f\">Fecha deseada o límite del plan<input type=\"date\" id=\"as_fdes\" value=\"'+(fDes?iso(fDes):iso(j.fecha))+'\"><\/label><\/div>';\n  if(its.length)h+='<p class=\"note\" style=\"margin:0\">Del plan: '+its.map(i=>esc(i.nombre)+(i.due?\" (límite \"+fd(i.due)+\")\":\" (sin registro)\")).join(\"; \")+'.<\/p>';\n  h+='<label class=\"f\">Observaciones<input type=\"text\" id=\"as_obs\" value=\"'+esc(D.serv===\"TOMA DE MUESTRAS\"&&its.length?its.map(i=>i.nombre).join(\", \"):\"\")+'\"><\/label>';\n  h+='<p class=\"note\" style=\"margin:0\">Res. 256 de 2016 pide registrar fecha de solicitud, fecha deseada y fecha asignada; con ellas se mide la oportunidad.<\/p><div class=\"copyrow\"><button type=\"button\" class=\"btn primary\" data-dl=\"as_ok\">Asignar cita<\/button><\/div><\/div>';\n  return h;\n}\nfunction dCita(D){\n  const B=ST.book,c=B.cit.find(x=>x.id===D.id);if(!c)return'<p>No existe.<\/p>';\n  const p=pOf(c.c)||{},s=sOf(c.c),T=TODAY(),past=c.fecha<=T,dt=citaDT(c);\n  let h='<div class=\"agdet\"><dl class=\"ficha\"><dt>Paciente<\/dt><dd><strong>'+esc(c.c)+'<\/strong> '+esc(p.nombre||\"\")+' · '+esc(p.tipodoc||\"\")+' '+esc(p.doc||\"\")+'<\/dd><dt>EPS · grupo<\/dt><dd>'+esc(p.eps||\"Sin EPS\")+(s&&s.c.grupo?' · grupo '+s.c.grupo+' ('+esc((s.c.G||\"\")+\" \"+(s.c.A||\"\"))+')':'')+'<\/dd><dt>Contacto<\/dt><dd>'+esc([p.tel,p.tel2].filter(Boolean).join(\" / \")||\"sin teléfono\")+(p.acud||p.acudTel?' · '+esc((p.acud||\"Acudiente\")+\" \"+(p.acudTel||\"\")):\"\")+(p.municipio?' · '+esc(p.municipio):'')+'<\/dd>'+\n    '<dt>Cita<\/dt><dd>'+fd(c.fecha)+' '+esc(c.hora)+' · agenda '+esc(c.ag)+' · '+esc(AG_SN(c.serv))+' · '+esc((c.tipo||\"\").toLowerCase())+' · origen '+esc((c.origen||\"\").toLowerCase())+'<\/dd><dt>Fechas<\/dt><dd>solicitud '+fd(c.fSol)+' · deseada '+fd(c.fDes)+' · asignada el '+fd(c.fAsig)+'<\/dd>'+\n    '<dt>Estado<\/dt><dd><span class=\"est st-'+AG_CLS[c.estado]+'\">'+esc(AG_EST[c.estado])+'<\/span>'+(c.hLleg?' · llegó '+esc(c.hLleg):'')+(c.hAten?' · atendido '+esc(c.hAten):'')+(c.conf?' · recordatorio: '+esc(c.conf.toLowerCase()):'')+'<\/dd>'+\n    (c.motivo?'<dt>Motivo<\/dt><dd>'+esc(c.motivo)+' ('+esc(AG_RESP[c.resp]||c.resp||\"\")+')'+(c.avisoH!=null?' · avisó '+Math.round(c.avisoH)+' h antes':'')+'<\/dd>':'')+\n    (c.deId||c.reId?'<dt>Enlaces<\/dt><dd>'+(c.deId?'reprograma <button type=\"button\" class=\"lnk\" data-dl=\"open|'+esc(c.deId)+'\">'+esc(c.deId)+'<\/button> ':'')+(c.reId?'reprogramada en <button type=\"button\" class=\"lnk\" data-dl=\"open|'+esc(c.reId)+'\">'+esc(c.reId)+'<\/button>':'')+'<\/dd>':'')+(c.obs?'<dt>Observaciones<\/dt><dd>'+esc(c.obs)+'<\/dd>':'')+'<\/dl><\/div>';\n  const A=[];const btn=(k,l,pri)=>A.push('<button type=\"button\" class=\"btn'+(pri?' primary':'')+'\" data-dl=\"f|'+k+'\">'+l+'<\/button>');\n  if(c.estado===\"ASIGNADA\"){if(past){btn(\"lleg\",\"Llegó\",1);btn(\"aten\",\"Llegó y fue atendido\");if(new Date()>=dt)btn(\"noasis\",\"No asistió\");}btn(\"rec\",\"Registrar recordatorio\");btn(\"canc\",\"Cancelar\");}\n  if(c.estado===\"EN SALA\"){btn(\"aten\",\"Atendido\",1);btn(\"noaten\",\"Se retiró o no fue atendido\");}\n  if(c.estado===\"INASISTENCIA\")btn(\"motivo\",c.motivo?\"Cambiar motivo\":\"Registrar motivo\",!c.motivo);\n  if([\"INASISTENCIA\",\"CANCELADA\",\"NO ATENDIDA\"].includes(c.estado)&&!c.reId)btn(\"repro\",\"Reprogramar\",1);\n  if(c.estado!==\"ASIGNADA\")btn(\"corr\",\"Corregir estado\");\n  h+='<div class=\"copyrow agacts\">'+A.join(\"\")+(c.estado===\"ATENDIDA\"&&[\"NEFROLOGIA\",\"MEDICO EXPERTO\",\"MEDICO PROGRAMA\"].includes(c.serv)?'<button type=\"button\" class=\"btn\" data-dl=\"valorar|'+esc(c.c)+'\">Abrir valoración<\/button>':'')+'<\/div>';\n  const F=D.form;const hhmm=past&&NP.days(c.fecha,T)===0?nowHM():c.hora;\n  if(F===\"lleg\")h+=frm('<label class=\"f\">Hora de llegada<input type=\"time\" id=\"fx_h\" value=\"'+hhmm+'\"><\/label>',\"Registrar llegada\");\n  if(F===\"aten\")h+=frm('<div class=\"row\"><label class=\"f\">Hora de llegada<input type=\"time\" id=\"fx_h\" value=\"'+esc(c.hLleg||hhmm)+'\"><\/label><label class=\"f\">Hora de ingreso a consulta<input type=\"time\" id=\"fx_h2\" value=\"'+(past&&NP.days(c.fecha,T)===0?nowHM():c.hora)+'\"><\/label><\/div>',\"Marcar atendido\");\n  if(F===\"noasis\")h+=frm('<p class=\"note\" style=\"margin:0\">No llegó y no avisó antes de la hora de la cita. Si no conoce el motivo, regístrelo después de llamar al paciente.<\/p><label class=\"f\">Motivo (si ya se conoce)<select id=\"fx_m\"><option value=\"\">Sin establecer aún<\/option>'+motOpts(\"\")+'<\/select><\/label><label class=\"f\">Observaciones<input type=\"text\" id=\"fx_o\"><\/label>',\"Registrar inasistencia\");\n  if(F===\"noaten\")h+=frm('<label class=\"f\">Motivo *<select id=\"fx_m\"><option value=\"\">—<\/option>'+motOpts(\"I_DEMORA\")+'<\/select><\/label><label class=\"f\">Observaciones<input type=\"text\" id=\"fx_o\"><\/label>',\"Registrar\");\n  if(F===\"motivo\")h+=frm('<label class=\"f\">Motivo *<select id=\"fx_m\"><option value=\"\">—<\/option>'+motOpts(motKey(c.motivo))+'<\/select><\/label><label class=\"f\">Observaciones<input type=\"text\" id=\"fx_o\"><\/label>',\"Guardar motivo\");\n  if(F===\"canc\"){const n=new Date();h+=frm('<p class=\"note\" style=\"margin:0\">Cualquier aviso antes de la hora de la cita es cancelación (decisión del programa). Se guarda la anticipación del aviso.<\/p><div class=\"row\"><label class=\"f\">Fecha del aviso<input type=\"date\" id=\"fx_d\" value=\"'+iso(n)+'\"><\/label><label class=\"f\">Hora del aviso<input type=\"time\" id=\"fx_h\" value=\"'+nowHM()+'\"><\/label><\/div><label class=\"f\">Motivo *<select id=\"fx_m\"><option value=\"\">—<\/option>'+motOpts(\"\")+'<\/select><\/label><label class=\"f\">Observaciones<input type=\"text\" id=\"fx_o\"><\/label>',\"Cancelar cita\");}\n  if(F===\"rec\")h+=frm('<div class=\"row\"><label class=\"f\">Medio<select id=\"fx_med\">'+[\"LLAMADA\",\"WHATSAPP\",\"SMS\",\"PRESENCIAL\"].map(x=>'<option>'+x+'<\/option>').join(\"\")+'<\/select><\/label><label class=\"f\">Resultado<select id=\"fx_res\">'+AG_REC.map(([k,l])=>'<option value=\"'+k+'\">'+l+'<\/option>').join(\"\")+'<\/select><\/label><\/div><label class=\"f\">Observaciones<input type=\"text\" id=\"fx_o\"><\/label>',\"Registrar recordatorio\");\n  if(F===\"corr\")h+=frm('<p class=\"note\" style=\"margin:0\">Devuelve la cita a «asignada». El estado anterior y el motivo de la corrección quedan en el historial; nada se borra.<\/p><label class=\"f\">Motivo de la corrección *<input type=\"text\" id=\"fx_o\"><\/label>',\"Corregir\");\n  if(F===\"repro\")h+='<div class=\"agform\"><h3>Nuevo cupo<\/h3>'+slotPicker(c.serv,c.fDes,c.c)+'<\/div>';\n  const lg=B.clog.filter(x=>x.id===c.id);\n  h+='<details class=\"hist\"'+(lg.length>1?'':'')+'><summary>Historial de la cita ('+lg.length+')<\/summary>'+(lg.length?'<div class=\"tablebox\"><table><thead><tr><th>Fecha y hora<\/th><th>Acción<\/th><th>De → a<\/th><th>Motivo<\/th><th>Usuario<\/th><\/tr><\/thead><tbody>'+lg.map(x=>'<tr><td class=\"mono\">'+esc(typeof x.fh===\"string\"?x.fh:fdt(x.fh))+'<\/td><td>'+esc(x.acc.toLowerCase())+'<\/td><td>'+esc((x.de||\"—\")+\" → \"+(x.a||\"—\"))+'<\/td><td>'+esc(x.motivo||\"\")+'<\/td><td>'+esc(x.usuario||\"\")+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\">Sin registros.<\/p>')+'<\/details>';\n  const cs=(ST.book.ctc||[]).filter(x=>x.cita===c.id);if(cs.length)h+='<details class=\"hist\"><summary>Recordatorios y contactos ('+cs.length+')<\/summary><div class=\"tablebox\"><table><thead><tr><th>Fecha y hora<\/th><th>Medio<\/th><th>Resultado<\/th><th>Observaciones<\/th><th>Usuario<\/th><\/tr><\/thead><tbody>'+cs.map(x=>'<tr><td class=\"mono\">'+esc(typeof x.fh===\"string\"?x.fh:fdt(x.fh))+'<\/td><td>'+esc(x.medio.toLowerCase())+'<\/td><td>'+esc(x.res.toLowerCase())+'<\/td><td>'+esc(x.obs||\"\")+'<\/td><td>'+esc(x.usuario||\"\")+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div><\/details>';\n  return h;\n}\nconst frm=(inner,lbl)=>'<div class=\"agform pacform\">'+inner+'<div class=\"copyrow\"><button type=\"button\" class=\"btn primary\" data-dl=\"f_ok\">'+lbl+'<\/button><\/div><\/div>';\n\nfunction dlgClick(e){\n  if(e.target.id===\"agdlg\"){closeDlg();return;}\n  const b=e.target.closest(\"[data-dl]\");if(!b)return;const p=b.dataset.dl.split(\"|\");const D=AST.dlg,B=ST.book;D.msg=\"\";\n  if(p[0]===\"close\"){closeDlg();return;}\n  if(p[0]===\"open\"){openDlg({t:\"cita\",id:p[1]});return;}\n  if(p[0]===\"valorar\"){closeDlg();openPatient(p[1]);return;}\n  if(p[0]===\"servok\"){const v=fv(\"as_serv\");if(!v){D.msg=\"Elija el servicio.\";drawDlg();return;}D.serv=v;drawDlg();return;}\n  if(p[0]===\"pick\"){D.pat=p[1];drawDlg();return;}\n  if(p[0]===\"unpat\"){D.pat=null;drawDlg();return;}\n  if(p[0]===\"unslot\"){D.jor=null;D.hora=null;D.ag=null;drawDlg();return;}\n  if(p[0]===\"slot\"){\n    if(D.t===\"cita\"){const old=B.cit.find(x=>x.id===D.id);openDlg({t:\"asig\",serv:old.serv,pat:old.c,fixedPat:true,jor:p[1],hora:p[2],ag:p[3],fixedSlot:true,deId:old.id,fDes:old.fDes,tipo:old.tipo});return;}\n    D.jor=p[1];D.hora=p[2];D.ag=p[3];drawDlg();return;}\n  if(p[0]===\"f\"){D.form=p[1];drawDlg();const f=document.querySelector(\"#agdlg .agform\");if(f)f.scrollIntoView({block:\"nearest\"});return;}\n  if(needUser()){return;}\n  try{\n    if(p[0]===\"nj_ok\")return okNewJor(D);\n    if(p[0]===\"cj_ok\")return okCanJor(D);\n    if(p[0]===\"as_ok\")return okAsig(D);\n    if(p[0]===\"f_ok\")return okCita(D);\n  }catch(err){D.msg=err.message;drawDlg();}\n}\nfunction okNewJor(D){\n  const f=pdate(fv(\"nj_fecha\")),serv=fv(\"nj_serv\"),ini=fv(\"nj_ini\"),fin=fv(\"nj_fin\"),dur=parseInt(fv(\"nj_dur\"),10),nAg=+fv(\"nj_nag\");\n  if(!f||!serv||hm2m(ini)==null||hm2m(fin)==null)throw new Error(\"Fecha, servicio y horario son obligatorios.\");\n  if(hm2m(fin)<=hm2m(ini))throw new Error(\"La hora de fin debe ser posterior a la de inicio.\");\n  if(!(dur>=5&&dur<=120))throw new Error(\"Duración del cupo entre 5 y 120 minutos.\");\n  if(hm2m(fin)-hm2m(ini)<dur)throw new Error(\"El horario no alcanza para un cupo.\");\n  const prof=fv(\"nj_prof\");\n  const ov=ST.book.jor.find(j=>j.estado===\"ABIERTA\"&&j.serv===serv&&NP.days(j.fecha,f)===0&&(j.prof||\"\")===prof&&hm2m(j.hIni)<hm2m(fin)&&hm2m(ini)<hm2m(j.hFin));\n  if(ov)throw new Error(\"Se cruza con la jornada \"+ov.id+\" (\"+ov.hIni+\"–\"+ov.hFin+\") del mismo servicio y profesional.\");\n  const base=\"J\"+iso(f).replace(/-/g,\"\");let n=1;while(ST.book.jor.some(j=>j.id===base+\"-\"+n))n++;\n  const j={id:base+\"-\"+n,fecha:f,serv,prof,hIni:ini,hFin:fin,dur,nAg,estado:\"ABIERTA\",motivo:\"\",obs:fv(\"nj_obs\"),usuario:AST.user,reg:fdt(new Date())};\n  ST.book.jor.push(j);ST.book.clog.push({fh:new Date(),id:j.id,c:\"\",acc:\"ABRE JORNADA\",de:\"\",a:\"ABIERTA\",motivo:AG_SN(serv)+\" \"+ini+\"–\"+fin+\" cupo \"+dur+\" min, \"+nAg+\" agenda(s)\",usuario:AST.user});\n  agChanged();closeDlg();AST.date=iso(f);AST.sub=\"dia\";renderMg(\"agenda\");toast(\"Jornada abierta: \"+agSlots(j).length*nAg+\" cupos.\");\n}\nfunction okCanJor(D){\n  const mk=fv(\"cj_mot\");if(!mk)throw new Error(\"Elija el motivo.\");const j=ST.book.jor.find(x=>x.id===D.id);const now=new Date();const det=fv(\"cj_det\");\n  j.estado=\"CANCELADA\";j.motivo=AG_MOTL(mk)+(det?\": \"+det:\"\");ST.book.clog.push({fh:now,id:j.id,c:\"\",acc:\"CANCELA JORNADA\",de:\"ABIERTA\",a:\"CANCELADA\",motivo:j.motivo,usuario:AST.user});\n  let n=0;ST.book.cit.filter(c=>c.jor===j.id&&c.estado===\"ASIGNADA\").forEach(c=>{agSet(c,\"CANCELADA\",\"Jornada cancelada: \"+j.motivo,{resp:AG_MOTR(mk),motivo:AG_MOTL(mk),avisoH:Math.max(0,Math.round((citaDT(c)-now)/36e5*10)/10)});n++;});\n  agChanged();closeDlg();renderMg(\"agenda\");toast(\"Jornada cancelada. \"+n+\" cita(s) pasan a «Por reprogramar».\");\n}\nfunction okAsig(D){\n  const B=ST.book,j=B.jor.find(x=>x.id===D.jor);if(!j||!D.pat)throw new Error(\"Falta paciente o cupo.\");\n  if(B.cit.some(c=>c.jor===j.id&&c.hora===D.hora&&c.ag===D.ag&&c.estado!==\"CANCELADA\"))throw new Error(\"Ese cupo ya fue ocupado.\");\n  if(B.cit.some(c=>c.jor===j.id&&c.c===D.pat&&c.estado!==\"CANCELADA\"))throw new Error(\"El paciente ya tiene cita en esta jornada.\");\n  if(j.fecha<TODAY()&&fv(\"as_orig\")!==\"REGISTRO POSTERIOR\")throw new Error(\"Para una jornada pasada use el origen «Registro posterior».\");\n  const fSol=pdate(fv(\"as_fsol\")),fDes=pdate(fv(\"as_fdes\"));if(!fSol)throw new Error(\"Falta la fecha de solicitud.\");if(fSol>TODAY())throw new Error(\"La fecha de solicitud no puede ser futura.\");\n  const c=agCreate({c:D.pat,jor:j.id,fecha:j.fecha,hora:D.hora,ag:D.ag,serv:j.serv,tipo:fv(\"as_tipo\"),origen:fv(\"as_orig\"),fSol,fDes,obs:fv(\"as_obs\"),deId:D.deId||\"\"});\n  if(D.deId){const old=B.cit.find(x=>x.id===D.deId);if(old){old.reId=c.id;agLog(old,\"REPROGRAMADA\",old.estado,old.estado,\"Nueva cita \"+c.id+\" el \"+fd(c.fecha));}}\n  agChanged();closeDlg();if(AST.sub===\"dia\"&&!D.deId)AST.date=iso(j.fecha);renderMg(\"agenda\");toast(\"Cita \"+c.id+\" asignada: \"+fd(c.fecha)+\" \"+c.hora+(j.nAg===2?\" agenda \"+c.ag:\"\")+\".\");\n}\nfunction okCita(D){\n  const c=ST.book.cit.find(x=>x.id===D.id),F=D.form,o=fv(\"fx_o\");\n  if(F===\"lleg\"){const h=fv(\"fx_h\");if(!h)throw new Error(\"Falta la hora.\");agSet(c,\"EN SALA\",\"\",{hLleg:h});}\n  if(F===\"aten\"){const h=fv(\"fx_h\"),h2=fv(\"fx_h2\");if(!h||!h2)throw new Error(\"Faltan las horas.\");if(hm2m(h2)<hm2m(h))throw new Error(\"El ingreso a consulta no puede ser antes de la llegada.\");agSet(c,\"ATENDIDA\",\"\",{hLleg:h,hAten:h2});}\n  if(F===\"noasis\"&&new Date()<citaDT(c))throw new Error(\"Aún no es la hora de la cita: no se puede registrar inasistencia.\");\n  if(F===\"noasis\"){const m=fv(\"fx_m\");agSet(c,\"INASISTENCIA\",[m?AG_MOTL(m):\"\",o].filter(Boolean).join(\" · \"),{resp:m?AG_MOTR(m):\"\",motivo:m?AG_MOTL(m):\"\",obs:o?[c.obs,o].filter(Boolean).join(\" · \"):c.obs});}\n  if(F===\"noaten\"){const m=fv(\"fx_m\");if(!m)throw new Error(\"Elija el motivo.\");agSet(c,\"NO ATENDIDA\",[AG_MOTL(m),o].filter(Boolean).join(\" · \"),{resp:AG_MOTR(m),motivo:AG_MOTL(m)});}\n  if(F===\"motivo\"){const m=fv(\"fx_m\");if(!m)throw new Error(\"Elija el motivo.\");const de=c.motivo;c.resp=AG_MOTR(m);c.motivo=AG_MOTL(m);if(o)c.obs=[c.obs,o].filter(Boolean).join(\" · \");agLog(c,\"MOTIVO\",c.estado,c.estado,(de?\"Antes: \"+de+\". \":\"\")+\"Ahora: \"+c.motivo+(o?\" · \"+o:\"\"));}\n  if(F===\"canc\"){const m=fv(\"fx_m\");if(!m)throw new Error(\"Elija el motivo.\");const d=pdate(fv(\"fx_d\")),hh=hm2m(fv(\"fx_h\"));if(!d||hh==null)throw new Error(\"Falta fecha u hora del aviso.\");\n    const av=new Date(d.getFullYear(),d.getMonth(),d.getDate(),Math.floor(hh/60),hh%60);if(av>new Date())throw new Error(\"El aviso no puede ser futuro.\");\n    const hrs=(citaDT(c)-av)/36e5;if(hrs<=0)throw new Error(\"El aviso llegó después de la hora de la cita: regístrela como inasistencia.\");\n    agSet(c,\"CANCELADA\",[AG_MOTL(m),\"aviso \"+Math.round(hrs)+\" h antes\",o].filter(Boolean).join(\" · \"),{resp:AG_MOTR(m),motivo:AG_MOTL(m),avisoH:Math.round(hrs*10)/10,obs:o?[c.obs,o].filter(Boolean).join(\" · \"):c.obs});}\n  if(F===\"rec\"){const res=fv(\"fx_res\"),med=fv(\"fx_med\");ST.book.ctc.push({fh:new Date(),c:c.c,cita:c.id,medio:med,res,obs:o,usuario:AST.user});\n    if(res===\"CANCELA\"){agChanged();D.form=\"canc\";D.msg=\"Recordatorio registrado. Complete la cancelación.\";drawDlg();return;}\n    c.conf=res===\"CONFIRMA\"?\"CONFIRMADA\":res;agLog(c,\"RECORDATORIO\",c.estado,c.estado,med+\": \"+res+(o?\" · \"+o:\"\"));}\n  if(F===\"corr\"){if(!o)throw new Error(\"Escriba el motivo de la corrección.\");const de=c.estado;Object.assign(c,{hLleg:\"\",hAten:\"\",resp:\"\",motivo:\"\",avisoH:null});c.estado=\"ASIGNADA\";agLog(c,\"CORRECCION\",de,\"ASIGNADA\",o);}\n  agChanged();D.form=null;drawDlg();renderMg(\"agenda\");toast(\"Registrado.\");\n}\n\n/* ---------- Estadísticas ---------- */\nconst CERR=[\"ATENDIDA\",\"EN SALA\",\"NO ATENDIDA\",\"INASISTENCIA\"],LLEGO=[\"ATENDIDA\",\"EN SALA\",\"NO ATENDIDA\"];\nconst med=a=>{if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;};\nconst pct=(n,d)=>d?n/d*100:null;\nconst pf=v=>v==null?\"—\":(Math.round(v*10)/10).toLocaleString(\"es-CO\")+\" %\";\nconst ageBand=a=>a==null?\"Sin dato\":a<50?\"< 50\":a<65?\"50–64\":a<80?\"65–79\":\"≥ 80\";\nfunction agCompute(){\n  const B=ST.book,de=pdate(AST.desde)||new Date(2000,0,1),ha=pdate(AST.hasta)||TODAY(),T=TODAY();\n  const inR=f=>f>=de&&f<=ha;\n  const C=B.cit.filter(c=>inR(c.fecha)&&(!AST.serv||c.serv===AST.serv)&&(!AST.eps||(pOf(c.c)||{}).eps===AST.eps));\n  const J=B.jor.filter(j=>inR(j.fecha)&&(!AST.serv||j.serv===AST.serv));\n  const cup=j=>agSlots(j).length*j.nAg;\n  const ofert=J.filter(j=>j.estado!==\"CANCELADA\").reduce((a,j)=>a+cup(j),0),cupJC=J.filter(j=>j.estado===\"CANCELADA\").reduce((a,j)=>a+cup(j),0);\n  const by=k=>C.filter(c=>c.estado===k);\n  const cer=C.filter(c=>CERR.includes(c.estado)),inas=by(\"INASISTENCIA\"),lleg=C.filter(c=>LLEGO.includes(c.estado)),aten=by(\"ATENDIDA\"),canc=by(\"CANCELADA\"),noat=by(\"NO ATENDIDA\");\n  const sinC=C.filter(c=>(c.estado===\"ASIGNADA\"||c.estado===\"EN SALA\")&&c.fecha<T);\n  const enJA=C.filter(c=>c.estado!==\"CANCELADA\"&&J.some(j=>j.id===c.jor&&j.estado!==\"CANCELADA\")).length;\n  const cancR={};canc.forEach(c=>{const r=c.resp||\"SIN DATO\";cancR[r]=(cancR[r]||0)+1;});\n  const tard=canc.filter(c=>c.avisoH!=null&&c.avisoH<24).length;\n  const op=C.filter(c=>c.fSol&&c.origen!==\"REGISTRO POSTERIOR\").map(c=>NP.days(c.fSol,c.fecha)).filter(x=>x>=0);\n  const desOk=C.filter(c=>c.fDes&&c.origen!==\"REPROGRAMACION\"&&c.origen!==\"REGISTRO POSTERIOR\"),desIn=desOk.filter(c=>c.fecha<=c.fDes).length,retr=desOk.filter(c=>c.fecha>c.fDes).map(c=>NP.days(c.fDes,c.fecha));\n  const esp=aten.filter(c=>c.hLleg&&c.hAten).map(c=>hm2m(c.hAten)-hm2m(c.hLleg)).filter(x=>x>=0);\n  const tarde=lleg.filter(c=>c.hLleg&&hm2m(c.hLleg)-hm2m(c.hora)>15).length,conH=lleg.filter(c=>c.hLleg).length;\n  const rp=C.filter(c=>[\"INASISTENCIA\",\"CANCELADA\",\"NO ATENDIDA\"].includes(c.estado)),rpOk=rp.filter(c=>c.reId),rpD=rpOk.map(c=>{const n=B.cit.find(x=>x.id===c.reId);return n?NP.days(c.fecha,n.fecha):null;}).filter(x=>x!=null);\n  const inasMot=inas.filter(c=>c.motivo).length;\n  const mgte=C.filter(c=>!c.deId&&c.fSol&&c.origen!==\"REGISTRO POSTERIOR\").map(c=>{const f=chainEnd(c);return f?NP.days(c.fSol,f.fecha):null;}).filter(x=>x!=null&&x>=0);\n  /* dimensiones de la tasa de inasistencia (sobre citas cerradas) */\n  const dims=[\n    [\"Servicio\",c=>AG_SN(c.serv)],[\"EPS\",c=>epsShort((pOf(c.c)||{}).eps)],[\"Grupo del programa (actual)\",c=>{const s=sOf(c.c);return s&&s.c.grupo?\"Grupo \"+s.c.grupo:\"Sin grupo\";}],\n    [\"Edad a la fecha de la cita\",c=>{const p=pOf(c.c)||{};return ageBand(COH.age(p.fnac,c.fecha));},[\"< 50\",\"50–64\",\"65–79\",\"≥ 80\",\"Sin dato\"]],[\"Sexo\",c=>({F:\"Femenino\",M:\"Masculino\"})[(pOf(c.c)||{}).sexo]||\"Sin dato\"],[\"Municipio\",c=>(pOf(c.c)||{}).municipio||\"Sin dato\"],\n    [\"Día de la semana\",c=>AG_DIAS[c.fecha.getDay()],[\"Lunes\",\"Martes\",\"Miércoles\",\"Jueves\",\"Viernes\",\"Sábado\",\"Domingo\"]],[\"Franja horaria\",c=>{const m=hm2m(c.hora);return m==null?\"Sin hora\":m2hm(Math.floor(m/60)*60)+\"–\"+m2hm(Math.floor(m/60)*60+60);},\"alpha\"],[\"Agenda (espejo)\",c=>\"Agenda \"+(c.ag||\"A\")],\n    [\"Días entre asignación y cita\",c=>{if(!c.fAsig)return\"Sin dato\";const d=NP.days(c.fAsig,c.fecha);return d<=7?\"0–7 días\":d<=14?\"8–14 días\":d<=30?\"15–30 días\":\"> 30 días\";},[\"0–7 días\",\"8–14 días\",\"15–30 días\",\"> 30 días\",\"Sin dato\"]],\n    [\"Recordatorio\",c=>c.conf===\"CONFIRMADA\"?\"Confirmó\":c.conf?\"Contactado sin confirmar (\"+c.conf.toLowerCase()+\")\":\"Sin recordatorio registrado\"],\n    [\"Inasistencia previa (12 meses)\",c=>inasCount(c.c,c.fecha,365)?\"Sí\":\"No\"],[\"Origen de la cita\",c=>(AG_ORIG.find(o=>o[0]===c.origen)||[0,c.origen||\"Sin dato\"])[1]]];\n  const D=dims.map(([n,f,o])=>{const m={};cer.forEach(c=>{const k=f(c);(m[k]=m[k]||{k,n:0,x:0}).n++;if(c.estado===\"INASISTENCIA\")m[k].x++;});const rows=Object.values(m);\n    rows.sort(Array.isArray(o)?(a,b)=>o.indexOf(a.k)-o.indexOf(b.k):o===\"alpha\"?(a,b)=>a.k.localeCompare(b.k):(a,b)=>b.n-a.n);return{n,rows};});\n  const motCount=L=>{const m={};L.forEach(c=>{const k=c.motivo||\"Sin motivo registrado\";(m[k]=m[k]||{k,r:c.resp||\"\",n:0}).n++;});return Object.values(m).sort((a,b)=>b.n-a.n);};\n  const respCount=L=>{const m={};L.forEach(c=>{const k=c.resp?AG_RESP[c.resp]||c.resp:\"Sin establecer\";m[k]=(m[k]||0)+1;});return Object.entries(m).map(([k,n])=>({k,n})).sort((a,b)=>b.n-a.n);};\n  const reinc={};B.cit.filter(c=>c.estado===\"INASISTENCIA\"&&c.fecha<=ha&&NP.days(c.fecha,ha)<=180).forEach(c=>{(reinc[c.c]=reinc[c.c]||[]).push(c);});\n  const rein=Object.entries(reinc).filter(([k,v])=>v.length>=2).map(([k,v])=>({code:k,L:v.sort((a,b)=>a.fecha-b.fecha)})).sort((a,b)=>b.L.length-a.L.length);\n  return{de,ha,C,J,ofert,cupJC,cer,inas,lleg,aten,canc,noat,sinC,enJA,cancR,tard,op,desOk,desIn,retr,esp,tarde,conH,rp,rpOk,rpD,inasMot,mgte,D,motI:motCount(inas),motC:motCount(canc),motN:motCount(noat),respI:respCount(inas),respC:respCount(canc),rein};\n}\nconst bars=(rows,total,lab)=>{const mx=Math.max(1,...rows.map(r=>r.n));return'<div class=\"hbars\">'+rows.map(r=>'<div class=\"hb\" title=\"'+esc(r.k+\": \"+r.n+(total?\" (\"+pf(pct(r.n,total))+\")\":\"\"))+'\"><span class=\"hbl\">'+esc(r.k)+(r.r?'<span class=\"sub\">'+esc(AG_RESP[r.r]||r.r)+'<\/span>':'')+'<\/span><span class=\"hbt\"><span style=\"width:'+(r.n/mx*100)+'%\"><\/span><\/span><span class=\"hbv mono\">'+r.n+(total?' · '+pf(pct(r.n,total)):'')+'<\/span><\/div>').join(\"\")+'<\/div>';};\nfunction vEst(){\n  const R=agCompute();ST._agR=R;const nf=n=>n.toLocaleString(\"es-CO\");\n  let h='<div class=\"filters\" style=\"margin:12px 0\"><label class=\"f\">Desde<input type=\"date\" data-agf=\"desde\" value=\"'+esc(AST.desde)+'\"><\/label><label class=\"f\">Hasta<input type=\"date\" data-agf=\"hasta\" value=\"'+esc(AST.hasta)+'\"><\/label><label class=\"f\">Servicio<select data-agf=\"serv\"><option value=\"\">Todos<\/option>'+AG_SERV.map(([k,l])=>'<option value=\"'+k+'\"'+(AST.serv===k?\" selected\":\"\")+'>'+l+'<\/option>').join(\"\")+'<\/select><\/label><label class=\"f\">EPS<select data-agf=\"eps\"><option value=\"\">Todas<\/option>'+COH.EPS.map(e=>'<option'+(AST.eps===e?\" selected\":\"\")+'>'+esc(e)+'<\/option>').join(\"\")+'<\/select><\/label><div class=\"copyrow\" style=\"align-self:end\"><button type=\"button\" class=\"btn primary\" data-x=\"agest\">Exportar informe<\/button><\/div><\/div>';\n  h+=repPanel();\n  if(ST.demo)h+='<p class=\"note\"><span class=\"exflag\">Ficticio<\/span> Las cifras salen de datos inventados para mostrar la herramienta; no son resultados del programa.<\/p>';\n  const tasaI=pct(R.inas.length,R.cer.length);\n  h+='<div class=\"tiles\">'+tile(\"Cupos ofertados\"+(AST.eps?\" (sin filtro EPS)\":\"\"),nf(R.ofert),\"\")+tile(\"Citas programadas\",nf(R.C.length),\"\")+tile(\"Ocupación de cupos\",AST.eps?\"—\":pf(pct(R.enJA,R.ofert)),\"\")+tile(\"Atendidas\",nf(R.aten.length),\"\")+tile(\"Asistencia\",pf(pct(R.lleg.length,R.cer.length)),\"\")+tile(\"Inasistencia\",pf(tasaI),tasaI>20?\"bad\":tasaI>10?\"warn\":\"\")+tile(\"Canceladas\",nf(R.canc.length)+\" (\"+pf(pct(R.canc.length,R.C.length))+\")\",R.canc.length?\"warn\":\"\")+tile(\"Sin cierre\",nf(R.sinC.length),R.sinC.length?\"warn\":\"\")+'<\/div>';\n  if(R.cer.length&&R.cer.length<30)h+='<p class=\"note\">Solo '+R.cer.length+' citas cerradas en el periodo: los porcentajes por subgrupo son inestables. Mire los números absolutos.<\/p>';\n  if(R.sinC.length)h+='<div class=\"alert warn\"><p>'+R.sinC.length+' citas del periodo no tienen cierre (ni llegada ni inasistencia). Quedan fuera del denominador; si fueran inasistencias, la tasa real sería '+pf(pct(R.inas.length+R.sinC.length,R.cer.length+R.sinC.length))+'.<\/p><\/div>';\n  h+='<div class=\"two\"><section class=\"panel\"><h3>Oportunidad y cumplimiento<\/h3><dl class=\"ficha\"><dt>Días solicitud → cita<\/dt><dd>'+(R.op.length?'mediana '+med(R.op)+' · promedio '+(Math.round(R.op.reduce((a,b)=>a+b,0)/R.op.length*10)/10).toLocaleString(\"es-CO\")+' · '+R.op.length+' citas':'sin datos')+'<\/dd><dt>Días solicitud → atención efectiva<\/dt><dd>'+(R.mgte.length?'mediana '+med(R.mgte)+' ('+R.mgte.length+' citas originales que terminaron atendidas, contando reprogramaciones)':'sin datos')+'<\/dd><dt>Dentro de la fecha deseada o límite del plan<\/dt><dd>'+(R.desOk.length?pf(pct(R.desIn,R.desOk.length))+' ('+R.desIn+' de '+R.desOk.length+')'+(R.retr.length?' · atraso mediano '+med(R.retr)+' días cuando se pasa':''):'sin datos')+'<\/dd><dt>Espera en sala<\/dt><dd>'+(R.esp.length?'mediana '+med(R.esp)+' min ('+R.esp.length+' con ambas horas)':'sin datos')+'<\/dd><dt>Llegada tardía (> 15 min)<\/dt><dd>'+(R.conH?pf(pct(R.tarde,R.conH))+' ('+R.tarde+' de '+R.conH+')':'sin datos')+'<\/dd><dt>Reprogramadas<\/dt><dd>'+(R.rp.length?pf(pct(R.rpOk.length,R.rp.length))+' de inasistencias, cancelaciones y no atendidas'+(R.rpD.length?' · nueva cita a '+med(R.rpD)+' días (mediana)':''):'sin datos')+'<\/dd><dt>Inasistencias con motivo<\/dt><dd>'+(R.inas.length?pf(pct(R.inasMot,R.inas.length))+' ('+R.inasMot+' de '+R.inas.length+')':'sin inasistencias')+'<\/dd><dt>Cupos de jornadas canceladas<\/dt><dd>'+R.cupJC+'<\/dd><dt>Cancelaciones con aviso < 24 h<\/dt><dd>'+R.tard+' de '+R.canc.length+'<\/dd><\/dl><\/section>';\n  h+='<section class=\"panel\"><h3>Cancelaciones por responsable<\/h3>'+(R.canc.length?bars(R.respC,R.canc.length):'<p class=\"note\">Sin cancelaciones.<\/p>')+'<h3 style=\"margin-top:16px\">Inasistencias por responsable<\/h3>'+(R.inas.length?bars(R.respI,R.inas.length):'<p class=\"note\">Sin inasistencias.<\/p>')+'<\/section><\/div>';\n  h+='<div class=\"two\"><section class=\"panel\"><h3>Motivos de inasistencia · '+R.inas.length+'<\/h3>'+(R.inas.length?bars(R.motI,R.inas.length):'<p class=\"note\">Sin inasistencias en el periodo.<\/p>')+'<\/section><section class=\"panel\"><h3>Motivos de cancelación · '+R.canc.length+'<\/h3>'+(R.canc.length?bars(R.motC,R.canc.length):'<p class=\"note\">Sin cancelaciones.<\/p>')+(R.noat.length?'<h3 style=\"margin-top:16px\">Llegaron y no fueron atendidos · '+R.noat.length+'<\/h3>'+bars(R.motN,R.noat.length):'')+'<\/section><\/div>';\n  h+='<section class=\"panel\"><h3>Tasa de inasistencia por característica<\/h3><p class=\"note\" style=\"margin:0 0 10px\">Inasistencias sobre citas cerradas (atendidas, en sala, llegaron sin atención e inasistencias). Describe; no prueba causas. Con grupos pequeños, una o dos citas mueven mucho el porcentaje.<\/p><div class=\"dimgrid\">'+R.D.map(d=>'<div class=\"dimt\"><div class=\"sub-h\">'+esc(d.n)+'<\/div><table><thead><tr><th>Categoría<\/th><th>Cerradas<\/th><th>No asistió<\/th><th>Tasa<\/th><\/tr><\/thead><tbody>'+d.rows.map(r=>'<tr><td>'+esc(r.k)+'<\/td><td class=\"mono\">'+r.n+'<\/td><td class=\"mono\">'+r.x+'<\/td><td class=\"mono\">'+pf(pct(r.x,r.n))+'<span class=\"mini\"><span style=\"width:'+(r.n?r.x/r.n*100:0)+'%\"><\/span><\/span><\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div>').join(\"\")+'<\/div><\/section>';\n  h+='<section class=\"panel\"><h3>Inasistencia reiterada · '+R.rein.length+'<\/h3><p class=\"note\" style=\"margin:0 0 8px\">Dos o más inasistencias en los 180 días previos a la fecha final. Candidatos a valoración de barreras por trabajo social y a confirmación reforzada.<\/p>'+(R.rein.length?'<div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Grupo<\/th><th>Inasistencias<\/th><\/tr><\/thead><tbody>'+R.rein.map(x=>{const s=sOf(x.code),p=pOf(x.code)||{codigo:x.code};const fk={p,c:s?s.c:{},P:{}};return'<tr><td>'+pname(fk)+'<\/td><td>'+esc(epsShort(p.eps))+'<\/td><td>'+contact(fk)+'<\/td><td>'+(s?grpTag(s):'—')+'<\/td><td>'+x.L.map(c=>fd(c.fecha)+' '+esc(AG_SN(c.serv).toLowerCase())+(c.motivo?' ('+esc(c.motivo.toLowerCase())+')':'')).join(\"<br>\")+'<\/td><\/tr>';}).join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\">Ninguno.<\/p>')+'<\/section>';\n  h+='<details class=\"panel\"><summary>Definiciones (fichas institucionales)<\/summary><dl class=\"ficha\">'+AG_FICHAS.map(([n,d])=>'<dt>'+esc(n)+'<\/dt><dd>'+esc(d)+'<\/dd>').join(\"\")+'<\/dl><p class=\"note\">Definiciones propuestas por el programa; no hay ficha nacional obligatoria de inasistencia para nefrología. La oportunidad sigue la lógica de la Res. 256 de 2016 (fecha de solicitud, deseada y asignada).<\/p><\/details>';\n  return h;\n}\nconst AG_FICHAS=[\n [\"Cupos ofertados\",\"Cupos de jornadas no canceladas en el periodo: (fin − inicio) ÷ duración del cupo × número de agendas simultáneas.\"],\n [\"Ocupación\",\"Citas no canceladas en jornadas no canceladas ÷ cupos ofertados.\"],\n [\"Cita cerrada\",\"Cita con desenlace registrado: atendida, en sala, llegó sin ser atendida o inasistencia. Las canceladas y las asignadas sin marcar no cuentan.\"],\n [\"Asistencia\",\"Citas en que el paciente llegó (atendida, en sala o no atendida) ÷ citas cerradas.\"],\n [\"Inasistencia\",\"Pacientes que no llegaron y no avisaron antes de la hora de la cita ÷ citas cerradas. Cualquier aviso previo es cancelación (decisión del programa).\"],\n [\"Cancelación\",\"Citas canceladas ÷ citas programadas, por responsable (paciente, barrera de acceso, EPS, IPS, otro). Se guarda la anticipación del aviso en horas.\"],\n [\"Oportunidad\",\"Días entre la fecha de solicitud y la fecha de la cita (mediana y promedio).\"],\n [\"Dentro de la fecha deseada\",\"Citas (sin contar reprogramaciones) cuya fecha es igual o anterior a la fecha deseada o fecha límite del plan del paciente.\"],\n [\"Espera en sala\",\"Minutos entre la hora de llegada y la hora de ingreso a consulta.\"],\n [\"Sin cierre\",\"Citas de fechas pasadas que siguen «asignadas». Es un indicador de calidad del dato.\"]];\n\n/* ---------- Exportaciones ---------- */\nfunction agSheets(){\n  const B=ST.book;const D=x=>x?fd(x):\"\";\n  const jor=[[\"ID jornada\",\"Fecha\",\"Servicio\",\"Profesional\",\"Hora inicio\",\"Hora fin\",\"Duración cupo (min)\",\"Agendas simultáneas\",\"Estado\",\"Motivo cancelación\",\"Observaciones\",\"Usuario\",\"Registrado\"]].concat(B.jor.map(j=>[j.id,D(j.fecha),j.serv,j.prof,j.hIni,j.hFin,j.dur,j.nAg,j.estado,j.motivo,j.obs,j.usuario,j.reg]));\n  const cit=[[\"ID cita\",\"Código\",\"ID jornada\",\"Fecha\",\"Hora\",\"Agenda\",\"Servicio\",\"Tipo\",\"Origen\",\"Fecha solicitud\",\"Fecha deseada\",\"Fecha asignación\",\"Estado\",\"Confirmación\",\"Hora llegada\",\"Hora atención\",\"Responsable\",\"Motivo\",\"Aviso (horas)\",\"Cita anterior\",\"Reprogramada en\",\"Observaciones\",\"Usuario\",\"Actualizado\"]].concat(B.cit.map(c=>[c.id,c.c,c.jor,D(c.fecha),c.hora,c.ag,c.serv,c.tipo,c.origen,D(c.fSol),D(c.fDes),D(c.fAsig),c.estado,c.conf,c.hLleg,c.hAten,c.resp,c.motivo,c.avisoH==null?\"\":c.avisoH,c.deId,c.reId,c.obs,c.usuario,c.act]));\n  const log=[[\"Fecha y hora\",\"ID\",\"Código\",\"Acción\",\"Estado anterior\",\"Estado nuevo\",\"Motivo\",\"Usuario\"]].concat(B.clog.map(x=>[typeof x.fh===\"string\"?x.fh:fdt(x.fh),x.id,x.c,x.acc,x.de,x.a,x.motivo,x.usuario]));\n  const ctc=[[\"Fecha y hora\",\"Código\",\"ID cita\",\"Medio\",\"Resultado\",\"Observaciones\",\"Usuario\"]].concat((B.ctc||[]).map(x=>[typeof x.fh===\"string\"?x.fh:fdt(x.fh),x.c,x.cita,x.medio,x.res,x.obs,x.usuario]));\n  return[[\"Jornadas\",jor],[\"Citas\",cit],[\"Citas_log\",log],[\"Contactos\",ctc]];\n}\nasync function agExportBook(){\n  const stamp=iso(new Date())+\"_\"+nowHM().replace(\":\",\"\");\n  if(ST.db||!ST.wbBuf){await saveXlsx(\"Agenda_nefroproteccion_\"+stamp+\".xlsx\",agSheets());ST.dirty=false;bookInfo();renderMg(\"agenda\");return;}\n  const wb=XLSX.read(ST.wbBuf,{type:\"array\",cellDates:true});\n  applyOps(wb);\n  agSheets().forEach(([n,aoa])=>{const i=wb.SheetNames.indexOf(n);if(i>=0){wb.SheetNames.splice(i,1);delete wb.Sheets[n];}XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(aoa),n);});\n  await saveWb(wb,(ST.name||\"Libro\").replace(/\\.xlsx?$/i,\"\").replace(/_(agenda|libro)_\\d{4}-\\d{2}-\\d{2}_\\d{4}$/,\"\")+\"_libro_\"+stamp+\".xlsx\");\n  ST.wbBuf=new Uint8Array(XLSX.write(wb,{type:\"array\",bookType:\"xlsx\"}));ST.ops=[];\n  ST.dirty=false;bookInfo();const vv=VIEWS.find(x=>!$(\"view-\"+x).hidden);if(vv&&vv!==\"calc\"&&vv!==\"ref\")renderMg(vv);\n}\nfunction agExportJor(id){\n  const j=ST.book.jor.find(x=>x.id===id);const C=ST.book.cit.filter(c=>c.jor===id&&(c.estado===\"ASIGNADA\"||c.estado===\"EN SALA\")).sort((a,b)=>hm2m(a.hora)-hm2m(b.hora)||a.ag.localeCompare(b.ag));\n  const aoa=[[\"Hora\",\"Agenda\",\"Código\",\"Nombre\",\"Documento\",\"EPS\",\"Teléfono 1\",\"Teléfono 2\",\"Acudiente\",\"Teléfono acudiente\",\"Tipo\",\"Estado\",\"Recordatorio\",\"Inasistencias previas 12 m\",\"Observaciones\"]];\n  C.forEach(c=>{const p=pOf(c.c)||{};aoa.push([c.hora,c.ag,c.c,p.nombre,p.doc,p.eps,p.tel,p.tel2,p.acud,p.acudTel,c.tipo,AG_EST[c.estado],c.conf,inasCount(c.c,c.fecha,365),c.obs]);});\n  saveXlsx(\"Jornada_\"+id+\".xlsx\",[[\"Lista\",aoa]]);\n}\nfunction agExportPend(){\n  const L=ST._cands||[];const aoa=[[\"Código\",\"Nombre\",\"Documento\",\"EPS\",\"Teléfono 1\",\"Teléfono 2\",\"Acudiente\",\"Teléfono acudiente\",\"Grupo\",\"Servicio\",\"Pendiente\",\"Fecha límite\",\"Inasistencias 12 m\"]];\n  L.forEach(x=>{const p=x.s.p;aoa.push([p.codigo,p.nombre,p.doc,p.eps,p.tel,p.tel2,p.acud,p.acudTel,x.s.c.grupo||\"\",AG_SN(AST.pserv),x.its.map(i=>i.nombre).join(\"; \"),x.due?fd(x.due):\"sin registro\",inasCount(p.codigo,TODAY(),365)]);});\n  saveXlsx(\"Por_agendar_\"+AST.pserv.replace(/\\s+/g,\"_\")+\"_\"+iso(TODAY())+\".xlsx\",[[\"Por agendar\",aoa]]);\n}\nfunction agExportStats(){\n  const R=ST._agR||agCompute();const per=fd(R.de)+\" a \"+fd(R.ha);\n  const res=[[\"Indicador\",\"Valor\",\"Numerador\",\"Denominador\",\"Periodo\",\"Filtro servicio\",\"Filtro EPS\"]];\n  const r=(n,v,a,b)=>res.push([n,v==null?\"\":Math.round(v*10)/10,a,b,per,AST.serv?AG_SN(AST.serv):\"Todos\",AST.eps||\"Todas\"]);\n  r(\"Cupos ofertados\",R.ofert,\"\",\"\");r(\"Citas programadas\",R.C.length,\"\",\"\");r(\"Ocupación %\",AST.eps?null:pct(R.enJA,R.ofert),R.enJA,R.ofert);r(\"Asistencia %\",pct(R.lleg.length,R.cer.length),R.lleg.length,R.cer.length);r(\"Inasistencia %\",pct(R.inas.length,R.cer.length),R.inas.length,R.cer.length);\n  r(\"Cancelación %\",pct(R.canc.length,R.C.length),R.canc.length,R.C.length);r(\"Atendidas sobre cupos ofertados %\",AST.eps?null:pct(R.aten.length,R.ofert),R.aten.length,R.ofert);r(\"Citas sin cierre\",R.sinC.length,\"\",\"\");\n  r(\"Oportunidad, mediana de días\",med(R.op),\"\",R.op.length);r(\"Dentro de la fecha deseada %\",pct(R.desIn,R.desOk.length),R.desIn,R.desOk.length);r(\"Espera en sala, mediana de minutos\",med(R.esp),\"\",R.esp.length);r(\"Inasistencias con motivo %\",pct(R.inasMot,R.inas.length),R.inasMot,R.inas.length);r(\"Reprogramadas %\",pct(R.rpOk.length,R.rp.length),R.rpOk.length,R.rp.length);\n  Object.entries(R.cancR).forEach(([k,n])=>r(\"Cancelaciones por \"+(AG_RESP[k]||k),n,\"\",\"\"));\n  const dim=[[\"Característica\",\"Categoría\",\"Citas cerradas\",\"Inasistencias\",\"Tasa %\"]];R.D.forEach(d=>d.rows.forEach(x=>dim.push([d.n,x.k,x.n,x.x,Math.round(pct(x.x,x.n)*10)/10])));\n  const mot=[[\"Desenlace\",\"Motivo\",\"Responsable\",\"Citas\"]];R.motI.forEach(x=>mot.push([\"Inasistencia\",x.k,AG_RESP[x.r]||x.r,x.n]));R.motC.forEach(x=>mot.push([\"Cancelación\",x.k,AG_RESP[x.r]||x.r,x.n]));R.motN.forEach(x=>mot.push([\"Llegó, no atendida\",x.k,AG_RESP[x.r]||x.r,x.n]));\n  const nom=[[\"Fecha\",\"Hora\",\"Servicio\",\"Código\",\"Nombre\",\"Documento\",\"EPS\",\"Teléfono 1\",\"Teléfono 2\",\"Acudiente\",\"Teléfono acudiente\",\"Grupo\",\"Estado\",\"Motivo\",\"Responsable\",\"Aviso (horas)\",\"Reprogramada en\"]];\n  R.C.filter(c=>[\"INASISTENCIA\",\"CANCELADA\",\"NO ATENDIDA\"].includes(c.estado)).sort((a,b)=>a.fecha-b.fecha).forEach(c=>{const p=pOf(c.c)||{},s=sOf(c.c);nom.push([fd(c.fecha),c.hora,AG_SN(c.serv),c.c,p.nombre,p.doc,p.eps,p.tel,p.tel2,p.acud,p.acudTel,s?s.c.grupo||\"\":\"\",AG_EST[c.estado],c.motivo,AG_RESP[c.resp]||c.resp,c.avisoH==null?\"\":c.avisoH,c.reId]);});\n  const rei=[[\"Código\",\"Nombre\",\"EPS\",\"Teléfono 1\",\"Inasistencias (180 días)\",\"Fechas\"]];R.rein.forEach(x=>{const p=pOf(x.code)||{};rei.push([x.code,p.nombre,p.eps,p.tel,x.L.length,x.L.map(c=>fd(c.fecha)).join(\", \")]);});\n  const fic=[[\"Indicador\",\"Definición\"]].concat(AG_FICHAS);\n  saveXlsx(\"Asistencia_inasistencia_\"+iso(R.de)+\"_\"+iso(R.ha)+\".xlsx\",[[\"Resumen\",res],[\"Por característica\",dim],[\"Motivos\",mot],[\"Nominal no atendidos\",nom],[\"Reiterados\",rei],[\"Definiciones\",fic]].concat([[\"Citas del periodo\",[agSheets()[1][1][0]].concat(agSheets()[1][1].slice(1).filter(r=>R.C.some(c=>c.id===r[0])))]]));\n}\nwindow.MG.agendar=function(code,serv,fecha){show(\"agenda\");if(!ST.book)return;if(!pOf(code)){toast(\"El código \"+code+\" no está en el libro cargado.\");return;}AST.sub=\"pend\";renderMg(\"agenda\");if(needUser())return;openDlg({t:\"asig\",serv:serv||\"\",pat:code,fixedPat:true,fDes:fecha||null,q:\"\"});};\ndocument.addEventListener(\"keydown\",e=>{if(e.key===\"Escape\"&&AST.dlg)closeDlg();});\nwindow.addEventListener(\"beforeunload\",e=>{if(ST.dirty){e.preventDefault();e.returnValue=\"\";}});\n\n\n/* ---------- Reportes para EPS y normativos ----------\n   Res. 1552 de 2013 art. 2 y 3: la EPS mide cada mes, por especialidad y tipo, citas asignadas, días entre solicitud y fecha asignada,\n   días entre fecha deseada y fecha asignada, mínimos, máximos y horas-especialista; la IPS le entrega la información de su red.\n   Res. 256 de 2016, anexo técnico 2, registro tipo 2: solo citas de primera vez del año por usuario y especialidad, tipos 1 a 9\n   (medicina general, odontología, medicina interna, pediatría, ginecología, obstetricia, cirugía general, ecografía, resonancia).\n   Nefrología no está entre esos tipos. Res. 2117 de 2025 (MGTE): tiempo de espera = de la solicitud a la fecha en que el paciente recibe el servicio. */\nconst REP_DEF={ips:\"\",hab:\"\",eaps:{},t256:{\"MEDICO EXPERTO\":\"\",\"MEDICO PROGRAMA\":\"\"}};\nAST.cfg=(()=>{try{return Object.assign({},REP_DEF,JSON.parse(localStorage.getItem(\"nefro_rep_cfg\")||\"{}\"));}catch(e){return JSON.parse(JSON.stringify(REP_DEF));}})();\nAST.cfg.eaps=AST.cfg.eaps||{};AST.cfg.t256=Object.assign({\"MEDICO EXPERTO\":\"\",\"MEDICO PROGRAMA\":\"\"},AST.cfg.t256||{});\nconst saveCfg=()=>{try{localStorage.setItem(\"nefro_rep_cfg\",JSON.stringify(AST.cfg));}catch(e){}};\n{const t=TODAY(),pm=new Date(t.getFullYear(),t.getMonth()-1,1);AST.rmes=pm.getFullYear()+\"-\"+String(pm.getMonth()+1).padStart(2,\"0\");AST.rbase=\"ASIG\";AST.reps=\"\";AST.rsem=(t.getMonth()<6?(t.getFullYear()-1)+\"-2\":t.getFullYear()+\"-1\");}\nconst T256=[[\"\",\"No se reporta\"],[\"1\",\"1 · Medicina general primera vez\"],[\"3\",\"3 · Medicina interna primera vez\"]];\nconst dd=(a,b)=>(a&&b)?NP.days(a,b):null;\nconst stat=a=>{const v=a.filter(x=>x!=null);if(!v.length)return{n:0,sum:\"\",prom:\"\",min:\"\",max:\"\"};const s=v.reduce((x,y)=>x+y,0);return{n:v.length,sum:s,prom:Math.round(s/v.length*10)/10,min:Math.min(...v),max:Math.max(...v)};};\nconst tipoGrp=c=>c.tipo===\"PRIMERA VEZ\"?\"Primera vez\":\"Control o seguimiento\";\n/* cadena de reprogramaciones: de la cita original a la que terminó atendida */\nfunction chainEnd(c){const B=ST.book;let x=c,guard=0;while(x&&x.estado!==\"ATENDIDA\"&&x.reId&&guard++<20)x=B.cit.find(y=>y.id===x.reId);return x&&x.estado===\"ATENDIDA\"?x:null;}\nfunction repPanel(){\n  const C=AST.cfg;const eps=COH.EPS;\n  return'<section class=\"panel\"><h3>Reportes para EPS y normativos<\/h3><div class=\"repgrid\">'+\n  '<div class=\"repbox\"><div class=\"sub-h\">Oportunidad mensual · Res. 1552 de 2013<\/div><p class=\"note\">Por EPS, especialidad y tipo de cita: citas asignadas, días de la solicitud a la fecha asignada y de la fecha deseada a la fecha asignada (suma, promedio, mínimo, máximo), horas de profesional y detalle nominal con los datos del artículo 2. Agrega el tiempo hasta la atención efectiva (Res. 2117 de 2025).<\/p>'+\n   '<div class=\"row\"><label class=\"f\">Mes<input type=\"month\" data-agf=\"rmes\" value=\"'+esc(AST.rmes)+'\"><\/label><label class=\"f\">Contar citas por<select data-agf=\"rbase\"><option value=\"ASIG\"'+(AST.rbase===\"ASIG\"?\" selected\":\"\")+'>Fecha en que se asignó<\/option><option value=\"CITA\"'+(AST.rbase===\"CITA\"?\" selected\":\"\")+'>Fecha de la cita<\/option><\/select><\/label><\/div><label class=\"f\">EPS<select data-agf=\"reps\"><option value=\"\">Todas (hoja por EPS)<\/option>'+eps.map(e=>'<option'+(AST.reps===e?\" selected\":\"\")+'>'+esc(e)+'<\/option>').join(\"\")+'<\/select><\/label><button type=\"button\" class=\"btn primary\" data-x=\"rep1552\">Descargar oportunidad del mes<\/button><\/div>'+\n  '<div class=\"repbox\"><div class=\"sub-h\">Insumo Res. 256 de 2016 · registro tipo 2<\/div><p class=\"note\">Solo citas de primera vez del año por paciente y especialidad, de los servicios que usted asigne a un tipo de cita permitido. Nefrología no está entre los tipos 1 a 9: no se reporta en este registro. Sale en Excel con los campos 0 a 15; el archivo plano para PISIS lo arma quien reporta y debe pasar el validador.<\/p>'+\n   '<div class=\"row\"><label class=\"f\">Semestre<select data-agf=\"rsem\">'+(()=>{const y=TODAY().getFullYear();const o=[];for(let a=y;a>=y-1;a--){o.push(a+\"-2\",a+\"-1\");}return o.map(v=>'<option value=\"'+v+'\"'+(AST.rsem===v?\" selected\":\"\")+'>'+(v.endsWith(\"-1\")?\"Enero a junio \":\"Julio a diciembre \")+v.slice(0,4)+'<\/option>').join(\"\");})()+'<\/select><\/label><div><\/div><\/div><button type=\"button\" class=\"btn\" data-x=\"rep256\">Descargar insumo del semestre<\/button><\/div>'+\n  '<div class=\"repbox\"><div class=\"sub-h\">Informe de agenda por EPS<\/div><p class=\"note\">Con el periodo y filtros de arriba: citas, atendidas, inasistencias y cancelaciones por responsable, barreras atribuibles a la EPS en lista nominal, oportunidad y pacientes activos sin cita con control vencido.<\/p><button type=\"button\" class=\"btn\" data-x=\"repeps\">Descargar informe por EPS<\/button><\/div><\/div>'+\n  '<details class=\"hist\"><summary>Códigos para los reportes (se guardan en este navegador)<\/summary><div class=\"pacform\" style=\"margin-top:10px\"><div class=\"row\"><label class=\"f\">Nombre de la IPS<input type=\"text\" data-cfg=\"ips\" value=\"'+esc(C.ips)+'\"><\/label><label class=\"f\">Código de habilitación (REPS)<input type=\"text\" data-cfg=\"hab\" value=\"'+esc(C.hab)+'\"><\/label><\/div>'+\n   '<div class=\"row3\">'+eps.map(e=>'<label class=\"f\">Código EAPB · '+esc(epsShort(e))+'<input type=\"text\" data-cfg=\"eap|'+esc(e)+'\" value=\"'+esc(C.eaps[e]||\"\")+'\"><\/label>').join(\"\")+'<\/div>'+\n   '<div class=\"row\">'+[\"MEDICO EXPERTO\",\"MEDICO PROGRAMA\"].map(sv=>'<label class=\"f\">Res. 256 · '+esc(AG_SN(sv))+'<select data-cfg=\"t256|'+sv+'\">'+T256.map(([v,l])=>'<option value=\"'+v+'\"'+(C.t256[sv]===v?\" selected\":\"\")+'>'+l+'<\/option>').join(\"\")+'<\/select><\/label>').join(\"\")+'<\/div>'+\n   '<p class=\"note\" style=\"margin:0\">Escriba los códigos tal como aparecen en el REPS y en la tabla de EAPB del Ministerio; la herramienta no los trae precargados para no inventarlos. El médico experto se asigna a «medicina general» solo si la consulta se factura con CUPS de medicina general de primera vez: confírmelo con facturación.<\/p><\/div><\/details><\/section>';\n}\nfunction rep1552(){\n  const B=ST.book;const[y,m]=(AST.rmes||\"\").split(\"-\").map(Number);if(!y){toast(\"Elija el mes.\");return;}\n  const de=new Date(y,m-1,1),ha=new Date(y,m,0);const inM=d=>d&&d>=de&&d<=ha;\n  const base=c=>AST.rbase===\"CITA\"?c.fecha:c.fAsig;\n  const C=B.cit.filter(c=>c.origen!==\"REGISTRO POSTERIOR\"&&c.serv!==\"TOMA DE MUESTRAS\"&&c.serv!==\"VACUNACION\"&&inM(base(c))&&(!AST.reps||(pOf(c.c)||{}).eps===AST.reps));\n  const head=[\"EPS\",\"Especialidad o servicio\",\"Tipo de cita\",\"Citas asignadas\",\"Suma días solicitud → fecha asignada\",\"Promedio días (solicitud)\",\"Mínimo\",\"Máximo\",\"Suma días deseada → fecha asignada\",\"Promedio días (deseada)\",\"Mínimo\",\"Máximo\",\"Citas sin fecha de solicitud\",\"Citas sin fecha deseada\"];\n  const grp={};C.forEach(c=>{const e=(pOf(c.c)||{}).eps||\"Sin EPS\";const k=e+\"|\"+c.serv+\"|\"+tipoGrp(c);(grp[k]=grp[k]||{e,sv:c.serv,t:tipoGrp(c),L:[]}).L.push(c);});\n  const rows=Object.values(grp).sort((a,b)=>a.e.localeCompare(b.e)||AG_SN(a.sv).localeCompare(AG_SN(b.sv))||a.t.localeCompare(b.t)).map(g=>{const s1=stat(g.L.map(c=>dd(c.fSol,c.fecha))),s2=stat(g.L.map(c=>dd(c.fDes,c.fecha)));\n    return[g.e,AG_SN(g.sv),g.t,g.L.length,s1.sum,s1.prom,s1.min,s1.max,s2.sum,s2.prom,s2.min,s2.max,g.L.filter(c=>!c.fSol).length,g.L.filter(c=>!c.fDes).length];});\n  const J=B.jor.filter(j=>j.estado!==\"CANCELADA\"&&j.fecha>=de&&j.fecha<=ha);const hr={};J.forEach(j=>{const h=(hm2m(j.hFin)-hm2m(j.hIni))/60;(hr[j.serv]=hr[j.serv]||{n:0,h:0,c:0,pr:new Set()});hr[j.serv].n++;hr[j.serv].h+=h;hr[j.serv].c+=agSlots(j).length*j.nAg;if(j.prof)hr[j.serv].pr.add(j.prof);});\n  const hrs=[[\"Especialidad o servicio\",\"Jornadas\",\"Horas de profesional disponibles\",\"Cupos ofertados\",\"Profesionales\"]].concat(Object.entries(hr).map(([k,v])=>[AG_SN(k),v.n,Math.round(v.h*10)/10,v.c,[...v.pr].join(\"; \")]));\n  const det=[[\"EPS\",\"Código EAPB\",\"Tipo doc.\",\"Documento\",\"Nombre\",\"Teléfono 1\",\"Teléfono 2\",\"Municipio\",\"IPS\",\"Código habilitación\",\"Especialidad o servicio\",\"Tipo de cita\",\"ID cita\",\"Fecha de solicitud\",\"Fecha deseada\",\"Fecha asignada (fecha de la cita)\",\"Fecha en que se asignó\",\"Días solicitud → asignada\",\"Días deseada → asignada\",\"Estado\",\"Origen\"]];\n  C.slice().sort((a,b)=>a.fecha-b.fecha).forEach(c=>{const p=pOf(c.c)||{};det.push([p.eps,AST.cfg.eaps[p.eps]||\"\",p.tipodoc,p.doc,p.nombre,p.tel,p.tel2,p.municipio,AST.cfg.ips,AST.cfg.hab,AG_SN(c.serv),tipoGrp(c),c.id,c.fSol?fd(c.fSol):\"\",c.fDes?fd(c.fDes):\"\",fd(c.fecha),c.fAsig?fd(c.fAsig):\"\",dd(c.fSol,c.fecha)??\"\",dd(c.fDes,c.fecha)??\"\",AG_EST[c.estado],c.origen]);});\n  const orig=C.filter(c=>!c.deId);const mg=[[\"EPS\",\"Especialidad o servicio\",\"Citas originales\",\"Terminaron atendidas\",\"Mediana días solicitud → atención\",\"Promedio\",\"Pendientes de atención (inasistieron o cancelaron sin cita atendida después)\"]];\n  const g2={};orig.forEach(c=>{const e=(pOf(c.c)||{}).eps||\"Sin EPS\";const k=e+\"|\"+c.serv;(g2[k]=g2[k]||{e,sv:c.serv,L:[]}).L.push(c);});\n  Object.values(g2).forEach(g=>{const v=g.L.map(c=>{const f=chainEnd(c);return f&&c.fSol?NP.days(c.fSol,f.fecha):null;}).filter(x=>x!=null);const s=stat(v);mg.push([g.e,AG_SN(g.sv),g.L.length,v.length,med(v)??\"\",s.prom,g.L.filter(c=>!chainEnd(c)&&c.fecha<TODAY()).length]);});\n  const notas=[[\"Nota\"],[\"Periodo: \"+fd(de)+\" a \"+fd(ha)+\". Citas contadas por \"+(AST.rbase===\"CITA\"?\"fecha de la cita.\":\"fecha en que se asignó (Res. 1552 de 2013, art. 3: citas asignadas en el mes).\")],\n    [\"Fecha asignada = fecha para la cual se asigna la cita (Res. 1552 de 2013, art. 2, numeral iv). Días calendario.\"],\n    [\"Días deseada → asignada puede ser negativo cuando la cita quedó antes de la fecha deseada o de la fecha límite del plan; se informa tal cual. Defina con cada EPS si lo quiere truncado en cero.\"],\n    [\"Solo consultas: se excluyen toma de muestras y vacunación, que no son citas de consulta.\"],\n    [\"Se excluyen los registros posteriores (citas pasadas a la herramienta después, por contingencia) porque su fecha de solicitud no es confiable.\"],\n    [\"Tiempo hasta atención efectiva: de la solicitud de la cita original a la fecha de la cita que terminó atendida, siguiendo las reprogramaciones (Res. 2117 de 2025, definición de tiempo de espera). Nefrología no está entre los servicios priorizados de la fase I (Circular 038 de 2025).\"],\n    [\"La obligación de medir y publicar es de la EPS; la IPS le entrega la información de su red. Verifique el formato que pide cada EPS: este archivo trae los datos, no el formato de cada una.\"],\n    [\"Datos ficticios: \"+(ST.demo?\"SÍ. No son resultados del programa.\":\"no\")]];\n  const sheets=[[\"Resumen Res. 1552\",[head].concat(rows)],[\"Horas profesional\",hrs],[\"Detalle nominal\",det],[\"Hasta atención (MGTE)\",mg],[\"Notas\",notas]];\n  if(!AST.reps)COH.EPS.forEach(e=>{const r=rows.filter(x=>x[0]===e);if(r.length)sheets.push([epsShort(e)+\" resumen\",[head].concat(r)]);});\n  saveXlsx(\"Oportunidad_Res1552_\"+AST.rmes+(AST.reps?\"_\"+epsShort(AST.reps).replace(/\\s+/g,\"\"):\"\")+\".xlsx\",sheets);\n}\nconst up=s=>String(s==null?\"\":s).normalize(\"NFD\").replace(/[̀-ͯ]/g,\"\").toUpperCase().replace(/[^A-Z0-9 ]/g,\"\").trim();\nfunction rep256(){\n  const B=ST.book;const[y,sm]=AST.rsem.split(\"-\").map(Number);const de=new Date(y,sm===1?0:6,1),ha=new Date(y,sm===1?6:12,0);\n  const map=AST.cfg.t256;const svs=Object.keys(map).filter(k=>map[k]);\n  const notas=[[\"Nota\"],[\"Semestre \"+fd(de)+\" a \"+fd(ha)+\". Res. 256 de 2016, anexo técnico 2, registro tipo 2: una cita de primera vez en el año por usuario y especialidad (ecografía y resonancia: todas).\"],\n    [\"Tipos de cita permitidos en el campo 11: 1 medicina general, 2 odontología general, 3 medicina interna, 4 pediatría, 5 ginecología, 6 obstetricia, 7 cirugía general, 8 ecografía, 9 resonancia. Nefrología no está; sus citas no van en este registro.\"],\n    [\"Servicios asignados: \"+(svs.length?svs.map(k=>AG_SN(k)+\" → tipo \"+map[k]).join(\"; \"):\"ninguno. Asigne un tipo en «Códigos para los reportes» si alguna consulta del programa se factura como medicina general o interna de primera vez.\")],\n    [\"Sexo: H hombre, M mujer (convención del anexo; no es la misma letra que usa el libro). Nombres y apellidos en mayúsculas, sin tildes ni caracteres especiales.\"],\n    [\"El libro solo tiene nombre completo: los campos 6 a 9 salen vacíos salvo que la hoja Pacientes tenga columnas Primer apellido, Segundo apellido, Primer nombre y Segundo nombre.\"],\n    [\"Esto es insumo. El registro tipo 1 (control), el nombre del archivo y la carga en PISIS los hace quien reporta, y el archivo debe pasar el validador del Ministerio.\"]];\n  const reg=[[\"0 Tipo de registro\",\"1 Consecutivo\",\"2 Tipo de identificación\",\"3 Número de identificación\",\"4 Fecha de nacimiento\",\"5 Sexo\",\"6 Primer apellido\",\"7 Segundo apellido\",\"8 Primer nombre\",\"9 Segundo nombre\",\"10 Código EAPB\",\"11 Tipo de cita\",\"12 Fecha de solicitud\",\"13 La cita fue asignada\",\"14 Fecha de asignación de la cita\",\"15 Fecha deseada\"]];\n  const pend=[[\"Consecutivo\",\"Código paciente\",\"Falta o error\"]];\n  const isoD=d=>d?iso(d):\"\";const TD=[\"RC\",\"TI\",\"CC\",\"CE\",\"PA\",\"CD\"];\n  if(svs.length){const seen={};\n    B.cit.filter(c=>svs.includes(c.serv)&&c.tipo===\"PRIMERA VEZ\"&&c.origen!==\"REGISTRO POSTERIOR\").sort((a,b)=>(a.fSol||a.fecha)-(b.fSol||b.fecha)).forEach(c=>{\n      const k=c.c+\"|\"+map[c.serv]+\"|\"+(c.fSol||c.fecha).getFullYear();if(seen[k])return;seen[k]=1;\n      const fs=c.fSol||c.fecha;if(fs<de||fs>ha)return;\n      const p=pOf(c.c)||{};const n=reg.length;const miss=[];\n      const td=up(p.tipodoc);if(!TD.includes(td))miss.push(\"tipo de documento «\"+(p.tipodoc||\"vacío\")+\"» no admitido (RC, TI, CC, CE, PA, CD)\");\n      if(!p.doc)miss.push(\"documento\");if(!p.fnac)miss.push(\"fecha de nacimiento\");if(!p.sexo)miss.push(\"sexo\");\n      const ap1=up(p.ap1),n1=up(p.n1);if(!ap1||!n1)miss.push(\"nombres y apellidos separados\");\n      const eap=AST.cfg.eaps[p.eps]||\"\";if(!eap)miss.push(\"código EAPB de \"+(p.eps||\"la EPS\"));if(!c.fSol)miss.push(\"fecha de solicitud\");if(!c.fDes)miss.push(\"fecha deseada\");\n      reg.push([2,n,td,up(p.doc).replace(/\\s/g,\"\"),isoD(p.fnac),p.sexo===\"M\"?\"H\":p.sexo===\"F\"?\"M\":\"\",ap1,up(p.ap2),n1,up(p.n2),eap,Number(map[c.serv]),isoD(c.fSol),1,isoD(c.fecha),isoD(c.fDes)]);\n      if(miss.length)pend.push([n,c.c,miss.join(\"; \")]);});}\n  if(reg.length===1)notas.push([\"Sin registros para el semestre con la configuración actual.\"]);\n  saveXlsx(\"Insumo_Res256_registro2_\"+AST.rsem+\".xlsx\",[[\"Registro tipo 2\",reg],[\"Por completar\",pend],[\"Notas\",notas]]);\n}\nfunction repEPS(){\n  const R=agCompute();const B=ST.book;const T=TODAY();const per=fd(R.de)+\" a \"+fd(R.ha);\n  const res=[[\"EPS\",\"Pacientes activos\",\"Pacientes con cita en el periodo\",\"Citas programadas\",\"Atendidas\",\"Inasistencias\",\"Tasa de inasistencia %\",\"Canceladas\",\"Canceladas por paciente\",\"Canceladas por barrera de acceso\",\"Canceladas por EPS\",\"Canceladas por IPS\",\"Inasistencias atribuidas a la EPS\",\"Mediana días solicitud → cita\",\"% dentro de la fecha deseada\",\"Activos sin cita futura y con control médico vencido\"]];\n  const sheets=[];const barr=[[\"EPS\",\"Fecha\",\"Servicio\",\"Código\",\"Nombre\",\"Documento\",\"Estado\",\"Motivo\",\"Observaciones\"]];\n  COH.EPS.forEach(e=>{const C=R.C.filter(c=>(pOf(c.c)||{}).eps===e);const act=ST.snaps.filter(s=>s.p.eps===e);\n    const cer=C.filter(c=>CERR.includes(c.estado)),ina=C.filter(c=>c.estado===\"INASISTENCIA\"),can=C.filter(c=>c.estado===\"CANCELADA\");const cr=r=>can.filter(c=>c.resp===r).length;\n    const op=C.filter(c=>c.fSol&&c.origen!==\"REGISTRO POSTERIOR\").map(c=>NP.days(c.fSol,c.fecha)).filter(x=>x>=0);const dsk=C.filter(c=>c.fDes&&c.origen!==\"REPROGRAMACION\"&&c.origen!==\"REGISTRO POSTERIOR\");\n    const venc=act.filter(s=>!activeFut(s.p.codigo).length&&s.items.some(i=>i.grp===\"Médico\"&&(!i.due||i.due<T)));\n    res.push([e,act.length,new Set(C.map(c=>c.c)).size,C.length,C.filter(c=>c.estado===\"ATENDIDA\").length,ina.length,cer.length?Math.round(ina.length/cer.length*1000)/10:\"\",can.length,cr(\"PACIENTE\"),cr(\"ACCESO\"),cr(\"EPS\"),cr(\"IPS\"),ina.filter(c=>c.resp===\"EPS\").length,med(op)??\"\",dsk.length?Math.round(dsk.filter(c=>c.fecha<=c.fDes).length/dsk.length*1000)/10:\"\",venc.length]);\n    C.filter(c=>c.resp===\"EPS\").forEach(c=>{const p=pOf(c.c)||{};barr.push([e,fd(c.fecha),AG_SN(c.serv),c.c,p.nombre,p.doc,AG_EST[c.estado],c.motivo,c.obs]);});\n    const nom=[[\"Fecha\",\"Hora\",\"Servicio\",\"Tipo\",\"Código\",\"Nombre\",\"Documento\",\"Teléfono\",\"Estado\",\"Responsable\",\"Motivo\",\"Fecha solicitud\",\"Fecha deseada\",\"Días solicitud → cita\",\"Reprogramada en\"]];\n    C.slice().sort((a,b)=>a.fecha-b.fecha).forEach(c=>{const p=pOf(c.c)||{};nom.push([fd(c.fecha),c.hora,AG_SN(c.serv),c.tipo,c.c,p.nombre,p.doc,p.tel,AG_EST[c.estado],AG_RESP[c.resp]||c.resp,c.motivo,c.fSol?fd(c.fSol):\"\",c.fDes?fd(c.fDes):\"\",dd(c.fSol,c.fecha)??\"\",c.reId]);});\n    const vn=[[\"Código\",\"Nombre\",\"Documento\",\"Teléfono\",\"Grupo\",\"Control médico\",\"Fecha límite\"]];venc.forEach(s=>{const it=s.items.find(i=>i.grp===\"Médico\"&&(!i.due||i.due<T));vn.push([s.p.codigo,s.p.nombre,s.p.doc,s.p.tel,s.c.grupo||\"\",it.nombre,it.due?fd(it.due):\"sin registro\"]);});\n    if(C.length||venc.length){sheets.push([epsShort(e)+\" citas\",nom]);sheets.push([epsShort(e)+\" sin cita\",vn]);}});\n  const notas=[[\"Nota\"],[\"Periodo: \"+per+(AST.serv?\" · servicio \"+AG_SN(AST.serv):\"\")+\". Pacientes activos y vencidos calculados al corte \"+fd(ST.corte)+\".\"],[\"Definiciones en la hoja de definiciones del informe de asistencia. Inasistencia: no llegó sin avisar antes de la hora de la cita.\"],[\"Datos ficticios: \"+(ST.demo?\"SÍ\":\"no\")]];\n  saveXlsx(\"Informe_agenda_por_EPS_\"+iso(R.de)+\"_\"+iso(R.ha)+\".xlsx\",[[\"Resumen por EPS\",res],[\"Barreras atribuidas a EPS\",barr]].concat(sheets,[[\"Notas\",notas]]));\n}\n\n/* ---------- navegación ---------- */\nconst VIEWS=[\"calc\",\"pac\",\"agenda\",\"coh\",\"ind\",\"aud\",\"nom\",\"cal\",\"ref\"];\nfunction show(v){VIEWS.forEach(x=>{const b=document.querySelector('[data-v=\"'+x+'\"]');if(b)b.setAttribute(\"aria-selected\",x===v?\"true\":\"false\");const el=$(\"view-\"+x);if(el)el.hidden=x!==v;});$(\"bookbar\").hidden=v===\"ref\";document.querySelector(\".filters\").hidden=v===\"calc\"||v===\"pac\"||v===\"agenda\";if(v!==\"calc\"&&v!==\"ref\")renderMg(v);}\ndocument.querySelectorAll(\"[data-v]\").forEach(b=>b.addEventListener(\"click\",()=>show(b.dataset.v)));\n\n/* ---------- carga ---------- */\n$(\"corte\").value=iso(new Date());\nconst nm=new Date();nm.setDate(1);nm.setMonth(nm.getMonth()+1);$(\"mes\").value=nm.getFullYear()+\"-\"+String(nm.getMonth()+1).padStart(2,\"0\");\n$(\"bookfile\").addEventListener(\"change\",e=>{const f=e.target.files[0];if(!f)return;\n  if(typeof XLSX===\"undefined\"){$(\"bookinfo\").textContent=\"No se pudo cargar el lector de Excel.\";return;}\n  if(ST.dirty){guardDirty(\"cargar «\"+f.name+\"»\",()=>readBook(f));e.target.value=\"\";return;}\n  readBook(f);e.target.value=\"\";});\nfunction readBook(f){\n  const rd=new FileReader();rd.onload=async ev=>{try{const u8=new Uint8Array(ev.target.result);const wb=XLSX.read(u8,{type:\"array\",cellDates:false});ST.wbBuf=ST.db?null:u8.slice();\n    if(ST.db){$(\"bookinfo\").textContent=\"Importando a la base de datos…\";const r=await importToDb(wb);toast(\"Importado: \"+r.pacientes+\" pacientes, \"+r.laboratorios+\" laboratorios, \"+r.valoraciones+\" valoraciones, \"+r.atenciones+\" atenciones, \"+r.novedades+\" novedades.\");}\n    else{rawInit(wb);setBook(COH.parse(wb),f.name,false,false);}}catch(err){$(\"bookinfo\").textContent=\"No se pudo procesar el archivo: \"+err.message;}};rd.readAsArrayBuffer(f);}\nfunction guardDirty(what,go){const bi=$(\"bookinfo\");\n  bi.innerHTML='<span class=\"alert warn\" style=\"display:inline-flex;flex-wrap:wrap;gap:8px;align-items:center\"><span>El libro tiene cambios sin descargar. Si continúa con '+esc(what)+' se pierden.<\/span><button type=\"button\" class=\"btn\" id=\"gd_dl\">Descargar primero<\/button><button type=\"button\" class=\"btn primary\" id=\"gd_go\">Descartar y continuar<\/button><button type=\"button\" class=\"btn\" id=\"gd_no\">Cancelar<\/button><\/span>';\n  $(\"gd_dl\").onclick=()=>{agExportBook();};$(\"gd_go\").onclick=()=>{ST.dirty=false;go();};$(\"gd_no\").onclick=()=>{bookInfo();};}\n$(\"bookdemo\").addEventListener(\"click\",()=>{if(typeof XLSX===\"undefined\"){$(\"bookinfo\").textContent=\"No se pudo cargar el lector de Excel.\";return;}if(ST.dirty){guardDirty(\"los datos ficticios\",()=>loadDemo(true));return;}loadDemo(true);});\nfunction loadDemo(big){const wb=big?demoBig():demoWorkbook();ST.wbBuf=new Uint8Array(XLSX.write(wb,{type:\"array\",bookType:\"xlsx\"}));rawInit(wb);setBook(COH.parse(wb),big?\"Datos ficticios · 100 pacientes por EPS\":\"Datos ficticios de demostración (10 pacientes)\",true,false);}\nwindow.MG.loadDemo=loadDemo;\n$(\"bookexp\").addEventListener(\"click\",()=>agExportBook());\n[\"corte\",\"f_eps\",\"f_grp\",\"mes\"].forEach(id=>$(id).addEventListener(\"change\",()=>{ST.trend=null;compute();const v=VIEWS.find(x=>!$(\"view-\"+x).hidden);if(v&&v!==\"calc\"&&v!==\"ref\")renderMg(v);}));\nfunction setBook(B,name,demo,db){\n  ST.book=B;ST.name=name;ST.demo=demo;ST.db=!!db;ST.trend=null;ST.dirty=false;AST.dlg=null;\n  bookInfo();\n  $(\"booklabel\").textContent=db?\"Importar libro de Excel a la base\":\"Cargar libro de Excel\";\n  compute();fillPick();\n  const v=VIEWS.find(x=>!$(\"view-\"+x).hidden);if(v&&v!==\"calc\"&&v!==\"ref\")renderMg(v);\n  if(window.APP&&$(\"view-calc\")&&!$(\"view-calc\").hidden){const e=new Event(\"input\");$(\"frm\").dispatchEvent(e);}\n}\nfunction compute(){if(!ST.book)return;const corte=pdate($(\"corte\").value)||new Date();ST.corte=corte;ST.snaps=ST.book.pac.filter(p=>p.estado===\"ACTIVO\").map(p=>COH.snapshot(p,ST.book,corte));ST.pmap={};ST.book.pac.forEach(p=>ST.pmap[p.codigo]=p);ST.smap={};ST.snaps.forEach(x=>ST.smap[x.p.codigo]=x);}\nfunction bookInfo(){const B=ST.book;if(!B)return;const act=B.pac.filter(p=>p.estado===\"ACTIVO\").length;\n  $(\"bookinfo\").innerHTML=(ST.db?'<span class=\"exflag\" style=\"color:var(--ok);border-color:var(--ok)\">Base de datos<\/span> ':'')+(ST.demo?'<span class=\"exflag\">Ficticio<\/span> ':'')+esc(ST.name)+' · '+act+' activos de '+B.pac.length+' · '+B.lab.length+' laboratorios · '+B.val.length+' valoraciones · '+B.at.length+' atenciones · '+B.cit.length+' citas'+(B.missing.length?' · <span style=\"color:var(--bad)\">faltan hojas: '+esc(B.missing.join(\", \"))+'<\/span>':'')+(ST.dirty?' · <strong style=\"color:var(--warn)\">libro con cambios sin descargar<\/strong>':'');\n  const bx=$(\"bookexp\");bx.hidden=false;bx.textContent=ST.db?\"Descargar hojas de agenda\":\"Descargar libro actualizado\";}\nfunction snapshotFor(codigo,fecha){const p=ST.book&&ST.book.pac.find(x=>x.codigo===codigo);return p?COH.snapshot(p,ST.book,fecha||new Date(),{formOnly:true}):null;}\nfunction epsSel(){return $(\"f_eps\").value;}\nfunction filtered(){const e=epsSel(),g=$(\"f_grp\").value;return ST.snaps.filter(s=>(!e||(e===\"sin\"?!s.p.eps:s.p.eps===e))&&(!g||String(s.c.grupo||\"\")===g));}\nfunction fillPick(){const sel=$(\"pick\");if(!sel)return;const B=ST.book;$(\"pickbox\").hidden=!B;if(!B)return;sel.innerHTML='<option value=\"\">Seleccione un paciente…<\/option>'+B.pac.filter(p=>p.estado===\"ACTIVO\").sort((a,b)=>a.codigo.localeCompare(b.codigo)).map(p=>'<option value=\"'+esc(p.codigo)+'\">'+esc(p.codigo+\" · \"+(p.nombre||\"\")+\" · \"+(p.eps||\"sin EPS\"))+'<\/option>').join(\"\");}\n\n/* ---------- utilidades ---------- */\nconst empty=()=>'<div class=\"panel empty\"><p style=\"font-size:16px;color:var(--ink);margin:0 0 6px\"><strong>Cargue el libro de Excel del programa o conéctese a la base de datos.<\/strong><\/p><p style=\"margin:0\">Desde el servidor del programa la conexión es automática. Para conocer la herramienta use «Ver con datos ficticios».<\/p><\/div>';\nconst pname=s=>'<strong>'+esc(s.p.codigo)+'<\/strong>'+(s.p.nombre?'<span class=\"sub\">'+esc(s.p.nombre)+'<\/span>':'');\nconst contact=s=>{const t=[s.p.tel,s.p.tel2].filter(Boolean).join(\" · \");return'<span class=\"mono\">'+esc(t||\"—\")+'<\/span>'+(s.p.acud||s.p.acudTel?'<span class=\"sub\">'+esc((s.p.acud||\"Acudiente\")+(s.p.acudTel?\": \"+s.p.acudTel:\"\"))+'<\/span>':'')+(s.p.dir||s.p.municipio?'<span class=\"sub\">'+esc([s.p.dir,s.p.municipio].filter(Boolean).join(\", \"))+'<\/span>':'');};\nconst grpTag=s=>s.c.grupo?'<span class=\"tag g'+s.c.grupo+'\">Grupo '+s.c.grupo+'<\/span>':'<span class=\"tag\">—<\/span>';\nconst stage=s=>(s.c.G||\"—\")+(s.c.A?\" \"+s.c.A:\"\");\nconst epsShort=e=>e===\"EPS Familiar de Colombia\"?\"EPS Familiar\":e||\"Sin EPS\";\nfunction status(it,from,to){if(!it.due)return\"sinreg\";if(it.due<ST.corte)return\"venc\";if(it.due<=to)return\"mes\";return\"vig\";}\nasync function saveXlsx(name,sheets){\n  const wb=XLSX.utils.book_new();sheets.forEach(([sn,aoa])=>{const ws=XLSX.utils.aoa_to_sheet(aoa);ws[\"!cols\"]=(aoa[0]||[]).map((h,i)=>({wch:Math.min(48,Math.max(10,...aoa.slice(0,60).map(r=>String(r[i]==null?\"\":r[i]).length)))}));XLSX.utils.book_append_sheet(wb,ws,sn.slice(0,31));});\n  return saveWb(wb,name);}\nasync function saveWb(wb,name){\n  const buf=XLSX.write(wb,{type:\"array\",bookType:\"xlsx\"});const blob=new Blob([buf],{type:\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\"});\n  if(DL){try{await DL.save({filename:name,data:blob});toast(\"Archivo listo: \"+name);}catch(e){toast(e&&e.code===\"declined\"?\"Descarga cancelada.\":\"No se pudo descargar (\"+(e&&e.code||\"error\")+\").\");}return;}\n  try{const a=document.createElement(\"a\");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast(\"Descarga iniciada: \"+name);}catch(e){toast(\"Este visor no permite descargas.\");}\n}\nfunction toast(t){const el=$(\"toast\");el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>{el.hidden=true;},5000);}\nfunction head(title,sub,btns){return'<div class=\"mhead\"><div><h2 class=\"mt\">'+title+'<\/h2>'+(sub?'<p class=\"note\" style=\"margin:2px 0 0\">'+sub+'<\/p>':'')+'<\/div><div class=\"copyrow\">'+(btns||\"\")+'<\/div><\/div>';}\nconst tile=(l,v,cls)=>'<div class=\"tile '+cls+'\"><span class=\"tv\">'+v+'<\/span><span class=\"tl\">'+esc(l)+'<\/span><\/div>';\nconst EXPORTS={};\nfunction renderMg(v){if(v===\"mes\"||v===\"venc\"||v===\"alert\"){ST.cohSub=v===\"mes\"?\"ges\":v;if(v===\"mes\")ST.gesSub=\"prox\";v=\"coh\";}const out=$(\"out-\"+v);if(!ST.book&&v!==\"pac\"){out.innerHTML=empty();return;}\n  ({pac:rPac,agenda:rAgenda,coh:rCohMain,ind:rInd,aud:rAud,nom:rNom,cal:rCal})[v](out);\n  out.querySelectorAll(\"[data-x]\").forEach(b=>b.addEventListener(\"click\",()=>EXPORTS[b.dataset.x]&&EXPORTS[b.dataset.x]()));\n  out.querySelectorAll(\"[data-ind]\").forEach(b=>b.addEventListener(\"click\",()=>{ST.indSel=b.dataset.ind;renderMg(\"ind\");const t=$(\"inddetail\");if(t)t.scrollIntoView({block:\"start\"});}));\n  out.querySelectorAll(\"[data-open]\").forEach(b=>b.addEventListener(\"click\",e=>{e.stopPropagation();openPatient(b.dataset.open);}));\n  out.querySelectorAll(\"[data-epsf]\").forEach(b=>b.addEventListener(\"click\",()=>{$(\"f_eps\").value=b.dataset.epsf;ST.trend=null;renderMg(v);}));\n}\nfunction openPatient(codigo){show(\"calc\");const sel=$(\"pick\");sel.value=codigo;sel.dispatchEvent(new Event(\"change\"));window.scrollTo(0,0);}\nconst openBtn=s=>'<button type=\"button\" class=\"lnk\" data-open=\"'+esc(s.p.codigo)+'\">Valorar<\/button>';\nconst epsSeg=()=>'<div class=\"seg epsseg\" role=\"group\" aria-label=\"EPS\">'+[[\"\",\"Todas\"]].concat(COH.EPS.map(e=>[e,epsShort(e)])).map(([v,l])=>'<button type=\"button\" data-epsf=\"'+esc(v)+'\" aria-pressed=\"'+(epsSel()===v)+'\">'+esc(l)+'<\/button>').join(\"\")+'<\/div>';\n\n/* ---------- Cohorte ---------- */\nfunction rCoh(out){\n  const S=filtered(),corte=ST.corte,y=corte.getFullYear(),m=corte.getMonth();\n  const all=ST.book.pac;\n  const by=(f)=>{const o={};S.forEach(s=>{const k=f(s);o[k]=(o[k]||0)+1;});return o;};\n  const epsC=by(s=>s.p.eps||\"sin\"),erc=by(s=>s.c.erc);\n  let h=head(\"Cohorte activa\",\"Corte \"+fd(corte)+\". Filtros de EPS y grupo aplicados.\");\n  h+='<div class=\"tiles\">'+tile(\"Activos\",S.length,\"\")+COH.EPS.map(e=>tile(epsShort(e),epsC[e]||0,\"\")).join(\"\")+tile(\"ERC confirmada\",erc.si||0,\"\")+tile(\"Por confirmar\",erc.prov||0,erc.prov?\"warn\":\"\")+tile(\"Sin definir\",(erc.indet||0),erc.indet?\"warn\":\"\")+'<\/div>';\n  h+='<div class=\"two\"><section class=\"panel\"><h3>Grupo del programa por EPS<\/h3><div class=\"tablebox\"><table><thead><tr><th>Grupo<\/th>'+COH.EPS.map(e=>'<th>'+epsShort(e)+'<\/th>').join(\"\")+'<th>Total<\/th><\/tr><\/thead><tbody>';\n  [1,2,3,0].forEach(g=>{const row=S.filter(s=>(s.c.grupo||0)===g);if(!row.length&&g===0)return;h+='<tr><td>'+(g?NP.GRUPO[g]:\"Sin TFGe\")+'<\/td>'+COH.EPS.map(e=>'<td class=\"mono\">'+row.filter(s=>s.p.eps===e).length+'<\/td>').join(\"\")+'<td class=\"mono\"><strong>'+row.length+'<\/strong><\/td><\/tr>';});\n  h+='<\/tbody><\/table><\/div><\/section>';\n  const GS=[\"G1\",\"G2\",\"G3a\",\"G3b\",\"G4\",\"G5\"],AS=[\"A1\",\"A2\",\"A3\",null];\n  const RISKC={G1:[\"low\",\"mod\",\"high\"],G2:[\"low\",\"mod\",\"high\"],G3a:[\"mod\",\"high\",\"vhigh\"],G3b:[\"high\",\"vhigh\",\"vhigh\"],G4:[\"vhigh\",\"vhigh\",\"vhigh\"],G5:[\"vhigh\",\"vhigh\",\"vhigh\"]};\n  h+='<section class=\"panel\"><h3>Matriz KDIGO de la cohorte<\/h3><div class=\"tablebox\"><table class=\"gxa\"><thead><tr><th><\/th><th>A1<\/th><th>A2<\/th><th>A3<\/th><th>Sin RAC<\/th><\/tr><\/thead><tbody>';\n  GS.forEach(g=>{h+='<tr><th>'+g+'<\/th>'+AS.map((a,i)=>{const n=S.filter(s=>s.c.G===g&&s.c.A===a).length;return'<td class=\"mono '+(a?'k-'+RISKC[g][i]:'')+'\">'+(n||\"\")+'<\/td>';}).join(\"\")+'<\/tr>';});\n  h+='<\/tbody><\/table><\/div><p class=\"note\" style=\"margin:8px 0 0\">Color: riesgo KDIGO (verde bajo, amarillo moderado, naranja alto, rojo muy alto).<\/p><\/section><\/div>';\n  const inMonth=d=>d&&d.getFullYear()===y&&d.getMonth()===m;\n  const ing=all.filter(p=>inMonth(p.fing)),nov=ST.book.nov.filter(n=>inMonth(n.fecha));\n  const noAct={};all.filter(p=>p.estado!==\"ACTIVO\").forEach(p=>{noAct[p.estado]=(noAct[p.estado]||0)+1;});\n  h+='<section class=\"panel\"><h3>Movimientos del mes de corte<\/h3><p style=\"margin:0 0 8px\">Ingresos: <strong>'+ing.length+'<\/strong>'+(ing.length?' ('+ing.map(p=>esc(p.codigo)).join(\", \")+')':'')+'. Fuera de seguimiento activo: '+(Object.keys(noAct).length?Object.entries(noAct).map(([k,v])=>esc(k.toLowerCase())+' '+v).join(\", \"):'ninguno')+'.<\/p>';\n  h+=nov.length?'<div class=\"tablebox\"><table><thead><tr><th>Fecha<\/th><th>Paciente<\/th><th>Novedad<\/th><th>Detalle<\/th><\/tr><\/thead><tbody>'+nov.map(n=>'<tr><td class=\"mono\">'+fd(n.fecha)+'<\/td><td>'+esc(n.c)+'<\/td><td>'+esc(n.tipo.toLowerCase())+'<\/td><td>'+esc(n.det)+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\" style=\"margin:0\">Sin novedades registradas en el mes.<\/p>';\n  h+='<\/section>';\n  h+='<details class=\"panel\"><summary>Listado de pacientes activos ('+S.length+')<\/summary><div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Grupo<\/th><th>Estadio<\/th><th>TFGe<\/th><th>Última valoración<\/th><th>Próximo control<\/th><th><\/th><\/tr><\/thead><tbody>'+\n    S.slice().sort((a,b)=>(b.c.grupo||0)-(a.c.grupo||0)).map(s=>{const ctl=s.items.find(i=>i.grp===\"Médico\");return'<tr><td>'+pname(s)+'<\/td><td>'+esc(epsShort(s.p.eps))+'<\/td><td>'+contact(s)+'<\/td><td>'+grpTag(s)+'<\/td><td class=\"mono\">'+stage(s)+'<\/td><td class=\"mono\">'+(s.d.tfg!=null?Math.round(s.d.tfg):\"—\")+'<\/td><td class=\"mono\">'+(s.lv?fd(s.lv.fecha):\"—\")+'<\/td><td class=\"mono\">'+(ctl&&ctl.due?fd(ctl.due):\"Sin registro\")+'<\/td><td>'+openBtn(s)+'<\/td><\/tr>';}).join(\"\")+'<\/tbody><\/table><\/div><\/details>';\n  out.innerHTML=h;\n}\n\n/* ---------- Próximo mes ---------- */\nfunction monthRange(){const[y,m]=$(\"mes\").value.split(\"-\").map(Number);return[new Date(y,m-1,1),new Date(y,m,0)];}\nfunction modelPanel(){\n  const rowsH=COH.EPS.map(e=>{const M=window.EPSMODEL[e]||{};const id=e.replace(/\\W+/g,\"_\");\n    return'<tr data-eps=\"'+esc(e)+'\"><td><strong>'+esc(epsShort(e))+'<\/strong>'+(M.vigente?'<span class=\"sub\">vigente desde '+esc(String(M.vigente))+'<\/span>':'')+'<\/td>'+\n    '<td><select data-f=\"inter\"><option value=\"NINGUNO\"'+(M.inter!==\"MEDICO EXPERTO\"?\" selected\":\"\")+'>Ninguno<\/option><option value=\"MEDICO EXPERTO\"'+(M.inter===\"MEDICO EXPERTO\"?\" selected\":\"\")+'>Médico experto<\/option><\/select><\/td>'+\n    '<td><select data-f=\"interMeses\">'+[1,2,3].map(n=>'<option'+((M.interMeses||1)===n?\" selected\":\"\")+'>'+n+'<\/option>').join(\"\")+'<\/select><\/td>'+\n    '<td><select data-f=\"ajustePor\">'+[[\"MEDICO DEL PROGRAMA\",\"Médico del programa\"],[\"MEDICO EXPERTO\",\"Médico experto\"],[\"NEFROLOGIA\",\"Nefrología\"]].map(([v,l])=>'<option value=\"'+v+'\"'+(M.ajustePor===v?\" selected\":\"\")+'>'+l+'<\/option>').join(\"\")+'<\/select><\/td>'+\n    '<td><select data-f=\"multi\"><option value=\"PROGRAMA\"'+(M.multi!==\"PAQUETE\"?\" selected\":\"\")+'>Según programa<\/option><option value=\"PAQUETE\"'+(M.multi===\"PAQUETE\"?\" selected\":\"\")+'>Paquete: mismo día de nefrología<\/option><\/select><\/td>'+\n    '<td><input type=\"checkbox\" data-f=\"meds\"'+(M.meds?\" checked\":\"\")+' aria-label=\"Medicamentos contratados\"><\/td><\/tr>';}).join(\"\");\n  return'<details class=\"panel\" id=\"modelbox\"><summary>Modelo de atención por EPS<\/summary><p class=\"note\">Define quién atiende entre valoraciones de nefrología y cómo se programa el equipo multidisciplinario. EPS Familiar: médico experto cada mes que no hay nefrología, para formulación de medicamentos contratados. Nueva EPS: paquete con nefrología y equipo multidisciplinario, con frecuencias según el riesgo (CAC/GPC) y agendado el mismo día de nefrología.<\/p><div class=\"tablebox\"><table class=\"modelt\"><thead><tr><th>EPS<\/th><th>Control intermedio<\/th><th>Cada (meses)<\/th><th>Ajuste de metas por<\/th><th>Equipo multidisciplinario<\/th><th>Medicamentos contratados<\/th><\/tr><\/thead><tbody>'+rowsH+'<\/tbody><\/table><\/div><div class=\"copyrow\" style=\"margin-top:10px\"><button type=\"button\" class=\"btn primary\" id=\"modelsave\">'+(ST.db?\"Guardar en la base de datos\":\"Aplicar\")+'<\/button><span class=\"note\" id=\"modelmsg\"><\/span><\/div><\/details>';\n}\nfunction bindModel(){const b=$(\"modelsave\");if(!b)return;b.addEventListener(\"click\",async()=>{\n  const upd={};document.querySelectorAll(\"#modelbox tr[data-eps]\").forEach(tr=>{const e=tr.dataset.eps;const g=f=>tr.querySelector('[data-f=\"'+f+'\"]');upd[e]={inter:g(\"inter\").value,interMeses:Number(g(\"interMeses\").value),ajustePor:g(\"ajustePor\").value,multi:g(\"multi\").value,meds:g(\"meds\").checked};});\n  try{\n    if(ST.db){for(const e of Object.keys(upd)){const M=upd[e];await apiPost(\"eps_modelo_atencion\",[{eps_id:ST.book.epsIds[e],contacto_intermedio:M.inter,contacto_meses:M.interMeses,ajuste_metas_por:M.ajustePor,multidisciplinario:M.multi,medicamentos_contratados:M.meds}]);}await loadDb();$(\"modelmsg\").textContent=\"Guardado. Queda versionado con la fecha de hoy.\";}\n    else{Object.keys(upd).forEach(e=>Object.assign(window.EPSMODEL[e],upd[e]));try{localStorage.setItem(\"nefro_epsmodel\",JSON.stringify(window.EPSMODEL));}catch(x){}compute();renderMg(\"coh\");toast(\"Modelo aplicado en este navegador.\");}\n  }catch(err){$(\"modelmsg\").textContent=\"No se guardó: \"+err.message;}\n});}\nfunction rMes(out){\n  const S=filtered(),[from,to]=monthRange();const mesTxt=from.toLocaleDateString(\"es-CO\",{month:\"long\",year:\"numeric\"});\n  const labRows=[],atRows=[],cnt={},cntEps={};\n  S.forEach(s=>{const l=[],a=[];s.items.forEach(it=>{const st=status(it,from,to);if(st===\"vig\")return;(it.tipo===\"Laboratorio\"?l:a).push(Object.assign({st},it));if(it.tipo===\"Laboratorio\")cnt[it.nombre]=(cnt[it.nombre]||0)+1;});\n    if(l.length)labRows.push([s,l]);if(a.length)atRows.push([s,a]);if(l.length||a.length)cntEps[s.p.eps||\"Sin EPS\"]=(cntEps[s.p.eps||\"Sin EPS\"]||0)+1;});\n  const citOf=(s,it)=>{const sv=itemServ(s,it);return sv?activeFut(s.p.codigo,sv)[0]:null;};\n  const chip=(it,s)=>{const ct=citOf(s,it);return'<span class=\"ch '+(ct?\"agd\":it.st)+'\" title=\"'+esc(it.why||\"\")+'\">'+esc(it.nombre)+' · '+(it.st===\"sinreg\"?\"sin registro\":it.st===\"venc\"?\"vencido \"+fd(it.due):fd(it.due))+(ct?' · cita '+fd(ct.fecha)+' '+esc(ct.hora):'')+'<\/span>';};\n  let nAgd=0;[...labRows,...atRows].forEach(([s,l])=>l.forEach(it=>{if(citOf(s,it))nAgd++;}));\n  let h=head(\"Programación de \"+mesTxt,\"Incluye lo que vence desde hoy hasta el fin del mes y lo ya vencido o sin registro (en rojo). Pase el cursor sobre cada ítem para ver el motivo. El control médico sigue el modelo de atención de cada EPS.\",'<button class=\"btn primary\" data-x=\"agenda\">Exportar agenda con contactos<\/button>');\n  h+=epsSeg();\n  h+='<div class=\"tiles\">'+tile(\"Pacientes por contactar\",Object.values(cntEps).reduce((a,b)=>a+b,0),\"\")+Object.entries(cntEps).map(([e,n])=>tile(epsShort(e),n,\"\")).join(\"\")+tile(\"Con laboratorios\",labRows.length,\"\")+tile(\"Con atenciones\",atRows.length,\"\")+tile(\"Ítems ya con cita\",nAgd,\"\")+'<\/div>';\n  h+=modelPanel();\n  h+='<section class=\"panel\"><h3>Laboratorios por solicitar · '+labRows.length+' pacientes<\/h3><div class=\"chips\" style=\"margin:0 0 12px\">'+Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<span class=\"chip\">'+esc(k)+' <b>'+v+'<\/b><\/span>').join(\"\")+'<\/div>';\n  h+=labRows.length?'<div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Exámenes<\/th><\/tr><\/thead><tbody>'+labRows.map(([s,l])=>'<tr><td>'+pname(s)+'<\/td><td>'+esc(epsShort(s.p.eps))+'<\/td><td>'+contact(s)+'<\/td><td><div class=\"chs\">'+l.map(it=>chip(it,s)).join(\"\")+'<\/div><\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\">Nada pendiente en el mes.<\/p>';\n  h+='<\/section><section class=\"panel\"><h3>Atenciones por agendar · '+atRows.length+' pacientes<\/h3>';\n  h+=atRows.length?'<div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Atenciones<\/th><th><\/th><\/tr><\/thead><tbody>'+atRows.map(([s,a])=>'<tr><td>'+pname(s)+'<\/td><td>'+esc(epsShort(s.p.eps))+'<\/td><td>'+contact(s)+'<\/td><td><div class=\"chs\">'+a.map(it=>chip(it,s)).join(\"\")+'<\/div><\/td><td>'+openBtn(s)+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\">Nada pendiente en el mes.<\/p>';\n  h+='<\/section>';\n  out.innerHTML=h;bindModel();\n  const tag=$(\"mes\").value;\n  EXPORTS.agenda=()=>{\n    const byP={};labRows.forEach(([s,l])=>{(byP[s.p.codigo]=byP[s.p.codigo]||{s,l:[],a:[]}).l=l;});atRows.forEach(([s,a])=>{(byP[s.p.codigo]=byP[s.p.codigo]||{s,l:[],a:[]}).a=a;});\n    const st=x=>({sinreg:\"sin registro\",venc:\"vencido\",mes:\"vence\"})[x.st];\n    const ag=[[\"Código\",\"Nombre\",\"Tipo doc.\",\"Documento\",\"EPS\",\"Teléfono 1\",\"Teléfono 2\",\"Acudiente\",\"Teléfono acudiente\",\"Dirección\",\"Municipio\",\"Grupo\",\"Estadio\",\"Atenciones a agendar\",\"Laboratorios a solicitar\",\"Fecha límite más próxima\",\"Citas asignadas\",\"Gestión de contacto\",\"Observaciones\"]];\n    Object.values(byP).sort((a,b)=>(a.s.p.eps||\"\").localeCompare(b.s.p.eps||\"\")||a.s.p.codigo.localeCompare(b.s.p.codigo)).forEach(({s,l,a})=>{const ds=[...l,...a].map(i=>i.due).filter(Boolean).sort((x,y)=>x-y);\n      ag.push([s.p.codigo,s.p.nombre,s.p.tipodoc,s.p.doc,s.p.eps,s.p.tel,s.p.tel2,s.p.acud,s.p.acudTel,s.p.dir,s.p.municipio,s.c.grupo||\"\",stage(s),a.map(i=>i.nombre+\" (\"+st(i)+(i.due?\" \"+fd(i.due):\"\")+\")\").join(\"; \"),l.map(i=>i.nombre+\" (\"+st(i)+(i.due?\" \"+fd(i.due):\"\")+\")\").join(\"; \"),ds.length?fd(ds[0]):\"Ahora\",activeFut(s.p.codigo).map(c=>AG_SN(c.serv)+\" \"+fd(c.fecha)+\" \"+c.hora).join(\"; \"),\"\",\"\"]);});\n    const det=[[\"Código\",\"Nombre\",\"EPS\",\"Teléfono 1\",\"Teléfono 2\",\"Tipo\",\"Intervención\",\"Estado\",\"Último registro\",\"Fecha límite\",\"Motivo\"]];\n    [...labRows,...atRows].forEach(([s,l])=>l.forEach(it=>det.push([s.p.codigo,s.p.nombre,s.p.eps,s.p.tel,s.p.tel2,it.tipo,it.nombre,st(it),it.last?fd(it.last):\"\",it.due?fd(it.due):\"\",it.why||\"\"])));\n    const res=[[\"EPS\",\"Pacientes a contactar\"]];Object.entries(cntEps).forEach(([e,n])=>res.push([e,n]));\n    saveXlsx(\"Agenda_\"+tag+(epsSel()?\"_\"+epsShort(epsSel()).replace(/\\s+/g,\"\"):\"\")+\".xlsx\",[[\"Agenda por paciente\",ag],[\"Detalle\",det],[\"Resumen EPS\",res]]);};\n}\n\n/* ---------- Vencidos ---------- */\nfunction rVenc(out){\n  const S=filtered(),corte=ST.corte;const L=[];\n  S.forEach(s=>s.items.forEach(it=>{if(!it.due||it.due<corte)L.push({s,it,days:it.due?NP.days(it.due,corte):null});}));\n  L.sort((a,b)=>(b.days==null?1e9:b.days)-(a.days==null?1e9:a.days));\n  const lost=S.filter(s=>{const ctl=s.items.find(i=>i.grp===\"Médico\");return!s.lv||(ctl&&ctl.due&&NP.days(ctl.due,corte)>60);});\n  const inas=S.filter(s=>s.inas>0);\n  let h=head(\"Vencidos al \"+fd(corte),\"Actividades cuya fecha límite ya pasó o que nunca se han registrado.\",'<button class=\"btn\" data-x=\"venc\">Exportar<\/button>');\n  h+='<div class=\"tiles\">'+tile(\"Actividades vencidas\",L.filter(x=>x.days!=null).length,\"bad\")+tile(\"Sin registro\",L.filter(x=>x.days==null).length,\"warn\")+tile(\"Posible pérdida de seguimiento\",lost.length,lost.length?\"bad\":\"\")+tile(\"Con inasistencias (6 meses)\",inas.length,inas.length?\"warn\":\"\")+'<\/div>';\n  if(lost.length)h+='<section class=\"panel\"><h3>Posible pérdida de seguimiento<\/h3><p class=\"note\" style=\"margin:0 0 8px\">Sin valoración registrada, o control médico vencido hace más de 60 días.<\/p><div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Grupo<\/th><th>Última valoración<\/th><th><\/th><\/tr><\/thead><tbody>'+lost.map(s=>'<tr><td>'+pname(s)+'<\/td><td>'+esc(epsShort(s.p.eps))+'<\/td><td>'+contact(s)+'<\/td><td>'+grpTag(s)+'<\/td><td class=\"mono\">'+(s.lv?fd(s.lv.fecha):\"Nunca\")+'<\/td><td>'+openBtn(s)+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div><\/section>';\n  h+='<details class=\"panel\"><summary>Detalle de vencidos ('+L.length+')<\/summary>'+(L.length?'<div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Intervención<\/th><th>Último registro<\/th><th>Fecha límite<\/th><th>Atraso<\/th><\/tr><\/thead><tbody>'+L.slice(0,600).map(x=>'<tr><td>'+pname(x.s)+'<\/td><td>'+esc(epsShort(x.s.p.eps))+'<\/td><td>'+esc(x.it.nombre)+'<span class=\"sub\">'+esc(x.it.why||\"\")+'<\/span><\/td><td class=\"mono\">'+(x.it.last?fd(x.it.last):\"—\")+'<\/td><td class=\"mono\">'+(x.it.due?fd(x.it.due):\"—\")+'<\/td><td class=\"mono\" style=\"color:var(--bad)\">'+(x.days==null?\"sin registro\":x.days+\" d\")+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div>'+(L.length>600?'<p class=\"note\">Se muestran 600; la exportación incluye todos.<\/p>':''):'<p class=\"note\">Sin vencidos.<\/p>')+'<\/details>';\n  if(inas.length)h+='<section class=\"panel\"><h3>Inasistencias en los últimos 6 meses<\/h3><p class=\"note\" style=\"margin:0 0 8px\">El detalle, los motivos y la reprogramación se gestionan en Agenda.<\/p><div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Grupo<\/th><th>Inasistencias<\/th><th>Última<\/th><th>Nueva cita<\/th><\/tr><\/thead><tbody>'+inas.sort((a,b)=>b.inas-a.inas).map(s=>{const L=((ST.book.CI||{})[s.p.codigo]||[]).filter(c=>c.estado===\"INASISTENCIA\");const u=L[L.length-1];const nf=activeFut(s.p.codigo)[0];return'<tr><td>'+pname(s)+'<\/td><td>'+esc(epsShort(s.p.eps))+'<\/td><td>'+contact(s)+'<\/td><td>'+grpTag(s)+'<\/td><td class=\"mono\">'+s.inas+'<\/td><td>'+(u?fd(u.fecha)+' '+esc(AG_SN(u.serv).toLowerCase())+'<span class=\"sub\">'+esc(u.motivo||\"sin motivo registrado\")+'<\/span>':'—')+'<\/td><td class=\"mono\">'+(nf?fd(nf.fecha)+' '+esc(nf.hora):'<span style=\"color:var(--bad)\">ninguna<\/span>')+'<\/td><\/tr>';}).join(\"\")+'<\/tbody><\/table><\/div><\/section>';\n  out.innerHTML=h;\n  EXPORTS.venc=()=>{const aoa=[[\"Código\",\"Nombre\",\"EPS\",\"Teléfono 1\",\"Teléfono 2\",\"Acudiente\",\"Teléfono acudiente\",\"Intervención\",\"Último registro\",\"Fecha límite\",\"Días de atraso\",\"Motivo\"]];L.forEach(x=>aoa.push([x.s.p.codigo,x.s.p.nombre,x.s.p.eps,x.s.p.tel,x.s.p.tel2,x.s.p.acud,x.s.p.acudTel,x.it.nombre,x.it.last?fd(x.it.last):\"\",x.it.due?fd(x.it.due):\"\",x.days==null?\"sin registro\":x.days,x.it.why||\"\"]));saveXlsx(\"Vencidos_\"+iso(corte)+\".xlsx\",[[\"Vencidos\",aoa]]);};\n}\n\n/* ---------- Indicadores ---------- */\nconst SCOPES=COH.EPS.concat([\"Total\"]);\n/* Ámbitos visibles: con una EPS filtrada solo esa; con «Todas», las tres EPS y el total */\nconst scopes=()=>epsSel()?[epsSel()]:SCOPES;\nconst scLabel=e=>e===\"Total\"?\"Total\":e===\"sin\"?\"Sin EPS\":epsShort(e);\nconst STR=[[\"G3\",\"ERC 3a–3b\"],[\"G4\",\"ERC 4\"],[\"G5\",\"ERC 5 y TMND\"]];\nfunction agg(snaps,code,eps,st){const set=snaps.filter(s=>eps===\"Total\"||(eps===\"sin\"?!s.p.eps:s.p.eps===eps)).map(s=>s.ind[code]).filter(i=>i&&(!st||i.st===st));const ok=set.filter(i=>i.ok).length;return{n:ok,N:set.length,pc:set.length?ok/set.length*100:null};}\n/* Meta aplicable: la de la CAC si existe; si no, la institucional propuesta. Con estadio, la del estadio. */\nfunction metaOf(code,st){const F=COH.FICHAS[code];if(!F)return null;let o=F;if(st&&F.est){o=F.est.find(e=>e.k===st)||{};}else if(F.est&&!st)return{est:true};\n  if(o.cac)return{r:o.cac,src:\"CAC\",t:\"Meta CAC\"};if(o.inst)return{r:o.inst,src:\"INST\",t:o.inst[0]===o.inst[1]?\"Meta institucional\":\"Meta institucional (propuesta)\"};return null;}\nconst metaTxt=(m,short)=>!m?\"Línea de base\":m.est?\"Por estadio\":(short?(m.src===\"CAC\"?\"CAC > \":\"Inst. > \")+m.r[0]+\" %\":m.r[0]===m.r[1]?m.t+\": > \"+m.r[0]+\" % cumple; ≤ \"+m.r[0]+\" % no cumple\":m.t+\": > \"+m.r[0]+\" % cumple; \"+m.r[1]+\"–\"+m.r[0]+\" % medio; < \"+m.r[1]+\" % bajo\");\nfunction semaforo(code,pc,st){if(pc==null)return{cls:\"na\",txt:\"Sin población\"};const m=metaOf(code,st);if(!m||m.est)return{cls:\"base\",txt:\"Sin meta definida (línea de base)\"};const[hi,lo]=m.r,w=m.src===\"CAC\"?\"meta CAC\":\"meta institucional\";\n  if(hi===lo)return pc>hi?{cls:\"ok\",txt:\"Cumple \"+w+\" (> \"+hi+\" %)\"}:{cls:\"bad\",txt:\"No cumple \"+w+\" (> \"+hi+\" %)\"};\n  return pc>hi?{cls:\"ok\",txt:\"Cumple \"+w+\" (> \"+hi+\" %)\"}:pc>=lo?{cls:\"warn\",txt:\"Medio frente a \"+w+\" (\"+lo+\"–\"+hi+\" %)\"}:{cls:\"bad\",txt:\"Bajo frente a \"+w+\" (< \"+lo+\" %)\"};}\nconst RANK={bad:3,warn:2,ok:1,base:0,na:-1};\n/* Semáforo global de un ámbito: en indicadores por estadio manda el peor estadio con población */\nfunction semAll(snaps,code,eps){const F=COH.FICHAS[code]||{};const a=agg(snaps,code,eps);if(!F.est)return Object.assign(semaforo(code,a.pc),{a});\n  let w=null;STR.forEach(([k,l])=>{const b=agg(snaps,code,eps,k);if(b.pc==null)return;const s=semaforo(code,b.pc,k);if(!w||RANK[s.cls]>RANK[w.cls])w={cls:s.cls,txt:\"Peor estadio: \"+l+\" · \"+s.txt.charAt(0).toLowerCase()+s.txt.slice(1)};});\n  return Object.assign(w||{cls:\"na\",txt:\"Sin población\"},{a});}\nfunction trend(){\n  if(ST.trend)return ST.trend;\n  const g=$(\"f_grp\").value,pts=[];const c0=ST.corte;\n  for(let i=5;i>=0;i--){const dt=i===0?c0:new Date(c0.getFullYear(),c0.getMonth()-i+1,0);\n    const sn=(i===0?ST.snaps:ST.book.pac.filter(p=>COH.activeAt(p,dt)).map(p=>COH.snapshot(p,ST.book,dt))).filter(s=>!g||String(s.c.grupo||\"\")===g);\n    pts.push({dt,sn});}\n  ST.trend=pts;return pts;\n}\nconst SER=[{k:COH.EPS[0],v:\"--s1\"},{k:COH.EPS[1],v:\"--s2\"},{k:COH.EPS[2],v:\"--s3\"},{k:\"Total\",v:\"--s4\"},{k:\"sin\",v:\"--s4\"}];\nconst serOf=k=>SER.find(s=>s.k===k)||{k,v:\"--s4\"};\nfunction metaLine(code,y1,x1,x2,txtX){const m=metaOf(code);if(!m||m.est)return\"\";const y=y1(m.r[0]);\n  return'<line x1=\"'+x1+'\" x2=\"'+x2+'\" y1=\"'+y+'\" y2=\"'+y+'\" class=\"std'+(m.src===\"INST\"?\" inst\":\"\")+'\"/>'+(txtX!=null?'<text x=\"'+txtX+'\" y=\"'+(y-5)+'\" class=\"ax\" text-anchor=\"end\">'+(m.src===\"CAC\"?\"Meta CAC\":m.r[0]===m.r[1]?\"Meta institucional\":\"Meta institucional (propuesta)\")+' > '+m.r[0]+' %<\/text>':'');}\nfunction barChart(code,snaps){\n  const W=560,H=230,ml=36,mr=12,mt=16,mb=40,iw=W-ml-mr,ih=H-mt-mb;\n  const data=scopes().map(k=>Object.assign({},serOf(k),agg(snaps,code,k)));\n  const bw=Math.min(epsSel()?110:70,iw/data.length*0.55),gap=iw/data.length;\n  let g='<svg viewBox=\"0 0 '+W+' '+H+'\" class=\"chart\" role=\"img\" aria-label=\"Cumplimiento por EPS\">';\n  [0,25,50,75,100].forEach(t=>{const y=mt+ih-ih*t/100;g+='<line x1=\"'+ml+'\" x2=\"'+(W-mr)+'\" y1=\"'+y+'\" y2=\"'+y+'\" class=\"grid\"/><text x=\"'+(ml-6)+'\" y=\"'+(y+4)+'\" class=\"ax\" text-anchor=\"end\">'+t+'<\/text>';});\n  g+=metaLine(code,v=>mt+ih-ih*v/100,ml,W-mr,W-mr);\n  data.forEach((d,i)=>{const x=ml+gap*i+(gap-bw)/2,cx=x+bw/2;\n    if(d.pc!=null){const hh=Math.max(2,ih*d.pc/100),y=mt+ih-hh;g+='<path d=\"M'+x+' '+(mt+ih)+'V'+(y+4)+'Q'+x+' '+y+' '+(x+4)+' '+y+'H'+(x+bw-4)+'Q'+(x+bw)+' '+y+' '+(x+bw)+' '+(y+4)+'V'+(mt+ih)+'Z\" style=\"fill:var('+d.v+')\" class=\"bar\" data-eps=\"'+esc(d.k)+'\" data-tip=\"'+esc(scLabel(d.k)+\": \"+Math.round(d.pc)+\" % (\"+d.n+\"/\"+d.N+\")\")+'\"/><text x=\"'+cx+'\" y=\"'+(y-6)+'\" class=\"val\" text-anchor=\"middle\">'+Math.round(d.pc)+' %<\/text>';}\n    else g+='<text x=\"'+cx+'\" y=\"'+(mt+ih-6)+'\" class=\"ax\" text-anchor=\"middle\">sin población<\/text>';\n    g+='<text x=\"'+cx+'\" y=\"'+(H-22)+'\" class=\"lab\" text-anchor=\"middle\">'+esc(scLabel(d.k))+'<\/text><text x=\"'+cx+'\" y=\"'+(H-8)+'\" class=\"ax\" text-anchor=\"middle\">'+(d.N?d.n+'/'+d.N:'—')+'<\/text>';});\n  return g+'<\/svg>';\n}\nfunction lineChart(code){\n  const pts=trend();const W=560,H=230,ml=36,mr=110,mt=16,mb=30,iw=W-ml-mr,ih=H-mt-mb;\n  const xs=i=>ml+iw*i/(pts.length-1);const ys=v=>mt+ih-ih*v/100;\n  let g='<svg viewBox=\"0 0 '+W+' '+H+'\" class=\"chart\" role=\"img\" aria-label=\"Tendencia de 6 meses\">';\n  [0,25,50,75,100].forEach(t=>{g+='<line x1=\"'+ml+'\" x2=\"'+(ml+iw)+'\" y1=\"'+ys(t)+'\" y2=\"'+ys(t)+'\" class=\"grid\"/><text x=\"'+(ml-6)+'\" y=\"'+(ys(t)+4)+'\" class=\"ax\" text-anchor=\"end\">'+t+'<\/text>';});\n  g+=metaLine(code,ys,ml,ml+iw,null);\n  pts.forEach((p,i)=>{g+='<text x=\"'+xs(i)+'\" y=\"'+(H-10)+'\" class=\"ax\" text-anchor=\"middle\">'+p.dt.toLocaleDateString(\"es-CO\",{month:\"short\"}).replace(\".\",\"\")+'<\/text>';});\n  const labels=[];\n  scopes().forEach(k=>{const s=serOf(k);const vals=pts.map(p=>agg(p.sn,code,k));if(!vals.some(v=>v.pc!=null))return;\n    let dpath=\"\";vals.forEach((v,i)=>{if(v.pc==null)return;dpath+=(dpath?\"L\":\"M\")+xs(i)+\" \"+ys(v.pc);});\n    g+='<path d=\"'+dpath+'\" class=\"ln'+(k===\"Total\"?' tot':'')+'\" data-eps=\"'+esc(k)+'\" style=\"stroke:var('+s.v+')\"/>';\n    vals.forEach((v,i)=>{if(v.pc==null)return;g+='<circle cx=\"'+xs(i)+'\" cy=\"'+ys(v.pc)+'\" r=\"4.5\" class=\"mk\" style=\"fill:var('+s.v+')\" data-tip=\"'+esc(scLabel(k)+\" · \"+fd(pts[i].dt)+\": \"+Math.round(v.pc)+\" % (\"+v.n+\"/\"+v.N+\")\")+'\"/>';});\n    const lv=[...vals].reverse().find(v=>v.pc!=null);if(lv)labels.push({y:ys(lv.pc),t:scLabel(k)+\" \"+Math.round(lv.pc)+\" %\",c:s.v});});\n  labels.sort((a,b)=>a.y-b.y);for(let i=1;i<labels.length;i++)if(labels[i].y-labels[i-1].y<14)labels[i].y=labels[i-1].y+14;\n  labels.forEach(l=>{g+='<text x=\"'+(ml+iw+8)+'\" y=\"'+(l.y+4)+'\" class=\"lab\">'+esc(l.t)+'<\/text>';});\n  return g+'<\/svg>';\n}\nfunction metaFicha(F){\n  const r=x=>x[0]===x[1]?\"> \"+x[0]+\" % cumple; ≤ \"+x[0]+\" % no cumple\":\"> \"+x[0]+\" % cumple; \"+x[1]+\"–\"+x[0]+\" % medio; < \"+x[1]+\" % bajo\";\n  let h='<dt>Meta CAC<\/dt><dd>'+(F.cac?r(F.cac):F.est&&F.est.some(e=>e.cac)?\"Por estadio (ver abajo)\":\"Definir (línea de base)\")+'<\/dd>';\n  if(F.inst||(F.est&&F.est.some(e=>e.inst)))h+='<dt>Meta institucional<\/dt><dd><span class=\"tag inst\">'+(F.inst&&F.inst[0]===F.inst[1]?\"Coordinación Asistencial\":\"Propuesta · pendiente de adopción\")+'<\/span> '+(F.inst&&!F.est?r(F.inst):\"por estadio (ver abajo)\")+(F.instJ?'<span class=\"sub\">'+esc(F.instJ)+'<\/span>':'')+'<\/dd>';\n  if(F.est)h+='<dt>Por estadio<\/dt><dd><table class=\"mini-t\"><thead><tr><th>Estadio<\/th><th>Plazo<\/th><th>Código CAC<\/th><th>Meta<\/th><\/tr><\/thead><tbody>'+F.est.map(e=>'<tr><td>'+esc(e.l)+'<\/td><td>'+esc(e.v)+'<\/td><td class=\"mono\">'+esc(e.cod||\"—\")+'<\/td><td>'+(e.cac?'CAC '+r(e.cac):e.inst?'<span class=\"tag inst\">Institucional propuesta<\/span> '+r(e.inst):'Línea de base')+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/dd>';\n  return h;}\nfunction fichaHtml(code){const F=COH.FICHAS[code];if(!F)return\"\";return'<dl class=\"ficha\"><dt>Código<\/dt><dd class=\"mono\">'+esc(code)+'<\/dd><dt>Sección<\/dt><dd>'+esc(F.sec||\"\")+'<\/dd><dt>Tipo<\/dt><dd>'+esc(F.tipo)+'<\/dd><dt>Numerador<\/dt><dd>'+esc(F.num)+'<\/dd><dt>Denominador<\/dt><dd>'+esc(F.den)+'<\/dd><dt>Población<\/dt><dd>'+esc(F.pob)+'<\/dd><dt>Ventana<\/dt><dd>'+esc(F.vent)+'<\/dd>'+metaFicha(F)+'<dt>Fuente<\/dt><dd>'+esc(F.fuente)+'<\/dd><\/dl>';}\nfunction metaCell(code){const F=COH.FICHAS[code]||{};if(F.est)return'<td class=\"note\">Por estadio<\/td>';const m=metaOf(code);return'<td class=\"note\" style=\"white-space:nowrap\">'+(m?(m.src===\"CAC\"?'<span class=\"tag cac\">CAC<\/span> > '+m.r[0]+' %':'<span class=\"tag inst\">Inst.<\/span> > '+m.r[0]+' %'):\"Línea de base\")+'<\/td>';}\nfunction indRows(S,codes,sel){return codes.map(code=>{const Fi=COH.FICHAS[code]||{n:code};\n  const cells=scopes().map(e=>{const sx=semAll(S,code,e),a=sx.a;if(a.pc==null)return'<td class=\"mono na\">—<\/td>';return'<td class=\"mono\"><span class=\"pc '+sx.cls+'\">'+Math.round(a.pc)+' %<\/span><span class=\"mini\"><span style=\"width:'+Math.round(a.pc)+'%\"><\/span><\/span><span class=\"sub\">'+a.n+'/'+a.N+'<\/span><\/td>';}).join(\"\");\n  let h='<tr class=\"'+(code===sel?\"sel\":\"\")+'\" data-ind=\"'+esc(code)+'\" tabindex=\"0\"><td><span class=\"c\">'+esc(code)+'<\/span> '+esc(Fi.n)+'<\/td>'+cells+metaCell(code)+'<\/tr>';\n  if(Fi.est)h+=STR.map(([k,l])=>{const e=Fi.est.find(x=>x.k===k)||{};const m=metaOf(code,k);return'<tr class=\"strow\" data-ind=\"'+esc(code)+'\"><td><span class=\"sub\">↳ '+esc(l)+' · '+esc(e.v||\"\")+(e.cod?' · '+esc(e.cod):'')+'<\/span><\/td>'+scopes().map(sc=>{const a=agg(S,code,sc,k);if(a.pc==null)return'<td class=\"mono na\">—<\/td>';const s=semaforo(code,a.pc,k);return'<td class=\"mono\"><span class=\"pc '+s.cls+'\">'+Math.round(a.pc)+' %<\/span><span class=\"sub\">'+a.n+'/'+a.N+'<\/span><\/td>';}).join(\"\")+'<td class=\"note\">'+(m?(m.src===\"CAC\"?'<span class=\"tag cac\">CAC<\/span> > ':'<span class=\"tag inst\">Inst.<\/span> > ')+m.r[0]+' %':\"Línea de base\")+'<\/td><\/tr>';}).join(\"\");\n  return h;}).join(\"\");}\nfunction rInd(out){\n  const S=ST.snaps.filter(s=>!$(\"f_grp\").value||String(s.c.grupo||\"\")===$(\"f_grp\").value);\n  const sc=epsSel()||\"Total\";const codes=COH.ORDER.filter(c=>S.some(s=>s.ind[c]));\n  const tab=codes.filter(c=>(COH.FICHAS[c]||{}).tab),otros=codes.filter(c=>!(COH.FICHAS[c]||{}).tab);\n  const cde=new Date(ST.corte.getFullYear(),ST.corte.getMonth(),1),APm=atProg(cde,ST.corte,epsSel()&&epsSel()!==\"sin\"?epsSel():\"\"),APp=atProg(new Date(cde.getFullYear(),cde.getMonth()-1,1),new Date(cde.getFullYear(),cde.getMonth(),0),epsSel()&&epsSel()!==\"sin\"?epsSel():\"\");\n  const apC=a=>a.pc==null?\"—\":'<span class=\"pc '+(a.pc>=95?\"ok\":\"bad\")+'\">'+String(Math.round(a.pc*10)/10).replace(\".\",\",\")+' %<\/span>';\n  if(!codes.includes(ST.indSel))ST.indSel=tab[0]||codes[0];\n  const sel=ST.indSel,F=COH.FICHAS[sel]||{n:sel},sm=semAll(S,sel,sc),A=sm.a;\n  let h=head(\"Indicadores del programa · corte \"+fd(ST.corte),\"Los 47 indicadores del consenso CAC 2025 (tabla 2) con sus poblaciones, más uno institucional. El semáforo usa la meta CAC cuando existe; los que la CAC deja en línea de base («Definir») se miden contra la meta institucional > 70 %.\",'<button class=\"btn\" data-x=\"ind\">Exportar indicadores y pacientes<\/button>'+(ST.db?'<button class=\"btn\" data-x=\"freeze\">Congelar corte en la base<\/button>':''));\n  h+=epsSeg();\n  h+='<section class=\"panel\"><h3>Atenciones programadas frente a atendidas · meta ≥ 95 %<\/h3><div class=\"tablebox\"><table><thead><tr><th>Periodo<\/th><th>Programadas<\/th><th>Atendidas<\/th><th>Cumplimiento<\/th><th>No asistió<\/th><th>Canceladas<\/th><th>Sin desenlace<\/th><\/tr><\/thead><tbody><tr><td>Mes en curso hasta el corte<\/td><td class=\"mono\">'+APm.T.prog+'<\/td><td class=\"mono\">'+APm.T.at+'<\/td><td class=\"mono\">'+apC(APm)+'<\/td><td class=\"mono\">'+APm.T.inas+'<\/td><td class=\"mono\">'+APm.T.canc+'<\/td><td class=\"mono\">'+APm.T.sin+'<\/td><\/tr><tr><td>Mes anterior completo<\/td><td class=\"mono\">'+APp.T.prog+'<\/td><td class=\"mono\">'+APp.T.at+'<\/td><td class=\"mono\">'+apC(APp)+'<\/td><td class=\"mono\">'+APp.T.inas+'<\/td><td class=\"mono\">'+APp.T.canc+'<\/td><td class=\"mono\">'+APp.T.sin+'<\/td><\/tr><\/tbody><\/table><\/div><p class=\"note\" style=\"margin:8px 0 0\">Fuente: agenda (hoja Citas). Programadas = citas con fecha en el periodo en cualquier estado; atendidas = estado «Atendida». Meta institucional ≥ 95 % (Coordinación Asistencial); el detalle por servicio está en Cohortes › Gestión.<\/p><\/section>';\n  const m=metaOf(sel);\n  h+='<section class=\"panel\" id=\"inddetail\"><div class=\"inddet\"><div class=\"hero\"><span class=\"c mono\">'+esc(sel)+'<\/span><h3 class=\"hn\">'+esc(F.n)+'<\/h3><div class=\"hv\">'+(A.pc==null?\"—\":Math.round(A.pc)+\" %\")+'<\/div><div class=\"note\">'+A.n+' de '+A.N+' · '+esc(sc===\"Total\"?\"Todas las EPS\":scLabel(sc))+'<\/div><div class=\"sema '+sm.cls+'\"><span class=\"dot '+sm.cls+'\"><\/span>'+esc(sm.txt)+'<\/div><div class=\"note\" style=\"margin-top:6px\">'+esc(metaTxt(m))+'<\/div>'+\n     (F.est?'<table class=\"mini-t\" style=\"margin-top:10px\"><thead><tr><th>Estadio<\/th><th>%<\/th><th>n/N<\/th><\/tr><\/thead><tbody>'+STR.map(([k,l])=>{const a=agg(S,sel,sc,k);const s=semaforo(sel,a.pc,k);return'<tr><td>'+esc(l)+'<\/td><td><span class=\"pc '+s.cls+'\">'+(a.pc==null?\"—\":Math.round(a.pc)+\" %\")+'<\/span><\/td><td class=\"mono\">'+(a.N?a.n+\"/\"+a.N:\"—\")+'<\/td><\/tr>';}).join(\"\")+'<\/tbody><\/table>':'')+'<\/div>'+\n     '<div class=\"charts\"><figure><figcaption>'+(epsSel()?\"Cumplimiento · \"+esc(scLabel(sc)):\"Cumplimiento por EPS y total\")+'<\/figcaption>'+barChart(sel,S)+'<\/figure><figure><figcaption>Tendencia de los últimos 6 meses'+(epsSel()?\" · \"+esc(scLabel(sc)):\"\")+'<\/figcaption>'+lineChart(sel)+'<\/figure><\/div><\/div>';\n  h+='<details><summary class=\"note\" style=\"cursor:pointer;margin-top:10px\">Ficha técnica<\/summary>'+fichaHtml(sel)+'<\/details>';\n  {const pp=(F.pp||[]).filter(k=>COH.POPL[k]);if(pp.length){h+='<details><summary class=\"note\" style=\"cursor:pointer;margin-top:6px\">Por tipo de población CAC<\/summary><div class=\"tablebox\"><table class=\"popm\"><thead><tr><th>Ámbito<\/th>'+pp.map(k=>'<th>'+esc(COH.POPL[k])+'<\/th>').join(\"\")+'<\/tr><\/thead><tbody>'+scopes().map(e=>'<tr><td>'+esc(scLabel(e))+'<\/td>'+pp.map(k=>{const set=S.filter(s=>(e===\"Total\"||(e===\"sin\"?!s.p.eps:s.p.eps===e))&&s.pops.includes(k)).map(s=>s.ind[sel]).filter(Boolean);if(!set.length)return'<td class=\"na\">—<\/td>';const n=set.filter(i=>i.ok).length;const sx=semaforo(sel,n/set.length*100);return'<td class=\"mono\"><span class=\"pc '+sx.cls+'\">'+Math.round(n/set.length*100)+' %<\/span><span class=\"sub\">'+n+'/'+set.length+'<\/span><\/td>';}).join(\"\")+'<\/tr>').join(\"\")+'<\/tbody><\/table><\/div><p class=\"note\">Un paciente cuenta en todas las columnas a las que pertenece (PG incluye a todos; DM y HTA por diagnóstico), como en la tabla 2 de la CAC.<\/p><\/details>';}}\n  const miss=S.filter(s=>(sc===\"Total\"||(sc===\"sin\"?!s.p.eps:s.p.eps===sc))&&s.ind[sel]&&!s.ind[sel].ok);\n  h+='<details><summary class=\"note\" style=\"cursor:pointer;margin-top:6px\">Pacientes que no cumplen ('+miss.length+')<\/summary>'+(miss.length?'<div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Grupo<\/th><th>Estadio<\/th><th>Motivo<\/th><th><\/th><\/tr><\/thead><tbody>'+miss.map(s=>'<tr><td>'+pname(s)+'<\/td><td>'+esc(epsShort(s.p.eps))+'<\/td><td>'+contact(s)+'<\/td><td>'+grpTag(s)+'<\/td><td class=\"mono\">'+esc(stage(s))+'<\/td><td>'+esc(s.ind[sel].det||\"\")+'<\/td><td>'+openBtn(s)+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\">Todos cumplen.<\/p>')+'<\/details><\/section>';\n  const thead='<thead><tr><th>Indicador<\/th>'+scopes().map(c=>'<th>'+esc(scLabel(c))+'<\/th>').join(\"\")+'<th>Meta<\/th><\/tr><\/thead>';\n  h+='<section class=\"panel\"><h3>Indicadores del consenso CAC ('+tab.length+' con población)<\/h3><p class=\"note\" style=\"margin:0 0 8px\">'+(epsSel()?\"Mostrando solo \"+esc(scLabel(sc))+\". Elija «Todas» para comparar las EPS y el total.\":\"Las tres EPS y el total.\")+' Seleccione un indicador para ver su resultado, gráficos y ficha. <span class=\"tag cac\">CAC<\/span> meta de la Cuenta de Alto Costo · <span class=\"tag inst\">Inst.<\/span> meta institucional (> 70 % en los de línea de base).<\/p><div class=\"tablebox\"><table class=\"indt\">'+thead+'<tbody>'+COH.SECS.map(sc2=>{const cs=tab.filter(c=>(COH.FICHAS[c]||{}).sec===sc2);return cs.length?'<tr class=\"strow\"><td colspan=\"'+(scopes().length+2)+'\"><b>'+esc(sc2)+'<\/b><\/td><\/tr>'+indRows(S,cs,sel):\"\";}).join(\"\")+'<\/tbody><\/table><\/div><\/section>';\n  if(otros.length)h+='<section class=\"panel\"><details><summary><h3 style=\"display:inline\">Indicadores institucionales ('+otros.length+')<\/h3><\/summary><p class=\"note\" style=\"margin:6px 0 8px\">No hacen parte del consenso CAC. Meta propuesta pendiente de adopción.<\/p><div class=\"tablebox\"><table class=\"indt\">'+thead+'<tbody>'+indRows(S,otros,sel)+'<\/tbody><\/table><\/div><\/details><\/section>';\n  h+='<section class=\"panel\"><h3>Fichas técnicas<\/h3>'+codes.map(code=>'<details class=\"fichad\"><summary><span class=\"c mono\">'+esc(code)+'<\/span> '+esc((COH.FICHAS[code]||{}).n||code)+((COH.FICHAS[code]||{}).tab?'':' <span class=\"tag\">institucional<\/span>')+'<\/summary>'+fichaHtml(code)+'<\/details>').join(\"\")+'<p class=\"note\" style=\"margin-top:10px\">Fuente: Cuenta de Alto Costo, actualización del consenso basado en la evidencia, indicadores mínimos para evaluar la gestión en HTA, DM y ERC 1–4 y 5 sin diálisis ni trasplante (2025), tablas 1 y 2. Los indicadores que la CAC deja en «Definir» (análisis prospectivo para establecer la línea de base) se miden contra la meta institucional > 70 % que fijó Coordinación Asistencial; esa meta no tiene respaldo de evidencia propio: es una decisión de gestión.<\/p><\/section>';\n  out.innerHTML=h;\n  bindTips(out);\n  const mr=(code,st)=>{const m=metaOf(code,st);return!m?[\"Línea de base\",\"\"]:m.est?[\"Por estadio\",\"\"]:m.r[0]===m.r[1]?[\"> \"+m.r[0]+\" %\",\"Institucional (Coordinación Asistencial)\"]:[\"> \"+m.r[0]+\" % (medio \"+m.r[1]+\"–\"+m.r[0]+\")\",m.src===\"CAC\"?\"CAC\":\"Institucional propuesta\"];};\n  EXPORTS.ind=()=>{\n    const all=ST.snaps.filter(s=>!$(\"f_grp\").value||String(s.c.grupo||\"\")===$(\"f_grp\").value);\n    const res=[[\"Sección\",\"Código\",\"Indicador\",\"Estadio\",\"Tipo\",\"Meta\",\"Origen de la meta\"].concat(SCOPES.flatMap(e=>[scLabel(e)+\" numerador\",scLabel(e)+\" denominador\",scLabel(e)+\" %\",scLabel(e)+\" semáforo\"]))];\n    const row=(code,st,lab)=>{const Fi=COH.FICHAS[code]||{};const r=[Fi.sec||\"\",code,Fi.n||code,lab||\"\",Fi.tipo||\"\"].concat(mr(code,st));SCOPES.forEach(e=>{const a=agg(all,code,e,st);const s=st?semaforo(code,a.pc,st):semAll(all,code,e);r.push(a.n,a.N,a.pc==null?\"\":Math.round(a.pc*10)/10,a.pc==null?\"\":({ok:\"Cumple\",warn:\"Medio\",bad:Fi.inst&&Fi.inst[0]===Fi.inst[1]&&!Fi.cac?\"No cumple\":\"Bajo\",base:\"Línea de base\"})[s.cls]||\"\");});res.push(r);};\n    codes.forEach(code=>{row(code);const Fi=COH.FICHAS[code]||{};if(Fi.est)STR.forEach(([k,l])=>row(code,k,l));});\n    const mat=[[\"Código\",\"Nombre\",\"Documento\",\"EPS\",\"Teléfono 1\",\"Teléfono 2\",\"Grupo\",\"Estadio\"].concat(codes)];\n    all.forEach(s=>mat.push([s.p.codigo,s.p.nombre,s.p.doc,s.p.eps,s.p.tel,s.p.tel2,s.c.grupo||\"\",stage(s)].concat(codes.map(c=>s.ind[c]?(s.ind[c].ok?\"CUMPLE\":\"NO CUMPLE\"):\"NO APLICA\"))));\n    const det=[[\"Indicador\",\"Nombre del indicador\",\"Código paciente\",\"Nombre\",\"EPS\",\"Teléfono 1\",\"Grupo\",\"Estadio\",\"Cumple\",\"Motivo\"]];\n    codes.forEach(code=>all.forEach(s=>{const i=s.ind[code];if(i)det.push([code,(COH.FICHAS[code]||{}).n||code,s.p.codigo,s.p.nombre,s.p.eps,s.p.tel,s.c.grupo||\"\",stage(s),i.ok?\"SI\":\"NO\",i.det||\"\"]);}));\n    const rr=x=>x?\"> \"+x[0]+\" % cumple; \"+x[1]+\"–\"+x[0]+\" medio; < \"+x[1]+\" bajo\":\"\";\n    const fic=[[\"Sección\",\"Código\",\"Indicador\",\"Tipo\",\"Numerador\",\"Denominador\",\"Población\",\"Ventana\",\"Meta CAC\",\"Meta institucional propuesta\",\"Justificación meta institucional\",\"Metas por estadio\",\"Fuente\"]];\n    codes.forEach(c=>{const Fi=COH.FICHAS[c]||{};fic.push([Fi.sec||\"\",c,Fi.n,Fi.tipo,Fi.num,Fi.den,Fi.pob,Fi.vent,rr(Fi.cac)||(Fi.est?\"\":\"No definida\"),Fi.est?\"\":rr(Fi.inst),Fi.instJ||\"\",Fi.est?Fi.est.map(e=>e.l+\" (\"+e.v+\", \"+(e.cod||\"\")+\"): \"+(e.cac?\"CAC \"+rr(e.cac):e.inst?\"institucional propuesta \"+rr(e.inst):\"línea de base\")).join(\" | \"):\"\",Fi.fuente]);});\n    const sheets=[[\"Resumen por EPS\",res],[\"Pacientes x indicador\",mat],[\"Detalle\",det],[\"Fichas técnicas\",fic]];\n    COH.EPS.forEach(e=>{const sub=all.filter(s=>s.p.eps===e);if(!sub.length)return;const m=[mat[0]];sub.forEach(s=>m.push([s.p.codigo,s.p.nombre,s.p.doc,s.p.eps,s.p.tel,s.p.tel2,s.c.grupo||\"\",stage(s)].concat(codes.map(c=>s.ind[c]?(s.ind[c].ok?\"CUMPLE\":\"NO CUMPLE\"):\"NO APLICA\"))));sheets.push([epsShort(e),m]);});\n    saveXlsx(\"Indicadores_nefroproteccion_\"+iso(ST.corte)+\".xlsx\",sheets);};\n  EXPORTS.freeze=async()=>{try{const all=ST.snaps;const resumen=[];codes.forEach(code=>SCOPES.forEach(e=>{const a=agg(all,code,e);if(a.N)resumen.push({eps:e===\"Total\"?null:e,indicador:code,numerador:a.n,denominador:a.N,porcentaje:Math.round(a.pc*10)/10});}));\n    const detalle=[];codes.forEach(code=>all.forEach(s=>{const i=s.ind[code];if(i)detalle.push({codigo:s.p.codigo,indicador:code,cumple:i.ok,detalle:i.det||null});}));\n    const r=await apiRpc(\"congelar_corte\",{fecha_corte:iso(ST.corte),version:VERSION,resumen,detalle});toast(\"Corte del \"+fd(ST.corte)+\" congelado: \"+r.resumen+\" resultados y \"+r.detalle+\" registros por paciente.\");}catch(e){toast(\"No se congeló: \"+e.message);}};\n}\nfunction bindTips(root){const tip=$(\"tip\");root.querySelectorAll(\"svg.chart\").forEach(svg=>{svg.addEventListener(\"mousemove\",e=>{const t=e.target.closest(\"[data-tip]\");if(!t){tip.hidden=true;return;}tip.textContent=t.getAttribute(\"data-tip\");tip.hidden=false;tip.style.left=(e.clientX+12)+\"px\";tip.style.top=(e.clientY-28)+\"px\";});svg.addEventListener(\"mouseleave\",()=>{tip.hidden=true;});});}\n\n/* ---------- Alertas y calidad ---------- */\nfunction rAlert(out){\n  const S=filtered();const A=[];\n  S.forEach(s=>{\n    if(!s.tl)A.push({s,lvl:\"bad\",t:\"Sin creatinina ni TFGe registradas: no se puede estratificar.\"});\n    else if(NP.days(s.tl.fecha,ST.corte)>365)A.push({s,lvl:\"warn\",t:\"Última TFGe del \"+fd(s.tl.fecha)+\": más de un año; la clasificación puede estar desactualizada.\"});\n    if(s.c.erc===\"prov\")A.push({s,lvl:\"warn\",t:\"ERC por confirmar: falta demostrar persistencia > 3 meses.\"});\n    (s.P.actions||[]).forEach(a=>{if(/^PA fuera|^HbA1c fuera|Registre la causa/.test(a.t))return;A.push({s,lvl:a.lvl,t:a.t});});\n    const ci=((ST.book.CI||{})[s.p.codigo]||[]).filter(c=>c.fecha<=ST.corte);const lost=ci.filter(c=>[\"INASISTENCIA\",\"NO ATENDIDA\"].includes(c.estado)&&!c.reId&&NP.days(c.fecha,ST.corte)<=90);\n    if(lost.length&&!activeFut(s.p.codigo).length){const u=lost[lost.length-1];const hi=s.c.grupo===3||(s.P.actions||[]).some(a=>a.lvl===\"bad\");A.push({s,lvl:hi?\"bad\":\"warn\",t:(u.estado===\"INASISTENCIA\"?\"No asistió\":\"Llegó y no fue atendido\")+\" a \"+AG_SN(u.serv).toLowerCase()+\" el \"+fd(u.fecha)+\" y no tiene cita nueva\"+(hi?\": búsqueda activa prioritaria (grupo 3 o alerta clínica).\":\".\")});}\n    if(ci.filter(c=>c.estado===\"INASISTENCIA\"&&NP.days(c.fecha,ST.corte)<=180).length>=2)A.push({s,lvl:\"warn\",t:\"Inasistencia reiterada (2 o más en 6 meses): valorar barreras de acceso con trabajo social.\"});\n  });\n  const ord={bad:0,warn:1,info:2};A.sort((a,b)=>ord[a.lvl]-ord[b.lvl]);\n  const bad=A.filter(a=>a.lvl===\"bad\"),gap=A.filter(a=>a.lvl!==\"bad\");\n  let h=head(\"Alertas de la cohorte\",\"Calculadas con el último dato de cada paciente al corte \"+fd(ST.corte)+\". Los síntomas solo generan alertas en la valoración individual.\");\n  const tbl=L=>L.length?'<div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Grupo<\/th><th>Alerta<\/th><th><\/th><\/tr><\/thead><tbody>'+L.map(a=>'<tr><td>'+pname(a.s)+'<\/td><td>'+esc(epsShort(a.s.p.eps))+'<\/td><td>'+contact(a.s)+'<\/td><td>'+grpTag(a.s)+'<\/td><td><span class=\"dot '+a.lvl+'\"><\/span>'+esc(a.t)+'<\/td><td>'+openBtn(a.s)+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\">Ninguna.<\/p>';\n  h+='<section class=\"panel\"><h3>Prioritarias · '+bad.length+'<\/h3>'+tbl(bad)+'<\/section><details class=\"panel\"><summary>Brechas de tratamiento y seguimiento · '+gap.length+'<\/summary>'+tbl(gap)+'<\/details>';\n  out.innerHTML=h;\n}\nfunction rCal(out){\n  const B=ST.book;const I=B.issues;const S=ST.snaps;const miss=[];\n  const T0=new Date();\n  S.forEach(s=>{if(!s.rl)miss.push([s,\"Sin RAC registrada\"]);if(!s.lv)miss.push([s,\"Sin valoraciones registradas\"]);});B.cit.forEach(c=>{const s=ST.smap[c.c];if(!s)return;if((c.estado===\"ASIGNADA\"||c.estado===\"EN SALA\")&&NP.days(c.fecha,T0)>=1)miss.push([s,\"Cita \"+c.id+\" del \"+fd(c.fecha)+\" sin cierre (\"+(c.estado===\"EN SALA\"?\"quedó en sala, sin marcar atención\":\"no se marcó llegada ni inasistencia\")+\")\"]);if(c.estado===\"INASISTENCIA\"&&!c.motivo&&NP.days(c.fecha,T0)>7)miss.push([s,\"Inasistencia del \"+fd(c.fecha)+\" sin motivo después de 7 días\"]);});\n  const noAct=B.cit.filter(c=>(c.estado===\"ASIGNADA\")&&c.fecha>=new Date(T0.getFullYear(),T0.getMonth(),T0.getDate())&&(ST.pmap[c.c]||{}).estado&&ST.pmap[c.c].estado!==\"ACTIVO\");\n  let h=head(\"Calidad del dato\",\"Errores y vacíos que afectan la clasificación, la agenda o los indicadores.\");\n  if(noAct.length)h+='<div class=\"alert bad\"><p>'+noAct.length+' cita(s) futura(s) de pacientes que ya no están activos ('+[...new Set(noAct.map(c=>c.c+\" \"+ST.pmap[c.c].estado.toLowerCase()))].map(esc).join(\", \")+'). Cancélelas en Agenda para liberar el cupo: '+noAct.map(c=>esc(c.id)+\" \"+fd(c.fecha)).join(\", \")+'.<\/p><\/div>';\n  h+='<div class=\"tiles\">'+tile(\"Errores\",I.filter(i=>i.lvl===\"bad\").length,\"bad\")+tile(\"Advertencias\",I.filter(i=>i.lvl===\"warn\").length,\"warn\")+tile(\"Datos faltantes por paciente\",miss.length,miss.length?\"warn\":\"\")+'<\/div>';\n  if(B.missing.length)h+='<div class=\"alert bad\"><p>Faltan hojas en el libro: '+esc(B.missing.join(\", \"))+'. Use la plantilla del programa.<\/p><\/div>';\n  h+='<section class=\"panel\"><h3>Registros con problemas<\/h3>'+(I.length?'<div class=\"tablebox\"><table><thead><tr><th>Hoja<\/th><th>Fila<\/th><th>Código<\/th><th>Problema<\/th><\/tr><\/thead><tbody>'+I.map(i=>'<tr><td>'+esc(i.sheet)+'<\/td><td class=\"mono\">'+esc(i.row)+'<\/td><td class=\"mono\">'+esc(i.c)+'<\/td><td><span class=\"dot '+i.lvl+'\"><\/span>'+esc(i.txt)+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\">Sin problemas detectados.<\/p>')+'<\/section>';\n  h+='<section class=\"panel\"><h3>Datos faltantes por paciente<\/h3>'+(miss.length?'<div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Falta<\/th><\/tr><\/thead><tbody>'+miss.map(([s,t])=>'<tr><td>'+pname(s)+'<\/td><td>'+esc(epsShort(s.p.eps))+'<\/td><td>'+esc(t)+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\">Completo.<\/p>')+'<\/section>';\n  out.innerHTML=h;\n}\n\n/* ===================== v8 · libro editable, calendario contractual, cohortes, auditoría GPC, nominal por EPS ===================== */\n/* ---------- libro editable en el navegador: altas y cambios se aplican al Excel original al descargar ---------- */\nST.ops=[];ST.raw=null;ST.hdr={};\nconst NEWHDR={tabaquismo:\"Tabaquismo\",antihipertensivo:\"Antihipertensivo\",rcv:\"Riesgo cardiovascular\",primer_apellido:\"Primer apellido\",segundo_apellido:\"Segundo apellido\",primer_nombre:\"Primer nombre\",segundo_nombre:\"Segundo nombre\",correo:\"Correo\"};\nconst RAWSHEETS=[\"Pacientes\",\"Laboratorios\",\"Valoraciones\",\"Atenciones\",\"Novedades\"];\nfunction rawInit(wb){ST.ops=[];ST.hdr={};ST.raw=COH.sheetsFromWb(wb);RAWSHEETS.forEach(n=>{if(!ST.raw[n])ST.raw[n]=[];const sn=wb.SheetNames.find(x=>COH.norm(x)===COH.norm(n));if(sn){const a=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,range:0,blankrows:false});ST.hdr[n]=(a[0]||[]).map(String);}else ST.hdr[n]=[];});\n  const ex=n=>{const sn=wb.SheetNames.find(x=>COH.norm(x)===COH.norm(n));return sn?XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:\"\",raw:false}):[];};\n  ST.aud=ex(\"Auditoria_GPC\");ST.arr=ex(\"Arrastre_nominal\");ST.ncfg={};ex(\"Config_nominal\").forEach(r=>{if(r.Clave)ST.ncfg[r.Clave]=r.Valor;});}\nfunction rawRebuild(){const B0=ST.book;const B=COH.parseRows(ST.raw);\n  B.jor=B0.jor;B.cit=B0.cit;B.clog=B0.clog;B.ctc=B0.ctc;COH.reindexCitas(B);ST.book=B;ST.dirty=true;ST.trend=null;compute();fillPick();bookInfo();}\nfunction rawAdd(sheet,obj){const o=Object.assign({_row:\"nuevo\"},obj);ST.raw[sheet].push(o);ST.ops.push({t:\"add\",sheet,obj:o});}\nfunction rawUpd(sheet,codigo,obj){const r=ST.raw[sheet].find(x=>String(x.codigo).trim()===codigo);if(!r)return false;Object.assign(r,obj);if(r._row!==\"nuevo\")ST.ops.push({t:\"upd\",sheet,row:r._row,obj:r});return true;}\nconst DATEKEYS=[\"fecha\",\"fecha_nacimiento\",\"fecha_ingreso\",\"fecha_estado\",\"proximo_control\"];\nfunction cellOut(k,v){if(v==null)return\"\";if(DATEKEYS.includes(k)){const d=COH.toDate(v);return d?fd(d):String(v);}return v;}\nfunction applyOps(wb){\n  const touched=new Set();\n  ST.ops.forEach(op=>{let sn=wb.SheetNames.find(x=>COH.norm(x)===COH.norm(op.sheet));if(!sn){sn=op.sheet;XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([[]]),sn);}\n    const ws=wb.Sheets[sn];let hdr=ST.hdr[op.sheet]||[];if(!hdr.length){hdr=Object.keys(op.obj).filter(k=>k!==\"_row\").map(k=>NEWHDR[k]||k);ST.hdr[op.sheet]=hdr;XLSX.utils.sheet_add_aoa(ws,[hdr],{origin:{r:0,c:0}});}\n    const keys=hdr.map(h=>COH.key(h));\n    Object.keys(op.obj).forEach(k=>{if(k===\"_row\"||keys.includes(k))return;const hn=NEWHDR[k]||k;hdr.push(hn);keys.push(k);XLSX.utils.sheet_add_aoa(ws,[[hn]],{origin:{r:0,c:hdr.length-1}});});\n    const row=keys.map(k=>cellOut(k,op.obj[k]));\n    if(op.t===\"add\")XLSX.utils.sheet_add_aoa(ws,[row],{origin:-1});\n    else if(typeof op.row===\"number\")XLSX.utils.sheet_add_aoa(ws,[row],{origin:{r:op.row-1,c:0}});\n    else XLSX.utils.sheet_add_aoa(ws,[row],{origin:-1});\n    touched.add(op.sheet);});\n  const put=(n,aoa)=>{const i=wb.SheetNames.indexOf(n);if(i>=0){wb.SheetNames.splice(i,1);delete wb.Sheets[n];}XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(aoa),n);};\n  if(ST.aud&&ST.aud.length){const H=[\"ID\",\"Fecha\",\"Auditor\",\"Guia\",\"Codigo\",\"EPS\",\"Criterio\",\"Descripcion\",\"Resultado\",\"Fuente\",\"Observacion\"];put(\"Auditoria_GPC\",[H].concat(ST.aud.map(r=>H.map(h=>r[h]==null?\"\":r[h]))));}\n  if(ST.arr&&ST.arr.length){const H=[\"Codigo\",\"Formato\",\"Corte\",\"Origen\",\"Datos\"];put(\"Arrastre_nominal\",[H].concat(ST.arr.map(r=>H.map(h=>r[h]==null?\"\":r[h]))));}\n  if(ST.ncfg&&Object.keys(ST.ncfg).length)put(\"Config_nominal\",[[\"Clave\",\"Valor\"]].concat(Object.entries(ST.ncfg)));\n  return touched;}\nwindow.MG.addValoracion=function(o){if(!ST.book||ST.db)return\"Sin libro cargado.\";if(!ST.raw)return\"El libro no admite edición en esta sesión.\";\n  if(!ST.book.pac.some(p=>p.codigo===o.val.codigo))return\"El código \"+o.val.codigo+\" no existe en el libro.\";\n  rawAdd(\"Valoraciones\",o.val);o.lab.forEach(l=>rawAdd(\"Laboratorios\",l));o.at.forEach(a=>rawAdd(\"Atenciones\",a));rawRebuild();\n  return\"Agregado al libro: 1 valoración, \"+o.lab.length+\" paraclínico(s) y \"+o.at.length+\" atención(es). Descargue el libro para conservarlo.\";};\n\n/* ---------- calendario de actividades por modelo de atención de la EPS ---------- */\nconst MES3=[\"ene\",\"feb\",\"mar\",\"abr\",\"may\",\"jun\",\"jul\",\"ago\",\"sep\",\"oct\",\"nov\",\"dic\"];\nfunction calPlan(s){\n  const M=s.d.epsModel||{};const pkg=M.multi===\"PAQUETE\";const inter=M.inter===\"MEDICO EXPERTO\";\n  const T0=new Date(ST.corte.getFullYear(),ST.corte.getMonth(),1);const NM=12;\n  const months=[...Array(NM)].map((_,i)=>new Date(T0.getFullYear(),T0.getMonth()+i,1));\n  const mi=dt=>(dt.getFullYear()-T0.getFullYear())*12+dt.getMonth()-T0.getMonth();\n  const occ=it=>{const L=[];if(it.wk){const k=it.due?Math.max(0,mi(it.due)):0;if(k<NM)L.push({k,venc:!it.due||it.due<ST.corte});return L;}\n    const m=it.m||12;let d=it.due||null;let venc=false;if(!d||d<ST.corte){venc=true;d=ST.corte;}let k=mi(d);let first=true;\n    while(k<NM){L.push({k,venc:first&&venc});first=false;d=NP.addMonths(d,m);k=mi(d);}return L;};\n  const gl=s.P.goals||{pa:[140,90],a1c:7};const paOff=s.d.pas!=null&&s.d.pad!=null&&!(s.d.pas<gl.pa[0]&&s.d.pad<gl.pa[1]);const a1cOff=s.d.dm&&s.d.hba1c!=null&&!(s.d.hba1c<gl.a1c);\n  const ctl=s.items.find(i=>i.k===\"ctl\");const rev=ctl&&ctl.m||null;\n  const rows=[];const R=(grp,name,serv,cells,why)=>rows.push({grp,name,serv,cells,why});\n  const blank=()=>[...Array(NM)].map(()=>null);\n  /* control médico base (nefrología o médico del programa) */\n  const ctlC=blank();if(ctl)occ(ctl).forEach(o=>{ctlC[o.k]={t:o.venc?\"venc\":\"prog\"};});\n  const fuera=pkg&&rev!=null&&rev>3;\n  if(ctl){R(\"Consultas médicas\",ctl.nombre+(rev?\" · cada \"+rev+(rev===1?\" mes\":\" meses\"):\"\"),itemServ(s,ctl),ctlC,ctl.why);if(fuera)ctlC.forEach(c=>{if(c)c.fuera=true;});}\n  const nefM=ctlC.map((c,i)=>c?i:null).filter(x=>x!=null);\n  /* ajuste de metas */\n  const aj=s.items.find(i=>i.k===\"ajuste\");\n  if(aj&&!inter){const cells=blank();const nx=nefM.find(k=>k>0);const hasta=nx!=null?nx:3;for(let k=1;k<hasta&&k<NM;k++)if(!ctlC[k])cells[k]={t:\"prog\"};if(aj.due&&aj.due<ST.corte)cells[0]={t:\"venc\"};\n    R(\"Consultas médicas\",aj.nombre+\" (hasta la próxima valoración)\",itemServ(s,aj),cells,aj.why);}\n  /* EPS con médico experto entre valoraciones */\n  if(inter){const im=M.interMeses||1;const cells=blank();const nx=nefM.find(k=>k>0);\n    for(let k=0;k<NM;k+=1){if(ctlC[k])continue;if(k%im!==0&&im>1)continue;const pa=(paOff||a1cOff)&&(nx==null||k<nx);cells[k]={t:\"prog\",tx:pa?\"F+PA\":\"F\"};}\n    R(\"Consultas médicas\",\"Médico experto · formulación de medicamentos contratados\"+((paOff||a1cOff)?\" (F+PA: con control de \"+(paOff?\"PA\":\"\")+(paOff&&a1cOff?\" y \":\"\")+(a1cOff?\"HbA1c\":\"\")+\" hasta la próxima valoración)\":\"\"),\"MEDICO EXPERTO\",cells,\"Modelo de \"+(s.p.eps||\"la EPS\")+\": en los meses sin valoración por nefrología el paciente asiste a médico experto para formulación.\");}\n  /* laboratorios y equipo */\n  const align=k=>{if(!pkg||!nefM.length)return{k};const prev=nefM.filter(x=>x<=k);if(prev.length)return{k:prev[prev.length-1],mov:prev[prev.length-1]!==k};return{k:nefM[0],mov:nefM[0]!==k};};\n  s.items.forEach(it=>{if([\"ctl\",\"ajuste\",\"experto\"].includes(it.k))return;\n    const grp=it.tipo===\"Laboratorio\"?\"Laboratorios\":(it.grp===\"Equipo\"&&![\"rcv\",\"desnut\",\"edu\",\"flu\",\"kfre\"].includes(it.k))?\"Equipo multidisciplinario\":\"Clínica, educación y vacunas\";\n    const cells=blank();occ(it).forEach(o=>{const a=grp===\"Clínica, educación y vacunas\"&&it.k!==\"edu\"?{k:o.k}:align(o.k);if(a.k>=NM)return;const prev=cells[a.k];cells[a.k]={t:o.venc?\"venc\":(prev&&prev.t===\"venc\"?\"venc\":\"prog\"),mov:a.mov};});\n    R(grp,it.nombre+(it.m?\" · cada \"+it.m+(it.m===1?\" mes\":\" meses\"):it.wk?\" · a las \"+it.wk+\" semanas\":\"\"),itemServ(s,it),cells,it.why);});\n  /* citas ya asignadas */\n  const fut=((ST.book.CI||{})[s.p.codigo]||[]).filter(c=>(c.estado===\"ASIGNADA\"||c.estado===\"EN SALA\")&&c.fecha>=T0);\n  rows.forEach(r=>{if(!r.serv)return;fut.filter(c=>c.serv===r.serv).forEach(c=>{const k=mi(c.fecha);if(k<0||k>=NM)return;r.cells[k]=Object.assign({},r.cells[k]||{t:\"prog\"},{cita:fd(c.fecha)+\" \"+c.hora});});});\n  /* lo realizado en el mes en curso */\n  s.items.forEach(it=>{if(it.last&&it.last>=T0&&it.last<=ST.corte){const r=rows.find(x=>x.name.startsWith(it.nombre));if(r&&(!r.cells[0]||r.cells[0].t!==\"prog\"))r.cells[0]={t:\"hecho\"};}});\n  const notas=[];\n  if(pkg)notas.push(\"Paquete de \"+(s.p.eps||\"la EPS\")+\": cada toma de laboratorios entra por nefrología; los paraclínicos y el equipo se alinean al mes de nefrología igual o anterior a su vencimiento (marcados ↤).\");\n  if(fuera)notas.push(\"Frecuencia base de nefrología cada \"+rev+\" meses: fuera del paquete (el paquete cubre controles mensuales, bimestrales o trimestrales). Requiere autorización o ruta aparte con la EPS.\");\n  if(M.meds)notas.push(\"EPS con medicamentos contratados: la formulación se hace en la consulta del mes.\");\n  return{months,rows,notas,pkg,fuera,inter,rev};}\nfunction calHtml(s){const C=calPlan(s);const cell=c=>{if(!c)return'<td class=\"cm\"><\/td>';const cls=c.cita?\"cita\":c.t===\"venc\"?\"venc\":c.t===\"hecho\"?\"hecho\":c.fuera?\"fuera\":\"\";const tx=c.cita?\"✓\":c.t===\"venc\"?\"!\":c.t===\"hecho\"?\"✔\":(c.tx||\"●\")+(c.mov?\"↤\":\"\");return'<td class=\"cm\"><span class=\"ev '+cls+'\" title=\"'+esc(c.cita?\"Cita \"+c.cita:c.t===\"venc\"?\"Vencido o sin registro: programar ya\":c.t===\"hecho\"?\"Realizado este mes\":c.mov?\"Se adelanta al mes de nefrología\":\"Programado\")+'\">'+tx+'<\/span><\/td>';};\n  let h='<section class=\"panel\"><div class=\"mhead\"><h3 style=\"margin:0\">Calendario de actividades · 12 meses<\/h3><div class=\"copyrow\"><button type=\"button\" class=\"btn sm\" id=\"calexp\">Descargar calendario<\/button><\/div><\/div>';\n  h+='<p class=\"note\" style=\"margin:6px 0 8px\">Sale del último dato del paciente y de la agenda base de su estadio ('+esc(stage(s))+', '+(s.c.grupo?esc(NP.GRUPO[s.c.grupo]):\"sin grupo\")+'), ajustada al modelo de atención de '+esc(epsShort(s.p.eps))+'. ● programado · ! vencido o sin registro · ✓ cita asignada · ✔ realizado este mes · F formulación · F+PA formulación y control de metas.<\/p>';\n  if(C.notas.length)h+='<div class=\"alerts\" style=\"margin-bottom:8px\">'+C.notas.map((t,i)=>'<div class=\"alert '+(C.fuera&&i===(C.pkg?1:0)?\"bad\":\"info\")+'\"><p>'+esc(t)+'<\/p><\/div>').join(\"\")+'<\/div>';\n  h+='<div class=\"tablebox\"><table class=\"calg\"><thead><tr><th>Actividad<\/th>'+C.months.map(m=>'<th>'+MES3[m.getMonth()]+'<span class=\"sub\">'+String(m.getFullYear()).slice(2)+'<\/span><\/th>').join(\"\")+'<\/tr><\/thead><tbody>';\n  let g=\"\";C.rows.forEach(r=>{if(r.grp!==g){g=r.grp;h+='<tr class=\"gsec\"><td colspan=\"'+(C.months.length+1)+'\">'+esc(g)+'<\/td><\/tr>';}h+='<tr><td title=\"'+esc(r.why||\"\")+'\">'+esc(r.name)+'<\/td>'+r.cells.map(cell).join(\"\")+'<\/tr>';});\n  h+='<\/tbody><\/table><\/div><details><summary class=\"note\" style=\"cursor:pointer;margin-top:8px\">Ver mes a mes<\/summary><div class=\"callist\">'+C.months.map((m,i)=>{const L=C.rows.filter(r=>r.cells[i]).map(r=>r.name.split(\" · \")[0]+(r.cells[i].t===\"venc\"?\" (vencido)\":r.cells[i].cita?\" (cita \"+r.cells[i].cita+\")\":\"\"));return'<div class=\"cmo\"><b>'+MES3[m.getMonth()]+' '+m.getFullYear()+'<\/b><span>'+(L.length?esc(L.join(\" · \")):'<span class=\"note\">Sin actividades<\/span>')+'<\/span><\/div>';}).join(\"\")+'<\/div><\/details><\/section>';\n  return h;}\nfunction calExport(s){const C=calPlan(s);const aoa=[[\"Grupo\",\"Actividad\"].concat(C.months.map(m=>MES3[m.getMonth()]+\" \"+m.getFullYear())).concat([\"Motivo\"])];\n  C.rows.forEach(r=>aoa.push([r.grp,r.name].concat(r.cells.map(c=>!c?\"\":c.cita?\"CITA \"+c.cita:c.t===\"venc\"?\"VENCIDO\":c.t===\"hecho\"?\"REALIZADO\":(c.tx||\"PROGRAMADO\")+(c.mov?\" (con nefrología)\":\"\")+(c.fuera?\" FUERA DE PAQUETE\":\"\"))).concat([r.why||\"\"])));\n  const notas=[[\"Nota\"],[\"Paciente \"+s.p.codigo+\" · \"+(s.p.eps||\"sin EPS\")+\" · estadio \"+stage(s)+\" · corte \"+fd(ST.corte)]].concat(C.notas.map(t=>[t])).concat([[\"Datos ficticios: \"+(ST.demo?\"SÍ\":\"no\")]]);\n  saveXlsx(\"Calendario_\"+s.p.codigo+\"_\"+iso(ST.corte)+\".xlsx\",[[\"Calendario\",aoa],[\"Notas\",notas]]);}\n\n/* ---------- Cohortes: caracterización y perfil de riesgo ---------- */\nST.cohSub=\"car\";ST.gesSub=\"act\";\nconst COHSUBS=[[\"car\",\"Caracterización y riesgo\"],[\"ges\",\"Gestión: mes en curso y próximo\"],[\"venc\",\"Vencidos\"],[\"alert\",\"Alertas\"]];\nfunction rCohMain(out){\n  let h='<div class=\"nsub\" role=\"group\" aria-label=\"Subsecciones de cohortes\">'+COHSUBS.map(([k,l])=>'<button type=\"button\" data-nsub=\"'+k+'\" aria-pressed=\"'+(ST.cohSub===k)+'\">'+l+'<\/button>').join(\"\")+'<\/div><div id=\"cohin\"><\/div>';\n  out.innerHTML=h;const inner=$(\"cohin\");\n  ({car:rCar,ges:rGes,venc:rVenc,alert:rAlert})[ST.cohSub](inner);\n  out.querySelectorAll(\"[data-nsub]\").forEach(b=>b.addEventListener(\"click\",()=>{ST.cohSub=b.dataset.nsub;renderMg(\"coh\");}));}\nconst cnt=(S,f)=>{const o={};S.forEach(s=>{const k=f(s);if(k==null)return;o[k]=(o[k]||0)+1;});return o;};\nconst pcts=(n,N)=>N?Math.round(n/N*1000)/10:null;\nfunction hbarsH(obj,N,order){const ks=order||Object.keys(obj).sort((a,b)=>obj[b]-obj[a]);const mx=Math.max(1,...ks.map(k=>obj[k]||0));return'<div class=\"hbars\">'+ks.filter(k=>obj[k]).map(k=>'<div class=\"hb\"><span class=\"hbl\">'+esc(k)+'<\/span><span class=\"hbt\"><span style=\"width:'+Math.round((obj[k]||0)/mx*100)+'%\"><\/span><\/span><span class=\"hbv mono\">'+(obj[k]||0)+(N?' · '+String(pcts(obj[k]||0,N)).replace(\".\",\",\")+' %':'')+'<\/span><\/div>').join(\"\")+'<\/div>';}\nfunction rCar(out){\n  const S=filtered(),N=S.length;\n  let h=head(\"Caracterización y perfil de riesgo\",\"Corte \"+fd(ST.corte)+\". Pacientes activos con los filtros de EPS y grupo de arriba. Tipo de población según la tabla 1 del consenso CAC; estadio con TFGe CKD-EPI 2021.\",'<button class=\"btn\" data-x=\"car\">Exportar caracterización<\/button>');\n  h+=epsSeg();\n  const erc=cnt(S,s=>s.c.erc);\n  h+='<div class=\"tiles\">'+tile(\"Activos\",N,\"\")+COH.EPS.map(e=>tile(epsShort(e),S.filter(s=>s.p.eps===e).length,\"\")).join(\"\")+tile(\"ERC confirmada\",erc.si||0,\"\")+tile(\"Por confirmar\",erc.prov||0,erc.prov?\"warn\":\"\")+tile(\"Sin definir\",erc.indet||0,erc.indet?\"warn\":\"\")+'<\/div>';\n  /* tipo de población CAC (excluyente: estadio o combinación sin ERC) */\n  const tp=cnt(S,s=>{const x=s.pops.find(p=>/^ERC|^S|^HDM/.test(p));return x?COH.POPL[x]:\"Sin HTA ni DM, sin ERC\";});\n  const ordTP=[\"Solo HTA\",\"Solo DM\",\"HTA y DM\",\"ERC 1–2\",\"ERC 3a\",\"ERC 3b\",\"ERC 4\",\"ERC 5\",\"ERC 5 TMND\",\"Sin HTA ni DM, sin ERC\"];\n  h+='<div class=\"two\"><section class=\"panel\"><h3>Tipo de población (consenso CAC)<\/h3>'+hbarsH(tp,N,ordTP)+'<p class=\"note\" style=\"margin:8px 0 0\">Cada paciente cuenta una vez: su estadio de ERC o, sin ERC, su combinación de HTA y DM.<\/p><\/section>';\n  const GS=[\"G1\",\"G2\",\"G3a\",\"G3b\",\"G4\",\"G5\"],AS=[\"A1\",\"A2\",\"A3\",null];\n  const RISKC={G1:[\"low\",\"mod\",\"high\"],G2:[\"low\",\"mod\",\"high\"],G3a:[\"mod\",\"high\",\"vhigh\"],G3b:[\"high\",\"vhigh\",\"vhigh\"],G4:[\"vhigh\",\"vhigh\",\"vhigh\"],G5:[\"vhigh\",\"vhigh\",\"vhigh\"]};\n  h+='<section class=\"panel\"><h3>Matriz KDIGO de la cohorte<\/h3><div class=\"tablebox\"><table class=\"gxa\"><thead><tr><th><\/th><th>A1<\/th><th>A2<\/th><th>A3<\/th><th>Sin RAC<\/th><\/tr><\/thead><tbody>';\n  GS.forEach(g=>{h+='<tr><th>'+g+'<\/th>'+AS.map((a,i)=>{const n=S.filter(s=>s.c.G===g&&s.c.A===a).length;return'<td class=\"mono '+(a?'k-'+RISKC[g][i]:'')+'\">'+(n||\"\")+'<\/td>';}).join(\"\")+'<\/tr>';});\n  h+='<\/tbody><\/table><\/div><p class=\"note\" style=\"margin:8px 0 0\">Color: riesgo KDIGO 2024 (verde bajo, amarillo moderado, naranja alto, rojo muy alto).<\/p><\/section><\/div>';\n  /* perfil de riesgo clínico */\n  const kf=cnt(S.filter(s=>s.c.kfre),s=>s.c.kfre.r2>0.4?\"KFRE 2 a > 40 %\":s.c.kfre.r2>0.1?\"KFRE 2 a 10–40 %\":s.c.kfre.r5>=0.05?\"KFRE 5 a ≥ 5 % (2 a ≤ 10 %)\":\"KFRE 5 a < 5 %\");\n  const rc=cnt(S,s=>{const m=s.rcv&&s.rcv.main;if(!m)return\"Sin datos para estimar\";if(m.src===\"auto\")return\"Automático: \"+m.cat.toLowerCase();if(m.src===\"score2\")return\"SCORE2-Colombia: \"+m.cat.toLowerCase();return\"Framingham ajustado: \"+(m.r<0.1?\"< 10 %\":m.r<0.2?\"10–20 %\":\"≥ 20 %\");});\n  h+='<div class=\"two\"><section class=\"panel\"><h3>Riesgo de falla renal (KFRE)<\/h3>'+hbarsH(kf,S.filter(s=>s.c.kfre).length,[\"KFRE 2 a > 40 %\",\"KFRE 2 a 10–40 %\",\"KFRE 5 a ≥ 5 % (2 a ≤ 10 %)\",\"KFRE 5 a < 5 %\"])+'<p class=\"note\" style=\"margin:8px 0 0\">Calculable en '+S.filter(s=>s.c.kfre).length+' de '+S.filter(s=>[\"G3a\",\"G3b\",\"G4\",\"G5\"].includes(s.c.G)&&!s.c.conserv).length+' pacientes G3a–G5 sin TMND. Umbrales de KDIGO 2024 (preparación de TRR > 40 % a 2 años; remisión 3–5 % a 5 años).<\/p><\/section>';\n  h+='<section class=\"panel\"><h3>Riesgo cardiovascular<\/h3>'+hbarsH(rc,N)+'<p class=\"note\" style=\"margin:8px 0 0\">Con el último colesterol total y HDL del año, PA del semestre y tabaquismo registrado en la valoración. La categoría automática (ESC 2021: ECV establecida o ERC moderada o grave) prima sobre las escalas. Framingham se agrupa en &lt; 10, 10–20 y ≥ 20 % solo para describir la cohorte: esos cortes no son una meta validada para Colombia.<\/p><\/section><\/div>';\n  const ctl=(f,ap)=>{const A=S.filter(ap);const n=A.filter(f).length;return[n,A.length];};\n  const paM=ctl(s=>s.d.pas!=null&&s.d.pas<s.P.goals.pa[0]&&s.d.pad<s.P.goals.pa[1],s=>s.d.pas!=null);\n  const a1M=ctl(s=>s.d.hba1c!=null&&s.d.hba1c<s.P.goals.a1c,s=>s.d.dm&&s.d.hba1c!=null);\n  const ldM=ctl(s=>s.d.ldl!=null&&s.d.ldl<=s.P.goals.ldl,s=>s.d.ldl!=null);\n  const pf2=([n,d])=>d?String(pcts(n,d)).replace(\".\",\",\")+\" %\":\"—\";\n  h+='<section class=\"panel\"><h3>Control de factores de riesgo (meta individual de cada paciente)<\/h3><div class=\"tiles\">'+tile(\"PA en meta\",pf2(paM),\"\")+tile(\"HbA1c en meta (DM)\",pf2(a1M),\"\")+tile(\"cLDL en meta\",pf2(ldM),\"\")+tile(\"Con ECV establecida\",S.filter(s=>s.p.ecv).length,\"\")+'<\/div><p class=\"note\" style=\"margin:8px 0 0\">Denominador: pacientes con el dato (PA de los últimos 6 meses; HbA1c y cLDL del último resultado). La meta es la que la valoración asigna a cada paciente según su grupo, DM y riesgo. Los indicadores CAC con su ventana están en Indicadores.<\/p><\/section>';\n  /* demografía y comorbilidad */\n  const sx=cnt(S,s=>s.p.sexo===\"F\"?\"Mujeres\":s.p.sexo===\"M\"?\"Hombres\":\"Sin dato\"),ag=cnt(S,s=>s.d.edad==null?\"Sin dato\":s.d.edad<40?\"< 40\":s.d.edad<50?\"40–49\":s.d.edad<60?\"50–59\":s.d.edad<70?\"60–69\":s.d.edad<80?\"70–79\":\"≥ 80\");\n  const mu=cnt(S,s=>s.p.municipio||\"Sin dato\"),ca=cnt(S,s=>({dm:\"Diabética\",hta:\"Hipertensiva\",glom:\"Glomerulopatía\",pq:\"Poliquistosis\",uro:\"Uropatía obstructiva\",nti:\"Tubulointersticial\",otra:\"Otra\",desc:\"No establecida\"})[s.d.causa]||\"Sin registrar\");\n  h+='<div class=\"two\"><section class=\"panel\"><h3>Sexo y edad<\/h3>'+hbarsH(sx,N)+'<div style=\"height:10px\"><\/div>'+hbarsH(ag,N,[\"< 40\",\"40–49\",\"50–59\",\"60–69\",\"70–79\",\"≥ 80\",\"Sin dato\"])+'<\/section><section class=\"panel\"><h3>Municipio de residencia<\/h3>'+hbarsH(mu,N)+'<\/section><\/div>';\n  const com={HTA:S.filter(s=>s.d.hta).length,\"DM tipo 2\":S.filter(s=>s.d.dmTipo===\"2\").length,\"DM tipo 1 u otra\":S.filter(s=>s.d.dm&&s.d.dmTipo!==\"2\").length,\"Enfermedad cardiovascular\":S.filter(s=>s.p.ecv).length,\"G5 en TMND\":S.filter(s=>s.p.terapia===\"tmnd\").length,\"G5 en preparación de TRR\":S.filter(s=>s.p.terapia===\"trr\").length};\n  h+='<div class=\"two\"><section class=\"panel\"><h3>Comorbilidad y situación renal<\/h3>'+hbarsH(com,N,Object.keys(com))+'<\/section><section class=\"panel\"><h3>Causa de la ERC<\/h3>'+hbarsH(ca,N)+'<\/section><\/div>';\n  /* grupo por EPS y movimientos (vista anterior de Cohorte) */\n  const corte=ST.corte,y=corte.getFullYear(),m=corte.getMonth();const all=ST.book.pac;\n  h+='<section class=\"panel\"><h3>Grupo del programa por EPS<\/h3><div class=\"tablebox\"><table><thead><tr><th>Grupo<\/th>'+COH.EPS.map(e=>'<th>'+epsShort(e)+'<\/th>').join(\"\")+'<th>Total<\/th><\/tr><\/thead><tbody>';\n  [1,2,3,0].forEach(g=>{const row=S.filter(s=>(s.c.grupo||0)===g);if(!row.length&&g===0)return;h+='<tr><td>'+(g?NP.GRUPO[g]:\"Sin TFGe\")+'<\/td>'+COH.EPS.map(e=>'<td class=\"mono\">'+row.filter(s=>s.p.eps===e).length+'<\/td>').join(\"\")+'<td class=\"mono\"><strong>'+row.length+'<\/strong><\/td><\/tr>';});\n  h+='<\/tbody><\/table><\/div><\/section>';\n  const inMonth=d=>d&&d.getFullYear()===y&&d.getMonth()===m;\n  const ing=all.filter(p=>inMonth(p.fing)),nov=ST.book.nov.filter(n=>inMonth(n.fecha));\n  const noAct={};all.filter(p=>p.estado!==\"ACTIVO\").forEach(p=>{noAct[p.estado]=(noAct[p.estado]||0)+1;});\n  h+='<section class=\"panel\"><h3>Movimientos del mes de corte<\/h3><p style=\"margin:0 0 8px\">Ingresos: <strong>'+ing.length+'<\/strong>'+(ing.length?' ('+ing.map(p=>esc(p.codigo)).join(\", \")+')':'')+'. Fuera de seguimiento activo: '+(Object.keys(noAct).length?Object.entries(noAct).map(([k,v])=>esc(k.toLowerCase())+' '+v).join(\", \"):'ninguno')+'.<\/p>';\n  h+=nov.length?'<div class=\"tablebox\"><table><thead><tr><th>Fecha<\/th><th>Paciente<\/th><th>Novedad<\/th><th>Detalle<\/th><\/tr><\/thead><tbody>'+nov.map(n=>'<tr><td class=\"mono\">'+fd(n.fecha)+'<\/td><td>'+esc(n.c)+'<\/td><td>'+esc(n.tipo.toLowerCase())+'<\/td><td>'+esc(n.det)+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div>':'<p class=\"note\" style=\"margin:0\">Sin novedades registradas en el mes.<\/p>';\n  h+='<\/section>';\n  h+='<details class=\"panel\"><summary>Listado de pacientes activos ('+N+')<\/summary><div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Grupo<\/th><th>Estadio<\/th><th>TFGe<\/th><th>RCV<\/th><th>Última valoración<\/th><th>Próximo control<\/th><th><\/th><\/tr><\/thead><tbody>'+\n    S.slice().sort((a,b)=>(b.c.grupo||0)-(a.c.grupo||0)).map(s=>{const ct=s.items.find(i=>i.grp===\"Médico\");return'<tr><td>'+pname(s)+'<\/td><td>'+esc(epsShort(s.p.eps))+'<\/td><td>'+contact(s)+'<\/td><td>'+grpTag(s)+'<\/td><td class=\"mono\">'+stage(s)+'<\/td><td class=\"mono\">'+(s.d.tfg!=null?Math.round(s.d.tfg):\"—\")+'<\/td><td>'+esc(s.rcv&&s.rcv.main?s.rcv.main.txt:\"—\")+'<\/td><td class=\"mono\">'+(s.lv?fd(s.lv.fecha):\"—\")+'<\/td><td class=\"mono\">'+(ct&&ct.due?fd(ct.due):\"Sin registro\")+'<\/td><td>'+openBtn(s)+'<\/td><\/tr>';}).join(\"\")+'<\/tbody><\/table><\/div><\/details>';\n  out.innerHTML=h;\n  EXPORTS.car=()=>{const L=x=>Object.entries(x).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v,pcts(v,N)]);const T=(t,o)=>[[t,\"n\",\"%\"]].concat(L(o));\n    const det=[[\"Código\",\"Nombre\",\"EPS\",\"Sexo\",\"Edad\",\"Municipio\",\"HTA\",\"DM\",\"ECV\",\"Tipo de población CAC\",\"Grupo\",\"Estadio\",\"TFGe\",\"RAC\",\"KFRE 2 a %\",\"KFRE 5 a %\",\"RCV\",\"Causa ERC\"]];\n    S.forEach(s=>det.push([s.p.codigo,s.p.nombre,s.p.eps,s.p.sexo,s.d.edad,s.p.municipio,s.d.hta?\"SI\":\"NO\",s.d.dmTipo||\"NO\",s.p.ecv?\"SI\":\"NO\",(s.pops.find(p=>/^ERC|^S|^HDM/.test(p))||\"\"),s.c.grupo||\"\",stage(s),s.d.tfg!=null?Math.round(s.d.tfg):\"\",s.d.rac==null?\"\":s.d.rac,s.c.kfre?Math.round(s.c.kfre.r2*1000)/10:\"\",s.c.kfre?Math.round(s.c.kfre.r5*1000)/10:\"\",s.rcv&&s.rcv.main?s.rcv.main.txt:\"\",s.d.causa||\"\"]));\n    saveXlsx(\"Caracterizacion_nefro_\"+iso(ST.corte)+(epsSel()?\"_\"+epsShort(epsSel()).replace(/\\s+/g,\"\"):\"\")+\".xlsx\",[[\"Tipo de población\",T(\"Tipo de población CAC\",tp)],[\"Riesgo\",T(\"KFRE\",kf).concat([[]]).concat(T(\"Riesgo cardiovascular\",rc))],[\"Demografía\",T(\"Sexo\",sx).concat([[]]).concat(T(\"Edad\",ag)).concat([[]]).concat(T(\"Municipio\",mu))],[\"Pacientes\",det]]);};\n}\n\n/* ---------- Gestión: mes en curso (programado frente a realizado) y próximo mes ---------- */\nfunction rGes(out){\n  let h='<div class=\"seg epsseg\" role=\"group\" aria-label=\"Mes\"><button type=\"button\" data-gsub=\"act\" aria-pressed=\"'+(ST.gesSub===\"act\")+'\">Mes en curso<\/button><button type=\"button\" data-gsub=\"prox\" aria-pressed=\"'+(ST.gesSub===\"prox\")+'\">Próximo mes<\/button><\/div><div id=\"gesin\"><\/div>';\n  out.innerHTML=h;const inn=$(\"gesin\");if(ST.gesSub===\"prox\")rMes(inn);else rMesAct(inn);\n  out.querySelectorAll(\"[data-gsub]\").forEach(b=>b.addEventListener(\"click\",()=>{ST.gesSub=b.dataset.gsub;renderMg(\"coh\");}));}\n/* Atenciones programadas frente a atendidas (agenda): meta institucional 95 % */\nfunction atProg(de,ha,eps){const C=ST.book.cit.filter(c=>c.fecha>=de&&c.fecha<=ha&&(!eps||(pOf(c.c)||{}).eps===eps));\n  const by={};C.forEach(c=>{const k=c.serv;(by[k]=by[k]||{prog:0,at:0,inas:0,canc:0,noat:0,sin:0});const b=by[k];b.prog++;if(c.estado===\"ATENDIDA\")b.at++;else if(c.estado===\"INASISTENCIA\")b.inas++;else if(c.estado===\"CANCELADA\")b.canc++;else if(c.estado===\"NO ATENDIDA\")b.noat++;else b.sin++;});\n  const T={prog:0,at:0,inas:0,canc:0,noat:0,sin:0};Object.values(by).forEach(b=>Object.keys(T).forEach(k=>T[k]+=b[k]));return{by,T,pc:T.prog?T.at/T.prog*100:null};}\nfunction rMesAct(out){\n  const S=filtered(),c=ST.corte,de=new Date(c.getFullYear(),c.getMonth(),1),fin=new Date(c.getFullYear(),c.getMonth()+1,0);\n  const mesTxt=de.toLocaleDateString(\"es-CO\",{month:\"long\",year:\"numeric\"});\n  const act={};const add=(k,f)=>{(act[k]=act[k]||{hecho:0,pend:0,venc:0,sin:0});act[k][f]++;};const pac=[];\n  S.forEach(s=>{const L=[];s.items.forEach(it=>{const nm=it.tipo===\"Laboratorio\"?\"Laboratorio · \"+it.nombre:it.nombre;\n    if(it.last&&it.last>=de&&it.last<=c){add(nm,\"hecho\");return;}if(!it.due){add(nm,\"sin\");L.push(it.nombre+\" (sin registro)\");return;}if(it.due<de){add(nm,\"venc\");L.push(it.nombre+\" (vencido \"+fd(it.due)+\")\");return;}if(it.due<=fin){add(nm,\"pend\");L.push(it.nombre+\" (vence \"+fd(it.due)+\")\");}});if(L.length)pac.push([s,L]);});\n  const tot=Object.values(act).reduce((a,x)=>({hecho:a.hecho+x.hecho,pend:a.pend+x.pend,venc:a.venc+x.venc,sin:a.sin+x.sin}),{hecho:0,pend:0,venc:0,sin:0});\n  const progT=tot.hecho+tot.pend+tot.venc+tot.sin;\n  const A=atProg(de,c,epsSel()&&epsSel()!==\"sin\"?epsSel():\"\");\n  let h=head(\"Control del mes en curso · \"+mesTxt,\"Del 1 de \"+de.toLocaleDateString(\"es-CO\",{month:\"long\"})+\" al corte \"+fd(c)+\". Programado = realizado en el mes + lo que vence en el mes + lo vencido de meses anteriores + lo nunca registrado. Las citas cuentan aparte, por agenda.\",'<button class=\"btn\" data-x=\"mesact\">Exportar<\/button>');\n  h+=epsSeg();\n  h+='<section class=\"panel\"><h3>Atenciones programadas frente a atendidas (agenda del mes hasta el corte)<\/h3><div class=\"tiles\">'+tile(\"Programadas\",A.T.prog,\"\")+tile(\"Atendidas\",A.T.at,\"\")+tile(\"Cumplimiento\",A.pc==null?\"—\":String(Math.round(A.pc*10)/10).replace(\".\",\",\")+\" %\",A.pc==null?\"\":A.pc>=95?\"\":\"bad\")+tile(\"No asistió\",A.T.inas,A.T.inas?\"warn\":\"\")+tile(\"Canceladas\",A.T.canc,\"\")+tile(\"Sin desenlace registrado\",A.T.sin,A.T.sin?\"warn\":\"\")+'<\/div>';\n  h+='<div class=\"bar95\" style=\"margin:10px 0 4px\" title=\"Meta institucional 95 %\"><span style=\"width:'+Math.min(100,Math.round(A.pc||0))+'%\"><\/span><i><\/i><\/div><p class=\"note\" style=\"margin:0 0 8px\">Meta institucional ≥ 95 % (Coordinación Asistencial). Definición operativa: citas con fecha en el mes hasta el corte, en cualquier estado (incluidas canceladas), frente a citas atendidas. Pendiente de aprobación formal de la ficha.<\/p>';\n  h+='<div class=\"tablebox\"><table><thead><tr><th>Servicio<\/th><th>Programadas<\/th><th>Atendidas<\/th><th>%<\/th><th>No asistió<\/th><th>Canceladas<\/th><th>Llegó, no atendida<\/th><th>Sin desenlace<\/th><\/tr><\/thead><tbody>'+Object.entries(A.by).sort((a,b)=>b[1].prog-a[1].prog).map(([k,b])=>'<tr><td>'+esc(AG_SN(k))+'<\/td><td class=\"mono\">'+b.prog+'<\/td><td class=\"mono\">'+b.at+'<\/td><td class=\"mono\"><span class=\"pc '+(b.at/b.prog*100>=95?\"ok\":\"bad\")+'\">'+Math.round(b.at/b.prog*100)+' %<\/span><\/td><td class=\"mono\">'+b.inas+'<\/td><td class=\"mono\">'+b.canc+'<\/td><td class=\"mono\">'+b.noat+'<\/td><td class=\"mono\">'+b.sin+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div><\/section>';\n  h+='<section class=\"panel\"><h3>Plan de cuidado del mes<\/h3><div class=\"tiles\">'+tile(\"Actividades del mes\",progT,\"\")+tile(\"Realizadas\",tot.hecho,\"\")+tile(\"Pendientes que vencen en el mes\",tot.pend,tot.pend?\"warn\":\"\")+tile(\"Vencidas de meses previos\",tot.venc,tot.venc?\"bad\":\"\")+tile(\"Nunca registradas\",tot.sin,tot.sin?\"warn\":\"\")+tile(\"Avance\",progT?String(pcts(tot.hecho,progT)).replace(\".\",\",\")+\" %\":\"—\",\"\")+'<\/div>';\n  h+='<div class=\"tablebox\" style=\"margin-top:10px\"><table><thead><tr><th>Actividad<\/th><th>Realizadas<\/th><th>Pendientes del mes<\/th><th>Vencidas previas<\/th><th>Sin registro<\/th><th>Avance<\/th><\/tr><\/thead><tbody>'+Object.entries(act).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,x])=>{const t=x.hecho+x.pend+x.venc+x.sin;return'<tr><td>'+esc(k)+'<\/td><td class=\"mono\">'+x.hecho+'<\/td><td class=\"mono\">'+x.pend+'<\/td><td class=\"mono\" style=\"color:'+(x.venc?\"var(--bad)\":\"inherit\")+'\">'+x.venc+'<\/td><td class=\"mono\">'+x.sin+'<\/td><td class=\"mono\">'+(t?Math.round(x.hecho/t*100)+\" %\":\"—\")+'<\/td><\/tr>';}).join(\"\")+'<\/tbody><\/table><\/div><\/section>';\n  h+='<details class=\"panel\"><summary>Pacientes con actividades pendientes este mes ('+pac.length+')<\/summary><div class=\"tablebox\"><table><thead><tr><th>Paciente<\/th><th>EPS<\/th><th>Contacto<\/th><th>Pendiente<\/th><th><\/th><\/tr><\/thead><tbody>'+pac.slice(0,400).map(([s,L])=>'<tr><td>'+pname(s)+'<\/td><td>'+esc(epsShort(s.p.eps))+'<\/td><td>'+contact(s)+'<\/td><td><div class=\"chs\">'+L.map(t=>'<span class=\"ch'+(/vencido|sin registro/.test(t)?\" venc\":\"\")+'\">'+esc(t)+'<\/span>').join(\"\")+'<\/div><\/td><td>'+openBtn(s)+'<\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div><\/details>';\n  out.innerHTML=h;\n  EXPORTS.mesact=()=>{const a1=[[\"Actividad\",\"Realizadas\",\"Pendientes del mes\",\"Vencidas previas\",\"Sin registro\"]].concat(Object.entries(act).map(([k,x])=>[k,x.hecho,x.pend,x.venc,x.sin]));\n    const a2=[[\"Servicio\",\"Programadas\",\"Atendidas\",\"%\",\"No asistió\",\"Canceladas\",\"Llegó no atendida\",\"Sin desenlace\"]].concat(Object.entries(A.by).map(([k,b])=>[AG_SN(k),b.prog,b.at,Math.round(b.at/b.prog*1000)/10,b.inas,b.canc,b.noat,b.sin]));\n    const a3=[[\"Código\",\"Nombre\",\"EPS\",\"Teléfono\",\"Pendiente\"]].concat(pac.map(([s,L])=>[s.p.codigo,s.p.nombre,s.p.eps,s.p.tel,L.join(\"; \")]));\n    saveXlsx(\"Mes_en_curso_\"+iso(c)+\".xlsx\",[[\"Plan del mes\",a1],[\"Agenda programada vs atendida\",a2],[\"Pacientes pendientes\",a3]]);};\n}\n\n/* ---------- Auditoría de adherencia a guías de práctica clínica ---------- */\nconst AUDREF={ERC:\"KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of CKD. Kidney Int. 2024;105(4S):S117–S314.\",\n  HTA:\"Mancia G, et al. 2023 ESH Guidelines for the management of arterial hypertension. J Hypertens. 2023;41:1874–2071 · Whelton PK, et al. 2017 ACC/AHA Guideline for high blood pressure in adults. Hypertension. 2018;71:e13–e115.\",\n  DM:\"American Diabetes Association. Standards of Care in Diabetes—2025. Diabetes Care. 2025;48(Suppl 1).\"};\nconst ia=(s,code)=>{const i=s.ind[code];return i?(i.ok?\"CUMPLE\":\"NO CUMPLE\"):\"NO APLICA\";};\nconst AUD={\n ERC:{n:\"Enfermedad renal crónica (KDIGO 2024)\",elig:s=>s.c.erc===\"si\"||[\"G3a\",\"G3b\",\"G4\",\"G5\"].includes(s.c.G),cr:[\n  {id:\"ERC-1\",t:\"TFGe (CKD-EPI 2021) y RAC en los últimos 12 meses\",r:\"KDIGO 2024, cap. 1 y 2: TFGe y albuminuria para clasificar y vigilar.\",f:s=>ia(s,\"nefro_39\")},\n  {id:\"ERC-2\",t:\"Causa de la ERC registrada (clasificación CGA)\",r:\"KDIGO 2024, cap. 1: clasificar por causa, TFG y albuminuria.\",f:s=>s.d.causa&&s.d.causa!==\"desc\"?\"CUMPLE\":\"NO CUMPLE\"},\n  {id:\"ERC-3\",t:\"IECA o ARA II con HTA o DM y RAC > 30 mg/g\",r:\"KDIGO 2024, cap. 3 (bloqueo del SRAA con albuminuria).\",f:s=>ia(s,\"nefro_34\")},\n  {id:\"ERC-4\",t:\"iSGLT2 en DM2 con TFGe ≥ 20\",r:\"KDIGO 2024, cap. 3 (iSGLT2, 1A).\",f:s=>ia(s,\"nefro_38\")},\n  {id:\"ERC-5\",t:\"Estatina en ≥ 50 años con TFGe < 60 sin diálisis\",r:\"KDIGO 2013 de lípidos en ERC, rec. 1A; KDIGO 2024, cap. 3.\",f:s=>ia(s,\"nefro_29\")},\n  {id:\"ERC-6\",t:\"Riesgo de falla renal (KFRE) documentado en G3–G5\",r:\"KDIGO 2024, cap. 2 (ecuación de riesgo validada).\",f:s=>ia(s,\"KFRE_DOC\")},\n  {id:\"ERC-7\",t:\"Potasio controlado en el año si recibe IECA/ARA II\",r:\"KDIGO 2024, cap. 3 (vigilar potasio y creatinina con SRAA).\",f:s=>[\"est\",\"aj\"].includes(s.d.meds.raas)?(s.last&&s.last(\"k\")&&NP.days(s.last(\"k\").fecha,ST.corte)<=365?\"CUMPLE\":\"NO CUMPLE\"):\"NO APLICA\"},\n  {id:\"ERC-8\",t:\"Valoración por nefrología si tiene criterio de remisión\",r:\"KDIGO 2024, cap. 5 (criterios de remisión).\",f:s=>ia(s,\"nefro_33\")},\n  {id:\"ERC-9\",t:\"Revisión de nefrotóxicos (AINE y otros) documentada en la HC\",r:\"KDIGO 2024, cap. 4 (seguridad de medicamentos).\",m:true},\n  {id:\"ERC-10\",t:\"Educación para el automanejo en el último año\",r:\"KDIGO 2024, cap. 3 (educación estructurada).\",f:s=>s.d.at.edu?\"CUMPLE\":\"NO CUMPLE\"}]},\n HTA:{n:\"Hipertensión arterial (ESH 2023 · ACC/AHA 2017)\",elig:s=>s.d.hta,cr:[\n  {id:\"HTA-1\",t:\"PA registrada en los últimos 6 meses\",r:\"ESH 2023 y ACC/AHA 2017: medir la PA en cada control.\",f:s=>s.lv&&s.lv.pas!=null&&NP.days(s.lv.fecha,ST.corte)<=180?\"CUMPLE\":\"NO CUMPLE\"},\n  {id:\"HTA-2\",t:\"PA en la meta del programa (< 140/90 o < 130/80 según perfil)\",r:\"ACC/AHA 2017 y ADA 2025 (< 130/80 con DM o ERC); ESH 2023.\",f:s=>s.d.pas==null?\"NO CUMPLE\":(s.d.pas<s.P.goals.pa[0]&&s.d.pad<s.P.goals.pa[1]?\"CUMPLE\":\"NO CUMPLE\")},\n  {id:\"HTA-3\",t:\"Control cada mes mientras la PA estuvo fuera de meta\",r:\"ACC/AHA 2017: seguimiento mensual tras iniciar o ajustar hasta el control (clase I).\",m:true},\n  {id:\"HTA-4\",t:\"Creatinina/TFGe y RAC en el último año\",r:\"ESH 2023: evaluación de daño renal mediado por HTA.\",f:s=>ia(s,\"nefro_39\")},\n  {id:\"HTA-5\",t:\"Perfil lipídico en el último año\",r:\"ESH 2023: evaluación del riesgo cardiovascular global.\",f:s=>ia(s,\"nefro_04\")},\n  {id:\"HTA-6\",t:\"IECA o ARA II si RAC ≥ 30 mg/g\",r:\"ESH 2023; KDIGO 2024.\",f:s=>s.d.rac!=null&&s.d.rac>=30?([\"est\",\"aj\"].includes(s.d.meds.raas)?\"CUMPLE\":\"NO CUMPLE\"):\"NO APLICA\"},\n  {id:\"HTA-7\",t:\"Electrocardiograma de 12 derivaciones registrado\",r:\"ESH 2023: ECG en todo paciente hipertenso.\",m:true},\n  {id:\"HTA-8\",t:\"Consejería en sal, actividad física, tabaco y alcohol documentada\",r:\"ESH 2023 y ACC/AHA 2017: intervenciones de estilo de vida.\",m:true},\n  {id:\"HTA-9\",t:\"Riesgo cardiovascular estimado en el último año\",r:\"ESH 2023; ESC 2021 (escala calibrada para el país).\",f:s=>ia(s,\"nefro_42\")}]},\n DM:{n:\"Diabetes mellitus (ADA 2025)\",elig:s=>s.d.dm,cr:[\n  {id:\"DM-1\",t:\"HbA1c en los últimos 6 meses\",r:\"ADA 2025, sección 6: al menos 2 veces al año.\",f:s=>ia(s,\"nefro_02\")},\n  {id:\"DM-2\",t:\"HbA1c en la meta individual del programa\",r:\"ADA 2025, sección 6 (meta individualizada).\",f:s=>s.d.hba1c==null?\"NO CUMPLE\":(s.d.hba1c<s.P.goals.a1c?\"CUMPLE\":\"NO CUMPLE\")},\n  {id:\"DM-3\",t:\"RAC y TFGe en el último año\",r:\"ADA 2025, sección 11: tamizaje anual de ERC.\",f:s=>ia(s,\"nefro_39\")},\n  {id:\"DM-4\",t:\"Perfil lipídico en el último año\",r:\"ADA 2025, sección 10.\",f:s=>ia(s,\"nefro_04\")},\n  {id:\"DM-5\",t:\"Estatina entre 40 y 75 años\",r:\"ADA 2025, sección 10 (estatina de intensidad moderada).\",f:s=>s.d.edad!=null&&s.d.edad>=40&&s.d.edad<=75?([\"est\",\"aj\"].includes(s.d.meds.stat)?\"CUMPLE\":\"NO CUMPLE\"):\"NO APLICA\"},\n  {id:\"DM-6\",t:\"iSGLT2 en DM2 con ERC y TFGe ≥ 20\",r:\"ADA 2025, sección 11; KDIGO 2022 de DM en ERC.\",f:s=>ia(s,\"nefro_38\")},\n  {id:\"DM-7\",t:\"PA < 130/80 mmHg\",r:\"ADA 2025, sección 10.\",f:s=>s.d.pas==null?\"NO CUMPLE\":(s.d.pas<130&&s.d.pad<80?\"CUMPLE\":\"NO CUMPLE\")},\n  {id:\"DM-8\",t:\"Examen integral de pies en el último año\",r:\"ADA 2025, sección 12: al menos anual.\",m:true},\n  {id:\"DM-9\",t:\"Examen de retina vigente (cada 1–2 años sin retinopatía; anual con retinopatía)\",r:\"ADA 2025, sección 12.\",m:true},\n  {id:\"DM-10\",t:\"Vacuna de influenza en el último año\",r:\"ADA 2025, sección 4.\",f:s=>ia(s,\"nefro_32\")}]}};\nST.audSel=null;ST.audG=\"ERC\";ST.audN=10;\nfunction rAud(out){\n  const S=filtered();const G=AUD[ST.audG];const elig=S.filter(G.elig);const A=ST.aud||[];\n  let h=head(\"Auditoría de adherencia a guías\",\"Evalúa una muestra de historias del programa contra criterios de la guía. Los criterios automáticos salen del libro; los manuales los marca el auditor revisando la HC en SIIS. El resultado se guarda en la hoja Auditoria_GPC del libro.\",'<button class=\"btn\" data-x=\"audexp\">Exportar auditorías<\/button>');\n  h+='<section class=\"panel\"><div class=\"row3\"><label class=\"f\">Guía<select id=\"audg\">'+Object.entries(AUD).map(([k,g])=>'<option value=\"'+k+'\"'+(k===ST.audG?\" selected\":\"\")+'>'+esc(g.n)+'<\/option>').join(\"\")+'<\/select><\/label><label class=\"f\">Tamaño de la muestra<input type=\"text\" id=\"audn\" inputmode=\"numeric\" value=\"'+ST.audN+'\"><\/label><label class=\"f\">Auditor *<input type=\"text\" id=\"audu\" value=\"'+esc(AST.user)+'\" placeholder=\"Nombre y cargo\"><\/label><\/div>';\n  h+='<p class=\"note\" style=\"margin:8px 0\">Pacientes que aplican con los filtros actuales: <strong>'+elig.length+'<\/strong>. Referencia: '+esc(AUDREF[ST.audG])+'<\/p><div class=\"copyrow\"><button type=\"button\" class=\"btn primary\" id=\"audgen\">Generar muestra aleatoria<\/button>'+(ST.audSel?'<button type=\"button\" class=\"btn\" id=\"audclr\">Descartar muestra<\/button>':'')+'<\/div><\/section>';\n  if(ST.audSel){const sm=ST.audSel.codes.map(c=>ST.smap[c]).filter(Boolean);\n    h+='<section class=\"panel\"><h3>Muestra · '+esc(AUD[ST.audSel.g].n)+' · '+sm.length+' historias<\/h3><p class=\"note\" style=\"margin:0 0 8px\">Marque los criterios manuales después de revisar la HC. «Automático» = calculado con el libro al corte '+fd(ST.corte)+'.<\/p>';\n    sm.forEach(s=>{h+='<details class=\"hist\" open><summary>'+esc(s.p.codigo)+' · '+esc(s.p.nombre||\"\")+' · '+esc(epsShort(s.p.eps))+' · '+esc(stage(s))+'<\/summary>'+AUD[ST.audSel.g].cr.map(c=>{const auto=c.m?null:c.f(s);return'<div class=\"audc\"><span>'+esc(c.id+\" · \"+c.t)+'<span class=\"sub\">'+esc(c.r)+'<\/span><\/span>'+(c.m?'<select data-audm=\"'+esc(s.p.codigo+\"|\"+c.id)+'\"><option value=\"\">Sin evaluar<\/option><option>CUMPLE<\/option><option>NO CUMPLE<\/option><option>NO APLICA<\/option><\/select>':'<span class=\"st '+(auto===\"CUMPLE\"?\"ok\":auto===\"NO CUMPLE\"?\"no\":\"na\")+'\">'+esc(auto.toLowerCase())+' · automático<\/span>')+'<\/div>';}).join(\"\")+'<label class=\"f\" style=\"margin-top:6px\">Observación<input type=\"text\" data-audo=\"'+esc(s.p.codigo)+'\"><\/label><\/details>';});\n    h+='<div class=\"copyrow\" style=\"margin-top:10px\"><button type=\"button\" class=\"btn primary\" id=\"audsave\">Guardar auditoría en el libro<\/button><span class=\"note\" id=\"audmsg\"><\/span><\/div><\/section>';}\n  /* consolidado */\n  const by={};A.forEach(r=>{if(r.Resultado===\"NO APLICA\"||!r.Resultado)return;const k=r.Guia+\"|\"+r.Criterio;(by[k]=by[k]||{g:r.Guia,c:r.Criterio,t:r.Descripcion,ok:0,n:0});by[k].n++;if(r.Resultado===\"CUMPLE\")by[k].ok++;});\n  const gs={};Object.values(by).forEach(x=>{(gs[x.g]=gs[x.g]||{ok:0,n:0});gs[x.g].ok+=x.ok;gs[x.g].n+=x.n;});\n  const hist=[...new Set(A.map(r=>r.ID))];\n  h+='<section class=\"panel\"><h3>Adherencia acumulada ('+hist.length+' auditorías de historia)<\/h3>'+(A.length?'<div class=\"tiles\">'+Object.entries(gs).map(([g,x])=>tile((AUD[g]||{n:g}).n,Math.round(x.ok/x.n*100)+\" %\",x.ok/x.n>=0.8?\"\":\"warn\")).join(\"\")+'<\/div><div class=\"tablebox\" style=\"margin-top:10px\"><table><thead><tr><th>Guía<\/th><th>Criterio<\/th><th>Cumple<\/th><th>Evaluados<\/th><th>Adherencia<\/th><\/tr><\/thead><tbody>'+Object.values(by).sort((a,b)=>a.g.localeCompare(b.g)||a.c.localeCompare(b.c,undefined,{numeric:true})).map(x=>'<tr><td>'+esc(x.g)+'<\/td><td>'+esc(x.c+\" · \"+x.t)+'<\/td><td class=\"mono\">'+x.ok+'<\/td><td class=\"mono\">'+x.n+'<\/td><td class=\"mono\"><span class=\"pc '+(x.ok/x.n>=0.8?\"ok\":x.ok/x.n>=0.6?\"warn\":\"bad\")+'\">'+Math.round(x.ok/x.n*100)+' %<\/span><\/td><\/tr>').join(\"\")+'<\/tbody><\/table><\/div><p class=\"note\" style=\"margin:8px 0 0\">Adherencia = cumple / (cumple + no cumple); «no aplica» y «sin evaluar» no cuentan. El color (≥ 80 % verde, 60–79 % amarillo) es una referencia de lectura, no una meta adoptada.<\/p>':'<p class=\"note\">Sin auditorías guardadas en este libro.<\/p>')+'<\/section>';\n  out.innerHTML=h;\n  $(\"audg\").addEventListener(\"change\",e=>{ST.audG=e.target.value;renderMg(\"aud\");});\n  $(\"audn\").addEventListener(\"change\",e=>{ST.audN=Math.max(1,Math.min(200,parseInt(e.target.value,10)||10));});\n  $(\"audu\").addEventListener(\"input\",e=>{AST.user=e.target.value;try{localStorage.setItem(\"nefro_usuario\",AST.user);}catch(x){}});\n  $(\"audgen\").addEventListener(\"click\",()=>{const L=filtered().filter(AUD[ST.audG].elig).map(s=>s.p.codigo);for(let i=L.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[L[i],L[j]]=[L[j],L[i]];}ST.audSel={g:ST.audG,codes:L.slice(0,ST.audN)};renderMg(\"aud\");});\n  if($(\"audclr\"))$(\"audclr\").addEventListener(\"click\",()=>{ST.audSel=null;renderMg(\"aud\");});\n  if($(\"audsave\"))$(\"audsave\").addEventListener(\"click\",()=>{if(!AST.user.trim()){$(\"audmsg\").textContent=\"Escriba el nombre del auditor.\";return;}\n    const g=ST.audSel.g;const now=iso(new Date());let n=0;const base=(ST.aud||[]).length;\n    ST.audSel.codes.forEach((code,ix)=>{const s=ST.smap[code];if(!s)return;const id=\"AUD-\"+now.replace(/-/g,\"\")+\"-\"+String(base+ix+1).padStart(4,\"0\");const obs=(out.querySelector('[data-audo=\"'+code+'\"]')||{}).value||\"\";\n      AUD[g].cr.forEach(c=>{let res,src;if(c.m){res=(out.querySelector('[data-audm=\"'+code+\"|\"+c.id+'\"]')||{}).value||\"\";src=\"MANUAL\";}else{res=c.f(s);src=\"AUTOMATICO\";}\n        (ST.aud=ST.aud||[]).push({ID:id,Fecha:fd(new Date()),Auditor:AST.user,Guia:g,Codigo:code,EPS:s.p.eps,Criterio:c.id,Descripcion:c.t,Resultado:res,Fuente:src,Observacion:obs});});n++;});\n    ST.dirty=true;ST.audSel=null;bookInfo();renderMg(\"aud\");toast(\"Auditoría guardada: \"+n+\" historias. Descargue el libro para conservarla.\");});\n  EXPORTS.audexp=()=>{const H=[\"ID\",\"Fecha\",\"Auditor\",\"Guia\",\"Codigo\",\"EPS\",\"Criterio\",\"Descripcion\",\"Resultado\",\"Fuente\",\"Observacion\"];const res=[[\"Guía\",\"Criterio\",\"Descripción\",\"Cumple\",\"Evaluados\",\"Adherencia %\"]].concat(Object.values(by).map(x=>[x.g,x.c,x.t,x.ok,x.n,Math.round(x.ok/x.n*1000)/10]));\n    const crit=[[\"Guía\",\"Criterio\",\"Descripción\",\"Tipo\",\"Referencia\"]];Object.entries(AUD).forEach(([g,G])=>G.cr.forEach(c=>crit.push([g,c.id,c.t,c.m?\"Manual\":\"Automático\",c.r])));\n    saveXlsx(\"Auditoria_adherencia_GPC_\"+iso(ST.corte)+\".xlsx\",[[\"Resumen\",res],[\"Detalle\",[H].concat((ST.aud||[]).map(r=>H.map(h=>r[h])))],[\"Criterios\",crit],[\"Referencias\",Object.entries(AUDREF).map(([k,v])=>[k,v])]]);};\n}\n\n/* ---------- Nominal mensual por EPS (CAC / EPS) ---------- */\n/* Encabezados tomados de los archivos de ejemplo que entregó la coordinación (11-oct-2026). Los valores codificados (sí/no, estadio,\n   comodines) no se inventan: salen del arrastre del nominal anterior o de la tabla de codificación que diligencie el programa con el\n   instructivo vigente. TFG del nominal = Cockcroft-Gault, como lo piden los encabezados; la estadificación clínica usa CKD-EPI 2021. */\nconst NOM_FAM_H=[\"Campo 1 Primer nombre del usuario\",\"Campo 2 Segundo nombre del usuario\",\"Campo 3 Primer apellido del usuario\",\"Campo 4 Segundo apellido del usuario\",\"Campo 5 Tipo de Identificación del usuario\",\"Campo 6 Número de Identificación del usuario\",\"Campo 7 Fecha de nacimiento\",\"Campo 8 Sexo\",\"Campo 9 Régimen de afiliación AL SGSS\",\"Campo 10 Código de la EPS o de la entidad territorial\",\"Campo 11 Código pertenencia étnica\",\"Campo 12 Grupo poblacional\",\"Campo 13 Municipio de residencia\",\"Campo 14 número telefónico del paciente (incluyendo a familiares y cuidadores)\",\"Campo 15 Fecha de afiliación a la EPS que registra\",\"Campo 16 Código de la IPS donde se hace seguimiento al usuario\",\"Campo 17 Fecha de ingreso al programa de atención renal (renoprotección, nefroprotección, protección renal, prediálisis) dentro de la EAPB/Ente territorial que reporta\",\"Campo 18 El usuario tiene diagnóstico confirmado de Hipertensión Arterial -HTA (CIE-10 con códigos entre I10-I159)\",\"Campo 19 Fecha de diagnostico de la Hipertension Arterial\",\"Campo 19.1 Costo HTA durante el período de reporte\",\"Campo 20 El usuario tiene diagnóstico confirmado de Diabetes Mellitus- DM (CIE-10 con códigos entre E10-E149; O24-O249; P702)\",\"Campo 21 Fecha de diagnostico de la Diabetes Mellitus\",\"Campo 21.1 Costo DM durante el período de reporte\",\"Campo 22 Etiología de la ERC\",\"Campo 23 Peso (kg)\",\"Campo 24 Talla (cm)\",\"Campo 25 Tensión arterial sistólica (mm de Hg)\",\"Campo 26 Tensión arterial diastólica (mm de Hg)\",\"Campo 27 Creatinina (mg/dl)\",\"Campo 27.1 Fecha de última Creatinina\",\"Campo 28 Hemoglobina Glicosilada\",\"Campo 28.1 Fecha de última Hemoglobina Glicosilada\",\"Campo 29 Albuminuria\",\"Campo 29.1 Fecha de la última Albuminuria\",\"Campo 30 Relación Albuminuria/Creatinuria\",\"Campo 30.1 Fecha de la última Creatinuria\",\"Campo 31 Colesterol total\",\"Campo 31.1 Fecha de la último Colesterol total\",\"Campo 32 HDL\",\"Campo 32.1 Fecha de la último HDL\",\"Campo 33 LDL\",\"Campo 33.1 Fecha del último LDL\",\"Campo 34 PTH\",\"Campo 34.1 Fecha de la última PTH\",\"Campo 35 Tasa de filtración glomerular (TFGe) según Cockroft-Gault (en adultos) y Swhartz (en menores de 18 años) o FRR estimada mediante el cálculo del Kru, dentro del periodo del reporte\",\"Campo 36 El usuario recibe Inhibidor de la Enzima convertidora de angiotensina (IECA)\",\"Campo 37 El usuario recibe Inhibidor de la Enzima convertidora de angiotensina (IECA)\",\"Campo 38 El usuario tiene diagnóstico de enfermedad renal crónica en cualquier de sus estadios\",\"Campo 39 Estadio de ERC (Enfermedad Renal: Ver las notas finales numeral V)\",\"Campo 40 Fecha de diagnóstico de ERC estadio 5 (Solo aplica si marco la opción 5 de la pregunta anterior)\",\"Campo 41 La persona se encuentra en un programa de atención de ERC (renoprotección, nefroprotección, protección renal, prediálisis)\",\"Campo 42 TFG a la fecha, en que el usuario inicio la primera terapia de reemplazo renal -TRR\",\"Campo 43 Modo de Inicio de la Terapia de Reemplazo Renal (primera TRR)\",\"Campo 44 Fecha en que se inicio la terapia de reemplazo renal que recibe el usuario en el momento de la fecha de corte. Sí el Trasplante es la terapia reportada, esta Fecha se refiere a la Fecha de trasplante\",\"Campo 45 Fecha de Ingreso a la Unidad Renal Actual que le presta el servicio en el momento de la fecha de corte, en cualquier modalidad de terapia dialítica (Unidad Actual)\",\"Campo 46 Hemodiálisis (HD)\",\"Campo 47 Dosis de diálisis (Kt/V) single pool\",\"Campo 48 Costo total de la hemodiálisis HD durante el período de reporte\",\"Campo 49 Diálisis peritoneal (DP)\",\"Campo 50 Dosis de diálisis (Kt/V) dpd. KTV/dpd: de máximo cuatro meses de antigüedad contados a partir de la fecha de corte\",\"Campo 51 Numero de horas de hemodiálisis\",\"Campo 52 Peritonitis\",\"Campo 53 Costo DP durante el período de reporte\",\"Campo 54 Vacuna Hepatitis B\",\"Campo 55 Registre la fecha de diagnóstico de la infección por Hepatitis B, si el usuario la ha presentado\",\"Campo 56 Registre la fecha de diagnóstico de la infección por Hepatitis C, si el usuario la ha presentado\",\"Campo 57 Terapia no Dialítica para ERC estadio 5 (también llamada tratamiento médico de nefroproteción)\",\"Campo 58 Costo de la terapia ERC estadio 5 con tratamiento médico\",\"Campo 59 Hemoglobina. (aplica solo cuando el usuario está en diálisis). Las hemoglobinas deben ser del último trimestre contado a partir de la fecha de corte y sus tomas debieron ser pre-diálisis en personas en hemodiálisis\",\"Campo 60 Albúmina Sérica (aplica solo cuando el usuario está en diálisis). La albúmina debe tener máximo tres meses de antigüedad a partir de la fecha de corte y su toma debió ser pre-diálisis en personas en hemodiálisis\",\"Campo 61 Fósforo (P) (aplica solo cuando el usuario está en diálisis). Los niveles séricos de fósforo deben ser del último trimestre contado a partir de la fecha de corte y sus tomas debieron ser pre-diálisis en personas en hemodiálisis\",\"Campo 62 Última valoración clínica por nefrología dentro del periodo de reporte de pacientes con ERC estadio 5 en diálisis o con TMND,en relación con la posibilidad de trasplante renal\",\"Campo 62.1 ¿Se reportó cáncer activo en los últimos 12 meses, como contraindicación para el transplante renal, en la valoración de nefrología?\",\"Campo 62.2 ¿Se reportó infección crónica o activa no tratada o no controlada hasta en los últimos tres meses antes de la fecha de corte, como contraindicación para el transplante renal, en la valoración de nefrología?\",\"Campo 62.3 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología que el paciente NO ha manifestado su deseo de trasplantarse?\",\"Campo 62.4 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología que el paciente presenta esperanza de vida menor o igual a 6 meses?\",\"Campo 62.5 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología que el paciente presenta potenciales limitaciones al autocuidado y adherencia al tratamiento post trasplante?\",\"Campo 62.6 ¿Se reportó enfermedad cardiaca, cerebrovascular o vascular periférica, como contraindicación para el transplante renal, en la valoración de nefrología?\",\"Campo 62.7 ¿Se reportó infección por el VIH, como contraindicación para el transplante renal, en la valoración de nefrología?\",\"Campo 62.8 ¿Se reportó infección por el VHC, como contraindicación para el transplante renal, en la valoración de nefrología?\",\"Campo 62.9 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología, que el paciente presenta enfermedad inmunológica activa los últimos tres meses antes de la fecha de corte?\",\"Campo 62.10 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología, que el paciente presenta enfermedad pulmonar crónica?\",\"Campo 62.11 ¿Se reportó como contraindicación para el transplante renal, en la valoración de nefrología, que el paciente presenta otras enfermedades crónicas?\",\"Campo 63 Fecha de Ingreso a lista de espera para la realización del trasplante\",\"Campo 63.1 Registre el código de la IPS donde está en lista de espera\",\"Campo 64 ¿El usuario ha recibido trasplante renal?\",\"Campo 65 Código de la EPS que realizó el trasplante\",\"Campo 66 Código de la IPS o Grupo de trasplante, que realizó el último trasplante renal\",\"Campo 67 Tipo de donante\",\"Campo 68 Costo del trasplante\",\"Campo 69 ¿El usuario ha presentado alguna complicación relacionada con el trasplante renal?\",\"Campo 69.1 Fecha de diagnóstico si ha presentado infección por Citomegalovirus\",\"Campo 69.2 Fecha de diagnóstico si ha presentado infección por hongos\",\"Campo 69.3 Fecha de diagnóstico si ha presentado infección por tuberculosis\",\"Campo 69.4 Fecha de diagnóstico si ha presentado alguna complicación vascular\",\"Campo 69.5 Fecha de diagnóstico si ha presentado alguna complicación urológica\",\"Campo 69.6 Fecha de diagnóstico si ha presentado alguna complicación herida quirúrgica\",\"Campo 69.7 Fecha del primer diagnóstico de cáncer\",\"Campo 70 Cuantos médicamentos inmunosupresores se formularon para el manejo en este último corte\",\"Campo 70.1 En algún momento, desde el último reporte hasta el reporte actual ha recibido metilprednisolona\",\"Campo 70.2 En algún momento, desde el último reporte hasta el reporte actual ha recibido azatioprina\",\"Campo 70.3 En algún momento, desde el último reporte hasta el reporte actual ha recibido ciclosporina\",\"Campo 70.4 En algún momento, desde el último reporte hasta el reporte actual ha recibido micofenolato\",\"Campo 70.5 En algún momento, desde el último reporte hasta el reporte actual ha recibido tacrolimus\",\"Campo 70.6 En algún momento, desde el último reporte hasta el reporte actual ha recibido prednisona\",\"Campo 70.7 En el periodo del reporte, el paciente ha recibido para el manejo de trasplante renal, medicamentos inmunosupresores no incluidos en las Campo iables 70.1 a 70.6 o no incluidos en el plan de beneficios (medicamento 1)\",\"Campo 70.8 En el periodo del reporte, el paciente ha recibido para el manejo de trasplante renal, medicamentos inmunosupresores no incluidos en las Campo iables 70.1 a 70.6 o no incluidos en el plan de beneficios (medicamento 2)\",\"Campo 70.9 En el periodo del reporte, el paciente ha recibido para el manejo de trasplante renal, medicamentos inmunosupresores no incluidos en las Campo iables 70.1 a 70.6 o no incluidos en el plan de beneficios (medicamento 3)\",\"Campo 71 ¿Cuantos episodios de rechazo agudo en los últimos 12 meses al trasplante, confirmado por biopsia, ha presentado el usuario?\",\"Campo 72 Fecha del primer rechazo del injerto\",\"Campo 73 Fecha de retorno a diálisis\",\"Campo 74 Número de trasplantes renales que ha recibido\",\"Campo 75 Costo de la terapia postrasplante\",\"Campo 76 Tiempo de prestación de servicios\",\"Campo 77 Costo Total\",\"Campo 78 Código de la EPS de origen\",\"Campo 79 Novedad con respecto al reporte anterior\",\"Campo 80 Causa de Muerte\",\"Campo 80.1 Fecha de muerte\",\"Campo 81 Código único de identificación BDUA\",\"Campo 82 Fecha de Corte\",\"Fecha de ultimo peso\",\"Fecha ultima talla\",\"Fecha de ultimos trigliceridos\",\"Resultado de ultimos trigliceridos\",\"Fecha de ultima TFG calculada y registrada en HC\",\"Fecha de diagnostico de ERC (1-4)\",\"Fecha ultima Hemoglobina\",\"Fecha ultima Albúmina Sérica\",\"Fecha ultima Fósforo\",\"Fecha de ultima Valoración Clínica por nefrología\",\"Fecha de ultima valoración médica del programa\",\"Valoración Ultima Especialidad médica del programa\",\"Fecha de ultima valoración médica Endocrinología\",\"Fecha de ultima valoración médica Oftalmología o foto de retina\",\"Fecha de ultima valoración Enfermería\",\"Fecha de ultima valoración Nutrición\",\"Fecha de ultima valoración Trabajo Social\",\"Fecha de ultima valoración QF\",\"Fecha de ultima valoración psicología\",\"Fecha de ultimo parcial de orina\",\"Resultado de ultimo parcial de orina\",\"Circunferencia de cintura\"];\nconst NOM_PRE_H=[\"Código de Habilitación (Es el código de la IPS ante la EPS)\",\"Tipo de Identificación del usuario\",\"Número de Identificación del usuario\",\"Número telefónico del paciente\",\"Fecha de solicitud de la cita reportada para valoración por Nefrología.\",\"Fecha de asignación de la cita reportada para valoración por Nefrología\",\"Fecha de la consulta realizada por parte de Nefrología (en el mes)\",\"Fecha de la orden generada para la próxima consulta de Nefrología.\",\"Peso (Kg) (Debe ser con el que se calculó la TFG)\",\"Talla (cm) (Debe ser con el que se calculó la TFG)\",\"Tensión arterial sistólica (mm de Hg)\",\"Tensión arterial diastólica (mm de Hg)\",\"Circunferencia Abdominal\",\"Creatinina en Sangre (mg/dl) (Debe ser con la que se calculó la TFG)\",\"Fecha creatinina (Debe ser con la que se calculó la TFG)\",\"Tasa de filtración glomerular estimada (TFG) según Cockcroft- Gault (en adultos) o Swhartz (en niños)\",\"Relación Albuminuria/Creatinuria (mg/g) (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha de la última Albuminuria/Creatinuria (mg/g)\",\"Estadio Renal registrado en HC\",\"Glicemia Basal (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha de Glicemia Basal\",\"Hemoglobina glicosilada (%) (Solamente en personas con diagnóstico de Diabetes Mellitus)  (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha última hemoglobina glicosilada (Solamente en personas con diagnóstico de Diabetes Mellitus)\",\"Colesterol Total (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha último colesterol total\",\"Triglicéridos  (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha de Triglicéridos\",\"Colesterol HDL  (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha último colesterol HDL\",\"Colesterol LDL  (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha último colesterol LDL\",\"Parathormona PTH (pg/mL)  (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha de la última parathormona PTH\",\"Hemoglobina (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha de la última Hemoglobina\",\"Albúmina sérica (g/dl)  (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha de la última Albúmina Sérica (g/dl)\",\"Fósforo sérico (P) mg/dl  (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha de último Fósforo Sérico (P) mg/dl\",\"Químico en Orina\",\"Fecha de Químico en Orina\",\"Creatinina en orina de 24 horas\",\"Fecha de Creatinina en orina de 24 horas\"];\nconst NOM_TMND_H=[\"Código de Habilitación (Es el código de la IPS ante la EPS)\",\"Tipo de Identificación del usuario\",\"Número de Identificación del usuario\",\"Número telefónico del paciente\",\"Fecha de solicitud de la cita reportada para valoración por Nefrología.\",\"Fecha de asignación de la cita reportada para valoración por Nefrología\",\"Fecha de la consulta realizada por parte de Nefrología (en el mes)\",\"Fecha de la orden generada para la próxima consulta de Nefrología.\",\"Peso (Kg) (Debe ser con el que se calculó la TFG)\",\"Talla (cm) (Debe ser con el que se calculó la TFG)\",\"Tensión arterial sistólica (mm de Hg)\",\"Tensión arterial diastólica (mm de Hg)\",\"Creatinina en Sangre (mg/dl) (Debe ser con la que se calculó la TFG)\",\"Fecha creatinina (Debe ser con la que se calculó la TFG)\",\"Tasa de filtración glomerular estimada (TFG) según Cockcroft- Gault (en adultos) o Swhartz (en niños)\",\"Hemoglobina glicosilada (%) (Solamente en personas con diagnóstico de Diabetes Mellitus) (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha hemoglobina glicosilada (Solamente en personas con diagnóstico de Diabetes Mellitus) (Solo reportar las pruebas que se tomen en el mes)\",\"Colesterol Total (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha último colesterol total (Solo reportar las pruebas que se tomen en el mes)\",\"Triglicéridos (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha de Triglicéridos\",\"Colesterol HDL (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha último colesterol HDL (Solo reportar las pruebas que se tomen en el mes)\",\"Colesterol LDL (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha último colesterol LDL (Solo reportar las pruebas que se tomen en el mes)\",\"Parathormona PTH (pg/mL) (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha de la última parathormona PTH (Solo reportar las pruebas que se tomen en el mes)\",\"Hemoglobina (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha Hemoglobina (Solo reportar las pruebas que se tomen en el mes)\",\"Albúmina sérica (g/dl) (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha Albumina (Solo reportar las pruebas que se tomen en el mes)\",\"Fósforo sérico (P) mg/dl (Solo reportar las pruebas que se tomen en el mes)\",\"Fecha Fosforo (Solo reportar las pruebas que se tomen en el mes)\",\"Vacuna Hepatitis B\",\"Resultado del Anticuerpos Hepatitis B\",\"Fecha del Anticuerpos Hepatitis B\",\"Fecha Valoración Trasplante (Solo en el mes)\",\"Resultado valoración clínica por nefrología dentro del período de reporte de pacientes con ERC estadio 5 en diálisis o con TMND, en relación con la posibilidad de trasplante renal\",\"¿Se reportó cáncer activo en los últimos 12 meses como contraindicación para el trasplante renal, en la valoración de nefrología?\",\"¿Se reportó infección crónica o activa no tratada o no controlada hasta en los últimos tres meses antes de la fecha de corte, como contraindicación para el trasplante renal, en la valoración de nefrología?\",\"¿Se reportó que el paciente ha manifestado su deseo de NO trasplantarse, como contraindicación para el trasplante en la valoración por nefrología?\",\"¿Se reportó que el paciente tiene una esperanza de vida menor o igual a 6 meses, como contraindicación para el trasplante, en la valoración por nefrología?\",\"¿Se reporto que el paciente presenta limitaciones potenciales para el autocuidado y adherencia al tratamiento post trasplante, como contraindicación para el trasplante renal, en la valoración por nefrología?\",\"¿Se reportó enfermedad cardiaca, cerebrovascular o vascular periférica, como contraindicación para el trasplante renal, en la valoración de nefrología?\",\"¿Se reportó infección por el VIH, como contraindicación para el trasplante renal, en la valoración de nefrología?\",\"¿Se reportó infección por el VHC, como contraindicación para el trasplante renal, en la valoración de nefrología?\",\"¿Se reportó que el paciente presenta enfermedad inmunológica activa los últimos tres meses antes de la fecha de corte, como contraindicación para el trasplante, en la valoración por nefrología?\",\"¿Se reportó que el paciente presenta enfermedad pulmonar crónica, como contraindicación para el trasplante, en la valoración por nefrología?\",\"¿Se reportó que el paciente presenta otras enfermedades crónicas, como contraindicación para el trasplante, en la valoración por nefrología?\"];\nconst NOMF={FAM:{n:\"EPS Familiar · nominal ERC (143 campos)\",eps:\"EPS Familiar de Colombia\",H:NOM_FAM_H,sel:s=>true},PRE:{n:\"Nueva EPS · prediálisis (43 campos)\",eps:\"Nueva EPS\",H:NOM_PRE_H,sel:s=>s.p.terapia!==\"tmnd\"},TMND:{n:\"Nueva EPS · TMND (49 campos)\",eps:\"Nueva EPS\",H:NOM_TMND_H,sel:s=>s.p.terapia===\"tmnd\"}};\n/* tabla de codificación: la diligencia el programa con el instructivo vigente (no se precarga) */\n/* (v8) la tabla de codificación se retiró: los códigos de EPS Familiar salen del instructivo CAC de ERC */\nST.nomF=\"FAM\";\nfunction nomMonth(){const v=ST.nomMes||(()=>{const t=ST.corte;const p=new Date(t.getFullYear(),t.getMonth()-1,1);return p.getFullYear()+\"-\"+String(p.getMonth()+1).padStart(2,\"0\");})();ST.nomMes=v;const[y,m]=v.split(\"-\").map(Number);return[new Date(y,m-1,1),new Date(y,m,0)];}\nconst isoD=d=>d?iso(d):\"\";\nconst n2=v=>v==null||v===\"\"?\"\":Math.round(Number(v)*100)/100;\nfunction nomRow(fmt,s,de,ha){\n  const p=s.p,B=ST.book,lab=(B.L[p.codigo]||[]).filter(l=>l.fecha<=ha);const last=k=>{const L=lab.filter(l=>l.k===k);return L.length?L[L.length-1]:null;};const inM=l=>l&&l.fecha>=de&&l.fecha<=ha?l:null;\n  const vals=(B.V[p.codigo]||[]).filter(v=>v.fecha<=ha);const lv=vals.length?vals[vals.length-1]:null;const lvp=[...vals].reverse().find(v=>v.peso&&v.talla)||null;\n  const C=k=>(ST.ncfg||{})[k]||\"\";const yn=b=>b==null?undefined:(C(b?\"SI\":\"NO\")||undefined);\n  const cr=last(\"creat\");const age=cr&&p.fnac?COH.age(p.fnac,cr.fecha):null;const cg=cr&&lvp?RCV.cockcroft(cr.v,age,lvp.peso,p.sexo===\"F\"):null;\n  const ats=(B.A[p.codigo]||[]).filter(a=>a.fecha<=ha&&a.estado===\"REALIZADA\");const lastAt=dis=>{const L=ats.filter(a=>a.dis===dis);return L.length?L[L.length-1].fecha:null;};\n  const nefV=[...vals].reverse().find(v=>v.prof===\"NEFROLOGIA\");const lastNef=[nefV&&nefV.fecha,lastAt(\"NEFROLOGIA\")].filter(Boolean).sort((a,b)=>b-a)[0]||null;\n  const lastMed=lv?lv.fecha:null;\n  const cit=((B.CI||{})[p.codigo]||[]).filter(c=>c.serv===\"NEFROLOGIA\");const citM=cit.filter(c=>c.estado===\"ATENDIDA\"&&c.fecha>=de&&c.fecha<=ha).pop()||null;const citNext=cit.filter(c=>c.fecha>ha&&(c.estado===\"ASIGNADA\"||c.estado===\"EN SALA\"))[0]||null;\n  const G=s.c.G;const V={};\n  if(fmt===\"FAM\"){\n    /* Códigos del instructivo CAC de ERC (Res. 2463 de 2014; texto del formato FOMAG que ya usa Hemodiálisis). W() = valor por defecto\n       del instructivo para «desconocido»: si el nominal anterior trae el dato, prevalece el arrastre. */\n    const D1800=\"1800-01-01\",D1845=\"1845-01-01\",D1811=\"1811-01-01\";const W=v=>({w:v});const set=(i,v)=>{V[i]=v;};\n    const per0=new Date(ha.getFullYear()-1,ha.getMonth(),ha.getDate()+1);const inP=l=>l&&l.fecha>=per0&&l.fecha<=ha?l:null;\n    const LP=(iv,id,k,noVal,noDate)=>{const l=inP(last(k));if(l){set(iv,n2(l.v));set(id,isoD(l.fecha));}else{set(iv,noVal);set(id,noDate);}};\n    const ercSi=s.c.erc===\"si\"||[\"G3a\",\"G3b\",\"G4\",\"G5\"].includes(G);const est=G?({G1:1,G2:2,G3a:3,G3b:3,G4:4,G5:5})[G]:null;const e35=ercSi&&est>=3;const tmnd=p.terapia===\"tmnd\";const g5=G===\"G5\";\n    set(0,p.n1||undefined);set(1,p.n2||(p.n1?\"NONE\":undefined));set(2,p.ap1||undefined);set(3,p.ap2||(p.ap1?\"NOAP\":undefined));set(4,p.tipodoc||undefined);set(5,p.doc||undefined);set(6,isoD(p.fnac)||undefined);set(7,p.sexo||undefined);\n    if(AST.cfg.eaps&&AST.cfg.eaps[p.eps])set(9,AST.cfg.eaps[p.eps]);\n    set(13,[p.tel,p.tel2,p.acudTel].filter(Boolean)[0]||undefined);set(15,AST.cfg.hab||undefined);set(16,p.fing?isoD(p.fing):W(D1800));\n    set(17,p.hta?1:2);set(18,p.hta?W(D1800):D1845);set(20,({\"1\":1,\"2\":3,otra:4})[p.dmTipo]||2);set(21,p.dmTipo?W(D1800):D1845);\n    set(24,lvp?n2(lvp.peso):undefined);set(25,lvp?n2(lvp.talla):undefined);\n    const lvPA=[...vals].reverse().find(v=>v.pas!=null&&v.fecha>=per0)||null;set(26,lvPA?lvPA.pas:999);set(27,lvPA&&lvPA.pad!=null?lvPA.pad:999);\n    LP(28,29,\"creat\",99,D1800);\n    if(p.dmTipo)LP(30,31,\"hba1c\",99,D1800);else{set(30,98);set(31,D1845);}\n    LP(32,33,\"albu\",9999,D1800);LP(34,35,\"rac\",9999,D1800);LP(36,37,\"ct\",999,D1845);LP(38,39,\"hdl\",999,D1845);LP(40,41,\"ldl\",999,D1845);\n    if(e35)LP(42,43,\"pth\",9999,D1800);else{set(42,9988);set(43,D1845);}\n    set(44,cg!=null&&inP(cr)?n2(cg):999);\n    /* 36 y 37 (IECA / ARA II): la herramienta registra «IECA o ARA II» sin distinguir → arrastre o por diligenciar */\n    const sinDatos=!inP(last(\"creat\"))&&!inP(last(\"tfg\"))&&!inP(last(\"rac\"));\n    set(47,ercSi?1:s.c.erc===\"no\"?0:sinDatos?3:2);set(48,ercSi&&est?est:s.c.erc===\"no\"?98:99);set(49,g5?W(D1800):D1845);set(50,1);\n    if(!tmnd){set(51,98);set(52,97);set(53,D1845);}\n    set(54,D1845);[55,56,57,58,59,60,61,62].forEach(i=>set(i,98));set(63,98);set(64,D1811);set(65,D1811);set(66,tmnd?1:2);if(!tmnd)set(67,98);\n    const LV=(i,k)=>{if(!e35){set(i,98);return;}const l=inP(last(k));set(i,l?n2(l.v):99);};LV(68,\"hb\");LV(69,\"alb\");LV(70,\"fos\");\n    if(!g5){const c62=ercSi?97:98;for(let i=71;i<=82;i++)set(i,c62);set(83,D1845);set(84,98);}\n    set(85,W(5));[86,87,88,89,90].forEach(i=>set(i,98));for(let i=91;i<=97;i++)set(i,D1845);set(98,98);for(let i=99;i<=107;i++)set(i,98);set(108,98);set(109,D1845);set(110,D1845);set(111,98);set(112,98);\n    set(117,98);set(118,D1845);set(120,isoD(ha));\n    set(121,lvp?isoD(lvp.fecha):undefined);set(122,lvp?isoD(lvp.fecha):undefined);const tg=last(\"tg\");if(tg){set(123,isoD(tg.fecha));set(124,n2(tg.v));}\n    if(s.tl)set(125,isoD(s.tl.fecha));const hb=last(\"hb\"),al=last(\"alb\"),fo=last(\"fos\");if(hb)set(127,isoD(hb.fecha));if(al)set(128,isoD(al.fecha));if(fo)set(129,isoD(fo.fecha));\n    if(lastNef)set(130,isoD(lastNef));if(lastMed)set(131,isoD(lastMed));if(lv&&lv.prof)set(132,lv.prof);\n    const AD=(i,dis)=>{const f=lastAt(dis);if(f)set(i,isoD(f));};AD(135,\"ENFERMERIA\");AD(136,\"NUTRICION\");AD(137,\"TRABAJO SOCIAL\");AD(138,\"QUIMICA FARMACEUTICA\");AD(139,\"PSICOLOGIA\");\n    const po=last(\"po\");if(po){set(140,isoD(po.fecha));set(141,po.v);}\n    if(lv&&lv.cint!=null)set(142,n2(lv.cint));\n  }else{\n    const T=fmt===\"TMND\";const set=(i,v)=>{V[i]=v;};\n    set(0,AST.cfg.hab||undefined);set(1,p.tipodoc||undefined);set(2,p.doc||undefined);set(3,[p.tel,p.tel2,p.acudTel].filter(Boolean)[0]||undefined);\n    if(citM){set(4,isoD(citM.fSol)||undefined);set(5,isoD(citM.fAsig)||undefined);set(6,isoD(citM.fecha));}\n    if(citNext)set(7,isoD(citNext.fAsig||citNext.fSol)||undefined);\n    set(8,lvp?n2(lvp.peso):undefined);set(9,lvp?n2(lvp.talla):undefined);set(10,lv&&lv.pas!=null?lv.pas:undefined);set(11,lv&&lv.pad!=null?lv.pad:undefined);\n    let o=T?12:13;if(!T&&lv&&lv.cint!=null)set(12,n2(lv.cint));\n    if(cr){set(o,n2(cr.v));set(o+1,isoD(cr.fecha));}if(cg!=null)set(o+2,n2(cg));\n    const M2=(iv,id,k)=>{const l=inM(last(k));if(l){set(iv,n2(l.v));set(id,isoD(l.fecha));}};\n    if(!T){M2(16,17,\"rac\");if(G)set(18,G);M2(19,20,\"glu\");if(s.d.dm)M2(21,22,\"hba1c\");M2(23,24,\"ct\");M2(25,26,\"tg\");M2(27,28,\"hdl\");M2(29,30,\"ldl\");M2(31,32,\"pth\");M2(33,34,\"hb\");M2(35,36,\"alb\");M2(37,38,\"fos\");\n      const qo=inM(last(\"qo\"));if(qo){set(39,qo.v);set(40,isoD(qo.fecha));}M2(41,42,\"cr24\");}\n    else{if(s.d.dm)M2(15,16,\"hba1c\");M2(17,18,\"ct\");M2(19,20,\"tg\");M2(21,22,\"hdl\");M2(23,24,\"ldl\");M2(25,26,\"pth\");M2(27,28,\"hb\");M2(29,30,\"alb\");M2(31,32,\"fos\");const ab=last(\"ahbs\");if(ab){set(34,n2(ab.v));set(35,isoD(ab.fecha));}}\n  }\n  return V;}\nfunction nomArrOf(code,fmt){const r=(ST.arr||[]).filter(x=>x.Codigo===code&&x.Formato===fmt).pop();if(!r)return null;try{return JSON.parse(r.Datos);}catch(e){return null;}}\nfunction nomBuild(fmt){const F=NOMF[fmt];const[de,ha]=nomMonth();\n  const S=ST.book.pac.filter(p=>p.eps===F.eps&&COH.activeAt(p,ha)).map(p=>ST.smap[p.codigo]&&NP.days(ST.corte,ha)===0?ST.smap[p.codigo]:COH.snapshot(p,ST.book,ha)).filter(F.sel);\n  const rows=[],traz=[],pend={};\n  S.forEach(s=>{const V=nomRow(fmt,s,de,ha);const A=nomArrOf(s.p.codigo,fmt)||{};const r=[];\n    F.H.forEach((h,i)=>{let v=V[i],src=\"CALCULADO\";const hasA=A[h]!=null&&A[h]!==\"\";if(v&&typeof v===\"object\"&&\"w\" in v){if(hasA){v=A[h];src=\"ARRASTRE\";}else{v=v.w;src=\"INSTRUCTIVO (desconocido)\";}}else if(v===undefined||v===\"\"){if(hasA){v=A[h];src=\"ARRASTRE\";}else{v=\"\";src=\"POR DILIGENCIAR\";pend[h]=(pend[h]||0)+1;}}else if(fmt===\"FAM\"&&typeof v===\"number\"&&[98,97,99,999,9999,9988].includes(v))src=\"INSTRUCTIVO\";else if(fmt===\"FAM\"&&/^18(00|11|45)-01-01$/.test(String(v)))src=\"INSTRUCTIVO\";r.push(v);traz.push([s.p.codigo,s.p.doc,h,v,src]);});\n    rows.push(r);});\n  return{F,S,rows,traz,pend,de,ha};}\nfunction rNom(out){\n  const F=NOMF[ST.nomF];const[de,ha]=nomMonth();\n  const elig=ST.book.pac.filter(p=>p.eps===F.eps&&COH.activeAt(p,ha));const nArr=(ST.arr||[]).filter(x=>x.Formato===ST.nomF).length;\n  let h=head(\"Nominal mensual por EPS\",\"Genera el archivo nominal con la estructura que usa cada EPS (encabezados de los archivos de ejemplo). Lo que el libro tiene se calcula; lo codificado sigue el instructivo CAC de ERC; lo que el libro no tiene sale del nominal anterior (arrastre) o queda «por diligenciar» en la hoja de trazabilidad. Nunca se rellena con un valor supuesto.\");\n  h+='<section class=\"panel\"><div class=\"row3\"><label class=\"f\">Formato<select id=\"nomf\">'+Object.entries(NOMF).map(([k,x])=>'<option value=\"'+k+'\"'+(k===ST.nomF?\" selected\":\"\")+'>'+esc(x.n)+'<\/option>').join(\"\")+'<\/select><\/label><label class=\"f\">Mes del reporte<input type=\"month\" id=\"nommes\" value=\"'+esc(ST.nomMes)+'\"><\/label><label class=\"f\">Código de habilitación de la IPS<input type=\"text\" id=\"nomhab\" value=\"'+esc(AST.cfg.hab||\"\")+'\"><\/label><\/div>';\n  h+='<p class=\"note\" style=\"margin:8px 0\">Fecha de corte: <strong>'+fd(ha)+'<\/strong>. Pacientes de '+esc(epsShort(F.eps))+' activos al corte: <strong>'+elig.length+'<\/strong>. Pacientes con arrastre para este formato: <strong>'+nArr+'<\/strong>.'+(ST.nomF!==\"FAM\"?' En los campos marcados «solo pruebas del mes» se reporta el examen solo si se tomó dentro del mes.':'')+'<\/p>';\n  h+='<div class=\"copyrow\"><button type=\"button\" class=\"btn primary\" data-x=\"nomgen\">Descargar nominal<\/button><label class=\"btn\" for=\"nomarr\">Cargar nominal anterior (arrastre)<\/label><input type=\"file\" id=\"nomarr\" accept=\".xlsx,.xls\" hidden><span class=\"note\" id=\"nommsg\"><\/span><\/div><\/section>';\n  h+='<section class=\"panel\"><h3>Qué calcula la herramienta<\/h3><ul class=\"note\" style=\"margin:0;padding-left:18px;display:grid;gap:3px\"><li>Identificación, teléfono, fecha de ingreso y código de habilitación (del libro y de la configuración).<\/li><li>Peso, talla, PA y cintura de la última valoración; creatinina, HbA1c, albuminuria, RAC, lípidos, PTH, hemoglobina, albúmina, fósforo, glucemia y orina con su fecha.<\/li><li>TFG por Cockcroft-Gault con el peso de la última valoración, porque así lo piden los encabezados. La estadificación del programa sigue con CKD-EPI 2021, como exige la CAC: el valor del nominal no reemplaza al de la HC.<\/li><li>Fechas de nefrología (citas de la agenda), última valoración médica y últimas atenciones de enfermería, nutrición, trabajo social, química farmacéutica y psicología.<\/li><li>EPS Familiar (143 campos): variables codificadas con el instructivo CAC de ERC (Res. 2463 de 2014; el mismo texto que usa el módulo de Hemodiálisis): 1/2 para HTA, tipo de DM, 0–3 para ERC, estadio 1–5/98/99, programa, TMND, «no aplica» de diálisis y trasplante para quien no está en TRR, y los comodines de «no se realizó el laboratorio». Las fechas de diagnóstico desconocidas salen 1800-01-01 solo si el nominal anterior no trae la fecha.<\/li><li>Quedan por arrastre o por diligenciar: IECA y ARA II por separado (la valoración registra «IECA o ARA II»), costos, régimen, código EPS (si no está configurado), etnia, grupo poblacional, municipio DANE, fecha de afiliación, etiología codificada, meses de prestación, novedad y BDUA; en G5 la valoración para trasplante.<\/li><li>Discrepancia visible: el encabezado de EPS Familiar dice que hemoglobina, albúmina y fósforo (campos 59–61) aplican «solo en diálisis»; el instructivo CAC los pide en ERC 3 a 5. Se siguió el instructivo; confírmelo con la EPS.<\/li><\/ul><\/section>';\n  out.innerHTML=h;\n  $(\"nomf\").addEventListener(\"change\",e=>{ST.nomF=e.target.value;renderMg(\"nom\");});\n  $(\"nommes\").addEventListener(\"change\",e=>{ST.nomMes=e.target.value;renderMg(\"nom\");});\n  $(\"nomhab\").addEventListener(\"change\",e=>{AST.cfg.hab=e.target.value.trim();saveCfg();});\n  $(\"nomarr\").addEventListener(\"change\",e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=ev=>{try{const wb=XLSX.read(new Uint8Array(ev.target.result),{type:\"array\",cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];\n      const rows=XLSX.utils.sheet_to_json(ws,{defval:\"\",raw:false,dateNF:\"yyyy-mm-dd\"});const H=NOMF[ST.nomF].H;const docH=ST.nomF===\"FAM\"?H[5]:H[2];\n      const byDoc={};ST.book.pac.forEach(p=>{if(p.doc)byDoc[String(p.doc).trim()]=p;});let ok=0,no=0;\n      rows.forEach(r=>{const doc=String(r[docH]||\"\").trim();const p=byDoc[doc];if(!p){no++;return;}const D={};H.forEach(hh=>{if(r[hh]!==\"\"&&r[hh]!=null)D[hh]=r[hh] instanceof Date?iso(r[hh]):r[hh];});\n        ST.arr=(ST.arr||[]).filter(x=>!(x.Codigo===p.codigo&&x.Formato===ST.nomF));ST.arr.push({Codigo:p.codigo,Formato:ST.nomF,Corte:iso(nomMonth()[1]),Origen:f.name,Datos:JSON.stringify(D)});ok++;});\n      ST.dirty=true;bookInfo();renderMg(\"nom\");toast(\"Arrastre cargado: \"+ok+\" pacientes enlazados por documento; \"+no+\" filas sin paciente en el libro.\");}catch(err){$(\"nommsg\").textContent=\"No se pudo leer: \"+err.message;}};rd.readAsArrayBuffer(f);e.target.value=\"\";});\n  EXPORTS.nomgen=()=>{const R=nomBuild(ST.nomF);if(!R.rows.length){toast(\"No hay pacientes de \"+epsShort(R.F.eps)+\" para este formato.\");return;}\n    const pend=[[\"Campo\",\"Pacientes sin dato\"]].concat(Object.entries(R.pend).sort((a,b)=>b[1]-a[1]));\n    const notas=[[\"Nota\"],[\"Formato: \"+R.F.n+\". Mes del reporte \"+fd(R.de)+\" a \"+fd(R.ha)+\".\"],[\"Encabezados copiados de los archivos de ejemplo entregados por la coordinación (11-oct-2026). Verifique contra el instructivo vigente de la EPS y de la CAC antes de radicar.\"],\n      [\"TFG del nominal: Cockcroft-Gault ((140 − edad) × peso / (72 × creatinina), × 0,85 en mujeres) con la creatinina reportada y el peso de la última valoración. La CAC estadifica con CKD-EPI 2021: ese es el valor clínico.\"],\n      [\"Valores codificados (EPS Familiar): instructivo CAC de ERC (Res. 2463 de 2014), el mismo que usa el módulo de Hemodiálisis. Origen de cada celda en la hoja Trazabilidad: CALCULADO, INSTRUCTIVO, ARRASTRE o POR DILIGENCIAR. Verifique contra el instructivo vigente antes de radicar.\"],\n      [\"Fechas en formato AAAA-MM-DD. Decimales con punto.\"],[\"Datos ficticios: \"+(ST.demo?\"SÍ. No radicar.\":\"no\")]];\n    saveXlsx(\"Nominal_\"+ST.nomF+\"_\"+ST.nomMes+\".xlsx\",[[\"Nominal\",[R.F.H].concat(R.rows)],[\"Trazabilidad\",[[\"Código\",\"Documento\",\"Campo\",\"Valor\",\"Origen\"]].concat(R.traz)],[\"Por diligenciar\",pend],[\"Notas\",notas]]);};\n}\n\n/* ---------- datos para el tablero gerencial del portal ---------- */\nwindow.MG.kpi=function(){if(!ST.book)return null;const S=ST.snaps;const res=[];\n  COH.ORDER.forEach(code=>{const set=S.map(s=>s.ind[code]).filter(Boolean);if(!set.length)return;const n=set.filter(i=>i.ok).length;const F=COH.FICHAS[code]||{};const m=F.cac?{r:F.cac,src:\"CAC\"}:F.inst?{r:F.inst,src:\"INST\"}:null;\n    res.push({code,n:F.n||code,sec:F.sec||\"\",num:n,den:set.length,pc:n/set.length*100,meta:m?m.r[0]:null,src:m?m.src:null});});\n  const c=ST.corte,de=new Date(c.getFullYear(),c.getMonth(),1);const A=atProg(de,c,\"\");const pm=new Date(c.getFullYear(),c.getMonth()-1,1),pmf=new Date(c.getFullYear(),c.getMonth(),0);const Ap=atProg(pm,pmf,\"\");\n  const al=S.filter(s=>(s.P.actions||[]).some(a=>a.lvl===\"bad\")).length;\n  return{activos:S.length,porEps:COH.EPS.map(e=>[e,S.filter(s=>s.p.eps===e).length]),corte:iso(c),demo:ST.demo,ind:res,atProg:{mes:A,prev:Ap},alertas:al,\n    venc:S.reduce((a,s)=>a+s.items.filter(i=>!i.due||i.due<c).length,0),g3:S.filter(s=>s.c.grupo===3).length};};\n\n/* ---------- datos ficticios ---------- */\nfunction demoWorkbook(){\n  const T=new Date();const D=(mo,dd)=>{const x=NP.addMonths(new Date(T.getFullYear(),T.getMonth(),T.getDate()),-mo);if(dd)x.setDate(x.getDate()-dd);return NP.fd(x);};\n  const pac=[[\"Código\",\"Tipo documento\",\"Documento\",\"Nombre completo\",\"Fecha nacimiento\",\"Sexo\",\"EPS\",\"Municipio\",\"Dirección\",\"Teléfono\",\"Teléfono 2\",\"Acudiente\",\"Teléfono acudiente\",\"Fecha ingreso\",\"HTA\",\"Diabetes\",\"Enfermedad cardiovascular\",\"Causa ERC\",\"Situación renal\",\"Estado\",\"Fecha estado\",\"Observaciones\"]];\n  const lab=[[\"Código\",\"Fecha\",\"Examen\",\"Valor\",\"Observaciones\"]],val=[[\"Código\",\"Fecha\",\"Profesional\",\"Tipo\",\"PA sistólica\",\"PA diastólica\",\"Peso kg\",\"Talla cm\",\"Cintura cm\",\"IECA/ARA II\",\"iSGLT2\",\"Estatina\",\"Finerenona\",\"Ajuste DM\",\"HTA resistente\",\"Cronicidad en HC\",\"Conducta\",\"Causa ERC\",\"Salud autopercibida\",\"Karnofsky\",\"Síntomas\",\"ERC\",\"Estadio\",\"Albuminuria\",\"Grupo\",\"Próximo control\",\"Observaciones\",\"Tabaquismo\",\"Antihipertensivo\"]],at=[[\"Código\",\"Fecha\",\"Disciplina\",\"Estado\",\"Observaciones\"]],nov=[[\"Código\",\"Fecha\",\"Tipo\",\"Detalle\"]];\n  const P=[\n    [\"DEMO-01\",\"Nueva EPS\",\"M\",64,\"SI\",\"NO\",\"HIPERTENSIVA\",\"SIN TRR\",[[8,1.45],[2,1.52]],[[2,14]],{LDL:[2,118],HEMOGLOBINA:[2,13.6],POTASIO:[2,4.6]},[2,142,86,\"ESTABLE\",\"NO RECIBE\",\"NO RECIBE\",\"NEFROLOGIA\"],{NUTRICION:5,EDUCACION:5,RCV:5}],\n    [\"DEMO-02\",\"EPS Familiar de Colombia\",\"F\",58,\"SI\",\"TIPO 2\",\"DIABETICA\",\"SIN TRR\",[[12,1.7],[3,1.95]],[[3,180]],{HBA1C:[3,9.1],LDL:[3,96],HEMOGLOBINA:[3,11.2],POTASIO:[3,5.1],FOSFORO:[9,4.0],PTH:[9,92]},[3,146,88,\"ESTABLE\",\"NO RECIBE\",\"ESTABLE\",\"NEFROLOGIA\"],{NUTRICION:8,ENFERMERIA:8,EDUCACION:14}],\n    [\"DEMO-03\",\"Nueva EPS\",\"F\",71,\"SI\",\"TIPO 2\",\"DIABETICA\",\"SIN TRR\",[[10,2.4],[1,2.6]],[[1,640]],{HBA1C:[1,7.4],LDL:[1,72],HEMOGLOBINA:[1,10.6],POTASIO:[1,5.3],CALCIO:[1,8.9],FOSFORO:[1,4.8],PTH:[4,140],BICARBONATO:[1,19]},[1,128,74,\"ESTABLE\",\"ESTABLE\",\"ESTABLE\",\"NEFROLOGIA\"],{NEFROLOGIA:1,NUTRICION:3,ENFERMERIA:3,PSICOLOGIA:3,\"TRABAJO SOCIAL\":3,EDUCACION:3,\"VACUNA INFLUENZA\":6,RCV:3}],\n    [\"DEMO-04\",\"EPS Familiar de Colombia\",\"M\",79,\"SI\",\"NO\",\"HIPERTENSIVA\",\"G5 TMND\",[[7,4.1],[1,4.6]],[[1,520]],{LDL:[1,84],HEMOGLOBINA:[1,9.6],POTASIO:[1,5.4],CALCIO:[1,8.7],FOSFORO:[1,5.2],PTH:[1,210],BICARBONATO:[1,18],ALBUMINA:[1,3.4]},[1,134,72,\"ESTABLE\",\"NO RECIBE\",\"ESTABLE\",\"NEFROLOGIA\"],{NUTRICION:2,ENFERMERIA:1,PSICOLOGIA:2,\"TRABAJO SOCIAL\":2,EDUCACION:2,\"VACUNA INFLUENZA\":4,RCV:2,\"SOPORTE PALIATIVO\":1}],\n    [\"DEMO-05\",\"Nueva EPS\",\"F\",45,\"NO\",\"TIPO 2\",\"DIABETICA\",\"SIN TRR\",[[5,0.7],[1,0.72]],[[5,410],[1,450]],{HBA1C:[1,6.8],LDL:[1,88]},[1,124,78,\"ESTABLE\",\"ESTABLE\",\"ESTABLE\",\"NEFROLOGIA\"],{NUTRICION:1,EDUCACION:1,RCV:1,\"VACUNA INFLUENZA\":2}],\n    [\"DEMO-06\",\"EPS Familiar de Colombia\",\"M\",55,\"SI\",\"NO\",\"HIPERTENSIVA\",\"SIN TRR\",[[14,1.0]],[[14,12]],{LDL:[14,130]},null,{}],\n    [\"DEMO-07\",\"Nueva EPS\",\"M\",68,\"SI\",\"TIPO 2\",\"DIABETICA\",\"SIN TRR\",[[9,1.6],[4,1.75]],[[4,95]],{HBA1C:[4,8.3],LDL:[4,101],HEMOGLOBINA:[4,12.1],POTASIO:[4,4.9]},[4,138,82,\"ESTABLE\",\"NO RECIBE\",\"NO RECIBE\",\"MEDICINA GENERAL\"],{NUTRICION:10,EDUCACION:10}],\n    [\"DEMO-08\",\"EPS Familiar de Colombia\",\"F\",62,\"SI\",\"NO\",\"GLOMERULOPATIA\",\"SIN TRR\",[[6,2.9],[1,3.4]],[[1,1200]],{LDL:[1,140],HEMOGLOBINA:[1,10.1],POTASIO:[1,6.1],FOSFORO:[1,5.0],PTH:[1,180]},[1,152,94,\"INICIA O AJUSTA\",\"NO RECIBE\",\"ESTABLE\",\"NEFROLOGIA\"],{NUTRICION:6,ENFERMERIA:6}],\n    [\"DEMO-09\",\"Nueva EPS\",\"M\",50,\"SI\",\"TIPO 2\",\"DIABETICA\",\"SIN TRR\",[[3,1.2]],[],{HBA1C:[3,7.9]},[3,132,80,\"ESTABLE\",\"ESTABLE\",\"NO RECIBE\",\"MEDICO EXPERTO\"],{NUTRICION:3}],\n    [\"DEMO-10\",\"EPS Familiar de Colombia\",\"F\",74,\"SI\",\"TIPO 2\",\"DIABETICA\",\"G5 PREPARACION TRR\",[[6,3.8],[1,4.4]],[[1,890]],{HBA1C:[1,7.1],LDL:[1,68],HEMOGLOBINA:[1,9.9],POTASIO:[1,5.0],CALCIO:[1,8.6],FOSFORO:[1,5.6],PTH:[2,260]},[1,136,78,\"ESTABLE\",\"NO RECIBE\",\"ESTABLE\",\"NEFROLOGIA\"],{NUTRICION:1,ENFERMERIA:1,PSICOLOGIA:5,EDUCACION:1,RCV:1}],\n  ];\n  P.forEach(r=>{const[c,eps,sx,ed,hta,dm,ca,sit,cr,rac,ot,v,ats]=r;const n=c.slice(-2);\n    pac.push([c,\"CC\",\"90000\"+n,\"Paciente ficticio \"+n,D(ed*12),sx,eps,\"Mocoa\",\"Barrio ficticio \"+n,\"30000000\"+n,\"31000000\"+n,\"Acudiente ficticio \"+n,\"32000000\"+n,D(18),hta,dm,\"NO\",ca,sit,\"ACTIVO\",\"\",\"\"]);\n    cr.forEach(([m,x])=>lab.push([c,D(m),\"CREATININA\",x,\"\"]));rac.forEach(([m,x])=>lab.push([c,D(m),\"RAC\",x,\"\"]));\n    Object.entries(ot).forEach(([k,[m,x]])=>lab.push([c,D(m),k,x,\"\"]));\n    if(v)val.push([c,D(v[0]),v[6],\"CONTROL\",v[1],v[2],70,165,96,v[3],v[4],v[5],\"NO RECIBE\",\"NO\",\"NO\",\"SI\",v[6]!==\"NEFROLOGIA\"?\"\":sit===\"G5 TMND\"?\"TMND\":sit===\"G5 PREPARACION TRR\"?\"PREPARACION TRR\":\"CONTINUA NEFROLOGIA\",ca,\"REGULAR\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"]);\n    Object.entries(ats).forEach(([k,m])=>at.push([c,D(m),k,\"REALIZADA\",\"\"]));\n  });\n  at.push([\"DEMO-07\",D(1),\"NUTRICION\",\"INASISTENCIA\",\"\"]);at.push([\"DEMO-06\",D(2),\"NEFROLOGIA\",\"INASISTENCIA\",\"\"]);\n  pac.push([\"DEMO-11\",\"CC\",\"9000011\",\"Paciente ficticio 11\",D(80*12),\"M\",\"Nueva EPS\",\"Mocoa\",\"\",\"\",\"\",\"\",\"\",D(30),\"SI\",\"NO\",\"NO\",\"HIPERTENSIVA\",\"SIN TRR\",\"TRR\",D(0,10),\"Inició hemodiálisis\"]);\n  nov.push([\"DEMO-11\",D(0,10),\"INICIO DIALISIS\",\"Ingresa a hemodiálisis\"]);nov.push([\"DEMO-08\",D(0,5),\"HOSPITALIZACION\",\"Edema y descompensación hipertensiva\"]);\n  /* Agenda ficticia: jornadas pasadas, de hoy y futuras con desenlaces variados */\n  const F=k=>NP.fd(NP.addDays(new Date(T.getFullYear(),T.getMonth(),T.getDate()),k));\n  const jor=[[\"ID jornada\",\"Fecha\",\"Servicio\",\"Profesional\",\"Hora inicio\",\"Hora fin\",\"Duración cupo (min)\",\"Agendas simultáneas\",\"Estado\",\"Motivo cancelación\",\"Observaciones\",\"Usuario\",\"Registrado\"]];\n  const J=(id,k,sv,pr,a,b,du,n,est,mot)=>jor.push([id,F(k),sv,pr,a,b,du,n,est||\"ABIERTA\",mot||\"\",\"\",\"Agenda ficticia\",F(k-20)+\" 08:00\"]);\n  J(\"JD-1\",-63,\"NEFROLOGIA\",\"Nefrólogo ficticio\",\"07:00\",\"09:00\",20,2);J(\"JD-2\",-35,\"NEFROLOGIA\",\"Nefrólogo ficticio\",\"07:00\",\"09:00\",20,2);J(\"JD-3\",-28,\"MEDICO EXPERTO\",\"Médico experto ficticio\",\"08:00\",\"10:00\",20,1);\n  J(\"JD-4\",-21,\"NUTRICION\",\"Nutricionista ficticia\",\"08:00\",\"10:00\",30,1);J(\"JD-5\",-14,\"TOMA DE MUESTRAS\",\"Laboratorio\",\"06:30\",\"08:00\",15,1);J(\"JD-6\",-7,\"NEFROLOGIA\",\"Nefrólogo ficticio\",\"07:00\",\"09:00\",20,2,\"CANCELADA\",\"Profesional no disponible\");\n  J(\"JD-7\",0,\"NEFROLOGIA\",\"Nefrólogo ficticio\",\"07:00\",\"10:00\",20,2);J(\"JD-8\",14,\"NEFROLOGIA\",\"Nefrólogo ficticio\",\"07:00\",\"10:00\",20,2);J(\"JD-9\",15,\"NUTRICION\",\"Nutricionista ficticia\",\"08:00\",\"11:00\",30,1);\n  const cit=[[\"ID cita\",\"Código\",\"ID jornada\",\"Fecha\",\"Hora\",\"Agenda\",\"Servicio\",\"Tipo\",\"Origen\",\"Fecha solicitud\",\"Fecha deseada\",\"Fecha asignación\",\"Estado\",\"Confirmación\",\"Hora llegada\",\"Hora atención\",\"Responsable\",\"Motivo\",\"Aviso (horas)\",\"Cita anterior\",\"Reprogramada en\",\"Observaciones\",\"Usuario\",\"Actualizado\"]];\n  const log=[[\"Fecha y hora\",\"ID\",\"Código\",\"Acción\",\"Estado anterior\",\"Estado nuevo\",\"Motivo\",\"Usuario\"]];\n  let ci=0;const C=(cod,jid,k,h,ag,sv,tipo,ksol,kdes,est,o)=>{o=o||{};ci++;const id=\"C-\"+String(ci).padStart(6,\"0\");\n    cit.push([id,cod,jid,F(k),h,ag,sv,tipo,o.orig||\"PLAN\",F(ksol),F(kdes),F(ksol),est,o.conf||\"\",o.ll||\"\",o.at||\"\",o.resp||\"\",o.mot||\"\",o.av==null?\"\":o.av,o.de||\"\",o.re||\"\",\"\",\"Agenda ficticia\",\"\"]);\n    log.push([F(ksol)+\" 09:00\",id,cod,\"ASIGNA\",\"\",\"ASIGNADA\",\"\",\"Agenda ficticia\"]);if(est!==\"ASIGNADA\")log.push([F(k)+\" \"+(o.ll||h),id,cod,\"CAMBIO DE ESTADO\",\"ASIGNADA\",est,o.mot||\"\",\"Agenda ficticia\"]);return id;};\n  C(\"DEMO-03\",\"JD-1\",-63,\"07:00\",\"A\",\"NEFROLOGIA\",\"CONTROL\",-90,-60,\"ATENDIDA\",{conf:\"CONFIRMADA\",ll:\"06:50\",at:\"07:05\"});\n  C(\"DEMO-04\",\"JD-1\",-63,\"07:00\",\"B\",\"NEFROLOGIA\",\"CONTROL\",-90,-62,\"ATENDIDA\",{ll:\"07:10\",at:\"07:25\"});\n  C(\"DEMO-08\",\"JD-1\",-63,\"07:20\",\"A\",\"NEFROLOGIA\",\"CONTROL\",-80,-70,\"INASISTENCIA\",{resp:\"ACCESO\",mot:\"Vía cerrada, clima u orden público\"});\n  C(\"DEMO-10\",\"JD-1\",-63,\"07:40\",\"A\",\"NEFROLOGIA\",\"CONTROL\",-75,-60,\"ATENDIDA\",{conf:\"CONFIRMADA\",ll:\"07:30\",at:\"07:45\"});\n  C(\"DEMO-06\",\"JD-1\",-63,\"08:00\",\"B\",\"NEFROLOGIA\",\"PRIMERA VEZ\",-120,-100,\"INASISTENCIA\",{resp:\"PACIENTE\",mot:\"Se sentía bien, no lo consideró necesario\"});\n  C(\"DEMO-02\",\"JD-1\",-63,\"08:20\",\"A\",\"NEFROLOGIA\",\"CONTROL\",-70,-63,\"CANCELADA\",{resp:\"EPS\",mot:\"Autorización no emitida o vencida\",av:20});\n  C(\"DEMO-03\",\"JD-2\",-35,\"07:00\",\"A\",\"NEFROLOGIA\",\"CONTROL\",-63,-33,\"ATENDIDA\",{conf:\"CONFIRMADA\",ll:\"06:55\",at:\"07:02\"});\n  C(\"DEMO-08\",\"JD-2\",-35,\"07:20\",\"B\",\"NEFROLOGIA\",\"CONTROL\",-60,-63,\"INASISTENCIA\",{orig:\"REPROGRAMACION\",resp:\"ACCESO\",mot:\"Sin dinero para el transporte\"});\n  C(\"DEMO-06\",\"JD-2\",-35,\"07:40\",\"A\",\"NEFROLOGIA\",\"PRIMERA VEZ\",-60,-100,\"INASISTENCIA\",{orig:\"REPROGRAMACION\",conf:\"NO CONTESTA\"});\n  C(\"DEMO-05\",\"JD-2\",-35,\"08:00\",\"A\",\"NEFROLOGIA\",\"CONTROL\",-50,-30,\"ATENDIDA\",{conf:\"CONFIRMADA\",ll:\"08:20\",at:\"08:40\"});\n  C(\"DEMO-01\",\"JD-2\",-35,\"08:20\",\"B\",\"NEFROLOGIA\",\"CONTROL\",-45,-40,\"ATENDIDA\",{ll:\"08:15\",at:\"08:30\"});\n  C(\"DEMO-07\",\"JD-3\",-28,\"08:00\",\"A\",\"MEDICO EXPERTO\",\"CONTROL Y FORMULACION\",-40,-30,\"INASISTENCIA\",{resp:\"PACIENTE\",mot:\"Olvidó la cita\"});\n  C(\"DEMO-02\",\"JD-3\",-28,\"08:20\",\"A\",\"MEDICO EXPERTO\",\"AJUSTE DE METAS\",-35,-30,\"ATENDIDA\",{conf:\"CONFIRMADA\",ll:\"08:10\",at:\"08:25\"});\n  C(\"DEMO-04\",\"JD-3\",-28,\"08:40\",\"A\",\"MEDICO EXPERTO\",\"CONTROL Y FORMULACION\",-35,-28,\"NO ATENDIDA\",{ll:\"08:35\",resp:\"IPS\",mot:\"Demora en la atención: se retiró\"});\n  C(\"DEMO-09\",\"JD-4\",-21,\"08:00\",\"A\",\"NUTRICION\",\"CONTROL\",-30,-25,\"ATENDIDA\",{ll:\"07:55\",at:\"08:05\"});\n  C(\"DEMO-07\",\"JD-4\",-21,\"08:30\",\"A\",\"NUTRICION\",\"CONTROL\",-30,-20,\"INASISTENCIA\",{});\n  C(\"DEMO-02\",\"JD-5\",-14,\"06:30\",\"A\",\"TOMA DE MUESTRAS\",\"PARACLINICOS DEL PLAN\",-20,-14,\"ATENDIDA\",{ll:\"06:25\",at:\"06:35\"});\n  C(\"DEMO-09\",\"JD-5\",-14,\"06:45\",\"A\",\"TOMA DE MUESTRAS\",\"PARACLINICOS DEL PLAN\",-20,-14,\"ASIGNADA\",{});\n  C(\"DEMO-01\",\"JD-6\",-7,\"07:00\",\"A\",\"NEFROLOGIA\",\"CONTROL\",-30,-7,\"CANCELADA\",{resp:\"IPS\",mot:\"Profesional no disponible\",av:30});\n  C(\"DEMO-03\",\"JD-7\",0,\"07:00\",\"A\",\"NEFROLOGIA\",\"CONTROL\",-20,0,\"ATENDIDA\",{conf:\"CONFIRMADA\",ll:\"06:50\",at:\"07:00\"});\n  C(\"DEMO-04\",\"JD-7\",0,\"07:00\",\"B\",\"NEFROLOGIA\",\"CONTROL\",-20,0,\"EN SALA\",{conf:\"CONFIRMADA\",ll:\"07:05\"});\n  C(\"DEMO-10\",\"JD-7\",0,\"07:20\",\"A\",\"NEFROLOGIA\",\"CONTROL\",-15,0,\"ASIGNADA\",{conf:\"CONFIRMADA\"});\n  C(\"DEMO-05\",\"JD-7\",0,\"07:40\",\"B\",\"NEFROLOGIA\",\"CONTROL\",-10,2,\"ASIGNADA\",{conf:\"NO CONTESTA\"});\n  C(\"DEMO-08\",\"JD-7\",0,\"08:00\",\"A\",\"NEFROLOGIA\",\"CONTROL\",-30,-63,\"ASIGNADA\",{orig:\"REPROGRAMACION\"});\n  C(\"DEMO-02\",\"JD-8\",14,\"07:00\",\"A\",\"NEFROLOGIA\",\"CONTROL\",-1,10,\"ASIGNADA\",{});\n  C(\"DEMO-09\",\"JD-9\",15,\"08:00\",\"A\",\"NUTRICION\",\"CONTROL\",-1,20,\"ASIGNADA\",{});\n  const link=(o,n)=>{const r1=cit.find(r=>r[0]===o),r2=cit.find(r=>r[0]===n);r1[20]=n;r2[19]=o;};link(\"C-000003\",\"C-000008\");link(\"C-000008\",\"C-000024\");link(\"C-000005\",\"C-000009\");\n  const wb=XLSX.utils.book_new();[[\"Pacientes\",pac],[\"Laboratorios\",lab],[\"Valoraciones\",val],[\"Atenciones\",at],[\"Novedades\",nov],[\"Jornadas\",jor],[\"Citas\",cit],[\"Citas_log\",log]].forEach(([n,a])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),n));\n  return wb;\n}\n\n/* ---------- datos ficticios amplios: 100 pacientes por EPS con 6 meses de agenda simulada ----------\n   Todo es inventado. Las proporciones (estadios, inasistencia, motivos) son supuestos del generador para ver la herramienta funcionando; no son datos del programa. */\nfunction demoBig(){\n  const T=new Date();T.setHours(0,0,0,0);\n  let seed=20261006;const R=()=>{seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^(seed>>>15),1|seed);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};\n  const ri=(a,b)=>a+Math.floor(R()*(b-a+1)),pick=a=>a[Math.floor(R()*a.length)],ch=p=>R()<p;\n  const wp=arr=>{let s=arr.reduce((a,x)=>a+x[1],0),r=R()*s;for(const x of arr){if((r-=x[1])<0)return x[0];}return arr[arr.length-1][0];};\n  const AD=(d,k)=>NP.addDays(d,k),AM=(d,m)=>NP.addMonths(d,m),F=d=>NP.fd(d),rd=(v,n)=>{const f=Math.pow(10,n==null?1:n);return Math.round(v*f)/f;};\n  const fixW=d=>{const w=d.getDay();return w===6?AD(d,-1):w===0?AD(d,1):d;};\n  const crFor=(tfg,age,fem)=>{let lo=0.2,hi=20;for(let i=0;i<40;i++){const m=(lo+hi)/2;if(NP.ckd(m,age,fem)>tfg)lo=m;else hi=m;}return rd((lo+hi)/2,2);};\n  const hmA=(h,k)=>m2hm(Math.max(0,hm2m(h)+k));\n  const MUN=[[\"Mocoa\",55],[\"Villagarzón\",8],[\"Puerto Asís\",7],[\"Orito\",5],[\"Sibundoy\",5],[\"Puerto Guzmán\",4],[\"Puerto Caicedo\",3],[\"Santiago\",3],[\"Colón\",3],[\"San Francisco\",3],[\"Valle del Guamuez\",2],[\"Puerto Leguízamo\",2]];\n  const EPSL=[\"EPS Familiar de Colombia\",\"Nueva EPS\",\"Mallamas EPS\"];\n  const pac=[[\"Código\",\"Tipo documento\",\"Documento\",\"Nombre completo\",\"Fecha nacimiento\",\"Sexo\",\"EPS\",\"Municipio\",\"Dirección\",\"Teléfono\",\"Teléfono 2\",\"Acudiente\",\"Teléfono acudiente\",\"Fecha ingreso\",\"HTA\",\"Diabetes\",\"Enfermedad cardiovascular\",\"Causa ERC\",\"Situación renal\",\"Estado\",\"Fecha estado\",\"Observaciones\",\"Primer nombre\",\"Segundo nombre\",\"Primer apellido\",\"Segundo apellido\"]];\n  const lab=[[\"Código\",\"Fecha\",\"Examen\",\"Valor\",\"Observaciones\"]],val=[[\"Código\",\"Fecha\",\"Profesional\",\"Tipo\",\"PA sistólica\",\"PA diastólica\",\"Peso kg\",\"Talla cm\",\"Cintura cm\",\"IECA/ARA II\",\"iSGLT2\",\"Estatina\",\"Finerenona\",\"Ajuste DM\",\"HTA resistente\",\"Cronicidad en HC\",\"Conducta\",\"Causa ERC\",\"Salud autopercibida\",\"Karnofsky\",\"Síntomas\",\"ERC\",\"Estadio\",\"Albuminuria\",\"Grupo\",\"Próximo control\",\"Observaciones\",\"Tabaquismo\",\"Antihipertensivo\"]],at=[[\"Código\",\"Fecha\",\"Disciplina\",\"Estado\",\"Observaciones\"]],nov=[[\"Código\",\"Fecha\",\"Tipo\",\"Detalle\"]];\n  const TFR={G1:[90,110],G2:[60,89],G3a:[45,59],G3b:[30,44],G4:[15,29],G5:[8,14]};\n  const P=[];\n  EPSL.forEach((eps,ei)=>{for(let i=0;i<100;i++){\n    const n=ei*100+i+1,code=\"NP-\"+String(n).padStart(4,\"0\"),nn=String(n).padStart(3,\"0\");\n    const G=wp([[\"G1\",5],[\"G2\",25],[\"G3a\",25],[\"G3b\",20],[\"G4\",15],[\"G5\",10]]),A=wp([[\"A1\",50],[\"A2\",35],[\"A3\",15]]);\n    const age=wp([[ri(35,49),15],[ri(50,64),35],[ri(65,79),38],[ri(80,90),12]]),fem=ch(.52);\n    const tfg=ri(TFR[G][0],TFR[G][1])+R()*0.9,rac=A===\"A1\"?ri(4,29):A===\"A2\"?ri(30,299):ri(300,1600);\n    const dm=ch(.45)?\"TIPO 2\":ch(.03)?\"TIPO 1\":\"NO\",hta=ch(.85)||dm===\"NO\",ecv=ch(.15);\n    const causa=dm!==\"NO\"&&ch(.7)?\"DIABETICA\":hta&&ch(.75)?\"HIPERTENSIVA\":pick([\"GLOMERULOPATIA\",\"POLIQUISTOSIS\",\"UROPATIA OBSTRUCTIVA\",\"TUBULOINTERSTICIAL\",\"NO ESTABLECIDA\"]);\n    const sit=G===\"G5\"?(ch(.4)?\"G5 TMND\":\"G5 PREPARACION TRR\"):\"SIN TRR\";\n    const g12=G===\"G1\"||G===\"G2\",g3=G===\"G3a\"||G===\"G3b\",g45=G===\"G4\"||G===\"G5\";\n    const mNef=g12?(A===\"A3\"?3:6):G===\"G3a\"?(A===\"A3\"?3:6):G===\"G3b\"?(A===\"A1\"?6:3):G===\"G4\"?2:1;\n    const nuevo=ch(.04);const fing=nuevo?AD(T,-ri(5,60)):AD(T,-ri(250,1500));\n    const p={code,nn,eps,ei,G,A,age,fem,tfg,rac,dm,hta,ecv,causa,sit,g12,g3,g45,mNef,nuevo,fing,mun:wp(MUN),slope:ri(0,4)+(A===\"A3\"?2:0),sbp:ri(118,152),dbp:ri(70,92),a1c:rd(6+R()*3.6),ldl:ri(55,150),hb:fem?rd(10.2+R()*3.3):rd(10.8+R()*4),k:rd(4+R()*1.1),peso:ri(52,96),talla:fem?ri(148,166):ri(158,180),\n      raas:(hta||dm!==\"NO\")&&rac>30?(ch(.8)?\"ESTABLE\":\"NO RECIBE\"):hta&&ch(.55)?\"ESTABLE\":\"NO RECIBE\",\n      sglt2:dm===\"TIPO 2\"&&tfg>=20?(ch(.5)?\"ESTABLE\":\"NO RECIBE\"):\"NO RECIBE\",stat:age>=50&&tfg<60?(ch(.7)?\"ESTABLE\":\"NO RECIBE\"):(ch(.35)?\"ESTABLE\":\"NO RECIBE\"),\n      fin:dm===\"TIPO 2\"&&rac>=30&&tfg>=25&&ch(.12)?\"ESTABLE\":\"NO RECIBE\",estado:\"ACTIVO\",festado:null,obs:\"\",cits:[],nd:{},prevNS:0,pend:{},hold:{},hasVal:false,last:{},lastToma:null};\n    if(!g12&&p.k<4.5&&g45)p.k=rd(p.k+0.4);\n    p.tfgAt=d=>Math.max(5,p.tfg+p.slope*NP.days(d,T)/365.25);p.ageAt=d=>p.age-Math.max(0,NP.days(d,T))/365.25;\n    p.racAt=d=>Math.max(3,Math.round(p.rac*(0.85+R()*0.3)*(1-0.08*NP.days(d,T)/365.25)));\n    P.push(p);}});\n  /* v8: datos adicionales con una semilla aparte (no cambia la secuencia original) */\n  let seed2=20261011;const R2=()=>{seed2=(seed2+0x6D2B79F5)|0;let t=Math.imul(seed2^(seed2>>>15),1|seed2);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};\n  P.forEach(p=>{p.hdl2=p.fem?38+Math.round(R2()*30):32+Math.round(R2()*24);p.tg2=90+Math.round(R2()*190);p.tab=R2()<.14;p.antiHTA=p.hta&&R2()<.9;});\n  /* egresos ficticios: 2 por EPS */\n  [[4,\"FALLECIDO\",\"FALLECIMIENTO\",\"Fallece en hospitalización (ficticio)\"],[57,\"TRR\",\"INICIO DIALISIS\",\"Inicia hemodiálisis (ficticio)\"],[118,\"TRASLADO\",\"TRASLADO\",\"Cambio de domicilio (ficticio)\"],[160,\"TRR\",\"INICIO DIALISIS\",\"Inicia diálisis peritoneal (ficticio)\"],[233,\"FALLECIDO\",\"FALLECIMIENTO\",\"Fallece en casa (ficticio)\"],[271,\"TRASLADO\",\"TRASLADO\",\"Traslado a otro departamento (ficticio)\"]].forEach(([ix,est,tn,det])=>{const p=P[ix];p.estado=est;p.festado=AD(T,-ri(10,120));nov.push([p.code,F(p.festado),tn,det]);});\n  const addLab=(p,d,ex,v)=>{lab.push([p.code,F(d),ex,v,\"\"]);p.last[ex]=d;};\n  const takeLabs=(p,d,full)=>{const a=p.ageAt(d),t=p.tfgAt(d);addLab(p,d,\"CREATININA\",crFor(t,a,p.fem));\n    const racEvery=(p.mNef>=6?11:p.mNef*1.6)*30;if(full||!p.last.RAC||NP.days(p.last.RAC,d)>=racEvery-20)addLab(p,d,\"RAC\",p.racAt(d));\n    if(p.g3||p.g45||p.raas===\"ESTABLE\")addLab(p,d,\"POTASIO\",rd(p.k+(R()-.5)*.5));\n    if(p.dm!==\"NO\"&&(full||!p.last.HBA1C||NP.days(p.last.HBA1C,d)>=85)){addLab(p,d,\"HBA1C\",rd(p.a1c+(R()-.5)*.8));if(R2()<.8)addLab(p,d,\"GLICEMIA\",Math.round(90+(p.a1c-5)*28+(R2()-.5)*30));}\n    if(full||!p.last.LDL||NP.days(p.last.LDL,d)>=330){addLab(p,d,\"LDL\",Math.round(p.ldl*(0.85+R()*.3)));const h2=Math.round(p.hdl2*(0.9+R2()*.2));addLab(p,d,\"HDL\",h2);addLab(p,d,\"TRIGLICERIDOS\",Math.round(p.tg2*(0.8+R2()*.4)));addLab(p,d,\"COLESTEROL_TOTAL\",Math.round(p.ldl+h2+p.tg2/5));if(R2()<.35)addLab(p,d,\"PARCIAL_ORINA\",R2()<.7?\"Normal\":\"Proteínas +, sin hematuria\");}\n    if((p.g3||p.g45)&&(full||!p.last.HEMOGLOBINA||NP.days(p.last.HEMOGLOBINA,d)>=(p.g3?170:85)))addLab(p,d,\"HEMOGLOBINA\",rd(p.hb+(R()-.5)*.6));\n    if(!p.g12&&(full||!p.last.FOSFORO||NP.days(p.last.FOSFORO,d)>=(p.g3?330:p.G===\"G4\"?170:85))){addLab(p,d,\"CALCIO\",rd(8.6+R()*1.4));addLab(p,d,\"FOSFORO\",rd(p.G===\"G5\"?4+R()*2.4:3+R()*1.8));addLab(p,d,\"PTH\",Math.round(p.G===\"G5\"?120+R()*260:p.G===\"G4\"?55+R()*110:35+R()*70));}\n    if(p.g45){addLab(p,d,\"BICARBONATO\",rd(17+R()*7));if(full||ch(.5))addLab(p,d,\"ALBUMINA\",rd(3.1+R()*1.1));}\n    if(p.g3&&(full||!p.last.ALBUMINA||NP.days(p.last.ALBUMINA,d)>=330)&&R2()<.7)addLab(p,d,\"ALBUMINA\",rd(3.4+R2()*1.0));};\n  const addVal=(p,d,prof,tipo)=>{const pa=p.sbp+ri(-10,10),pd=p.dbp+ri(-6,6);\n    val.push([p.code,F(d),prof,tipo,pa,pd,p.peso,p.talla,Math.round(p.peso*0.95+ri(-5,8)),p.raas,p.sglt2,p.stat,p.dm===\"TIPO 2\"?p.fin:\"\",p.dm!==\"NO\"?(p.a1c>=8&&ch(.5)?\"SI\":\"NO\"):\"\",ch(.04)?\"SI\":\"NO\",p.g12&&p.A===\"A1\"?\"NO\":\"SI\",prof!==\"NEFROLOGIA\"?\"\":p.sit===\"G5 TMND\"?\"TMND\":p.sit===\"G5 PREPARACION TRR\"?\"PREPARACION TRR\":\"CONTINUA NEFROLOGIA\",p.causa,pick([\"BUENA\",\"REGULAR\",\"BUENA\",\"MUY BUENA\",\"MALA\"]),p.g45?pick([90,80,70,60]):\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",p.tab?\"SI\":\"NO\",p.antiHTA?\"SI\":\"NO\"]);p.hasVal=true;};\n  /* historia previa a la ventana de agenda (más de 6 meses) */\n  const W0=AD(T,-182);\n  P.forEach(p=>{\n    const sex=p.fem?\"F\":\"M\",fn=AD(T,-Math.round(p.age*365.25)-ri(0,300));\n    pac.push([p.code,\"CC\",\"9\"+String(4000000+Number(p.nn)*137).padStart(7,\"0\"),\"Paciente ficticio \"+p.nn,F(fn),sex,p.eps,p.mun,\"Barrio ficticio \"+p.nn,\"300\"+String(1000000+Number(p.nn)).slice(-7),ch(.5)?\"310\"+String(2000000+Number(p.nn)).slice(-7):\"\",ch(.7)?\"Acudiente ficticio \"+p.nn:\"\",ch(.6)?\"320\"+String(3000000+Number(p.nn)).slice(-7):\"\",F(p.fing),p.hta?\"SI\":\"NO\",p.dm,p.ecv?\"SI\":\"NO\",p.causa,p.sit,p.estado,p.festado?F(p.festado):\"\",\"\",\"PACIENTE\",\"\",\"FICTICIO\",\"N\"+p.nn]);\n    if(p.nuevo){nov.push([p.code,F(p.fing),\"INGRESO\",\"Ingreso al programa (ficticio)\"]);addLab(p,AD(p.fing,-ri(5,20)),\"CREATININA\",crFor(p.tfgAt(p.fing),p.ageAt(p.fing),p.fem));p.nd.NEFROLOGIA=AD(p.fing,7);return;}\n    takeLabs(p,AD(T,-ri(330,420)),true);const lv=AD(T,-ri(190,330));takeLabs(p,AD(lv,-ri(5,15)),false);\n    addVal(p,lv,ch(.75)||p.eps!==\"EPS Familiar de Colombia\"?\"NEFROLOGIA\":\"MEDICO EXPERTO\",\"CONTROL\");\n    p.nd.NEFROLOGIA=AM(lv,p.mNef);if(p.eps===\"EPS Familiar de Colombia\")p.nd[\"MEDICO EXPERTO\"]=AM(lv,1);\n    const nm=p.G===\"G5\"?3:p.G===\"G4\"?6:12;const ln=ch(.6)?AD(T,-ri(190,400)):null;if(ln)at.push([p.code,F(ln),\"NUTRICION\",\"REALIZADA\",\"\"]);p.nd.NUTRICION=ln?AM(ln,nm):AD(W0,ri(0,60));p.nutM=nm;\n    [\"EDUCACION\",\"ENFERMERIA\",\"PSICOLOGIA\",\"TRABAJO SOCIAL\"].forEach(dsc=>{if(dsc!==\"EDUCACION\"&&p.g12)return;const l=ch(dsc===\"EDUCACION\"?.5:.4)?AD(T,-ri(190,420)):null;if(l)at.push([p.code,F(l),dsc,\"REALIZADA\",\"\"]);p.nd[dsc]=l?AM(l,12):AD(W0,ri(0,170));});\n    if(ch(.45))at.push([p.code,F(AD(T,-ri(150,400))),\"VACUNA INFLUENZA\",\"REALIZADA\",\"\"]);if(ch(.5))at.push([p.code,F(AD(T,-ri(150,380))),\"RCV\",\"REALIZADA\",\"\"]);\n  });\n  P.filter(()=>ch(.04)).forEach(p=>nov.push([p.code,F(AD(T,-ri(15,170))),\"HOSPITALIZACION\",pick([\"Descompensación hipertensiva (ficticio)\",\"Infección urinaria (ficticio)\",\"Edema pulmonar (ficticio)\",\"Hiperpotasemia (ficticio)\"])]));\n  /* jornadas */\n  const jor=[[\"ID jornada\",\"Fecha\",\"Servicio\",\"Profesional\",\"Hora inicio\",\"Hora fin\",\"Duración cupo (min)\",\"Agendas simultáneas\",\"Estado\",\"Motivo cancelación\",\"Observaciones\",\"Usuario\",\"Registrado\"]];\n  const JS=[];const seq={};\n  const addJ=(d,serv,prof,a,b,dur,nAg,canc)=>{const base=\"J\"+iso(d).replace(/-/g,\"\");seq[base]=(seq[base]||0)+1;const j={id:base+\"-\"+seq[base],fecha:d,serv,prof,hIni:a,hFin:b,dur,nAg,canc};j.slots=[];agSlots(j).forEach(t=>agLetters(j).forEach(ag=>j.slots.push([t,ag])));JS.push(j);};\n  for(let k=-26;k<=8;k++){\n    addJ(AD(T,7*k),\"NEFROLOGIA\",\"Nefrólogo ficticio\",\"07:00\",\"11:00\",20,2,k===-9);\n    addJ(fixW(AD(T,7*k+1)),\"MEDICO EXPERTO\",\"Médico experto ficticio\",\"08:00\",\"12:00\",20,1);addJ(fixW(AD(T,7*k+3)),\"MEDICO EXPERTO\",\"Médico experto ficticio\",\"08:00\",\"12:00\",20,1);\n    addJ(fixW(AD(T,7*k+2)),\"NUTRICION\",\"Nutricionista ficticia\",\"07:00\",\"12:00\",30,1);addJ(fixW(AD(T,7*k+3)),\"ENFERMERIA\",\"Enfermera ficticia\",\"08:00\",\"11:00\",20,1);\n    if(k%2===0){addJ(fixW(AD(T,7*k+4)),\"PSICOLOGIA\",\"Psicóloga ficticia\",\"08:00\",\"12:00\",30,1);addJ(fixW(AD(T,7*k+2)),\"EDUCACION\",\"Enfermera ficticia\",\"14:00\",\"16:00\",30,1);}else addJ(fixW(AD(T,7*k+4)),\"TRABAJO SOCIAL\",\"Trabajadora social ficticia\",\"08:00\",\"12:00\",30,1);\n    addJ(fixW(AD(T,7*k-1)),\"TOMA DE MUESTRAS\",\"Laboratorio\",\"06:00\",\"08:30\",15,1);addJ(fixW(AD(T,7*k+2)),\"TOMA DE MUESTRAS\",\"Laboratorio\",\"06:00\",\"08:30\",15,1);\n  }\n  const HOR=AD(T,60);const JJ=JS.filter(j=>j.fecha<=HOR).sort((a,b)=>a.fecha-b.fecha||hm2m(a.hIni)-hm2m(b.hIni));\n  const cit=[],log=[],ctc=[];let cn=0;\n  const MOTI=[[\"A_COSTO\",16],[\"A_RURAL\",10],[\"A_VIA\",7],[\"P_OLVIDO\",14],[\"P_BIEN\",8],[\"P_ENFERMO\",8],[\"P_TRABAJO\",7],[\"P_ACOMP\",4],[\"E_AUT\",9],[\"I_NOTIF\",4],[\"O_SINCONT\",13]];\n  const MOTC=[[\"P_ENFERMO\",18],[\"P_TRABAJO\",16],[\"E_AUT\",20],[\"A_COSTO\",10],[\"P_HOSP\",8],[\"A_VIA\",6],[\"I_ERROR\",4],[\"I_LAB\",6],[\"O_OTRO\",4]];\n  const interval=(p,serv)=>serv===\"NEFROLOGIA\"?p.mNef:serv===\"MEDICO EXPERTO\"?1:serv===\"NUTRICION\"?p.nutM||12:12;\n  const nowM=new Date().getHours()*60+new Date().getMinutes();\n  const book=(j,p,t,ag,cancJ,desT)=>{\n    cn++;const id=\"C-\"+String(cn).padStart(6,\"0\");const past=j.fecha<T,today=NP.days(j.fecha,T)===0;\n    const lead=j.serv===\"TOMA DE MUESTRAS\"?ri(2,10):ri(2,45),fAsig=new Date(Math.min(AD(j.fecha,-lead),T));const des=desT||p.nd[j.serv]||j.fecha;\n    const c={id,c:p.code,jor:j.id,fecha:j.fecha,hora:t,ag,serv:j.serv,tipo:j.serv===\"NEFROLOGIA\"?(p.hasVal?\"CONTROL\":\"PRIMERA VEZ\"):j.serv===\"MEDICO EXPERTO\"?\"CONTROL Y FORMULACION\":j.serv===\"TOMA DE MUESTRAS\"?\"PARACLINICOS DEL PLAN\":\"CONTROL\",origen:p.pend[j.serv]?\"REPROGRAMACION\":\"PLAN\",fSol:fAsig,fDes:des,fAsig,estado:\"ASIGNADA\",conf:\"\",hLleg:\"\",hAten:\"\",resp:\"\",motivo:\"\",avisoH:\"\",deId:p.pend[j.serv]||\"\",reId:\"\"};\n    if(c.deId){const o=cit.find(x=>x.id===c.deId);if(o)o.reId=id;delete p.pend[j.serv];}\n    log.push([F(fAsig)+\" \"+m2hm(ri(7*60,16*60)),id,p.code,\"ASIGNA\",\"\",\"ASIGNADA\",c.deId?\"Reprograma \"+c.deId:\"\",\"Agenda ficticia\"]);\n    if((past||today||NP.days(T,j.fecha)<=3)&&ch(.6)){const res=ch(.8)?\"CONFIRMA\":pick([\"NO CONTESTA\",\"NUMERO ERRADO\",\"MENSAJE ENVIADO\"]);c.conf=res===\"CONFIRMA\"?\"CONFIRMADA\":res;const fr=AD(j.fecha,-ri(1,2));ctc.push([F(fr<T?fr:T)+\" \"+m2hm(ri(8*60,17*60)),p.code,id,pick([\"LLAMADA\",\"WHATSAPP\",\"SMS\"]),res,\"\",\"Agenda ficticia\"]);}\n    let resolve=past||(today&&hm2m(t)+20<nowM);\n    if(cancJ){c.estado=\"CANCELADA\";c.resp=\"IPS\";c.motivo=AG_MOTL(\"I_PROF\");c.avisoH=ri(20,48);if(ch(.7))p.pend[j.serv]=id;}\n    else if(resolve){\n      const pc=.07,pn=Math.max(.02,.055+(p.prevNS>0?.09:0)+(lead>30?.05:0)+(p.mun!==\"Mocoa\"?.05:0)+(c.conf===\"CONFIRMADA\"?-.035:0)+(c.conf&&c.conf!==\"CONFIRMADA\"?.04:0));const r=R();\n      if(past&&NP.days(j.fecha,T)<=12&&ch(.02)){/* sin cierre */}\n      else if(r<pc){const mk=wp(MOTC);c.estado=\"CANCELADA\";c.resp=AG_MOTR(mk);c.motivo=AG_MOTL(mk);c.avisoH=ch(.25)?ri(1,23):ri(24,120);if(ch(.75))p.pend[j.serv]=id;else p.hold[j.serv]=AD(j.fecha,ri(40,100));}\n      else if(r<pc+pn){c.estado=\"INASISTENCIA\";p.prevNS++;if(ch(.72)){const mk=wp(MOTI);c.resp=AG_MOTR(mk);c.motivo=AG_MOTL(mk);}if(ch(.62))p.pend[j.serv]=id;else p.hold[j.serv]=AD(j.fecha,ri(40,120));}\n      else if(r<pc+pn+.012){c.estado=\"NO ATENDIDA\";c.hLleg=hmA(t,ri(-10,15));c.resp=\"IPS\";c.motivo=AG_MOTL(\"I_DEMORA\");p.pend[j.serv]=id;}\n      else{c.estado=\"ATENDIDA\";c.hLleg=hmA(t,ch(.15)?ri(16,45):ri(-20,12));c.hAten=hmA(hm2m(c.hLleg)>hm2m(t)?c.hLleg:t,ri(0,35));\n        if(j.serv!==\"TOMA DE MUESTRAS\")p.nd[j.serv]=AM(j.fecha,interval(p,j.serv));\n        if(j.serv===\"NEFROLOGIA\"){addVal(p,j.fecha,\"NEFROLOGIA\",c.tipo);if(p.eps===\"EPS Familiar de Colombia\")p.nd[\"MEDICO EXPERTO\"]=AM(j.fecha,1);}\n        if(j.serv===\"MEDICO EXPERTO\")addVal(p,j.fecha,\"MEDICO EXPERTO\",\"CONTROL\");}\n      if(c.estado!==\"ASIGNADA\")log.push([F(j.fecha)+\" \"+(c.hLleg||t),id,p.code,\"CAMBIO DE ESTADO\",\"ASIGNADA\",c.estado,c.motivo,\"Agenda ficticia\"]);\n    }else if(today&&hm2m(t)<=nowM+10&&ch(.5)){c.estado=\"EN SALA\";c.hLleg=hmA(t,ri(-15,5));log.push([F(j.fecha)+\" \"+c.hLleg,id,p.code,\"CAMBIO DE ESTADO\",\"ASIGNADA\",\"EN SALA\",\"\",\"Agenda ficticia\"]);}\n    cit.push(c);p.cits.push(c);return c;};\n  const active=(p,d)=>p.fing<=d&&!(p.festado&&p.festado<=d);\n  /* servicios clínicos */\n  JJ.filter(j=>j.serv!==\"TOMA DE MUESTRAS\").forEach(j=>{\n    const fut=j.fecha>T,dd=NP.days(T,j.fecha);const fill=j.canc?.8:fut?(dd<=14?.75:dd<=35?.45:.2):(.82+R()*.18);\n    const cap=Math.round(j.slots.length*fill);\n    const cand=P.filter(p=>active(p,j.fecha)&&p.nd[j.serv]&&p.nd[j.serv]<=AD(j.fecha,21)&&!(p.hold[j.serv]&&p.hold[j.serv]>j.fecha)&&!p.cits.some(c=>NP.days(c.fecha,j.fecha)===0&&c.serv===j.serv)\n      &&!(j.serv===\"MEDICO EXPERTO\"&&p.nd.NEFROLOGIA&&NP.days(j.fecha,p.nd.NEFROLOGIA)<=20&&NP.days(j.fecha,p.nd.NEFROLOGIA)>=-30)\n      &&!p.cits.some(c=>c.serv===j.serv&&c.estado===\"ASIGNADA\"&&c.fecha>j.fecha))\n      .sort((a,b)=>(a.pend[j.serv]?0:1)-(b.pend[j.serv]?0:1)||a.nd[j.serv]-b.nd[j.serv]).slice(0,cap);\n    cand.forEach((p,i)=>{const [t,ag]=j.slots[i];book(j,p,t,ag,j.canc);});\n  });\n  /* toma de muestras antes de nefrología o médico experto */\n  JJ.filter(j=>j.serv===\"TOMA DE MUESTRAS\").forEach(j=>{\n    const cand=P.filter(p=>active(p,j.fecha)&&(!p.lastToma||NP.days(p.lastToma,j.fecha)>=20)&&p.cits.some(c=>(c.serv===\"NEFROLOGIA\"||c.serv===\"MEDICO EXPERTO\")&&c.estado!==\"CANCELADA\"&&NP.days(j.fecha,c.fecha)>=3&&NP.days(j.fecha,c.fecha)<=14)).slice(0,j.slots.length);\n    cand.forEach((p,i)=>{const [t,ag]=j.slots[i];const nx=p.cits.filter(c=>(c.serv===\"NEFROLOGIA\"||c.serv===\"MEDICO EXPERTO\")&&c.estado!==\"CANCELADA\"&&NP.days(j.fecha,c.fecha)>=3).sort((a,b)=>a.fecha-b.fecha)[0];const c=book(j,p,t,ag,false,nx?AD(nx.fecha,-7):null);p.lastToma=j.fecha;if(c.estado===\"ATENDIDA\")takeLabs(p,j.fecha,false);});\n  });\n  /* desde el año pasado, creatinina de quienes no pasaron por toma de muestras (laboratorio externo) */\n  P.forEach(p=>{if(!p.nuevo&&!p.lastToma&&ch(.5))takeLabs(p,AD(T,-ri(20,150)),false);});\n  JS.forEach(j=>jor.push([j.id,F(j.fecha),j.serv,j.prof,j.hIni,j.hFin,j.dur,j.nAg,j.canc?\"CANCELADA\":\"ABIERTA\",j.canc?AG_MOTL(\"I_PROF\"):\"\",\"\",\"Agenda ficticia\",F(AD(j.fecha,-30))+\" 08:00\"]));\n  JS.filter(j=>j.canc).forEach(j=>log.push([F(AD(j.fecha,-2))+\" 10:00\",j.id,\"\",\"CANCELA JORNADA\",\"ABIERTA\",\"CANCELADA\",AG_MOTL(\"I_PROF\"),\"Agenda ficticia\"]));\n  const citA=[[\"ID cita\",\"Código\",\"ID jornada\",\"Fecha\",\"Hora\",\"Agenda\",\"Servicio\",\"Tipo\",\"Origen\",\"Fecha solicitud\",\"Fecha deseada\",\"Fecha asignación\",\"Estado\",\"Confirmación\",\"Hora llegada\",\"Hora atención\",\"Responsable\",\"Motivo\",\"Aviso (horas)\",\"Cita anterior\",\"Reprogramada en\",\"Observaciones\",\"Usuario\",\"Actualizado\"]].concat(cit.map(c=>[c.id,c.c,c.jor,F(c.fecha),c.hora,c.ag,c.serv,c.tipo,c.origen,F(c.fSol),F(c.fDes),F(c.fAsig),c.estado,c.conf,c.hLleg,c.hAten,c.resp,c.motivo,c.avisoH,c.deId,c.reId,\"\",\"Agenda ficticia\",\"\"]));\n  const logA=[[\"Fecha y hora\",\"ID\",\"Código\",\"Acción\",\"Estado anterior\",\"Estado nuevo\",\"Motivo\",\"Usuario\"]].concat(log);\n  const ctcA=[[\"Fecha y hora\",\"Código\",\"ID cita\",\"Medio\",\"Resultado\",\"Observaciones\",\"Usuario\"]].concat(ctc);\n  const wb=XLSX.utils.book_new();[[\"Pacientes\",pac],[\"Laboratorios\",lab],[\"Valoraciones\",val],[\"Atenciones\",at],[\"Novedades\",nov],[\"Jornadas\",jor],[\"Citas\",citA],[\"Citas_log\",logA],[\"Contactos\",ctcA]].forEach(([n,a])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),n));\n  return wb;\n}\n\n/* ---------- arranque ---------- */\nshow(\"calc\");\nif(window.NEFRO_DEMO){$(\"booklabel\").hidden=true;$(\"bookdemo\").textContent=\"Regenerar datos ficticios\";\n  document.querySelector(\".privacy\").innerHTML='<strong>Página de demostración.<\/strong> 300 pacientes inventados (100 por EPS) con seis meses de agenda simulada y dos meses programados. Las cifras salen del generador, no del programa. No cargue datos reales aquí.';\n  if(!AST.user)AST.user=\"Demostración\";if(typeof XLSX!==\"undefined\"){loadDemo(true);show(\"agenda\");}}\nelse probe().then(ok=>{if(ok){$(\"bookdemo\").hidden=true;loadDb().catch(e=>{$(\"bookinfo\").textContent=\"No se pudo leer la base de datos: \"+e.message;});}});\n})();\n<\/script>\n\n<\/body><\/html>";
+const NEFRO_HTML=""; /* Nefroprotección es una página aparte (/modulos/nefro/) */
 /* ================= v0.4 · PROGRAMA VIH · estructura del reporte CAC (encabezados del archivo CAC adjunto, 193 variables) ================= */
 const VX_CAC_COLS=["v1ideps", "v2regimen", "v3tipodocumentoidentificacionusu", "v4numerodeidentificacion", "v5primeapellido", "v6segundoapellido", "v7primernombre", "v8segundonombre", "v9fechadenacimiento", "v10sexo", "v11codigopertenenciaetnica", "v12poblacionclave", "v13codigomunicipioresidencia", "v14fechaafiliacionentidad", "v15mujergestante", "v16menorde12meseshijodemadrre", "v17personacontuberculosisactiva", "v18condicionrespectodiagnostico", "v19fechadiagnosticogestacion", "v20fechatamizajevihprimertrimest", "v21fechatamizajevihsegundotrimes", "v22fechatamizajevihtercertrimest", "v23fechadetamizajeparavihmomento", "v24mujercondxdevihencualquiermom", "v241edadgestacionalmomentodxvihd", "v242recibiottoparavihdurantegest", "v243edadgestacionalcomienzodelat", "v244tarduranteintrapartogestacio", "v245resultadogestacionreportadag", "v246fechaculminaciongestacionrep", "v247supresionfarmacolactanciamat", "v248tipoidentificacionreciennaci", "v249numeroidentreciennacidovivoe", "v25tipoidentificamadredemenor12m", "v251numidentificamadredelmenor12", "v252madredemenor12mexpuestoalvih", "v26profilaxisconantirretrovrecie", "v27suministrodeformulalactea", "v28fechapracargaviralparavihenme", "v281resultprimeracargaviralenmen", "v29fechasegundacargaviralmenor12", "v291resultsegundacargaviralmenor", "v30fechaterceracargaviralmenor18", "v301resultadoterceracargaviralme", "v31condicionfinalmenor12mesesexp", "v32fechadxtuberculosisactivarepo", "v33fecharealizatamizajeparavihpe", "v34fechapruebapresuntivarapidaoe", "v35comollegoapruebapresuntivapar", "v36fechadeconfirmaciondedxinfecc", "v361entidadquereportapteconvihes", "v362entidadreportanteanterior", "v37fechainicioatencionporvih", "v38mecanismoviadetransmisiondelv", "v39estadioclinicomomentodxninosa", "v40serealizoconteolinfocitostcd4", "v401conteodelinfocitostcd4moment", "v41serealizocargaviralalmomentod", "v411valordelacargaviralalmomento", "v42fechadeiniciodelaterapiaantir", "v421medicamento1conelqueiniciola", "v422medicamento2conelqueiniciola", "v423medicamento3conelqueiniciola", "v424medicamento4conelqueiniciola", "v425medicamento5conelqueiniciola", "v43conteodelinfocitostcd4almomen", "v431valorconteolinfocitostcd4mom", "v44cargaviralalmomentodeliniciod", "v441valordelacargaviralaliniciod", "v45motivodeiniciodelatar", "v46teniacoinfeccionconvirusdehep", "v47teniacoinfeccionconvirushepat", "v48teniacoinfeccioncontuberculos", "v49nummesesdispensoformcompltarp", "v50numconsultmedasistiopersvivev", "v51hatenidocambiosenelesquemaini", "v511fecprimercambiocualqumedicam", "v512causadelcambiodemedicamentoc", "v513medicamento1queocasionoelcam", "v514medicamento2queocasionoelcam", "v515medicamento3queocasionoelcam", "v516medicamento4queocasionoelcam", "v517fallasdesdeeliniciodelatarha", "v518numerodefallasdesdeeliniciod", "v521infeccionesbacterianasmultip", "v522candidiasisesofagicatraqueal", "v523tuberculosispulmonaroextrapu", "v524cancerdecervixinvasivo", "v525coccidioidomicosisdiseminada", "v526citomegaloviruscualqorganoex", "v527retinitisporcitomegalovirusc", "v528herpessimpleulcerasmucocutan", "v529diarreaporisosporabelliocryp", "v5210histoplasmosisdiseminadaoex", "v5211linfomadeburkittinmunoblast", "v5212neumoniaporpneumocystisjiro", "v5213neumoniarecurrente", "v5214septicemiaporsalmonellarecu", "v5215infecciondiseminadaoextrapu", "v5216criptococosisextrapulmonar", "v5217sarcomadekaposi", "v5218sindromededesgasteasociadoa", "v5219leucoencefalopatiamultifoca", "v5220toxoplasmosiscerebral", "v5221demenciaasociadaalvih", "v5222neumoniaintersticiallinfoid", "v53codigodehabdelasededelaipsdon", "v531fechadeingresoalaipsactualpa", "v532municipiodelaips", "v533quienhacelaatencionclinicayf", "v534valoracionporinfectologoenlo", "v54fechadelaultimagenotipificaci", "v55estadioclinicoactualparaninos", "v56fechadeultimocolesterolldl", "v561resultadodelultimocolesterol", "v57fechadeultimoniveldetriglicer", "v571resultadodelultimoniveldetri", "v58fechadeultimahemoglobinaseric", "v581resultadodelaultimahemoglobi", "v59fechadelaultimaenzimaalaninaa", "v591resultadodelaultimaaltotgpse", "v60fechadeultimacreatininaserica", "v601resultadodelaultimacreatinin", "v61fechadeultimaglucemiasericaen", "v611resultadodelaultimaglucemias", "v62fechadeultimamediciondelpesoc", "v621resultadodelaultimamediciond", "v63talla", "v64tieneneuropatiaperiferica", "v65tienelipoatrofiaolipodistrofi", "v66tienecoinfeccionconhepatitisb", "v67tienecoinfeccionconhepatitisc", "v68tieneotuvocoinfeccioncontuber", "v681tipodetuberculosisactivaquep", "v682lapersonaconcoinfecciontbvih", "v683fecdeiniciodeltratamantitube", "v684medicamento1deltratamantitub", "v685medicamento2deltratamantitub", "v686medicamento3deltratamantitub", "v687medicamento4deltratamantitub", "v688medicamento5deltratamantitub", "v689medicamento6deltratamantitub", "v6810medicamento7deltratamantitu", "v6811medicamento8deltratamantitu", "v6812medicamento9deltratamantitu", "v6813fechaenqueterminoeltratamie", "v6814condiciondeegresodeltratami", "v69tienecirrosishepatica", "v70tieneenfermedadrenalcronicapo", "v71tieneenfermedadcoronaria", "v72tieneohatenidootrasinfeccdetr", "v73tieneneoplasianorelacionadaco", "v74discapacidadfuncional", "v75fechadelultimoconteodelinfoci", "v751valordelultimoconteodelinfoc", "v76fechadelaultimacargaviralpara", "v761valordelaultimacargaviralpar", "v77recibetar", "v771fechadeiniciodelosmedicament", "v772medicamento1delataractual", "v773medicamento2delataractual", "v774medicamento3delataractual", "v775medicamento4delataractual", "v776medicamento5delataractual", "v777medicamento6delataractual", "v778numerodemesesquesedispensola", "v78numerodecondonessuministrados", "v79metododeplanificacionfamilper", "v80vacunacioncontralahepatitisa", "v81vacunacioncontralahepatitisb", "v82vacunacioncontraneumococo", "v83tamizajeclinicoparatuberculos", "v84sehizoppdopruebasequivalentes", "v85recibiotratamientoparatubercu", "v861recibiotratamientoparasifili", "v86sehizotamizajeparasifilisenla", "v87sehizotamizajeparavphanogenit", "v88sehizotamizajeparahepatitisbe", "v89sehizotamizajeparahepatitisce", "v90resultadodelaevaluacionderies", "v91profilaxisparamacmycobacteriu", "v92profilaxisparacriptococoneofo", "v93profilaxisparapneumocystisjir", "v94costototaldeatencionnohospita", "v95costototaldeatencionhospitala", "v96numerodehospitalizacionesenel", "v97novedaddelusuariorespectoalan", "v971fechadedesafiliaciondelaenti", "v972entidadalacualsetrasladoelus", "v973fechademuerte", "v974causademuerte", "v98fechadecorte", "v99codigounicobduabdexpvsmsps"];
 /* valores comodín más frecuentes del archivo CAC adjunto, solo para el arrastre de la demostración */
@@ -5082,7 +4349,7 @@ function ceView(){if(!CE.book)return ceStart();const t=ceTab();let h=ceHead();
 function ceHead(){const t=ceTab();const rol=ceRol();const q=ceCalidad().filter(x=>x.grave&&x.n>0).length;
  let h='<div class="mhead"><div><p class="eyebrow">Programa misional'+(CE.demo?' · <span style="color:var(--warn)">datos ficticios</span>':'')+'</p><h2 class="mt">Consulta externa</h2><p class="note" style="margin:3px 0 0">Su rol: <b>'+esc(CE_ROLES[rol])+'</b>'+(ceVeRes()?' · ve especialidades reservadas':'')+' · libro '+(CE.dirty?'<b style="color:var(--warn)">con cambios sin descargar</b>':'sin cambios')+'</p></div>'+
   '<div class="copyrow"><button type="button" class="btn sm'+(CE.dirty?' warn':'')+'" data-ce="exp">Descargar libro de Consulta Externa</button><button type="button" class="btn sm" data-ce="unload">Cerrar libro</button></div></div>';
- if(rol==="consulta")h+='<div class="alert warn" style="margin-top:10px"><p>Su usuario no tiene un rol asignado en Consulta Externa: puede consultar, pero no registrar ni asignar. Coordinación lo asigna en Administración → Roles.</p></div>';
+ if(rol==="consulta")h+='<div class="alert warn" style="margin-top:10px"><p>Su usuario no tiene un rol asignado en Consulta Externa: puede consultar, pero no registrar ni asignar. Pida al administrador del sistema que se lo asigne en Usuarios → Programas y permisos.</p></div>';
  h+='<nav class="nav" role="tablist">'+CE_TABS.filter(([k])=>k!=="adm"||["coordinacion","calidad"].includes(rol)).map(([k,l])=>'<button type="button" role="tab" data-p="go|ce|'+k+'" aria-selected="'+(t===k)+'">'+esc(l)+(k==="cal"&&q?' <span class="cnt">'+q+'</span>':'')+'</button>').join("")+'</nav>';
  return h;}
 
@@ -5348,7 +4615,7 @@ document.addEventListener("click",e=>{const el=e.target.closest("[data-ce]");if(
   case"demo":ceDemo();pxRender();toast("Consulta Externa con datos ficticios.");break;
   case"new":ceOpenBook(ceNewBook(),false);ceChanged();CE.dirty=true;pxRender();toast("Libro nuevo. Empiece por Administración: especialidades, profesionales, consultorios y roles.");break;
   case"exp":ceExport();break;
-  case"unload":if(CE.dirty&&!confirm("Hay cambios sin descargar en el libro de Consulta Externa. ¿Cerrar de todas formas?"))return;CE.book=null;CE.dirty=false;pxRender();break;
+  case"unload":if(CE.dirty&&!CE.ui.unl){CE.ui.unl=1;toast("Hay cambios sin descargar en Consulta Externa. Pulse de nuevo «Cerrar libro» para confirmar.");return;}CE.ui.unl=0;CE.book=null;CE.dirty=false;pxRender();break;
   case"vlista":CE.ui.lf={ver:x};pxGo("ce","lista");break;
   case"vaut":pxGo("ce","aut");break;
   case"sol":ceDlgSol(x);break;
@@ -5875,7 +5142,7 @@ function dpGuard(a){if(dpCan(a))return true;toast("Su rol en Diálisis peritonea
 const dpWho=()=>v6who()+(PX.user?" ["+(DP_ROLES[dpRole()]||"")+"]":"");
 
 /* ---------- bitácora encadenada: detecta alteraciones hechas por fuera del sistema ---------- */
-async function dpSha(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("");}
+async function dpSha(s){try{if(typeof crypto!=="undefined"&&crypto.subtle){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("");}}catch(e){}let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h.toString(16).padStart(8,"0").repeat(8);}
 const dpLogStr=r=>[r.FechaHora,r.Usuario,r.Accion,r.Hoja,r.Registro,r.Detalle].map(x=>x==null?"":String(x)).join("|");
 async function dpChain(){if(!DP.book)return;let prev="";for(const r of DP.book.log){if(!r.Hash)r.Hash=await dpSha(prev+"|"+dpLogStr(r));prev=r.Hash;}}
 async function dpVerifyChain(){if(!DP.book)return null;let prev="";let i=0;for(const r of DP.book.log){i++;if(!r.Hash){prev="";continue;}const h=await dpSha(prev+"|"+dpLogStr(r));if(h!==r.Hash)return{ok:false,fila:i,reg:r};prev=r.Hash;}return{ok:true,n:i};}
@@ -8141,6 +7408,2255 @@ document.addEventListener("change",e=>{if(e.target.id==="v7y"){PX.ui.v7y=e.targe
 window.V7API={v7Items,v7Decisiones,v7BatRows,plnDerived,v7Seed,v7ihiGroups,pxCmpEst,pxMes,pxNewBook};
 })();
 
+
+/* =====================================================================================================
+   v0.9 · ARQUITECTURA INTEGRADA Y HERENCIA CRUZADA ENTRE MÓDULOS (Mocoa, Putumayo)
+   1. Persistencia automática en IndexedDB + Libro Maestro Unificado (.xlsx) + Cruce MPI con Nefroprotección.
+   2. Herencia cruzada de Historia Clínica: Tabla de Interpretación Automática de Paraclínicos por GPC
+      + Panel Sticky de Auditoría Concurrente CAC en vivo + Soportes SISCAC + Bloqueo Preventivo con
+      Excepción Clínica Justificada en Hemodiálisis, Diálisis Peritoneal y VIH.
+   3. Motor de Gestión y Conciliación Farmacéutica de Medicamentos e Insumos Críticos:
+      - Diálisis Peritoneal: cálculo automático de bolsas/líneas/minicaps desde la prescripción vigente,
+        descuento automático de días hospitalizado/suspendido y saldo físico verificado en casa (domicilio),
+        control de lote/vencimiento (FEFO) y bloqueo a inactivos/egresados.
+      - VIH: conciliación de tabletas sobrantes (saldo del paciente), días de interrupción, lote y vencimiento
+        en entregas TAR y descuento automático de saldos en el Pedido Mensual de Fin de Mes.
+      - Hemodiálisis: conciliación de ampollas intradiálisis de alto costo (EPO, Hierro IV, Calcitriol)
+        prescritas vs. sesiones realizadas del turno.
+   4. Consulta Externa Fase 2 activa (confirmación, llegada a sala, atención efectiva, inasistencia)
+      y Producción Asistencial 100 % integrada (HD, VIH, DP, CE, Nefroprotección, Laboratorio) con
+      Tablero de Metas Mensuales por Programa y EPS (Nota Técnica) y semáforo de soporte de facturación.
+   5. Trazabilidad transversal extendida: PROA lee antimicrobianos/profilaxis de VIH y todos los módulos
+      reportan Farmacovigilancia (RAM) a Seguridad del Paciente y PROA.
+   ===================================================================================================== */
+const V9={ver:"0.9",fecha:"2026-10-13",dbName:"POSMEDICA_SIGC_V9",saving:false,lastSave:""};
+
+/* ---------- 1. Persistencia automática en IndexedDB y Libro Maestro Unificado ---------- */
+function v9OpenDB(){
+  return new Promise((ok,ko)=>{
+    if(typeof indexedDB==="undefined")return ko(new Error("Sin IndexedDB"));
+    let req;try{req=indexedDB.open(V9.dbName,1);}catch(e){return ko(e);}
+    req.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains("state"))db.createObjectStore("state");};
+    req.onsuccess=e=>ok(e.target.result);
+    req.onerror=e=>ko(req.error);
+  });
+}
+async function v9SaveLocal(silent){
+  try{
+    if(!PX.book&&!ST.book&&(! VX||!VX.book)&&(!DP||!DP.book)&&(!CE||!CE.book))return false;
+    const db=await v9OpenDB();
+    const snap={
+      ts:nowTs(),
+      demo:!!(PX.demo||ST.demo||(VX&&VX.demo)||(DP&&DP.demo)||(CE&&CE.demo)),
+      px:PX.book?JSON.parse(JSON.stringify(PX.book)):null,
+      hd:ST.book?JSON.parse(JSON.stringify(ST.book)):null,
+      vih:(typeof VX!=="undefined"&&VX.book)?JSON.parse(JSON.stringify(VX.book)):null,
+      dp:(typeof DP!=="undefined"&&DP.book)?JSON.parse(JSON.stringify(DP.book)):null,
+      ce:(typeof CE!=="undefined"&&CE.book)?JSON.parse(JSON.stringify(CE.book)):null
+    };
+    await new Promise((ok,ko)=>{
+      const tx=db.transaction("state","readwrite");
+      tx.objectStore("state").put(snap,"current");
+      tx.oncomplete=()=>ok();tx.onerror=()=>ko(tx.error);
+    });
+    V9.lastSave=snap.ts.slice(11,16);
+    const chip=document.getElementById("v9savechip");
+    if(chip)chip.textContent="Autoguardado "+V9.lastSave;
+    if(!silent)toast("Copia local guardada en este navegador ("+snap.ts+").");
+    return true;
+  }catch(e){console.warn("v9SaveLocal",e);return false;}
+}
+function v9RehydrateDates(obj,dateSet){
+  if(!Array.isArray(obj))return;
+  obj.forEach(r=>{for(const k in r){if(dateSet.has(k)&&r[k]&&typeof r[k]==="string")r[k]=pdate(r[k].slice(0,10));}});
+}
+async function v9RestoreLocal(){
+  try{
+    const db=await v9OpenDB();
+    const snap=await new Promise((ok,ko)=>{
+      const tx=db.transaction("state","readonly");
+      const req=tx.objectStore("state").get("current");
+      req.onsuccess=()=>ok(req.result);req.onerror=()=>ko(req.error);
+    });
+    if(!snap){toast("No hay sesión previa guardada en este navegador.");return false;}
+    if(snap.px){PX.book=snap.px;PX.demo=!!snap.demo;pxEnsureSheets();}
+    if(snap.hd){
+      Object.keys(SH).forEach(k=>{if(k!=="cfg"&&k!=="fin"&&Array.isArray(snap.hd[k]))v9RehydrateDates(snap.hd[k],DATE_F);});
+      ST.book=snap.hd;ST.demo=!!snap.demo;ST.src="Restaurado de copia local ("+snap.ts+")";IDX.dirty=true;reindex();syncBar();bookInfo();
+    }
+    if(snap.vih&&typeof VX!=="undefined"){vxOpenBook(snap.vih,!!snap.demo);}
+    if(snap.dp&&typeof DP!=="undefined"){
+      DPK.forEach(k=>{if(k!=="cfg"&&Array.isArray(snap.dp[k]))v9RehydrateDates(snap.dp[k],DP_DATE);});
+      DP.book=snap.dp;DP.demo=!!snap.demo;DP.src="Restaurado de copia local";dpEnsure();
+    }
+    if(snap.ce&&typeof CE!=="undefined"){ceOpenBook(snap.ce,!!snap.demo);}
+    V9.lastSave=snap.ts.slice(11,16);
+    TRM.c={};pxRender();
+    toast("Sesión restaurada desde la copia local del navegador ("+snap.ts+").");
+    return true;
+  }catch(e){console.error(e);toast("No se pudo restaurar la copia local: "+e.message);return false;}
+}
+
+/* Exportar e importar un Único Libro Maestro Institucional (.xlsx) con los 5 libros */
+async function v9ExportMaster(){
+  const wb=XLSX.utils.book_new();let nSheets=0;
+  const app=(prefix,subWb)=>{if(!subWb)return;subWb.SheetNames.forEach(sn=>{const name=(prefix+"_"+sn).slice(0,31);XLSX.utils.book_append_sheet(wb,subWb.Sheets[sn],name);nSheets++;});};
+  if(PX.book)app("PX",pxBuildWb());
+  if(ST.book)app("HD",buildWb());
+  if(typeof DP!=="undefined"&&DP.book){await dpChain();app("DP",dpBuildWb());}
+  if(typeof VX!=="undefined"&&VX.book)app("VIH",vxBuildWb());
+  if(typeof CE!=="undefined"&&CE.book)app("CE",ceBuildWb());
+  if(!nSheets){toast("No hay libros abiertos para exportar.");return;}
+  const ok=await saveWb(wb,"POSMEDICA_Libro_Maestro_Unificado_"+pxToday()+".xlsx");
+  if(ok){PX.dirty=false;if(ST.book)ST.dirty=false;if(DP.book)DP.dirty=false;if(VX.book)VX.dirty=false;if(CE.book)CE.dirty=false;await v9SaveLocal(true);pxRender();}
+}
+function v9SubWb(wb,prefix){
+  const p=prefix+"_";const has=wb.SheetNames.some(s=>s.startsWith(p));if(!has)return null;
+  const sub=XLSX.utils.book_new();
+  wb.SheetNames.filter(s=>s.startsWith(p)).forEach(s=>{
+    const orig=s.slice(p.length);
+    XLSX.utils.book_append_sheet(sub,wb.Sheets[s],orig);
+  });
+  return sub;
+}
+function v9MatchSheetName(prefix,shortName,dict){
+  for(const k in dict){
+    const full=dict[k][0];
+    if((prefix+"_"+full).slice(0,31)===prefix+"_"+shortName)return full;
+  }
+  return shortName;
+}
+function v9RebuildSubWb(wb,prefix,dict){
+  const p=prefix+"_";const names=wb.SheetNames.filter(s=>s.startsWith(p));if(!names.length)return null;
+  const sub=XLSX.utils.book_new();
+  names.forEach(s=>{
+    const short=s.slice(p.length);
+    const full=v9MatchSheetName(prefix,short,dict);
+    XLSX.utils.book_append_sheet(sub,wb.Sheets[s],full);
+  });
+  return sub;
+}
+async function v9ImportMaster(file){
+  if(!file)return;
+  try{
+    const wb=await vxReadFile(file);
+    const isMaster=wb.SheetNames.some(s=>/^(PX|HD|DP|VIH|CE)_/.test(s));
+    if(!isMaster){toast("Este archivo no es un Libro Maestro Unificado (use el botón de cada módulo para libros individuales).");return;}
+    const loaded=[];
+    const pxW=v9RebuildSubWb(wb,"PX",PSH);if(pxW){PX.book=pxParse(pxW);PX.demo=false;PX.dirty=false;pxEnsureSheets();loaded.push("Institucional");}
+    const hdW=v9RebuildSubWb(wb,"HD",SH);if(hdW){setBook(parseToolBook(hdW),file.name+" [HD]");loaded.push("Hemodiálisis");}
+    const dpW=v9RebuildSubWb(wb,"DP",DPS);if(dpW){DP.book=dpParse(dpW);dpEnsure();DP.demo=false;DP.dirty=false;dpPlanSeed();DP.ui.chain=await dpVerifyChain();loaded.push("Diálisis Peritoneal");}
+    const vxW=v9RebuildSubWb(wb,"VIH",VXS);if(vxW){vxOpenBook(vxParse(vxW),false);loaded.push("VIH");}
+    const ceW=v9RebuildSubWb(wb,"CE",CES);if(ceW){ceOpenBook(ceParse(ceW),false);loaded.push("Consulta Externa");}
+    await v9SaveLocal(true);TRM.c={};pxRender();
+    toast("Libro Maestro cargado con éxito: "+loaded.join(", ")+".");
+  }catch(e){console.error(e);toast("Error al leer el Libro Maestro: "+e.message);}
+}
+
+/* Puente MPI extendido a los 5 programas (incluyendo Nefroprotección en segundo plano) */
+const dpMPI08=dpMPI;
+dpMPI=function(p){
+  const out=dpMPI08(p);
+  if(!p||!p.Documento)return out;
+  const doc=String(p.Documento).replace(/\D/g,"");
+  const eq=x=>String(x||"").replace(/\D/g,"")===doc;
+  try{
+    const w=pxNefroWin();
+    if(w&&w.MG&&w.MG.book&&Array.isArray(w.MG.book.pac)){
+      const nf=w.MG.book.pac.find(x=>eq(x.doc));
+      if(nf&&!out.some(o=>o.prog==="nefro"))out.push({prog:"nefro",n:"Nefroprotección",id:nf.codigo,det:(nf.estado||"ACTIVO")+" · "+(nf.eps||""),rec:nf});
+    }
+  }catch(e){}
+  return out;
+};
+
+/* Enriquecer la barra superior (#pxbar) y la portada con Libro Maestro y Autoguardado */
+const pxBar08=pxBar;
+pxBar=function(){
+  pxBar08();
+  const r=document.querySelector("#pxbar .pxbar-r");
+  if(!r||!PX.user)return;
+  const chip=document.createElement("span");
+  chip.id="v9savechip";
+  chip.className="v9bar-chip";
+  chip.title="Persistencia automática en este navegador (IndexedDB)";
+  chip.textContent=V9.lastSave?"Autoguardado "+V9.lastSave:"Autoguardado activo";
+  const btnM=document.createElement("button");
+  btnM.type="button";btnM.className="btn sm primary";btnM.dataset.v9="masterexp";
+  btnM.title="Descarga en un solo Excel (.xlsx) los 5 libros (Institucional, HD, DP, VIH y Consulta Externa)";
+  btnM.textContent="Libro Maestro (.xlsx)";
+  const lblI=document.createElement("label");
+  lblI.className="btn sm";lblI.title="Cargar Libro Maestro Unificado (.xlsx)";
+  lblI.innerHTML='Cargar Maestro<input type="file" id="v9masterfile" accept=".xlsx" hidden>';
+  r.insertBefore(chip,r.firstChild);
+  r.insertBefore(lblI,r.querySelector("#pxbexp"));
+  r.insertBefore(btnM,r.querySelector("#pxbexp"));
+};
+const pxLogin08=pxLogin;
+pxLogin=function(){
+  const h=pxLogin08();
+  const extra='<div class="copyrow" style="margin-top:6px"><button type="button" class="btn sm" data-v9="restore">Restaurar última sesión guardada en este navegador</button><label class="btn sm">Abrir Libro Maestro Unificado (.xlsx)<input type="file" id="v9masterfile" accept=".xlsx" hidden></label></div>';
+  return h.replace('</div></section>',extra+'</div></section>');
+};
+
+/* ---------- 2. Herencia Cruzada: Interpretación GPC + Auditoría Concurrente + Soportes SISCAC ---------- */
+const V9_SISCAC={
+  hd:[["sop_lab","Reporte original de laboratorio (Hb, Alb, P, PTH, BUN pre/post) verificado"],["sop_formula","Fórmula médica y prescripción dialítica firmadas"],["sop_consent","Consentimiento informado de hemodiálisis en el expediente"],["sop_ruta","Soporte de ruta a FAV o concepto de exclusión (si tiene CVC)"]],
+  dp:[["sop_ktv","Hoja de recolección de 24 h y cálculo de Kt/V / PET firmado"],["sop_lab","Reporte original de laboratorio del trimestre (Hb, Alb, P, Ca, PTH)"],["sop_presc","Prescripción vigente de DP (concentraciones y volúmenes) firmada"],["sop_ent","Acta firmada de entrega de insumos en domicilio"]],
+  vih:[["sop_dx","Soportes confirmatorios de VIH (pruebas / carga viral diagnóstica) en el repositorio"],["sop_cvcd4","Reporte original de laboratorio de última Carga Viral y conteo CD4"],["sop_tar","Fórmula médica de TAR vigente con validación de seguridad"],["sop_tamiz","Soportes de tamizaje anual (VDRL, HBsAg, Anti-VHC, PPD/citología)"]]
+};
+function v9GetSiscac(prog,pid){
+  const all=pxCfg("v9_siscac",{})||{};
+  return all[prog+"|"+pid]||{};
+}
+function v9SetSiscac(prog,pid,obj){
+  const all=Object.assign({},pxCfg("v9_siscac",{})||{});
+  all[prog+"|"+pid]=obj;
+  pxSetCfg("v9_siscac",all);
+}
+function v9SiscacHtml(prog,pid){
+  const S=v9GetSiscac(prog,pid);
+  const items=V9_SISCAC[prog]||[];
+  const okN=items.filter(([k])=>S[k]).length;
+  return'<div class="v9siscac"><div class="mhead"><strong style="font-size:13px">Auditoría Concurrente Pre-SISCAC · Soportes ('+okN+'/'+items.length+')</strong><span class="tag '+(okN===items.length?"cac":"inst")+'">'+(okN===items.length?"Listo para auditoría CAC":"Faltan soportes")+'</span></div>'+
+   '<div class="chkcol">'+items.map(([k,l])=>'<label class="chk" style="font-size:12.5px"><input type="checkbox" data-v9sis="'+prog+'|'+esc(pid)+'|'+k+'"'+(S[k]?" checked":"")+'> '+esc(l)+'</label>').join("")+'</div>'+
+   '<label class="f" style="margin-top:4px;font-size:12.5px">Excepción clínica justificada (requerida para cerrar si hay laboratorios fuera de meta o criterios CAC pendientes sin cambio terapéutico)<input type="text" id="v9_exc_'+prog+'" value="'+esc(S._exc||"")+'" placeholder="Ej.: contraindicación documentada, paciente en estudio externo, intolerancia previa…"></label></div>';
+}
+
+/* 2A. VIH: Tabla de Interpretación Automática de Paraclínicos contra GPC VIH 2021 / CAC */
+function v9VxInterp(p){
+  const c=TODAY();const s=vxSt(p,c);const id=p.ID;const rows=[];
+  const add=(ex,valTxt,meta,lvl,txt)=>rows.push({ex,valTxt,meta,lvl,txt});
+  /* Carga viral */
+  if(s.cv){
+    const v=num(s.cv.Valor);const ind=vxCVind(s.cv);
+    const vig=s.cv6?"vigente":"vencida (> 6 meses)";
+    if(!s.cv6)add("Carga viral VIH",vxFmtLab(s.cv)+" ("+iso(s.cv._d)+")","< 50 copias/mL cada 6 meses","bad","Carga viral "+vig+": solicitar toma inmediata (CAC-09, CAC-12).");
+    else if(ind)add("Carga viral VIH",vxFmtLab(s.cv)+" ("+iso(s.cv._d)+")","< 50 copias/mL","ok","Supresión virológica mantenida (< 50 copias/mL). Continuar TAR actual.");
+    else if(v!=null&&v<200)add("Carga viral VIH",vxF(v,0)+" copias/mL ("+iso(s.cv._d)+")","< 50 copias/mL","warn","Viremia de bajo nivel / blip (50–199 copias/mL): reforzar adherencia SMAQ, revisar interacciones y repetir CV en 4–8 semanas (GPC VIH 2021).");
+    else add("Carga viral VIH",vxFmtLab(s.cv)+" ("+iso(s.cv._d)+")","< 50 copias/mL","bad","CV ≥ 200 copias/mL: sospecha de falla virológica. Evaluar adherencia (SMAQ), repetir CV para confirmar y solicitar genotipo si persiste > 200 (CAC-13, GPC 2021).");
+  }else add("Carga viral VIH","Sin dato","< 50 copias/mL cada 6 meses","bad","Sin carga viral registrada: ordenar de inmediato.");
+  /* CD4 */
+  if(s.cd4){
+    const v=s.cd4v;
+    if(!s.cd46)add("Linfocitos T CD4",vxF(v,0)+" cél/µL ("+iso(s.cd4._d)+")","Cada 6 meses","bad","CD4 vencido (> 6 meses): solicitar conteo CD4 (CAC-09).");
+    else if(v<200){
+      const prf=vxPrfIn(id,/Trimetoprim/,addMonths(c,-6),c);
+      add("Linfocitos T CD4",vxF(v,0)+" cél/µL ("+iso(s.cd4._d)+")","≥ 200 cél/µL","bad","Inmunosupresión severa (< 200): "+(prf?"recibe profilaxis para P. jirovecii.":"INICIAR profilaxis con Trimetoprim/sulfametoxazol (CAC-14).")+(v<100?" Solicitar antígeno de criptococo (CD4 < 100)":v<50?" y antígeno de Histoplasma (CD4 < 50).":".")+" Contraindicadas vacunas vivas.");
+    }else if(v<350)add("Linfocitos T CD4",vxF(v,0)+" cél/µL ("+iso(s.cd4._d)+")","≥ 350 cél/µL","warn","Inmunosupresión moderada (200–349 cél/µL). Vigilar reconstitución inmunológica.");
+    else add("Linfocitos T CD4",vxF(v,0)+" cél/µL ("+iso(s.cd4._d)+")","≥ 350 cél/µL","ok","Recuento CD4 adecuado.");
+  }else add("Linfocitos T CD4","Sin dato","Cada 6 meses","bad","Sin CD4 registrado: ordenar de inmediato.");
+  /* Creatinina y TFG */
+  const cr=vxLast(id,"Cr",c);
+  if(cr){
+    const tfg=vxTFG(vxVal(cr),vxEdad(p,cr._d),p.Sexo);const old=cr._d<addMonths(c,-6);
+    const tdf=s.tar&&/TDF/.test(s.tar.Esquema);
+    if(tfg!=null&&tfg<60)add("Creatinina / TFGe",vxF(vxVal(cr),2)+" mg/dL · TFG "+vxF(tfg,0)+" ("+iso(cr._d)+")","TFGe ≥ 60 mL/min","bad","TFGe < 60 mL/min/1,73 m²"+(tdf?": recibe TDF (tenofovir disoproxil); valorar cambio a TAF o abacavir (previo HLA-B*5701) y ajuste renal (GPC 2021).":". Evaluar enfermedad renal crónica."));
+    else if(old)add("Creatinina / TFGe",vxF(vxVal(cr),2)+" mg/dL ("+iso(cr._d)+")","Semestral (CAC-16)","warn","Creatinina de más de 6 meses: solicitar control semestral (CAC-16).");
+    else add("Creatinina / TFGe",vxF(vxVal(cr),2)+" mg/dL · TFG "+(tfg?vxF(tfg,0):"—")+" ("+iso(cr._d)+")","TFGe ≥ 60 · semestral","ok","Función renal conservada y vigente.");
+  }else add("Creatinina / TFGe","Sin dato","Semestral (CAC-16)","bad","Falta creatinina de los últimos 6 meses (exigida por CAC-16).");
+  /* Glucemia, ALT, Colesterol/LDL */
+  const gl=vxLast(id,"Glu",c);
+  if(!gl||gl._d<addMonths(c,-6))add("Glucemia en ayunas",gl?vxVal(gl)+" mg/dL ("+iso(gl._d)+")":"Sin dato","70–99 mg/dL · semestral","warn","Sin glucemia vigente en 6 meses: solicitar (exigida por CAC-16).");
+  else add("Glucemia en ayunas",vxVal(gl)+" mg/dL ("+iso(gl._d)+")","< 100 mg/dL",vxVal(gl)>=126?"bad":vxVal(gl)>=100?"warn":"ok",vxVal(gl)>=126?"Glucemia ≥ 126 mg/dL: confirmar diabetes mellitus y solicitar HbA1c.":vxVal(gl)>=100?"Glucemia alterada en ayunas (100–125 mg/dL): intervención nutricional.":"En rango normal.");
+  const alt=vxLast(id,"ALT",c);
+  if(!alt||alt._d<addMonths(c,-6))add("ALT (TGP)",alt?vxVal(alt)+" U/L ("+iso(alt._d)+")":"Sin dato","≤ 40 U/L · semestral","warn","Sin ALT vigente en 6 meses: solicitar (exigida por CAC-16).");
+  else add("ALT (TGP)",vxVal(alt)+" U/L ("+iso(alt._d)+")","≤ 40 U/L",vxVal(alt)>80?"bad":vxVal(alt)>40?"warn":"ok",vxVal(alt)>40?"Elevación de transaminasas: revisar hepatotoxicidad por TAR, coinfección VHB/VHC y consumo de alcohol.":"Sin hepatotoxicidad.");
+  const ct=vxLast(id,"CT",c),ldl=vxLast(id,"LDL",c),tg=vxLast(id,"TG",c);
+  if(!ct||ct._d<addMonths(c,-12))add("Perfil lipídico (CT / LDL / TG)",ct?vxVal(ct)+" mg/dL ("+iso(ct._d)+")":"Sin dato","Anual (CAC-16)","warn","Colesterol total sin medición en los últimos 12 meses (CAC-16).");
+  else{
+    const lv=vxVal(ldl),tv=vxVal(tg);
+    const bad=(lv!=null&&lv>=160)||(tv!=null&&tv>=500);
+    add("Perfil lipídico","CT "+vxVal(ct)+(lv!=null?" · LDL "+lv:"")+(tv!=null?" · TG "+tv:"")+" ("+iso(ct._d)+")","LDL < 100–130 / TG < 150",bad?"bad":(lv>130||tv>150)?"warn":"ok",bad?"Dislipidemia severa: iniciar o ajustar estatina de bajo potencial de interacción con TAR (atorvastatina o rosuvastatina) e intervención nutricional.":(lv>130||tv>150)?"Dislipidemia leve-moderada: ajustar estilo de vida y valorar según RCV.":"En rango.");
+  }
+  return rows;
+}
+function v9VxInterpHtml(p){
+  const R=v9VxInterp(p);
+  return'<div class="panel"><h3>Paraclínicos e interpretación automática contra GPC VIH 2021 y CAC</h3><div class="tablebox"><table class="dense"><thead><tr><th>Examen</th><th>Último resultado</th><th>Meta / Frecuencia</th><th>Interpretación clínica (GPC)</th></tr></thead><tbody>'+
+   R.map(r=>'<tr><td><strong>'+esc(r.ex)+'</strong></td><td class="mono">'+esc(r.valTxt)+'</td><td class="mono" style="font-size:12px">'+esc(r.meta)+'</td><td style="font-size:13px"><span class="st '+r.lvl+'">'+(r.lvl==="ok"?"En meta":r.lvl==="warn"?"Revisar":"Fuera de meta")+'</span> '+esc(r.txt)+'</td></tr>').join("")+
+   '</tbody></table></div><div class="copyrow" style="margin-top:8px"><button type="button" class="btn sm primary" data-v9="vxinterp|'+esc(p.ID)+'">Insertar interpretación GPC en Análisis y Plan</button></div></div>';
+}
+
+/* Envolver vxValForm para mostrar interpretación GPC + Panel Sticky de Auditoría Concurrente en vivo + Soportes SISCAC */
+const vxValForm08=vxValForm;
+vxValForm=function(p){
+  const formHtml=vxValForm08(p);
+  const au=vxAudit(p);
+  const side='<div class="panel vxaud"><div class="mhead"><h3 style="margin:0">Auditoría Concurrente CAC en vivo</h3><span class="vxaudchip '+au.cls+'"><b>'+au.pct+' %</b></span></div><p class="note">Lista de chequeo en tiempo real mientras redacta la historia clínica. Ningún ítem crítico debe quedar sin conducta o soporte.</p>'+
+   v9SiscacHtml("vih",p.ID)+
+   '<ul class="vxaudl">'+au.items.map(i=>'<li class="'+({"Cumple":"y","No aplica":"na","Dato faltante":"f"})[i.st]+'"><b>'+esc(i.n)+'</b><span class="sub">'+esc(i.st+(i.det?": "+i.det:""))+'</span>'+(i.st!=="Cumple"&&i.st!=="No aplica"?'<span class="sub vxacc">'+esc(i.acc)+'</span>':'')+'</li>').join("")+'</ul></div>';
+  return '<div class="vxvalgrid"><div style="display:grid;gap:12px;min-width:0">'+v9VxInterpHtml(p)+formHtml+'</div>'+side+'</div>';
+};
+
+const vxValSave08=vxValSave;
+vxValSave=function(pid){
+  const p=vxP(pid);
+  if(p){
+    const au=vxAudit(p);
+    const crit=v9VxInterp(p).filter(r=>r.lvl==="bad");
+    const excEl=document.getElementById("v9_exc_vih");
+    const exc=excEl?excEl.value.trim():(v9GetSiscac("vih",pid)._exc||"");
+    if(excEl){const S=Object.assign({},v9GetSiscac("vih",pid),{_exc:exc});v9SetSiscac("vih",pid,S);}
+    const pl=(document.querySelector('[id="vf_pl"]')||{}).value||"";
+    if((au.pct<70||crit.length>0)&&pl.trim().length<15&&exc.length<6){
+      toast("Auditoría concurrente: hay "+crit.length+" hallazgo(s) crítico(s) fuera de meta o completitud < 70 %. Documente la conducta en el Plan o registre la Excepción Clínica Justificada en el panel derecho.");
+      if(excEl)excEl.focus();
+      return;
+    }
+  }
+  return vxValSave08(pid);
+};
+
+/* 2B. Diálisis Peritoneal: Tabla de Interpretación Automática contra GPC (ISPD/KDIGO/CAC) + Panel Sticky de Auditoría Concurrente */
+function v9DpInterp(p,D){
+  const c=TODAY();const tri=addMonths(c,-3),sem=addMonths(c,-6);const rows=[];
+  const add=(ex,valTxt,meta,lvl,txt)=>rows.push({ex,valTxt,meta,lvl,txt});
+  const L=(k,a)=>dpLast(p.ID,k,a,c);
+  const kt=L("KtV",addMonths(c,-4));
+  if(!kt)add("Kt/V total semanal","Sin dato en 4 meses","≥ 1,7 (dia_12 / ISPD 2020)","bad","Sin Kt/V vigente: programar recolección de dializado y orina de 24 h (CAC var. 50 exige máximo 4 meses).");
+  else{const v=num(kt.Valor);add("Kt/V total semanal",v+" ("+fd(v6d(kt.FechaToma))+")","≥ 1,7",v<1.7?"bad":"ok",v<1.7?"Dosis inferior a 1,7: evaluar adherencia, volumen de infusión, función renal residual y transporte peritoneal (PET) antes de incrementar recambios (ISPD 2020; GAG-GU-002).":"Adecuación de pequeños solutos en meta.");}
+  const hb=L("Hb",tri),fe=L("Ferritina",sem),ts=L("TSAT",sem);
+  if(!hb)add("Hemoglobina","Sin dato en el trimestre","10,0–11,5 g/dL (dia_14)","bad","Sin hemoglobina del último trimestre: solicitar hemograma (CAC var. 59).");
+  else{const v=num(hb.Valor);add("Hemoglobina",v+" g/dL ("+fd(v6d(hb.FechaToma))+")","10,0–11,5 g/dL (KDIGO 2026)",v<10?"bad":v>13?"bad":v>11.5?"warn":"ok",v<10?"Hb < 10 g/dL: verificar depósitos de hierro (Ferritina "+(fe?fe.Valor:"s/d")+", TSAT "+(ts?ts.Valor+"%":"s/d")+"), descartar pérdidas o infección y ajustar AEE/hierro (KDIGO 2026).":v>13?"Hb > 13 g/dL: riesgo de trombosis/ACV; reducir o suspender AEE (KDIGO 2026).":v>11.5?"Hb > 11,5 g/dL: si recibe AEE, titulaciones hacia abajo para no mantener ≥ 11,5.":"En meta.");}
+  const alb=L("Alb",tri);
+  if(!alb)add("Albúmina sérica","Sin dato en el trimestre","≥ 3,5 g/dL (dia_16)","bad","Sin albúmina del último trimestre: solicitar (CAC var. 60).");
+  else{const v=num(alb.Valor);add("Albúmina sérica",v+" g/dL ("+fd(v6d(alb.FechaToma))+")","≥ 3,5 g/dL (CAC DP)",v<3.5?"bad":v<4?"warn":"ok",v<3.5?"Hipoalbuminemia (< 3,5 g/dL): evaluar pérdida proteica peritoneal, ingesta calórico-proteica, inflamación y sobrehidratación; interconsulta prioritaria a Nutrición.":"En meta para DP (≥ 3,5 g/dL).");}
+  const ph=L("P",tri);
+  if(!ph)add("Fósforo sérico","Sin dato en el trimestre","2,5–6,0 mg/dL (dia_18)","bad","Sin fósforo del último trimestre: solicitar (CAC var. 61).");
+  else{const v=num(ph.Valor);add("Fósforo sérica",v+" mg/dL ("+fd(v6d(ph.FechaToma))+")","2,5–5,5 / 6,0 mg/dL",v<2.5||v>6?"bad":v>5.5?"warn":"ok",v>6?"Hiperfosfatemia (> 6,0 mg/dL): reforzar restricción de fósforo inorgánico, ajustar quelantes con las comidas y revisar adecuación dialítica (KDIGO 2017).":v<2.5?"Hipofosfatemia (< 2,5 mg/dL): evaluar desnutrición.":"En rango.");}
+  const ca=L("Ca",tri);
+  if(!ca)add("Calcio total","Sin dato en el trimestre","≤ 10,5 mg/dL (dia_30)","warn","Sin calcio del último trimestre: solicitar.");
+  else{const v=num(ca.Valor);add("Calcio total",v+" mg/dL ("+fd(v6d(ca.FechaToma))+")","8,4–10,2 mg/dL (CAC ≤ 10,5)",v>10.5?"bad":v>10.2||v<8.4?"warn":"ok",v>10.2?"Evitar hipercalcemia (KDIGO 2017): revisar quelantes cálcicos y calcitriol.":"Sin hipercalcemia.");}
+  const pth=L("PTH",sem);
+  if(!pth)add("PTH intacta","Sin dato en 6 meses","130–600 pg/mL (dia_28)","warn","Sin PTH en los últimos 6 meses: solicitar (CAC var. 34).");
+  else{const v=num(pth.Valor);add("PTH intacta",v+" pg/mL ("+fd(v6d(pth.FechaToma))+")","130–600 pg/mL",v<130||v>600?"warn":"ok",v>600?"PTH > 600 pg/mL: evaluar control de fósforo, vitamina D activa o calcimimético (KDIGO 2017).":v<130?"PTH < 130 pg/mL: evitar sobresupresión ósea.":"En rango.");}
+  const k=L("K",tri);
+  if(k){const v=num(k.Valor);add("Potasio sérico",v+" mEq/L ("+fd(v6d(k.FechaToma))+")","3,5–5,5 mEq/L",v<3.5||v>5.5?"warn":"ok",v<3.5?"Hipopotasemia (frecuente en DP continua): reforzar potasio en la dieta o suplementar.":v>5.5?"Hiperpotasemia: revisar adherencia a los recambios, dieta y fármacos (IECA/ARA-II).":"En rango.");}
+  return rows;
+}
+function v9DpAuditCAC(p,D){
+  const c=TODAY(),tri=addMonths(c,-3),sem=addMonths(c,-6);
+  const L=(k,a)=>dpLast(p.ID,k,a,c);
+  const items=[
+    ["Modalidad DP y fecha de inicio documentadas",!!(p.Modalidad&&v6d(p.FechaInicioDP)),"Var 44 y 49 CAC","Completar en Ficha → Editar datos"],
+    ["Prescripción vigente de DP estructurada",!!dpPreVig(p.ID),"ISPD 2020 · GAG-GU-002","Registrar en Tratamiento → Prescripción"],
+    ["Kt/V total vigente (≤ 4 meses) y ≥ 1,7",!!(L("KtV",addMonths(c,-4))&&num(L("KtV",addMonths(c,-4)).Valor)>=1.7),"Var 50 CAC · dia_12","Calcular o validar en Laboratorios → Kt/V"],
+    ["Hemoglobina del trimestre ≥ 10 g/dL",!!(L("Hb",tri)&&num(L("Hb",tri).Valor)>=10),"Var 59 CAC · dia_14","Solicitar o ajustar anemia"],
+    ["Albúmina del trimestre ≥ 3,5 g/dL",!!(L("Alb",tri)&&num(L("Alb",tri).Valor)>=3.5),"Var 60 CAC · dia_16","Solicitar o intervenir con Nutrición"],
+    ["Fósforo del trimestre 2,5–6,0 mg/dL",!!(L("P",tri)&&num(L("P",tri).Valor)>=2.5&&num(L("P",tri).Valor)<=6),"Var 61 CAC · dia_18","Solicitar o ajustar quelante/dieta"],
+    ["PTH de los últimos 6 meses 130–600 pg/mL",!!(L("PTH",sem)&&num(L("PTH",sem).Valor)>=130&&num(L("PTH",sem).Valor)<=600),"Var 34 CAC · dia_28","Solicitar o ajustar CKD-MBD"],
+    ["Calcio del trimestre sin hipercalcemia (≤ 10,5)",!!(L("Ca",tri)&&num(L("Ca",tri).Valor)<=10.5),"dia_30 CAC","Solicitar o ajustar calcio/vitamina D"],
+    ["Orificio de salida y funcionamiento del catéter evaluados",!!(D.orificio&&D.orificio!=="No evaluado"&&D.cat_func&&D.cat_func!=="No evaluado"),"ISPD 2023","Diligenciar en la sección Catéter"],
+    ["Diuresis residual y ultrafiltración documentadas",!!(D.diuresis!==undefined&&D.diuresis!==""&&D.uf!==undefined&&D.uf!==""),"Var 35 CAC · protección FRR","Diligenciar en la sección Diálisis peritoneal"],
+    ["Concepto de trasplante renal vigente",!!dpTxAt(p.ID),"Var 62 CAC · dia_22","Actualizar en Tratamiento → Trasplante"],
+    ["Competencia en entrenamiento demostrada",dpEduState(p.ID).res==="Competente","DP-OP-03 · ISPD","Evaluar en Tratamiento → Educación"]
+  ];
+  const ok=items.filter(x=>x[1]).length;const pct=Math.round(ok/items.length*100);
+  return{items,ok,tot:items.length,pct,cls:pct>=85?"ok":pct>=65?"warn":"bad"};
+}
+
+const dpValEditor08=dpValEditor;
+dpValEditor=function(){
+  const E=DP.ui.vedit;
+  const baseHtml=dpValEditor08();
+  if(!E||!E.pid)return baseHtml;
+  const v=E.id?DP.book.val.find(x=>x.ID===E.id):null;
+  if(v&&v.Estado!=="Borrador")return baseHtml;
+  const p=dpPac(E.pid);if(!p)return baseHtml;
+  const R=v9DpInterp(p,E.D||{});
+  const au=v9DpAuditCAC(p,E.D||{});
+  const interpBox='<div class="panel"><h3>Paraclínicos e interpretación automática contra GPC (ISPD 2020/2022, KDIGO 2026 y CAC 2026)</h3><div class="tablebox"><table class="dense"><thead><tr><th>Examen</th><th>Último resultado</th><th>Meta CAC / GPC</th><th>Interpretación y conducta sugerida</th></tr></thead><tbody>'+
+    R.map(r=>'<tr><td><strong>'+esc(r.ex)+'</strong></td><td class="mono">'+esc(r.valTxt)+'</td><td class="mono" style="font-size:12px">'+esc(r.meta)+'</td><td style="font-size:13px"><span class="st '+r.lvl+'">'+(r.lvl==="ok"?"En meta":r.lvl==="warn"?"Revisar":"Fuera de meta")+'</span> '+esc(r.txt)+'</td></tr>').join("")+
+    '</tbody></table></div><div class="copyrow" style="margin-top:8px"><button type="button" class="btn sm primary" data-v9="dpinterp|'+esc(p.ID)+'">Insertar interpretación GPC en Paraclínicos, Análisis y Plan</button><button type="button" class="btn sm" data-g="vxrcv|'+esc(p.ID)+'">Calculadora RCV (SCORE2 / Framingham)</button></div></div>';
+  const side='<div class="panel vxaud"><div class="mhead"><h3 style="margin:0">Auditoría Concurrente CAC · DP</h3><span class="vxaudchip '+au.cls+'"><b>'+au.pct+' %</b></span></div><p class="note">Verificación concurrente de criterios CAC 2026 e ISPD en tiempo real ('+au.ok+' de '+au.tot+').</p>'+
+    v9SiscacHtml("dp",p.ID)+
+    '<ul class="vxaudl">'+au.items.map(i=>'<li class="'+(i[1]?"y":"")+'"><b>'+esc(i[0])+'</b><span class="sub">'+esc(i[2])+'</span>'+(i[1]?'':'<span class="sub vxacc">'+esc(i[3])+'</span>')+'</li>').join("")+'</ul></div>';
+  return '<div class="vxvalgrid"><div style="display:grid;gap:12px;min-width:0">'+interpBox+baseHtml+'</div>'+side+'</div>';
+};
+
+const dpValSave08=dpValSave;
+dpValSave=function(mode){
+  const E=DP.ui.vedit;
+  if(E&&E.pid){
+    const excEl=document.getElementById("v9_exc_dp");
+    const exc=excEl?excEl.value.trim():(v9GetSiscac("dp",E.pid)._exc||"");
+    if(excEl){const S=Object.assign({},v9GetSiscac("dp",E.pid),{_exc:exc});v9SetSiscac("dp",E.pid,S);}
+    if(mode==="fin"){
+      const p=dpPac(E.pid);
+      const D=dpValCollect();
+      const crit=p?v9DpInterp(p,D).filter(r=>r.lvl==="bad"):[];
+      if(crit.length>0&&String(D.plan||"").trim().length<15&&exc.length<6){
+        toast("Auditoría concurrente DP: hay "+crit.length+" paraclínico(s) fuera de meta ("+crit.map(c=>c.ex).join(", ")+"). Documente el ajuste en el Plan o registre la Excepción Clínica Justificada en el panel derecho antes de finalizar.");
+        if(excEl)excEl.focus();
+        return;
+      }
+    }
+  }
+  return dpValSave08(mode);
+};
+
+/* 2C. Hemodiálisis: Soportes SISCAC y Bloqueo Preventivo en valOut y valSave */
+const valOut08=valOut;
+valOut=function(p,D){
+  return valOut08(p,D)+'<div class="panel">'+v9SiscacHtml("hd",p.ID)+'</div>';
+};
+const valSave08=valSave;
+valSave=function(){
+  const D=ST.ui.vdraft;
+  if(D&&D.pid){
+    const p=IDX.pac.get(D.pid);
+    const excEl=document.getElementById("v9_exc_hd");
+    const exc=excEl?excEl.value.trim():(v9GetSiscac("hd",D.pid)._exc||"");
+    if(excEl){const S=Object.assign({},v9GetSiscac("hd",D.pid),{_exc:exc});v9SetSiscac("hd",D.pid,S);}
+    if(p){
+      const X=valCtx(p,D);
+      const T=valTexts(p,X,D.f);
+      const badLabs=T.I.filter(i=>i.lvl==="bad");
+      const CK=valChecklist(p,X,D.f);
+      const missCK=CK.filter(r=>!r[0]);
+      if((badLabs.length>0||missCK.length>2)&&exc.length<6&&!(D.f.planOtro&&D.f.planOtro.trim().length>=8)){
+        toast("Auditoría concurrente HD: hay "+badLabs.length+" alerta(s) paraclínica(s) fuera de meta y "+missCK.length+" ítem(s) en la lista de chequeo. Ajuste el plan farmacológico/adicional o escriba la Excepción Clínica Justificada abajo a la derecha.");
+        if(excEl)excEl.focus();
+        return;
+      }
+    }
+  }
+  return valSave08();
+};
+
+/* ---------- 3. Motor de Gestión y Conciliación Farmacéutica de Medicamentos e Insumos Críticos (DP, VIH y HD) ---------- */
+/* 3A. Diálisis Peritoneal: Sincronización automática desde la prescripción médica vigente (pre -> ins)
+   y descuento de días hospitalizado/suspendido + saldo físico en casa en las entregas (dpDlgEnt) */
+function v9DpHospDaysInMonth(pid,mes){
+  if(!dpOn())return 0;
+  const ms=pdate(mes+"-01"),me=monthEnd(ms);
+  let days=0;
+  dpR("hos").filter(h=>h.Paciente===pid&&v6d(h.FechaIngreso)).forEach(h=>{
+    const a=v6d(h.FechaIngreso)>ms?v6d(h.FechaIngreso):ms;
+    const fin=v6d(h.FechaEgreso)||TODAY();
+    const b=fin<me?fin:me;
+    if(b>=a)days+=dayDiff(a,b)+1;
+  });
+  return days;
+}
+function v9DpSyncInsumos(onlyPid){
+  if(!dpGuard("ins"))return;
+  const P=DP.book.pac.filter(lv).filter(p=>(!onlyPid||p.ID===onlyPid)&&dpActivo(p));
+  let nUpd=0,nPac=0;
+  P.forEach(p=>{
+    const pre=dpPreVig(p.ID);if(!pre)return;
+    const S=dpJ(pre.Soluciones,[]).filter(s=>s.sol&&num(s.vol)&&num(s.n));
+    if(!S.length)return;
+    nPac++;
+    const items=[];
+    S.forEach(s=>{
+      const nom="Bolsa "+s.vol+" mL "+s.sol+" ("+pre.Modalidad+")";
+      items.push([nom,Math.round(num(s.n)*30)]);
+    });
+    const totRec=S.reduce((a,s)=>a+(num(s.n)||0),0);
+    if(pre.Modalidad==="DPA"){
+      items.push(["Cassette / línea de cicladora DPA",30]);
+      items.push(["Minicap (tapón con iodopovidona)",30]);
+    }else{
+      items.push(["Minicap (tapón con iodopovidona)",Math.round(totRec*30)]);
+    }
+    dpR("ins").filter(i=>i.Paciente===p.ID&&i.Estado==="Vigente"&&/^Prescripci/.test(i.Origen||"")).forEach(i=>dpUpd("ins",i,{Estado:"Reemplazada"}));
+    items.forEach(([nom,cant])=>{
+      dpAdd("ins","IN-",{Paciente:p.ID,Insumo:nom,Cantidad:cant,Periodo:"Mensual",VigenteDesde:TODAY(),Estado:"Vigente",Origen:"Prescripción v"+pre.Version,Nota:"Cálculo exacto desde prescripción "+pre.ID});
+      nUpd++;
+    });
+  });
+  pxRefresh();
+  toast(nUpd?nUpd+" insumos sincronizados exactamente desde la prescripción médica en "+nPac+" paciente(s).":"No hay pacientes activos con prescripción estructurada para sincronizar.");
+}
+
+/* Reemplazo enriquecido de dpTraIns y dpDlgEnt con el Tablero y Conciliación Farmacéutica y Control de Inventario */
+const dpTraIns08=dpTraIns;
+dpTraIns=function(){
+  const base=dpTraIns08();
+  const E=dpR("ent");
+  let prescTot=0,ahorroTot=0,entTot=0;
+  E.forEach(e=>{
+    dpJ(e.Items,[]).forEach(it=>{
+      const teo=num(it.teo)!=null?num(it.teo):(num(it.req)||0);
+      const net=num(it.req)||0;
+      const aho=Math.max(0,teo-net);
+      prescTot+=teo;ahorroTot+=aho;entTot+=num(it.ent)!=null?num(it.ent):net;
+    });
+  });
+  const inactConIns=DP.book.pac.filter(lv).filter(p=>!dpActivo(p)&&dpR("ins").some(i=>i.Paciente===p.ID&&i.Estado==="Vigente"));
+  const banner='<div class="panel v9anti"><div class="mhead"><div><h3 style="margin:0">Control Exacto de Insumos de Diálisis Peritoneal (Motor de Gestión y Conciliación Farmacéutica)</h3><p class="note" style="margin:2px 0 0">Cruza la prescripción médica vigente (concentraciones 1,5 %, 2,5 %, 4,25 %, Icodextrina y cicladora) contra los días reales en casa, descontando automáticamente los días de hospitalización y el saldo físico contado en el domicilio del paciente.</p></div>'+
+   '<div class="copyrow">'+(dpCan("ins")?'<button type="button" class="btn sm primary" data-v9="dpsyncall">Sincronizar insumos desde prescripción vigente (todos)</button><button type="button" class="btn sm" data-v9="dpentconc">Programar entrega conciliada (conciliado)</button>':'')+'</div></div>'+
+   '<div class="v9anti-kpis"><div class="tile"><span class="tv">'+prescTot.toLocaleString("es-CO")+'</span><span class="tl">unidades prescritas teóricas</span></div><div class="tile ok"><span class="tv">'+ahorroTot.toLocaleString("es-CO")+'</span><span class="tl">unidades ahorradas (descuento por saldo en casa + hospitalización)</span></div><div class="tile"><span class="tv">'+entTot.toLocaleString("es-CO")+'</span><span class="tl">unidades netas despachadas</span></div><div class="tile '+(inactConIns.length?"bad":"ok")+'"><span class="tv">'+inactConIns.length+'</span><span class="tl">pacientes fuera de DP con insumos activos por bloquear</span></div></div>'+
+   (inactConIns.length?'<div class="alert bad"><p>Control preventivo de dispensación: '+inactConIns.map(p=>esc(p.ID+" "+dpNombre(p)+" ("+dpEstado(p)+")")).join(", ")+' figuran fuera de DP pero tienen insumos vigentes. <button type="button" class="btn sm danger" data-v9="dpbloqinact">Suspender insumos de inactivos ahora</button></p></div>':'')+'</div>';
+  return banner+base;
+};
+
+function v9DlgDpEntConc(pid){
+  if(!dpGuard("ins"))return;
+  const p0=pid||(DP.book.pac.filter(lv).find(p=>dpActivo(p))||{}).ID||"";
+  const mes=ym(TODAY());
+  const draw=(pId,m)=>{
+    const p=dpPac(pId);if(!p)return"<p class='note'>Seleccione un paciente activo.</p>";
+    if(!dpActivo(p))return'<div class="alert bad"><p>CONTROL DE SEGURIDAD FARMACÉUTICA: El paciente '+esc(dpNombre(p))+' está en estado «'+esc(dpEstado(p))+'». No se permite programar despacho de cajas.</p></div>';
+    let I=dpR("ins").filter(i=>i.Paciente===pId&&i.Estado==="Vigente");
+    const pre=dpPreVig(pId);
+    const hDays=v9DpHospDaysInMonth(pId,m);
+    if(!I.length&&pre){return'<div class="alert warn"><p>El paciente tiene prescripción vigente ('+esc(dpPreTxt(pre))+') pero aún no ha sincronizado sus insumos. <button type="button" class="btn sm primary" data-v9="dpsyncone|'+esc(pId)+'">Sincronizar ahora desde la prescripción</button></p></div>';}
+    if(!I.length)return'<p class="note">El paciente no tiene insumos vigentes ni prescripción estructurada.</p>';
+    return'<p class="note">Prescripción vigente: <strong>'+esc(dpPreTxt(pre))+'</strong> · Días hospitalizado en '+esc(m)+': <strong>'+hDays+' día(s)</strong> (se descuentan proporcionalmente).</p>'+
+     '<div class="tablebox"><table class="dense"><thead><tr><th>Insumo</th><th class="num">Prescrito mes</th><th class="num">Desc. hosp.</th><th>Saldo físico en casa *</th><th>Stock seg.</th><th class="num">Neto a entregar</th><th>Lote</th><th>Vencimiento</th></tr></thead><tbody>'+
+     I.map((x,i)=>{
+       const teo=x.Periodo==="Mensual"?num(x.Cantidad):x.Periodo==="Semanal"?Math.round(num(x.Cantidad)*4.345):num(x.Cantidad)||0;
+       const descH=Math.round(teo*(Math.min(30,hDays)/30));
+       const net=Math.max(0,teo-descH);
+       return'<tr data-dprow="'+i+'" data-ins="'+esc(x.Insumo)+'" data-teo="'+teo+'" data-dh="'+descH+'"><td>'+esc(x.Insumo)+'</td><td class="num mono">'+teo+'</td><td class="num mono">−'+descH+'</td>'+
+        '<td><input type="number" min="0" id="dpe_sal'+i+'" value="0" style="width:74px" data-v9recalc="'+i+'"></td>'+
+        '<td><input type="number" min="0" id="dpe_seg'+i+'" value="0" style="width:68px" data-v9recalc="'+i+'"></td>'+
+        '<td class="num mono"><strong id="dpe_net'+i+'">'+net+'</strong></td>'+
+        '<td><input type="text" id="dpe_lot'+i+'" placeholder="Lote" style="width:88px"></td>'+
+        '<td><input type="date" id="dpe_ven'+i+'" style="width:132px"></td></tr>';
+     }).join("")+'</tbody></table></div>';
+  };
+  dpDlg("Conciliación de Inventario en Domicilio y Entrega Exacta · DP",
+   '<div class="form"><label class="f wide">Paciente *<select id="dpe_p">'+dpPacOpts(p0,"Seleccione…",true)+'</select></label><label class="f">Periodo *<input type="month" id="dpe_m" value="'+mes+'"></label><label class="f">Fecha programada / entrega *<input type="date" id="dpe_f" value="'+iso(TODAY())+'"></label><label class="f">Estado<select id="dpe_est">'+opt(["Entregada completa","Programada"],"Entregada completa")+'</select></label><label class="f">Responsable *<input type="text" id="dpe_r" value="'+esc(PX.user?PX.user.Nombre:"")+'"></label><label class="f">Soporte firmado en casa<select id="dpe_s">'+opt(["Sí","No"],"Sí")+'</select></label><label class="f">Acta / guía de despacho<input type="text" id="dpe_sr" placeholder="N.° guía o acta"></label></div>'+
+   '<div id="dpe_tbl" style="margin-top:8px">'+draw(p0,mes)+'</div>',
+   "Guardar entrega conciliada",()=>{
+    const pId=dv("dpe_p"),m=dv("dpe_m"),f=dvd("dpe_f"),est=dv("dpe_est"),r=dv("dpe_r");
+    if(!pId||!m||!f||!r)return"Complete paciente, periodo, fecha y responsable.";
+    const p=dpPac(pId);if(!dpActivo(p))return"Paciente inactivo: despacho bloqueado.";
+    const rows=[...document.querySelectorAll("[data-dprow]")];if(!rows.length)return"Sin insumos para despachar.";
+    const items=[];let totAho=0;
+    for(const tr of rows){
+      const i=+tr.dataset.dprow,teo=+tr.dataset.teo,dh=+tr.dataset.dh;
+      const sal=num($("dpe_sal"+i).value)||0,seg=num($("dpe_seg"+i).value)||0;
+      const net=Math.max(0,teo-dh+seg-sal);
+      const lot=$("dpe_lot"+i).value.trim(),ven=$("dpe_ven"+i).value;
+      if(ven&&pdate(ven)<f)return"El lote de «"+tr.dataset.ins+"» está vencido ("+ven+").";
+      totAho+=Math.max(0,teo-net);
+      items.push({insumo:tr.dataset.ins,teo,descHosp:dh,saldoCasa:sal,stockSeg:seg,req:net,ent:est==="Entregada completa"?net:null,lote:lot,vence:ven});
+    }
+    dpAdd("ent","EN-",{Paciente:pId,Periodo:m,FechaProgramada:f,FechaEntrega:est==="Entregada completa"?f:null,Items:JSON.stringify(items),Estado:est,Responsable:r,SoporteRecibido:dv("dpe_s"),Soporte:dv("dpe_sr")+(totAho?" · Ahorro conciliado: "+totAho+" u.":""),Incidencia:"",Contingencia:""});
+    pxRefresh();toast("Entrega conciliada registrada. Unidades ahorradas por control de saldo/hospitalización: "+totAho+".");
+   },true);
+  const up=()=>{const el=$("dpe_tbl");if(el)el.innerHTML=draw(dv("dpe_p"),dv("dpe_m"));};
+  if($("dpe_p"))$("dpe_p").onchange=up;if($("dpe_m"))$("dpe_m").onchange=up;
+}
+
+/* 3B. VIH: Entrega de TAR con descuento de saldo del paciente, lote/vencimiento y Pedido Gestión Farmacéutica */
+if(!VXS.ent[1].includes("SaldoPrevio"))VXS.ent[1].push("SaldoPrevio","UnidadesTeoricas","Lote","FechaVencimiento","DiasInterrupcion");
+vxDlgEnt=function(pid){
+  const p=pid?vxP(pid):null;const s=p?vxSt(p,TODAY()):null;
+  openDlg("Registrar entrega conciliada de TAR (Gestión y Conciliación Farmacéutica)",
+   '<div class="form">'+vxFld("en_p","Paciente","list",p?p.ID+" · "+vxNom(p):"",vxPacOpts(),"wide")+
+   vxFld("en_f","Fecha de entrega","date",pxToday())+
+   vxFld("en_m","Meses a cubrir","sel","1",["1","2","3"])+
+   vxFld("en_sal","Saldo físico en poder del paciente (tabletas sobrantes verificadas) *","num","0")+
+   vxFld("en_int","Días de hospitalización / suspensión no consumidos","num","0")+
+   vxFld("en_lot","Lote del antirretroviral *","text","")+
+   vxFld("en_ven","Fecha de vencimiento (FEFO) *","date","")+
+   vxFld("en_l","Lugar de dispensación","sel","Farmacia de la IPS",["Farmacia de la IPS","Farmacia del operador","Domicilio"])+'</div>'+
+   '<p class="note">'+(s&&s.tar?"Esquema actual: <b>"+esc(s.tar.Esquema)+"</b>"+(s.tar.Validacion?" (validado)":" (<span class=\"bad-t\">sin validación de seguridad</span>)")+". Se descuentan las tabletas sobrantes verificadas para evitar sobredispensación y vencimiento en casa.":"El paciente debe tener un esquema activo.")+'</p>',
+   "Guardar entrega conciliada",()=>{
+    const pp=vxPidFrom(vxGv("en_p"));if(!pp)return"Elija un paciente.";
+    const pac=vxP(pp);const st=vxSt(pac,TODAY());
+    if(!st.activo)return"CONTROL DE SEGURIDAD FARMACÉUTICA: El paciente figura «"+pac.Estado+"». No se permite dispensar TAR.";
+    if(!st.tar)return"El paciente no tiene esquema activo.";
+    const f=vxGv("en_f"),ven=vxGv("en_ven"),lot=vxGv("en_lot");
+    if(!f)return"Indique la fecha de entrega.";
+    if(!lot)return"Registre el lote del medicamento para trazabilidad de farmacovigilancia.";
+    if(ven&&pdate(ven)<=pdate(f))return"El lote registrado está vencido ("+ven+").";
+    const m=+vxGv("en_m");const sal=Math.max(0,num(vxGv("en_sal"))||0);const dint=Math.max(0,num(vxGv("en_int"))||0);
+    const q=VXQ[st.tar.Esquema];
+    const tpd=q&&q.it.length?q.it.reduce((a,[x,t])=>a+t,0):1;
+    const teo=tpd*30*m;
+    const net=Math.max(0,teo-sal-Math.round(tpd*dint));
+    vxAdd("ent","EN-",{Paciente:pp,Fecha:f,Esquema:st.tar.Esquema,Meses:m,Unidades:net,UnidadesTeoricas:teo,SaldoPrevio:sal,DiasInterrupcion:dint,Lote:lot,FechaVencimiento:ven,Lugar:vxGv("en_l")});
+    pxRender();
+    toast("Entrega registrada: "+net+" u. entregadas (ahorro de "+(teo-net)+" u. por saldo/interrupción). Cubre hasta "+iso(addDays(pdate(f),m*30))+".");
+   });
+};
+
+vxPedido=function(mes){
+  mes=mes||ym(addMonths(TODAY(),1));const me=monthEnd(pdate(mes+"-01"));const c=vxCorte();const rows=[];const cons={};
+  vxPacs().filter(p=>vxFiltro(p)).forEach(p=>{
+    const s=vxSt(p,TODAY()>c?TODAY():c);if(!s.activo||!s.tar)return;
+    const q=VXQ[s.tar.Esquema];if(!q||!q.it.length)return;
+    if(s.cob&&s.cob>me)return;
+    const meses=num(s.ent&&s.ent.Meses)||1;
+    const saldo=num(s.ent&&s.ent.SaldoPrevio)||0;
+    const totTpd=q.it.reduce((a,[x,t])=>a+t,0)||1;
+    const teoPac=totTpd*30*meses;
+    const netPac=Math.max(0,teoPac-saldo);
+    rows.push({p,esq:s.tar.Esquema,cob:s.cob,meses,saldo,teo:teoPac,net:netPac,alerta:!s.tar.Validacion?"Esquema sin validar":s.smaq&&s.smaq.SMAQ==="No adherente"?"No adherente (verificar saldo real)":""});
+    q.it.forEach(([prod,tpd])=>{
+      const r=cons[prod]=cons[prod]||{prod,pac:0,teo:0,aho:0,u:0};
+      const tProd=tpd*30*meses;
+      const descProd=Math.min(tProd,Math.round(saldo*(tpd/totTpd)));
+      r.pac++;r.teo+=tProd;r.aho+=descProd;r.u+=(tProd-descProd);
+    });
+  });
+  return{mes,rows,cons:Object.values(cons).sort((a,b)=>b.u-a.u)};
+};
+
+const vxTarV08=vxTarV;
+vxTarV=function(){
+  const sub=VX.ui.tsub||"gru";
+  if(sub!=="ped"&&sub!=="ent")return vxTarV08();
+  let h=vxTarV08();
+  if(sub==="ped"){
+    const PD=vxPedido();
+    const totTeo=PD.cons.reduce((a,r)=>a+r.teo,0),totAho=PD.cons.reduce((a,r)=>a+r.aho,0),totNet=PD.cons.reduce((a,r)=>a+r.u,0);
+    const anti='<div class="panel v9anti" style="margin-top:10px"><h3>Conciliación Farmacéutica y Control de Inventario del Pedido de TAR · '+esc(PD.mes)+'</h3>'+
+     '<div class="v9anti-kpis"><div class="tile"><span class="tv">'+totTeo.toLocaleString("es-CO")+'</span><span class="tl">tabletas teóricas (30 días × meses)</span></div><div class="tile ok"><span class="tv">'+totAho.toLocaleString("es-CO")+'</span><span class="tl">tabletas descontadas por saldos verificados</span></div><div class="tile"><span class="tv">'+totNet.toLocaleString("es-CO")+'</span><span class="tl">tabletas netas exactas a pedir</span></div></div>'+
+     '<div class="tablebox"><table class="dense"><thead><tr><th>Producto</th><th class="num">Pacientes</th><th class="num">Teórico</th><th class="num">Descuento por saldos</th><th class="num">Neto a solicitar</th></tr></thead><tbody>'+
+     PD.cons.map(r=>'<tr><td>'+esc(r.prod)+'</td><td class="num">'+r.pac+'</td><td class="num mono">'+r.teo.toLocaleString("es-CO")+'</td><td class="num mono" style="color:var(--ok)">−'+r.aho.toLocaleString("es-CO")+'</td><td class="num mono"><strong>'+r.u.toLocaleString("es-CO")+'</strong></td></tr>').join("")+'</tbody></table></div></div>';
+    return h+anti;
+  }
+  return h;
+};
+
+/* 3C. Hemodiálisis: Control de Ampollas Intradiálisis vs. Sesiones Realizadas */
+const vInf08=vInf;
+vInf=function(){
+  const h=vInf08();
+  if(!hdOn())return h;
+  ensureIdx();const mes=ym(ST.corte);const{ms,me}=v6per(mes);
+  const rows=[];
+  pacs().filter(p=>epsOk(p)&&overlaps(p,ms,me)).forEach(p=>{
+    const ses=sesIn(p,ms,me,"Realizada").length;
+    p._med.filter(m=>m.Lugar==="Administrado en la unidad"&&(!m.Fin||m.Fin>=ms)).forEach(m=>{
+      const esp=/semana/i.test(m.Frecuencia||"")?Math.round((num(m.CantidadMes)||12)*Math.min(1,ses/12)):(num(m.CantidadMes)||0);
+      const disp=p._dis.find(d=>d.Mes===mes&&d.Prescripcion===m.ID);
+      rows.push({p,m,ses,esp,ent:disp?num(disp.Entregada):null});
+    });
+  });
+  const box='<div class="panel v9anti" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Control de Medicamentos Intradiálisis de Alto Costo (EPO / Hierro IV) · '+esc(mes)+'</h3><p class="note" style="margin:2px 0 0">Cruza las ampollas prescritas para administración en sala contra las sesiones efectivamente realizadas por el paciente en el mes, evitando pérdidas por sesiones inasistidas.</p></div></div>'+
+   '<div class="tablebox"><table class="dense"><thead><tr><th>Paciente</th><th>Medicamento en sala</th><th>Dosis / Frecuencia</th><th class="num">Sesiones realizadas</th><th class="num">Ampollas mes (prescritas)</th><th class="num">Ampollas ajustadas a asistencia</th><th class="num">Ahorro por inasistencias</th></tr></thead><tbody>'+
+   (rows.slice(0,40).map(r=>{const aho=Math.max(0,(num(r.m.CantidadMes)||0)-r.esp);return'<tr><td><strong>'+esc(r.p.ID)+'</strong><span class="sub">'+esc(nombre(r.p))+'</span></td><td>'+esc(r.m.Medicamento)+(r.m.Mipres==="SI"?' <span class="tag cac">MIPRES</span>':'')+'</td><td>'+esc((r.m.Dosis||"")+" · "+(r.m.Frecuencia||""))+'</td><td class="num mono">'+r.ses+'</td><td class="num mono">'+(r.m.CantidadMes||0)+'</td><td class="num mono"><strong>'+r.esp+'</strong></td><td class="num mono" style="color:'+(aho?"var(--ok)":"inherit")+'">'+(aho?"−"+aho:"0")+'</td></tr>';}).join("")||'<tr><td colspan="7" class="note">Sin prescripciones intradiálisis activas.</td></tr>')+
+   '</tbody></table></div></div>';
+  return h+box;
+};
+
+/* ---------- 4. Consulta Externa Fase 2 + Producción Asistencial 100 % Integrada y Metas ---------- */
+const ceDlgCupo08=ceDlgCupo;
+ceDlgCupo=function(cid){
+  const I=ceIdx();const c=I.cup.get(cid);if(!c)return;
+  const e=ceCupoEstado(c);
+  if(["DISPONIBLE","BLOQUEADO"].includes(e)&&!cePasado(c.Fecha,c.Hora)){return ceDlgCupo08(cid);}
+  const j=I.jor.get(c.Jornada);if(!ceVisJor(j))return;
+  const ci=(I.citC[cid]||[])[0];if(!ci)return ceDlgCupo08(cid);
+  const p=I.pac.get(ci.Paciente);const s=I.sol.get(ci.Solicitud);
+  const tit="Gestión de Cita (Fase 2) · Cupo "+c.Hora+" · "+ceFD(c.Fecha);
+  const body='<p class="note">'+esc(ceProfN(j.Profesional)+" · "+ceEspN(j.Especialidad)+" · "+CE_MODAL[j.Modalidad]+" · "+ceConN(j.Consultorio))+'</p>'+
+   '<dl class="cedl"><dt>Paciente</dt><dd><b>'+esc(ceNom(p))+'</b> · '+esc(p.TipoDoc+" "+p.Documento)+' · '+esc(p.EPS)+' · Tel. '+esc(p.Telefono)+'</dd><dt>Solicitud</dt><dd>'+esc(ci.Solicitud)+' · '+esc(s?CE_TIPO[s.TipoConsulta]:"")+'</dd><dt>Estado actual</dt><dd><span class="tag ce-acc">'+esc(e)+'</span>'+(ci.Confirmacion?' · Recordatorio: '+esc(ci.Confirmacion):'')+'</dd></dl>'+
+   '<div class="panel" style="margin-top:8px"><h3>Registrar desenlace de la cita (Fase 2)</h3><div class="form">'+
+   '<label class="f">Desenlace *<select id="ce2_est">'+opt([["CONFIRMA","Confirmada por el paciente"],["EN SALA","Llegó · en sala de espera"],["ATENDIDA","Atendida (genera producción)"],["INASISTENCIA","No asistió (inasistencia)"],["CANCELADA","Cancelada con aviso previo"]],ci.Confirmacion==="CONFIRMA"&&ci.Estado==="ASIGNADA"?"CONFIRMA":ci.Estado)+'</select></label>'+
+   '<label class="f">Hora llegada / atención<input type="time" id="ce2_h" value="'+esc(c.Hora)+'"></label>'+
+   '<label class="f wide">Motivo (obligatorio en inasistencia o cancelación) / Observación<input type="text" id="ce2_ob" value="'+esc(ci.Observacion||"")+'" placeholder="Ej.: sin transporte, autorización vencida, atendido sin novedad…"></label></div>'+
+   '<div class="copyrow" style="margin-top:8px"><button type="button" class="btn primary" data-v9="ce2save|'+esc(ci.ID)+'">Guardar desenlace</button><button type="button" class="btn" data-ce="sol|'+esc(ci.Solicitud)+'">Ver solicitud</button></div></div>';
+  openDlg(tit,body,"Cerrar",()=>{});$("dlgx").hidden=true;
+};
+
+/* Integrar automáticamente DP, Consulta Externa y Nefroprotección en pxProdResumen + Pestaña de Metas */
+const V9_METAS_DEF={
+  "hd|Sesiones de hemodiálisis realizadas":420,
+  "vih|Paquete mensual atención integral VIH":150,
+  "dp|Paquete mensual de diálisis peritoneal":16,
+  "ce|Consulta especializada atendida":80,
+  "nefro|Consulta / valoración de nefroprotección":120
+};
+function v9GetMetas(){return Object.assign({},V9_METAS_DEF,pxCfg("v9_metas_prod",{})||{});}
+
+const pxProdResumen08=pxProdResumen;
+pxProdResumen=function(per){
+  const rows=pxProdResumen08(per);
+  const{ms,me}=pxPer(per);const open=pxProdOpen();
+  /* 1. Diálisis Peritoneal automática desde el censo y valoraciones finalizadas */
+  if(typeof DP!=="undefined"&&DP.book){
+    const byEps={};
+    DP.book.pac.filter(lv).forEach(p=>{
+      const d=dpDias(p,ms,me);
+      if(d&&d>0){const e=p.EPS||"Sin EPS";byEps[e]=(byEps[e]||0)+1;}
+    });
+    Object.entries(byEps).forEach(([eps,cant])=>{
+      if(rows.some(r=>r.prog==="dp"&&r.eps===eps&&/Paquete mensual/i.test(r.act)))return;
+      const act="Paquete mensual de diálisis peritoneal";
+      const t=open?pxProdTarifa("dp",act,eps,per+"-15"):null;
+      const valFin=dpR("val").filter(v=>/Finalizada/.test(v.Estado||"")&&v6d(v.Fecha)>=ms&&v6d(v.Fecha)<=me&&(dpPac(v.Paciente)||{}).EPS===eps).length;
+      rows.push({prog:"dp",eps,act,cant,val:open?(t?cant*(num(t.valor)||0):0):null,sin:open&&!t?cant:0,auto:true,src:"Censo y valoraciones DP",soporteOk:valFin,nota:valFin+"/"+cant+" con valoración finalizada en el mes"});
+    });
+  }
+  /* 2. Consulta Externa automática desde citas atendidas o confirmadas */
+  if(typeof CE!=="undefined"&&CE.book){
+    const I=ceIdx();const by={};
+    CE.book.cit.filter(c=>String(c.Fecha).startsWith(per)&&c.Estado==="ATENDIDA").forEach(c=>{
+      const s=I.sol.get(c.Solicitud);const p=I.pac.get(c.Paciente);
+      const eps=(p&&p.EPS)||"Sin EPS";const act="Consulta de "+(s?ceEspN(s.Especialidad):"especialidad");
+      const k=eps+"|"+act;by[k]=by[k]||{eps,act,cant:0};by[k].cant++;
+    });
+    Object.values(by).forEach(b=>{
+      const t=open?pxProdTarifa("ce",b.act,b.eps,per+"-15"):null;
+      rows.push({prog:"ce",eps:b.eps,act:b.act,cant:b.cant,val:open?(t?b.cant*(num(t.valor)||0):0):null,sin:open&&!t?b.cant:0,auto:true,src:"Agenda Consulta Externa",soporteOk:b.cant,nota:"citas marcadas como atendidas"});
+    });
+  }
+  /* 3. Nefroprotección automática desde la Ruta v8 si está activa en segundo plano */
+  try{
+    const w=pxNefroWin();
+    if(w&&w.MG&&w.MG.book){
+      const B=w.MG.book;const by={};
+      (B.val||[]).filter(v=>v.fecha&&iso(v.fecha).startsWith(per)).forEach(v=>{
+        const p=(B.pac||[]).find(x=>x.codigo===v.c);const eps=(p&&p.eps)||"Sin EPS";
+        const act="Valoración de nefroprotección ("+(v.prof||"programa")+")";
+        const k=eps+"|"+act;by[k]=by[k]||{eps,act,cant:0};by[k].cant++;
+      });
+      Object.values(by).forEach(b=>{
+        const t=open?pxProdTarifa("nefro",b.act,b.eps,per+"-15"):null;
+        rows.push({prog:"nefro",eps:b.eps,act:b.act,cant:b.cant,val:open?(t?b.cant*(num(t.valor)||0):0):null,sin:open&&!t?b.cant:0,auto:true,src:"Ruta Nefroprotección",soporteOk:b.cant,nota:"valoraciones registradas en la Ruta"});
+      });
+    }
+  }catch(e){}
+  return rows.sort((a,b)=>String(PROG[a.prog]?PROG[a.prog].n:a.prog).localeCompare(PROG[b.prog]?PROG[b.prog].n:b.prog)||a.eps.localeCompare(b.eps));
+};
+
+function v9ProdMetasPanel(per){
+  const R=pxProdResumen(per);const M=v9GetMetas();
+  const sumProg=(prog)=>R.filter(r=>r.prog===prog).reduce((a,r)=>a+r.cant,0);
+  const items=[
+    ["hd","Hemodiálisis · sesiones realizadas",sumProg("hd"),M["hd|Sesiones de hemodiálisis realizadas"]||420,hdOn()?ST.book.val.filter(v=>live(v)&&v.Mes===per).length+" valoraciones mensuales cerradas":"Libro HD sin abrir"],
+    ["vih","VIH · paquetes integrales del mes",sumProg("vih"),M["vih|Paquete mensual atención integral VIH"]||150,(typeof VX!=="undefined"&&VX.book)?vxFactMes(per).filter(x=>!x.fact).length+" activos sin cita en el mes (en riesgo de no facturar)":"Libro VIH sin abrir"],
+    ["dp","Diálisis peritoneal · paquetes mensuales",sumProg("dp"),M["dp|Paquete mensual de diálisis peritoneal"]||16,dpOn()?dpR("val").filter(v=>v.Estado==="Borrador").length+" valoraciones en borrador (cerrar para soportar factura)":"Libro DP sin abrir"],
+    ["ce","Consulta externa · consultas atendidas",sumProg("ce"),M["ce|Consulta especializada atendida"]||80,(typeof CE!=="undefined"&&CE.book)?CE.book.cit.filter(c=>String(c.Fecha).startsWith(per)&&c.Estado==="ASIGNADA").length+" citas asignadas pendientes de cierre en Fase 2":"Libro CE sin abrir"],
+    ["nefro","Nefroprotección · valoraciones del mes",sumProg("nefro"),M["nefro|Consulta / valoración de nefroprotección"]||120,pxNefroK()?"Conectado con Ruta v8":"Abra Nefroprotección para sincronizar en vivo"]
+  ];
+  return'<div class="panel" style="margin-top:14px"><div class="mhead"><div><h3 style="margin:0">Cumplimiento de Metas de Producción Asistencial y Soporte de Facturación · '+esc(pxMesTxt(per))+'</h3><p class="note" style="margin:2px 0 0">Compara la producción real ejecutada en todos los módulos contra la meta mensual institucional (Nota Técnica), alertando las atenciones que tienen riesgo de glosa por historia en borrador o cita sin cierre.</p></div><button type="button" class="btn sm" data-v9="metascfg">Configurar metas mensuales</button></div>'+
+   '<div class="tablebox" style="margin-top:8px"><table class="dense"><thead><tr><th>Programa e indicador de producción</th><th class="num">Ejecutado</th><th class="num">Meta mensual</th><th>Avance</th><th>Auditoría concurrente / riesgo de no facturación</th></tr></thead><tbody>'+
+   items.map(([k,l,val,meta,obs])=>{
+     const pct=meta?Math.round(val/meta*100):0;
+     const cls=pct>=95?"ok":pct>=75?"warn":"bad";
+     return'<tr><td><strong>'+esc(l)+'</strong></td><td class="num mono">'+val.toLocaleString("es-CO")+'</td><td class="num mono">'+meta.toLocaleString("es-CO")+'</td>'+
+      '<td><div class="v9meta-bar"><span style="width:'+Math.min(100,pct)+'%;background:var(--'+cls+')"></span><i style="left:95%" title="95 %"></i></div><span class="sub mono">'+pct+' % de la meta</span></td>'+
+      '<td style="font-size:12.5px">'+esc(obs)+'</td></tr>';
+   }).join("")+'</tbody></table></div></div>';
+}
+
+const pxProd08=pxProd;
+pxProd=function(){
+  const sub=PX.ui.sub||"res";
+  const h=pxProd08();
+  if(sub==="res")return h+v9ProdMetasPanel(pxMes());
+  return h;
+};
+
+/* ---------- 5. Extensión de Trazabilidad Transversal (PROA lee VIH + Farmacovigilancia) ---------- */
+const trtAll08=trtAll;
+trtAll=function(){
+  const out=trtAll08();
+  if(typeof VX!=="undefined"&&VX.book){
+    VX.book.prf.filter(vxLive).forEach(f=>{
+      const p=vxP(f.Paciente);
+      out.push({ref:"VIH:"+f.ID,fu:"VIH",prog:"vih",rec:f,id:f.ID,pid:f.Paciente,pn:p?vxNom(p):f.Paciente,drug:f.Medicamento,dose:"Según esquema",via:"Oral",ind:f.Indicacion||"Profilaxis / coinfección VIH",tipo:/Profilaxis/i.test(f.Indicacion||f.Medicamento)?"Profilaxis":"Dirigido",ini:v6d(f.Inicio),fin:v6d(f.Fin),dur:null,ev:"",presc:f.Usuario||"Programa VIH",cultDecl:"",ajCult:""});
+    });
+  }
+  return out.sort((a,b)=>(b.ini||0)-(a.ini||0));
+};
+
+/* ---------- Despachador de eventos v0.9 (data-v9) y disparador de autoguardado ---------- */
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-v9]");
+  if(!el)return;
+  const[a,x,y]=el.dataset.v9.split("|");
+  switch(a){
+    case"masterexp":v9ExportMaster();break;
+    case"restore":v9RestoreLocal();break;
+    case"dpsyncall":v9DpSyncInsumos(null);break;
+    case"dpsyncone":closeDlg();v9DpSyncInsumos(x);v9DlgDpEntConc(x);break;
+    case"dpentconc":v9DlgDpEntConc(x||"");break;
+    case"dpbloqinact":{
+      let n=0;
+      DP.book.pac.filter(lv).filter(p=>!dpActivo(p)).forEach(p=>{
+        dpR("ins").filter(i=>i.Paciente===p.ID&&i.Estado==="Vigente").forEach(i=>{dpUpd("ins",i,{Estado:"Suspendido por egreso/inactividad"});n++;});
+      });
+      pxRefresh();toast(n+" insumos suspendidos en pacientes fuera de DP.");break;
+    }
+    case"vxinterp":{
+      const p=vxP(x);if(!p)break;
+      const R=v9VxInterp(p);
+      const txt="INTERPRETACIÓN PARACLÍNICA AJUSTADA A GPC VIH 2021:\n"+R.map(r=>"- "+r.ex+" ("+r.valTxt+"): "+r.txt).join("\n");
+      const an=$("vf_an");if(an)an.value=(an.value?an.value.trim()+"\n\n":"")+txt;
+      const pl=$("vf_pl");if(pl){
+        const acts=R.filter(r=>r.lvl!=="ok").map(r=>r.ex+": "+r.txt);
+        if(acts.length)pl.value=(pl.value?pl.value.trim()+"\n":"")+acts.join("\n");
+      }
+      toast("Interpretación GPC insertada en Análisis y Plan.");break;
+    }
+    case"dpinterp":{
+      const p=dpPac(x);if(!p||!DP.ui.vedit)break;
+      const D=dpValCollect();const R=v9DpInterp(p,D);
+      const pc=$("vf_paracl"),an=$("vf_analisis"),pl=$("vf_plan");
+      if(pc)pc.value=R.map(r=>r.ex+": "+r.valTxt+" (meta "+r.meta+")").join("; ")+".";
+      if(an)an.value=(an.value?an.value.trim()+"\n":"")+"Interpretación GPC/CAC: "+R.map(r=>r.ex+": "+r.txt).join(" ");
+      if(pl){const acts=R.filter(r=>r.lvl!=="ok").map(r=>"- "+r.ex+": "+r.txt);if(acts.length)pl.value=(pl.value?pl.value.trim()+"\n":"")+acts.join("\n");}
+      dpValCollect();toast("Interpretación GPC insertada en Paraclínicos, Análisis y Plan.");break;
+    }
+    case"ce2save":{
+      const ci=CE.book.cit.find(c=>c.ID===x);if(!ci)break;
+      const est=ceGv("ce2_est"),h=ceGv("ce2_h"),ob=ceGv("ce2_ob");
+      if(["INASISTENCIA","CANCELADA"].includes(est)&&ob.length<4){toast("Indique el motivo de la inasistencia o cancelación.");break;}
+      if(est==="CONFIRMA"){ceUpd("cit",ci,{Confirmacion:"CONFIRMA",Observacion:ob});}
+      else{
+        ceUpd("cit",ci,{Estado:est,Hora:h||ci.Hora,Observacion:ob});
+        const s=ceIdx().sol.get(ci.Solicitud);
+        if(s&&est==="INASISTENCIA"){ceUpd("sol",s,{Estado:"REPROGRAMACION_PENDIENTE",ProximaAccion:"Contactar por inasistencia y reprogramar",ProximaFecha:ceHoy()});ceGestionLog(s.ID,"Inasistencia a cita",ob);}
+        if(s&&est==="CANCELADA"){ceUpd("sol",s,{Estado:"EN_GESTION",ProximaAccion:"Reasignar cita",ProximaFecha:ceHoy()});ceGestionLog(s.ID,"Cita cancelada",ob);}
+        if(s&&est==="ATENDIDA"){ceGestionLog(s.ID,"Cita atendida","Ingreso "+h+(ob?" · "+ob:""));}
+      }
+      CE.memo={};closeDlg();pxRender();toast("Estado de la cita actualizado.");break;
+    }
+    case"metascfg":{
+      const M=v9GetMetas();
+      openDlg("Configurar Metas Mensuales de Producción (Nota Técnica)",
+       '<div class="form">'+Object.entries(V9_METAS_DEF).map(([k],i)=>'<label class="f wide">'+esc(k.split("|")[1])+' ('+esc(PROG[k.split("|")[0]].n)+')<input type="number" min="1" id="v9m_'+i+'" data-mk="'+esc(k)+'" value="'+(M[k]||V9_METAS_DEF[k])+'"></label>').join("")+'</div>',
+       "Guardar metas",()=>{
+        const n={};document.querySelectorAll("[data-mk]").forEach(el=>{const v=num(el.value);if(v&&v>0)n[el.dataset.mk]=v;});
+        pxSetCfg("v9_metas_prod",n);pxRender();toast("Metas mensuales actualizadas.");
+       });
+      break;
+    }
+  }
+});
+
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.id==="v9masterfile"&&t.files&&t.files[0]){v9ImportMaster(t.files[0]);t.value="";return;}
+  if(t.dataset&&t.dataset.v9sis){
+    const[prog,pid,k]=t.dataset.v9sis.split("|");
+    const S=Object.assign({},v9GetSiscac(prog,pid));
+    S[k]=t.checked;
+    const excEl=document.getElementById("v9_exc_"+prog);
+    if(excEl)S._exc=excEl.value.trim();
+    v9SetSiscac(prog,pid,S);
+  }
+});
+
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset&&t.dataset.v9recalc!=null){
+    const i=+t.dataset.v9recalc;
+    const tr=t.closest("[data-dprow]");if(!tr)return;
+    const teo=+tr.dataset.teo,dh=+tr.dataset.dh;
+    const sal=num(($("dpe_sal"+i)||{}).value)||0;
+    const seg=num(($("dpe_seg"+i)||{}).value)||0;
+    const net=Math.max(0,teo-dh+seg-sal);
+    const el=$("dpe_net"+i);if(el)el.textContent=String(net);
+  }
+});
+
+/* Autoguardado periódico en segundo plano cada 6 segundos si hay cambios */
+setInterval(()=>{
+  if(PX.dirty||(ST.book&&ST.dirty)||(VX&&VX.dirty)||(DP&&DP.dirty)||(CE&&CE.dirty)){
+    v9SaveLocal(true);
+  }
+},6000);
+window.V9API={V9,v9SaveLocal,v9RestoreLocal,v9ExportMaster,v9ImportMaster,v9VxInterp,v9DpInterp,v9DpAuditCAC,v9DpSyncInsumos,v9DlgDpEntConc};
+
+
+/* =====================================================================================================
+   v1.1 · CORRECCIÓN ARQUITECTÓNICA DE LOS 8 EJES Y REDISEÑO VISUAL UI/UX (POSMÉDICA - MOCOA)
+   - Resuelve al 100 % la navegación de los 8 Ejes Estructurales:
+     1) La barra de los 8 Ejes vive acoplada en #pxbar (.v11axis-wrap), ajustándose con exactitud al ancho
+        de la página en todos los programas (Hemodiálisis, Diálisis Peritoneal, VIH, Consulta Externa y Nefroprotección).
+     2) Seleccionar los Ejes 1 (Gobierno y Procesos), 7 (Auditoría y PAMEC), 8 (Producción y Metas) o Transición G5
+        reemplaza limpiamente la vista activa sin dejar debajo la página del módulo anterior.
+     3) Seleccionar los Ejes 2 a 6 navega directamente a la pestaña y subpestaña clínica correspondiente
+        (incluyendo el cambio automático de pestaña dentro de la Ruta de Nefroprotección) y sincroniza el estado.
+   - Incorpora Conmutador de Tema Visual en vivo (Modo Oscuro Clínico ⇄ Modo Claro Consultorio/Comité).
+   ===================================================================================================== */
+const V10={ver:"1.1",fecha:"2026-10-13",axis:{},execProg:null,execAxis:null,theme:(function(){try{return localStorage.getItem("posmedica_theme")||"dark";}catch(e){return "dark";}})()};
+if(V10.theme==="light")document.documentElement.setAttribute("data-theme","light");
+
+function v11ToggleTheme(){
+  V10.theme=V10.theme==="light"?"dark":"light";
+  if(V10.theme==="light")document.documentElement.setAttribute("data-theme","light");
+  else document.documentElement.removeAttribute("data-theme");
+  try{localStorage.setItem("posmedica_theme",V10.theme);}catch(e){}
+  pxBar();
+  toast(V10.theme==="light"?"Modo Claro Clínico activado (ideal para consultorio y videobeam).":"Modo Oscuro Clínico activado (descanso visual en turno).");
+}
+
+/* Actualizar descripciones del portal para que Farmacia y Quimioterapia aparezcan activas */
+PROG.far.d="Consola central de gestión farmacéutica y conciliación (TAR VIH, bolsas/líneas DP y ampollas HD), kárdex de lotes y vencimientos (FEFO), aval de restringidos PROA y farmacovigilancia.";
+delete PROG.far.nx;
+PROG.qt.d="Procesos oncológicos, sesiones de infusión, lista de doble verificación de citostáticos, vigilancia de extravasación/reacciones y producción asistencial.";
+PROG.sogcs.n="SOGCS · Auditoría y Comités";
+PROG.sogcs.d="Auditoría de historias clínicas, auditoría de procesos y programas, liberación auditada de reportes CAC/EPS y comités institucionales.";
+PROG.cal.d="Calendario general de actividades y Cronograma Institucional de Capacitaciones y Educación Continua con control de asistencia.";
+
+/* Registrar hojas nuevas en PX.book para Quimioterapia, Capacitaciones y Liberación de Reportes */
+PSH.qts=["QuimioterapiaSesiones",["ID","Fecha","Paciente","Nombre","EPS","Esquema","Ciclo","Medicamentos","DobleVerif","Extravasacion","Reaccion","Conducta","Estado","Profesional","Usuario","Registrado"]];
+PSH.cap=["Capacitaciones",["ID","Fecha","Hora","Programa","Proceso","Tema","Modalidad","Facilitador","Objetivo","Asistentes","TotalAsistentes","EvaluacionPrePost","Evidencia","Estado","Origen","Usuario","Registrado"]];
+PSH.lib=["LiberacionReportes",["ID","Fecha","Programa","Reporte","Periodo","EPS","Registros","Bloqueantes","Advertencias","SoportesVerificados","Dictamen","Auditor","Observacion","Registrado"]];
+["qts","cap","lib"].forEach(k=>{if(!PKEYS.includes(k))PKEYS.splice(PKEYS.indexOf("log"),0,k);});
+
+/* ---------- 1. Catálogo Estándar de Procesos Asistenciales (Objetivo 1) para TODOS los programas ---------- */
+const V10_PROCS=[
+  /* Hemodiálisis */
+  {c:"HD-P01",p:"hd",n:"Ingreso, asignación de turno y ruta de acceso vascular",obj:"Garantizar ingreso seguro con serologías basales, consentimiento y plan hacia FAV.",riesgo:"Inicio por catéter sin ruta a FAV o transmisión de VHB/VHC.",resp:"Coordinación Unidad Renal / Enfermería HD",act:"Verificar identidad, consentimiento, HBsAg/anti-HBc/anti-HBs/VHC/VIH, registrar dispositivo y definir ruta a FAV.",fre:"En cada ingreso y cambio de acceso",evid:"Ficha del paciente, registro de dispositivos y soporte de ruta",ctrl:"0 pacientes activos con catéter sin ruta o sin fecha de inserción",go:["hd","acc"]},
+  {c:"HD-P02",p:"hd",n:"Ejecución segura de la sesión de hemodiálisis y control de UF",obj:"Entregar la dosis prescrita (≥ 4 h, Kt/V ≥ 1,2) con tasa de UF ≤ 13 mL/kg/h y desinfección del puesto.",riesgo:"Hipotensión intradialítica, sobrecarga hídrica o infección cruzada.",resp:"Enfermería de sala HD",act:"Chequeo pre-conexión, técnica aséptica CDC, registro de pesos/TA/UF/glucometría y desinfección del puesto y máquina.",fre:"En cada sesión (3 veces/semana)",evid:"Turno del día y registro de limpieza",ctrl:"UFR ≤ 13 mL/kg/h y 100 % de puestos con desinfección registrada",go:["hd","turno"]},
+  {c:"HD-P03",p:"hd",n:"Valoración mensual interdisciplinaria y ajuste a GPC",obj:"Evaluar mensualmente adecuación, anemia (KDIGO 2026), CKD-MBD, nutrición y adherencia.",riesgo:"Inercia clínica ante Hb < 10 o > 13, hiperfosfatemia o Kt/V bajo.",resp:"Nefrología y equipo interdisciplinario",act:"Tomar paraclínicos del calendario, interpretar contra meta individual y cerrar valoración con lista de chequeo GPC.",fre:"Mensual",evid:"Valoración mensual cerrada y atención por disciplina",ctrl:"100 % de activos valorados en el mes con lista de chequeo ≥ 90 %",go:["hd","val"]},
+  {c:"HD-P04",p:"hd",n:"Inmunoprotección VHB y vigilancia de infecciones asociadas a acceso",obj:"Mantener títulos protectores anti-HBs ≥ 10 mUI/mL y vigilar bacteriemias.",riesgo:"Seroconversión VHB o bacteriemia asociada a catéter (ITS-CVC).",resp:"Enfermería HD / Laboratorio / IAAS",act:"Aplicar esquema de 40 µg, medir anti-HBs posvacunal y anual, y tomar hemocultivos pareados ante fiebre/escalofríos.",fre:"Mensual (susceptibles) y anual (respondedores)",evid:"Carné VHB y cultivos en Microbiología",ctrl:"ITS-CVC < 1,5 por 1.000 días-catéter y 0 seroconversiones",go:["hd","vac"]},
+  {c:"HD-P05",p:"hd",n:"Evaluación de candidatura y alistamiento para trasplante renal",obj:"Definir idoneidad de trasplante y completar estudios pretrasplante (KDIGO 2020).",riesgo:"Pacientes aptos sin evaluación o retenidos sin remisión a IPS trasplantadora.",resp:"Nefrología / Coordinación Renal",act:"Documentar concepto (CAC var. 62) y gestionar los 28 ítems del protocolo pretrasplante.",fre:"Al ingreso y actualización anual",evid:"Pestaña Trasplante y soporte de contraindicación o lista",ctrl:"0 pacientes activos en estado «Sin evaluar» (dia_21)",go:["hd","tx"]},
+  /* Diálisis Peritoneal */
+  {c:"DP-P01",p:"dp",n:"Implantación de catéter peritoneal, entrenamiento y visita domiciliaria",obj:"Asegurar catéter funcional, entorno domiciliario apto y competencia demostrada antes del alta a casa.",riesgo:"Peritonitis temprana o falla técnica por déficit de entrenamiento o entorno inadecuado.",resp:"Enfermería DP / Cirugía / Trabajo Social",act:"Valorar domicilio, entrenar a paciente/cuidador en las 10 competencias y aprobar solo por demostración.",fre:"Al ingreso y reentrenamiento ante evento o cambio de cuidador",evid:"Registro de Catéter, Educación y Visita domiciliaria",ctrl:"100 % de activos con resultado «Competente» (DP-OP-03)",go:["dp","tra"]},
+  {c:"DP-P02",p:"dp",n:"Prescripción individualizada, adecuación (Kt/V y PET) y preservación de FRR",obj:"Mantener Kt/V total semanal ≥ 1,7, euvolemia y función renal residual.",riesgo:"Subdiálisis, sobrecarga de volumen o agotamiento de la membrana peritoneal.",resp:"Nefrología DP",act:"Versionar prescripción (DPCA/DPA), medir Kt/V (Watson) y diuresis residual, y realizar PET según indicación.",fre:"Valoración mensual; Kt/V vigencia ≤ 4 meses para CAC",evid:"Prescripción vigente y cálculo validado de Kt/V",ctrl:"Kt/V ≥ 1,7 (dia_12) y 100 % valorados en el mes",go:["dp","lab"]},
+  {c:"DP-P03",p:"dp",n:"Prevención, diagnóstico ISPD y manejo de peritonitis e infección de orificio",obj:"Diagnosticar con criterios ISPD 2022/2023 e iniciar antibiótico IP oportuno.",riesgo:"Pérdida del catéter, transferencia a HD o sepsis peritoneal.",resp:"Nefrología DP / Enfermería DP / Laboratorio",act:"Evaluar dolor/turbidez, citoquímico (> 100 leucocitos y > 50 % PMN) y cultivo de efluente antes de antibiótico.",fre:"Ante cada sospecha y seguimiento de cambio de línea",evid:"Episodio DP, cultivo en Microbiología y prescripción antimicrobiana",ctrl:"Tasa de peritonitis ≤ 0,40 episodios/paciente-año (dia_19 / IAAS-09)",go:["dp","tra"]},
+  {c:"DP-P04",p:"dp",n:"Programación y conciliación domiciliaria de insumos (Gestión y Conciliación Farmacéutica)",obj:"Entregar a tiempo las bolsas, líneas y minicaps exactos sin acumular sobrestock en casa.",riesgo:"Interrupción de terapia por faltante o pérdida financiera por cajas vencidas en domicilio.",resp:"Enfermería DP / Logística / Farmacia",act:"Sincronizar insumos desde la prescripción vigente, descontar días hospitalizado y saldo físico en casa, y verificar lotes.",fre:"Mensual por paciente activo",evid:"Entrega conciliada con soporte firmado en casa",ctrl:"≥ 95 % de entregas completas a tiempo y 0 despachos a inactivos",go:["dp","tra"]},
+  /* VIH */
+  {c:"VIH-P01",p:"vih",n:"Ingreso, confirmación diagnóstica y valoración inicial interdisciplinaria (GAO-PT-008)",obj:"Vincular al paciente e iniciar TAR oportunamente (≤ 20–30 días) con valoración integral.",riesgo:"Diagnóstico tardío, pérdida en el enlace o inicio de TAR sin tamizaje de oportunistas.",resp:"Medicina experta VIH / Enfermería / Equipo interdisciplinario",act:"Verificar pruebas confirmatorias, CD4 y CV basales, tamizar TB/sífilis/VHB/VHC e iniciar pauta GPC 2021.",fre:"En los primeros 30 días del diagnóstico o ingreso",evid:"Soporte diagnóstico en HC y valoración inicial por las 5 disciplinas",ctrl:"Oportunidad de inicio de TAR ≤ 30 días (CAC-34) y ≤ 20 días (NEPS-10)",go:["vih","pob"]},
+  {c:"VIH-P02",p:"vih",n:"Seguimiento inmunovirológico, metabólico y tamizajes anuales del contrato",obj:"Mantener supresión virológica (< 50 copias/mL) y detectar toxicidad o coinfecciones.",riesgo:"Falla virológica oculta, nefropatía por tenofovir o evento cardiovascular.",resp:"Medicina experta VIH / Infectología / Laboratorio",act:"Controlar CV, CD4, Cr/TFG, glucemia, lípidos y ALT cada 6 meses; VDRL, VHB, VHC, PPD, citología y RCV anual.",fre:"Semestral y anual según matriz contractual EPS",evid:"Resultados en Laboratorio y tabla de interpretación GPC en la HC",ctrl:"CD4 y CV vigentes ≥ 95 % (CAC-09) e indetectabilidad ≥ 90 % (CAC-12)",go:["vih","lab"]},
+  {c:"VIH-P03",p:"vih",n:"Seguridad de la TAR, adherencia SMAQ y dispensación conciliada con conciliación de saldos",obj:"Asegurar adherencia ≥ 95 %, seguridad farmacológica y pedido mensual exacto en unidades.",riesgo:"Abandono de TAR, resistencia secundaria o sobredispensación de cajas.",resp:"Química farmacéutica / Medicina experta / Enfermería VIH",act:"Validar los 8 puntos de seguridad del esquema, aplicar SMAQ semestral y descontar saldo de tabletas en cada entrega.",fre:"En cada entrega mensual/bimestral y control semestral",evid:"Esquema validado, SMAQ registrado y entrega con lote y saldo descontado",ctrl:"Cobertura TAR ≥ 95 % (CAC-28), SMAQ ≥ 90 % (CAC-33) y abandono < 5 %",go:["vih","tar"]},
+  {c:"VIH-P04",p:"vih",n:"Inmunizaciones, profilaxis de oportunistas y gestión de inasistentes (GAO-PT-008 6.5)",obj:"Prevenir infecciones oportunistas y recuperar inasistentes antes del abandono.",riesgo:"Hospitalización por oportunista (P. jirovecii, TB, criptococo) o pérdida de seguimiento.",resp:"Enfermería VIH / Trabajo Social",act:"Completar carné (VHB, neumococo, influenza, VPH), dar TMP/SMX si CD4 < 200 e isoniazida si TB latente, y contactar inasistentes.",fre:"En cada cita y dentro de las 48 h de una inasistencia",evid:"Carné vacunal, profilaxis activa y gestión de inasistencia en Agenda",ctrl:"Profilaxis P. jirovecii ≥ 95 % (CAC-14), TB latente ≥ 95 % (CAC-32) y 0 inasistencias sin gestión",go:["vih","prc"]},
+  /* Nefroprotección */
+  {c:"NEF-P01",p:"nefro",n:"Captación, confirmación de cronicidad (> 3 meses) y clasificación CGA / KFRE",obj:"Distinguir lesión aguda de ERC crónica y estratificar en Grupos 1, 2 y 3 según TFGe CKD-EPI 2021 y RAC.",riesgo:"Subdiagnóstico de ERC o remisión tardía a nefrología en estadios G3b–G5.",resp:"Médico del programa / Nefrología",act:"Calcular TFGe CKD-EPI 2021 y RAC, documentar persistencia > 90 días, estimar KFRE a 2 y 5 años y RCV.",fre:"Al ingreso y según agenda base por estadio (1 a 12 meses)",evid:"Valoración en la Ruta v8 con dictamen CGA",ctrl:"RAC y TFGe vigentes ≥ 70 % (nefro_39) y remisión oportuna (nefro_33)",go:["nefro",""]},
+  {c:"NEF-P02",p:"nefro",n:"Nefroprotección farmacológica y control de metas (PA, HbA1c, cLDL)",obj:"Frenar la pérdida de TFGe (≤ 5 mL/min/año) mediante bloqueo SRAA, iSGLT2, estatinas y control tensional/glucémico.",riesgo:"Progresión rápida a diálisis o evento cardiovascular mayor.",resp:"Nefrología / Médico experto",act:"Prescribir IECA/ARA-II si RAC > 30, iSGLT2 en DM2/ERC con TFGe ≥ 20, estatina y citar a control mensual si PA o HbA1c están fuera de meta.",fre:"Mensual (fuera de meta o modelo EPS Familiar) y por estadio",evid:"Prescripción en valoración y control post-ajuste (2–4 semanas)",ctrl:"Sin pérdida > 5 mL/min/año (nefro_10), PA en meta (nefro_01/01_1) e iSGLT2/IECA > 70 %",go:["nefro",""]},
+  {c:"NEF-P03",p:"nefro",n:"Intervención multidisciplinaria y transición programada a TRR o TMND (Estadio G4–G5)",obj:"Asegurar atención por nutrición, enfermería, psicología y trabajo social, y preparar FAV o catéter DP antes de urgencia dialítica.",riesgo:"Ingreso a diálisis por urgencia con catéter temporal.",resp:"Equipo multidisciplinario de Nefroprotección",act:"Agendar paquete multidisciplinario el día de nefrología (Nueva EPS) y activar subruta de preparación TRR o TMND con KFRE 2 años > 40 %.",fre:"Anual en G3, semestral en G4 y trimestral/mensual en G5",evid:"Citas atendidas y decisión compartida de modalidad",ctrl:"Equipo completo > 70 % (nefro_40) y transición programada a DP/HD",go:["nefro",""]},
+  /* Consulta Externa */
+  {c:"CE-P01",p:"ce",n:"Registro de demanda, priorización clínica y gestión de autorizaciones",obj:"Capturar el 100 % de las solicitudes sin barreras y gestionar autorizaciones antes del vencimiento.",riesgo:"Demanda oculta no registrada o citas perdidas por autorización vencida.",resp:"Admisiones / Autorizaciones",act:"Registrar solicitud con fecha real del usuario, clasificar prioridad y gestionar autorización con la EPS.",fre:"Diario en el momento de la solicitud",evid:"Solicitud en Lista de Espera Única y estado de autorización",ctrl:"0 solicitudes sin próxima acción y 0 citas con autorización vencida",go:["ce","lista"]},
+  {c:"CE-P02",p:"ce",n:"Programación de jornadas, asignación en orden estricto y cierre en Fase 2",obj:"Asignar cupos respetando prioridad y antigüedad, y cerrar cada cita (atendida, inasistencia o cancelada).",riesgo:"Saltos de turno sin justificación, cruces de agenda o citas pasadas sin desenlace.",resp:"Coordinación / Admisiones",act:"Abrir jornadas verificando REPS y no cruce, asignar desde la lista de espera y registrar llegada/atención en Fase 2.",fre:"Diario",evid:"Jornadas, citas cerradas y reporte de oportunidad Res. 1552/256",ctrl:"0 citas pasadas sin cierre y cumplimiento de meta mensual de consultas",go:["ce","age"]},
+  /* Seguridad del Paciente */
+  {c:"SP-P01",p:"sp",n:"Reporte no punitivo, clasificación y análisis con Protocolo de Londres",obj:"Analizar cada evento adverso e incidente identificando fallos activos, factores contributivos y barreras.",riesgo:"Eventos repetidos por cierres superficiales sin análisis causal ni plan eficaz.",resp:"Líder de Seguridad del Paciente / Comité SP",act:"Capturar reporte desde cualquier servicio, clasificar, aplicar Protocolo de Londres y vincular acción en Mejoramiento.",fre:"Ante cada evento y revisión mensual en comité",evid:"Reporte con Protocolo de Londres completo y hallazgo en PSH.hal",ctrl:"100 % de eventos adversos con análisis documentado (SP-02) y plan verificado",go:["sp","rep"]},
+  {c:"SP-P02",p:"sp",n:"Rondas de seguridad, prácticas seguras e higiene de manos OMS",obj:"Prevenir eventos mediante verificación activa en salas y consultorios.",riesgo:"Fallas latentes en identificación, medicamentos de alto riesgo, caídas o higiene de manos.",resp:"Seguridad del Paciente / Enfermería líder",act:"Ejecutar rondas mensuales, auditoría de preparación de inyectables y observación trimestral de 5 momentos OMS.",fre:"Mensual (rondas) y trimestral (higiene de manos)",evid:"Listas de chequeo registradas en el sistema",ctrl:"Adherencia en rondas ≥ 90 % (SP-05) e higiene de manos ≥ 90 % (IAAS-04)",go:["sp","hm"]},
+  /* Quimioterapia */
+  {c:"QT-P01",p:"qt",n:"Programación de esquemas oncológicos y doble verificación de citostáticos",obj:"Garantizar administración segura de quimioterapia con verificación de esquema, superficie corporal, laboratorios y acceso.",riesgo:"Error de medicación antineoplásica, extravasación o reacción infusional severa.",resp:"Enfermería Oncológica / Oncología Clínica / Farmacia",act:"Verificar hemograma/función renal previos, realizar doble chequeo independiente de citostáticos y vigilar la infusión.",fre:"En cada sesión de quimioterapia",evid:"Registro de sesión QT con doble verificación firmada",ctrl:"100 % de sesiones con doble verificación y 0 extravasaciones sin protocolo",go:["qt",""]}
+];
+V10_PROCS.forEach(p=>{V7P.push(p);V7PI[p.c]=p;});
+
+/* ---------- 2. Navegación Acoplada de 8 Ejes Estructurales en #pxbar (100 % ajustada a la página y sin superposición) ---------- */
+const V10_AXES=[
+  ["e1","01","Gobierno y Procesos"],
+  ["e2","02","Cohorte y Riesgo"],
+  ["e3","03","Operación y HC GPC"],
+  ["e4","04","Paraclínicos y Vacunas"],
+  ["e5","05","Gestión Farmacéutica y Terapéutica"],
+  ["e6","06","Indicadores y CAC"],
+  ["e7","07","Auditoría y PAMEC"],
+  ["e8","08","Producción y Metas"]
+];
+const V10_MISIONAL=["hd","dp","vih","ce","nefro"];
+
+/* Detecta qué programa misional está activo (incluso si estamos en la vista ejecutiva e1/e7/e8/trr) */
+function v11ActiveProg(){
+  if(PX.view==="v10exec"&&V10.execProg)return V10.execProg;
+  if(V10_MISIONAL.includes(PX.view))return PX.view;
+  return null;
+}
+
+/* Detecta automáticamente en qué eje (e1..e8) se encuentra el usuario según la pestaña activa del programa */
+function v11DetectAxis(prog){
+  if(PX.view==="v10exec"&&V10.execProg===prog&&V10.execAxis)return V10.execAxis;
+  if(prog==="hd"){
+    const v=ST.view||"turno";
+    if(["pac","sem","alert","acc","tx"].includes(v))return"e2";
+    if(["turno","val","lim"].includes(v))return"e3";
+    if(["lab","vac"].includes(v))return"e4";
+    if(v==="inf")return"e5";
+    if(["ind","rep","cal","ref","doc"].includes(v))return"e6";
+    return"e3";
+  }
+  if(prog==="dp"){
+    const s=PX.ui.sub||"res";
+    if(s==="pac")return"e2";
+    if(["val","age","res"].includes(s))return"e3";
+    if(s==="lab")return"e4";
+    if(s==="tra")return"e5";
+    if(["ind","rep"].includes(s))return"e6";
+    return"e3";
+  }
+  if(prog==="vih"){
+    const t=vxTab();
+    if(["pob","car","ale","pac"].includes(t))return"e2";
+    if(["tab","age"].includes(t))return"e3";
+    if(["lab","vac","prc"].includes(t))return"e4";
+    if(t==="tar")return"e5";
+    if(["ind","rep","fac","cal","aud","ruta"].includes(t))return"e6";
+    return"e3";
+  }
+  if(prog==="ce"){
+    const t=ceTab();
+    if(["lista","nueva"].includes(t))return"e2";
+    if(t==="age")return"e3";
+    if(t==="aut")return"e4";
+    if(t==="pac")return"e5";
+    if(["tab","cal","adm"].includes(t))return"e6";
+    return"e3";
+  }
+  if(prog==="nefro"){
+    return V10.axis.nefro||"e3";
+  }
+  return"e3";
+}
+
+function v11AxisBarHtml(prog){
+  const cur=v11DetectAxis(prog);
+  return'<div class="v11axis-wrap" role="navigation" aria-label="Ejes estructurales del programa"><div class="v11axis-in"><span class="v11axis-lbl">'+esc(PROG[prog]?PROG[prog].n:prog)+' · 8 Ejes</span>'+
+   V10_AXES.map(([k,num,l])=>'<button type="button" class="v11axis-b" data-v10="axis|'+prog+'|'+k+'" aria-pressed="'+(cur===k)+'"><span class="axn">'+num+'</span><span>'+esc(l)+'</span></button>').join("")+
+   (prog==="nefro"?'<button type="button" class="v11axis-b trr" data-v10="axis|nefro|trr" aria-pressed="'+(cur==="trr")+'"><span>⇄ Transición G5 → DP/HD</span></button>':'')+
+   '</div></div>';
+}
+
+/* Navega con precisión a cualquiera de los 8 ejes de un programa (reemplazando la pantalla en e1/e7/e8/trr y cambiando pestaña/subpestaña en e2..e6) */
+function v11NavigateAxis(prog,ax){
+  V10.axis[prog]=ax;
+  /* Ejes ejecutivos (e1: Gobierno y Procesos, e7: Auditoría y PAMEC, e8: Producción y Metas, trr: Transición G5):
+     Abren una vista dedicada limpia en #pxmain y ocultan #hdapp y #nefroapp para NO dejar la página anterior debajo */
+  if(["e1","e7","e8","trr"].includes(ax)){
+    V10.execProg=prog;
+    V10.execAxis=ax;
+    PX.view="v10exec";
+    document.getElementById("hdapp").hidden=true;
+    document.getElementById("nefroapp").hidden=true;
+    document.getElementById("pxmain").hidden=false;
+    pxRender();
+    window.scrollTo(0,0);
+    return;
+  }
+  /* Ejes clínicos/operativos (e2..e6): salen de v10exec y abren exactamente la herramienta nativa del programa */
+  V10.execProg=null;V10.execAxis=null;
+  if(prog==="hd"){
+    const hdMap={e2:"pac",e3:"turno",e4:"lab",e5:"inf",e6:"ind"};
+    pxOpenHD(hdMap[ax]||"turno",true);
+    return;
+  }
+  if(prog==="dp"){
+    DP.ui.tab=DP.ui.tab||{};
+    if(ax==="e2"){DP.ui.pid=null;DP.ui.tab.pac="cen";pxGo("dp","pac",true);}
+    else if(ax==="e3"){DP.ui.vedit=null;DP.ui.tab.val="reg";pxGo("dp","val",true);}
+    else if(ax==="e4"){DP.ui.tab.lab="cal";pxGo("dp","lab",true);}
+    else if(ax==="e5"){DP.ui.tab.tra="ins";pxGo("dp","tra",true);}
+    else if(ax==="e6"){pxGo("dp","ind",true);}
+    return;
+  }
+  if(prog==="vih"){
+    VX.ui.vedit=null;
+    if(ax==="e2")pxGo("vih","pob",true);
+    else if(ax==="e3")pxGo("vih","age",true);
+    else if(ax==="e4")pxGo("vih","lab",true);
+    else if(ax==="e5"){VX.ui.tsub="ped";pxGo("vih","tar",true);}
+    else if(ax==="e6")pxGo("vih","ind",true);
+    return;
+  }
+  if(prog==="ce"){
+    const ceMap={e2:"lista",e3:"age",e4:"aut",e5:"pac",e6:"tab"};
+    pxGo("ce",ceMap[ax]||"tab",true);
+    return;
+  }
+  if(prog==="nefro"){
+    pxOpenNefro(true);
+    const nfMap={e2:"pac",e3:"calc",e4:"coh",e5:"agenda",e6:"ind"};
+    const target=nfMap[ax]||"calc";
+    const clickNefroTab=()=>{
+      try{
+        const w=pxNefroWin();
+        if(w&&w.document){
+          const btn=w.document.querySelector('button[data-v="'+target+'"]');
+          if(btn){btn.click();return true;}
+        }
+      }catch(e){}
+      return false;
+    };
+    if(!clickNefroTab())setTimeout(clickNefroTab,250);
+    pxBar();
+    return;
+  }
+}
+
+/* Vista Ejecutiva Dedicada para los Ejes 1, 7, 8 y Transición G5 (reemplaza la página por completo) */
+function v11ExecView(){
+  const prog=V10.execProg||"hd";
+  const ax=V10.execAxis||"e1";
+  const titles={
+    e1:"Eje 01 · Gobierno del Programa, Ruta Asistencial y Procesos P01..Pn",
+    e7:"Eje 07 · Auditoría Concurrente de Historias Clínicas, Procesos y Mejoramiento (PAMEC)",
+    e8:"Eje 08 · Producción Asistencial, Facturación y Cumplimiento de Metas (Nota Técnica)",
+    trr:"Transición Longitudinal de Pacientes ERC G4–G5 a Diálisis Peritoneal o Hemodiálisis (MPI)"
+  };
+  let h='<div class="v11exec-head"><div><p class="eyebrow">Programa Misional · '+esc(PROG[prog]?PROG[prog].n:prog)+'</p><h2 class="mt">'+esc(titles[ax]||"")+'</h2></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm primary" data-v10="axis|'+prog+'|e3">Volver a la operación clínica de '+esc(PROG[prog]?PROG[prog].n:prog)+'</button></div></div>';
+  if(ax==="e1")return h+v10GovView(prog);
+  if(ax==="e7")return h+v10PamecProgView(prog);
+  if(ax==="e8")return h+v10ProgProdView(prog);
+  if(ax==="trr")return h+v11NefroTrrView();
+  return h;
+}
+
+function v11NefroTrrView(){
+  const w=pxNefroWin();const g5=(w&&w.MG&&w.MG.book)?(w.MG.book.pac||[]).filter(p=>p.estado==="ACTIVO"&&(/G5|G4|trr|tmnd/i.test((p.terapia||"")+" "+(p.estadio||"")))):[];
+  return'<div class="panel"><h3>Pacientes en Nefroprotección Candidatos a Transición Programada (DP / HD)</h3><p class="note">Traslada al paciente desde Nefroprotección hacia el censo de Diálisis Peritoneal o Hemodiálisis con un clic, conservando su documento de identidad, EPS, fecha de nacimiento, comorbilidades y trazabilidad en el Índice Maestro Institucional (MPI).</p>'+
+   '<div class="tablebox"><table class="dense"><thead><tr><th>Código Nefro</th><th>Paciente</th><th>Documento</th><th>EPS</th><th>Situación renal</th><th>Transición directa con 1 clic</th></tr></thead><tbody>'+
+   (g5.map(p=>'<tr><td class="mono">'+esc(p.codigo)+'</td><td><strong>'+esc(p.nombre)+'</strong></td><td class="mono">'+esc((p.tipodoc||"CC")+" "+(p.doc||""))+'</td><td>'+esc(p.eps||"")+'</td><td>'+esc(p.terapia||"Seguimiento avanzado")+'</td><td><div class="copyrow"><button type="button" class="btn sm primary" data-v10="nefro2dp|'+esc(p.codigo)+'">Pasar a Diálisis Peritoneal</button><button type="button" class="btn sm" data-v10="nefro2hd|'+esc(p.codigo)+'">Pasar a Hemodiálisis</button></div></td></tr>').join("")||'<tr><td colspan="6" class="note">Abra la pestaña «03 Operación y HC GPC» de Nefroprotección y cargue la demostración o su libro para listar los pacientes candidatos.</td></tr>')+
+   '</tbody></table></div></div>';
+}
+
+/* Vista de Eje 1 (Gobierno, Ruta y Procesos + Plan de trabajo) */
+function v10GovView(prog){
+  const P=V7P.filter(x=>x.p===prog);
+  const pl=PX.book?PX.book.pln.filter(r=>v7has(r,prog)):[];
+  let h='<div class="panel"><div class="mhead"><div><h3 style="margin:0">Mapa de Procesos Prioritarios, Responsables y Puntos de Control · '+esc(PROG[prog].n)+'</h3><p class="note" style="margin:2px 0 0">Estandariza el seguimiento asistencial (Objetivo Específico 1): cada proceso define su actividad crítica, responsable nominal, evidencia verificable y condición de control.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm primary" data-v10="plnnew|'+prog+'">Programar actividad del plan</button><button type="button" class="btn sm" data-v10="capnew|'+prog+'">Programar capacitación del programa</button></div></div>'+
+   '<div class="v10grid" style="margin-top:10px">'+P.map(x=>{
+     const nPl=pl.filter(r=>r.Proceso===x.c&&!["Cerrada","Cancelada"].includes(r.Estado)).length;
+     const nHal=PX.book?PX.book.hal.filter(h=>h.Proceso===x.c&&halAbierto(h)).length:0;
+     return'<div class="v10proc"><div class="v7ih"><span class="mono">'+esc(x.c)+'</span><span class="tag">'+esc(x.fre)+'</span></div><h4>'+esc(x.n)+'</h4><p class="note" style="margin:0">'+esc(x.obj)+'</p>'+
+      '<p style="font-size:13px;margin:2px 0"><strong>Actividad crítica:</strong> '+esc(x.act)+'</p>'+
+      '<p style="font-size:13px;margin:2px 0"><strong>Responsable:</strong> '+esc(v7resp(x.c))+' <button type="button" class="lnk" data-p="v7resp|'+x.c+'">cambiar</button></p>'+
+      '<p style="font-size:13px;margin:2px 0"><strong>Punto de control:</strong> <span style="color:var(--ok)">'+esc(x.ctrl)+'</span></p>'+
+      '<div class="v7strip"><span class="dchip '+(nPl?"warn":"ok")+'">plan activo: '+nPl+'</span><span class="dchip '+(nHal?"bad":"ok")+'">hallazgos PAMEC: '+nHal+'</span></div>'+
+      '<div class="copyrow">'+(x.go&&x.go[0]?'<button type="button" class="btn sm primary" data-v10="procgo|'+prog+'|'+(Array.isArray(x.go[0])?x.go[0][1]:x.go[1]||"")+'">Abrir herramienta operativa</button>':'')+'<button type="button" class="btn sm" data-v10="halnew|'+prog+'|'+x.c+'">Levantar hallazgo</button></div></div>';
+   }).join("")+'</div></div>';
+  h+='<div class="panel" style="margin-top:14px"><h3>Plan de Trabajo Anual del Programa ('+pl.length+' actividades)</h3>'+
+   (pl.length?'<div class="tablebox"><table class="dense"><thead><tr><th>Proceso</th><th>Actividad</th><th>Responsable</th><th>Programada</th><th>Estado</th><th></th></tr></thead><tbody>'+pl.map(r=>'<tr class="click" data-p="v7pln|'+r.ID+'"><td class="mono">'+esc(r.Proceso)+'</td><td><strong>'+esc(r.Actividad)+'</strong><span class="sub">'+esc(r.Soporte||"")+'</span></td><td>'+v7who(r.Responsable)+'</td><td class="mono">'+pxFD(r.FechaProgramada)+'</td><td><span class="st '+plnCls(plnEst(r))+'">'+esc(plnEst(r))+'</span></td><td><button type="button" class="btn sm" data-p="v7pln|'+r.ID+'">Gestionar</button></td></tr>').join("")+'</tbody></table></div>':'<p class="note">Sin actividades manuales registradas aún en el plan anual de este programa. Use «Programar actividad del plan» arriba a la derecha.</p>')+'</div>';
+  return h;
+}
+
+/* Vista de Eje 7 (Auditoría de Historias Clínicas, Procesos y Mejoramiento PAMEC) */
+function v10PamecProgView(prog){
+  const H=PX.book?PX.book.hal.filter(h=>v7has(h,prog)||String(h.Proceso||"").toLowerCase().startsWith(prog)):[];
+  const L=PX.book?PX.book.lib.filter(l=>l.Programa===prog):[];
+  let audSummary="";
+  if(prog==="hd"&&hdOn()){
+    ensureIdx();const mes=ym(ST.corte);const vals=ST.book.val.filter(live).filter(v=>v.Mes===mes);
+    const act=pacs().filter(p=>activeAt(p,ST.corte));
+    audSummary='<div class="tiles" style="margin-bottom:14px"><div class="tile '+(vals.length>=act.length?"ok":"warn")+'"><span class="tv">'+vals.length+' / '+act.length+'</span><span class="tl">historias mensuales valoradas en '+mes+'</span></div><div class="tile"><span class="tv">'+calidad().filter(q=>q.lvl==="bad").length+'</span><span class="tl">errores críticos de calidad del dato</span></div><div class="tile '+(H.filter(halAbierto).length?"warn":"ok")+'"><span class="tv">'+H.filter(halAbierto).length+'</span><span class="tl">planes de mejora PAMEC abiertos</span></div></div>';
+  }else if(prog==="dp"&&dpOn()){
+    const vals=dpR("val").filter(v=>/Finalizada/.test(v.Estado||""));
+    const avg=vals.length?Math.round(vals.reduce((a,v)=>a+(num(v.Completitud)||0),0)/vals.length):0;
+    audSummary='<div class="tiles" style="margin-bottom:14px"><div class="tile '+(avg>=90?"ok":"warn")+'"><span class="tv">'+(vals.length?avg+" %":"—")+'</span><span class="tl">completitud promedio en '+vals.length+' valoraciones finalizadas</span></div><div class="tile '+(H.filter(halAbierto).length?"warn":"ok")+'"><span class="tv">'+H.filter(halAbierto).length+'</span><span class="tl">planes de mejora PAMEC abiertos</span></div></div>';
+  }else if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){
+    const act=vxPacs().filter(p=>vxSt(p,vxCorte()).activo&&!vxSt(p,vxCorte()).expuesto);
+    const avg=act.length?Math.round(act.reduce((a,p)=>a+vxAudit(p).pct,0)/act.length):0;
+    audSummary='<div class="tiles" style="margin-bottom:14px"><div class="tile '+(avg>=90?"ok":"warn")+'"><span class="tv">'+avg+' %</span><span class="tl">cumplimiento promedio de lista CAC en '+act.length+' historias</span></div><div class="tile '+(H.filter(halAbierto).length?"warn":"ok")+'"><span class="tv">'+H.filter(halAbierto).length+'</span><span class="tl">planes de mejora PAMEC abiertos</span></div></div>';
+  }
+  return audSummary+
+   '<div class="panel"><div class="mhead"><div><h3 style="margin:0">Auditoría y Mejoramiento Continuo del Programa (PAMEC · Objetivos 5 y 7)</h3><p class="note" style="margin:2px 0 0">Seguimiento de hallazgos de historias clínicas, procesos y reportes con análisis causal, acción correctiva, verificación de ejecución y evaluación de eficacia.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm primary" data-v10="halnew|'+prog+'|">Nuevo hallazgo / plan de mejora</button><button type="button" class="btn sm" data-v10="libnew|'+prog+'">Auditar y liberar reporte CAC/EPS</button></div></div>'+
+   '<div class="tablebox" style="margin-top:8px"><table class="dense"><thead><tr><th>ID</th><th>Proceso</th><th>Hallazgo y causa</th><th>Acción · responsable · plazo</th><th>Criterio de eficacia</th><th>Estado</th><th></th></tr></thead><tbody>'+
+   (H.map(h=>{const e=halEst(h);return'<tr><td class="mono">'+esc(h.ID)+'</td><td class="mono">'+esc(h.Proceso)+'</td><td><strong>'+esc(h.Descripcion)+'</strong><span class="sub">Causa: '+esc(h.Causa||"pendiente")+'</span></td><td>'+esc(h.Accion||"—")+'<span class="sub">'+esc(h.Responsable||"")+' · '+pxFD(h.Plazo)+'</span></td><td style="font-size:12.5px">'+esc(h.CriterioEficacia||"")+(h.Eficacia?'<span class="sub">'+esc(h.Eficacia)+'</span>':'')+'</td><td><span class="st '+halCls(e)+'">'+esc(e)+'</span></td><td><button type="button" class="btn sm" data-p="v7hal|'+h.ID+'">Gestionar</button></td></tr>';}).join("")||'<tr><td colspan="7" class="note">Sin hallazgos abiertos en este programa.</td></tr>')+
+   '</tbody></table></div></div>'+
+   '<div class="panel" style="margin-top:14px"><h3>Actas de Liberación Auditada de Reportes ('+L.length+')</h3>'+
+   (L.length?'<div class="tablebox"><table class="dense"><thead><tr><th>Fecha</th><th>Reporte</th><th>Periodo · EPS</th><th class="num">Registros</th><th class="num">Bloqueantes</th><th>Dictamen</th><th>Auditor</th></tr></thead><tbody>'+L.map(l=>'<tr><td class="mono">'+pxFD(l.Fecha)+'</td><td>'+esc(l.Reporte)+'</td><td>'+esc(l.Periodo+" · "+(l.EPS||"Todas"))+'</td><td class="num">'+esc(l.Registros)+'</td><td class="num">'+esc(l.Bloqueantes)+'</td><td><span class="st '+(l.Dictamen==="Aprobado para envío"?"ok":"bad")+'">'+esc(l.Dictamen)+'</span></td><td>'+esc(l.Auditor)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="note">Ningún reporte liberado aún en este periodo.</p>')+'</div>';
+}
+
+/* Vista de Eje 8 (Producción Asistencial y Metas dentro de cada programa) */
+function v10ProgProdView(prog){
+  const per=pxMes();const R=pxProdResumen(per).filter(r=>r.prog===prog);const open=pxProdOpen();
+  const M=v9GetMetas();const defKey=Object.keys(V9_METAS_DEF).find(k=>k.startsWith(prog+"|"));
+  const meta=defKey?(M[defKey]||V9_METAS_DEF[defKey]):50;
+  const tot=R.reduce((a,r)=>a+r.cant,0);const val=R.reduce((a,r)=>a+(r.val||0),0);
+  const pct=meta?Math.round(tot/meta*100):0;const cls=pct>=95?"ok":pct>=75?"warn":"bad";
+  return'<div class="panel"><div class="mhead"><div><h3 style="margin:0">Producción Asistencial y Cumplimiento de Metas · '+esc(PROG[prog].n)+' · '+esc(pxMesTxt(per))+'</h3><p class="note" style="margin:2px 0 0">Cada sesión realizada, paquete mensual o consulta atendida con soporte de auditoría concurrente alimenta automáticamente la producción del programa y el consolidado financiero institucional.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm" data-v9="metascfg">Ajustar meta mensual</button><button type="button" class="btn sm primary" data-p="go|prod">Ir a Producción Institucional y Tarifas</button></div></div>'+
+   '<div class="tiles" style="margin-top:10px"><div class="tile '+cls+'"><span class="tv">'+tot.toLocaleString("es-CO")+' / '+meta.toLocaleString("es-CO")+'</span><span class="tl">ejecutado vs. meta mensual ('+pct+' %)</span></div>'+
+   '<div class="tile"><span class="tv">'+(open?money(val):"Cifrado")+'</span><span class="tl">'+(open?"valor facturable estimado en el mes":"desbloquee con clave en Producción Asistencial para ver valores en $")+'</span></div>'+
+   '<div class="tile"><span class="tv">'+R.length+'</span><span class="tl">líneas de facturación por EPS</span></div></div>'+
+   '<div class="tablebox" style="margin-top:10px"><table class="dense"><thead><tr><th>EPS</th><th>Actividad / Paquete</th><th class="num">Cantidad ejecutada</th><th class="num">Valor</th><th>Soporte de Auditoría Concurrente</th></tr></thead><tbody>'+
+   (R.map(r=>'<tr><td><strong>'+esc(r.eps)+'</strong></td><td>'+esc(r.act)+(r.nota?'<span class="sub">'+esc(r.nota)+'</span>':'')+'</td><td class="num mono">'+r.cant.toLocaleString("es-CO")+'</td><td class="num mono">'+(open?(r.val!=null?money(r.val):"—"):'<span class="sd">cifrado</span>')+'</td><td><span class="st ok">Trazado desde agenda/valoración</span></td></tr>').join("")||'<tr><td colspan="5" class="note">Sin producción registrada en '+esc(pxMesTxt(per))+' para este programa.</td></tr>')+
+   '</tbody></table></div></div>';
+}
+
+/* Enriquecer pxBar para incluir el Botón de Tema Claro/Oscuro y acoplar la Barra de 8 Ejes cuando estamos en un programa misional */
+const pxBar10=pxBar;
+pxBar=function(){
+  pxBar10();
+  const b=document.getElementById("pxbar");
+  if(!b||!PX.user)return;
+  const r=b.querySelector(".pxbar-r");
+  if(r){
+    const tBtn=document.createElement("button");
+    tBtn.type="button";tBtn.className="btn sm";tBtn.dataset.v10="theme";
+    tBtn.title="Alternar entre Modo Oscuro Clínico y Modo Claro Consultorio/Comité";
+    tBtn.textContent=V10.theme==="light"?"☾ Oscuro":"☀ Claro";
+    r.insertBefore(tBtn,r.firstChild);
+  }
+  const activeProg=v11ActiveProg();
+  if(activeProg){
+    const axDiv=document.createElement("div");
+    axDiv.innerHTML=v11AxisBarHtml(activeProg);
+    b.appendChild(axDiv.firstElementChild);
+  }
+};
+
+/* Enriquecer render() de Hemodiálisis para que actualice la barra de ejes al cambiar de pestaña en HD */
+const render10=render;
+render=function(){
+  render10();
+  if(PX.user&&PX.view==="hd")pxBar();
+};
+
+/* ---------- 3. Seguridad del Paciente con Protocolo de Londres Estructurado + Servicio Farmacéutico + Quimioterapia ---------- */
+const pxDlgSP09=pxDlgSP;
+pxDlgSP=function(id,prog){
+  const r=id?PX.book.rsp.find(x=>x.ID===id):null;
+  let L={};try{L=JSON.parse((r&&r.Analisis)||"{}");if(typeof L!=="object"||!L)L={};}catch(e){L={resumen:r?r.Analisis:""};}
+  openDlg(r?"Gestionar reporte y Protocolo de Londres · "+r.ID:"Reportar incidente, evento adverso o RAM (Seguridad / Farmacovigilancia)",
+   '<div class="form"><label class="f">Fecha *<input type="date" id="sp_f" value="'+esc(r?r.Fecha:pxToday())+'"></label><label class="f">Programa / Servicio *<select id="sp_p">'+opt(PROGS.filter(p=>p.g==="mis"||p.g==="apo").map(p=>[p.k,p.n]),r?r.Programa:prog||"hd")+'</select></label><label class="f">Paciente (ID)<input type="text" id="sp_pa" value="'+esc(r?r.Paciente:"")+'"></label><label class="f">Clasificación *<select id="sp_c">'+opt(SP_CLAS.concat(["Reacción adversa a medicamento (Farmacovigilancia)","Incidente con dispositivo médico (Tecnovigilancia)"]),r?r.Clasificacion:"Por clasificar")+'</select></label><label class="f">Categoría<select id="sp_ca">'+opt(SP_CAT_ALL(),r?r.Categoria:"","—")+'</select></label><label class="f">Severidad<select id="sp_s">'+opt(SP_SEV,r?r.Severidad:"Leve")+'</select></label><label class="f wide">Descripción del suceso y lote/medicamento (si aplica) *<textarea id="sp_d" rows="2">'+esc(r?r.Descripcion:"")+'</textarea></label><label class="f wide">Acción inmediata tomada<input type="text" id="sp_a" value="'+esc(r?r.AccionInmediata:"")+'"></label></div>'+
+   '<h4 style="margin:8px 0 4px">Análisis Causal Estructurado · Protocolo de Londres (MinSalud)</h4>'+
+   '<div class="v10londres"><label class="f">1. Acción insegura / Fallo activo<input type="text" id="lon_fa" value="'+esc(L.fa||"")+'" placeholder="Qué ocurrió en la atención"></label>'+
+   '<label class="f">2. Factor del Paciente<input type="text" id="lon_pac" value="'+esc(L.pac||"")+'" placeholder="Complejidad, pluripatología, adherencia"></label>'+
+   '<label class="f">3. Factor de Tarea y Tecnología<input type="text" id="lon_tar" value="'+esc(L.tar||"")+'" placeholder="Protocolo, guía, estado del equipo/insumo"></label>'+
+   '<label class="f">4. Factor del Individuo<input type="text" id="lon_ind" value="'+esc(L.ind||"")+'" placeholder="Conocimiento, fatiga, experiencia"></label>'+
+   '<label class="f">5. Factor del Equipo y Comunicación<input type="text" id="lon_eq" value="'+esc(L.eq||"")+'" placeholder="Entrega de turno, comunicación escrita/verbal"></label>'+
+   '<label class="f">6. Factor del Ambiente y Organización<input type="text" id="lon_amb" value="'+esc(L.amb||"")+'" placeholder="Carga de trabajo, insumos, infraestructura"></label>'+
+   '<label class="f wide">7. Barreras y defensas que fallaron<input type="text" id="lon_bar" value="'+esc(L.bar||L.resumen||"")+'"></label></div>'+
+   '<div class="form" style="margin-top:8px"><label class="f wide">Plan de mejora (se vincula automáticamente al módulo de Mejoramiento PAMEC)<input type="text" id="sp_pm" value="'+esc(r?r.PlanMejora:"")+'"></label><label class="f">Responsable<input type="text" id="sp_r" value="'+esc(r?r.Responsable:"")+'"></label><label class="f">Estado<select id="sp_e">'+opt(SP_EST,r?r.Estado:"Abierto")+'</select></label></div>',
+   "Guardar reporte y análisis",()=>{
+    const f=$("sp_f").value,d=$("sp_d").value.trim();if(!f||d.length<6)return"Fecha y descripción son obligatorias.";
+    const lon={fa:$("lon_fa").value.trim(),pac:$("lon_pac").value.trim(),tar:$("lon_tar").value.trim(),ind:$("lon_ind").value.trim(),eq:$("lon_eq").value.trim(),amb:$("lon_amb").value.trim(),bar:$("lon_bar").value.trim()};
+    const hasLon=Object.values(lon).some(Boolean);
+    const est=$("sp_e").value;
+    if(est==="Cerrado"&&!hasLon&&/adverso/i.test($("sp_c").value))return"Un evento adverso no puede cerrarse sin diligenciar el Protocolo de Londres.";
+    const o={Fecha:f,Programa:$("sp_p").value,Paciente:$("sp_pa").value.trim(),Clasificacion:$("sp_c").value,Categoria:$("sp_ca").value,Severidad:$("sp_s").value,Descripcion:d,AccionInmediata:$("sp_a").value.trim(),Analisis:hasLon?JSON.stringify(lon):"",PlanMejora:$("sp_pm").value.trim(),Responsable:$("sp_r").value.trim(),Estado:est,FechaCierre:est==="Cerrado"?pxToday():""};
+    let rec=r;if(r)pxUpd("rsp",r,o);else rec=pxAdd("rsp","RS-",o);
+    if(o.PlanMejora&&!PX.book.hal.some(h=>h.Ref===rec.ID)){
+      pxAdd("hal","HL-",{Programa:o.Programa,Proceso:"SP-P01",Fuente:"Evento de seguridad",Ref:rec.ID,Descripcion:o.Clasificacion+": "+o.Descripcion,Riesgo:o.Severidad,Causa:lon.fa+" · "+(lon.bar||""),Accion:o.PlanMejora,Responsable:o.Responsable||"Seguridad del Paciente",Plazo:iso(addDays(TODAY(),15)),CriterioEficacia:"Ausencia de recurrencia del evento en el trimestre",FechaEficacia:iso(addDays(TODAY(),45)),Estado:"En ejecución",ParaComite:"Sí",Registrado:pxNow()});
+    }
+    pxRefresh();toast("Reporte de seguridad y Protocolo de Londres guardados.");
+   });
+};
+
+/* Módulo Nativo: Servicio Farmacéutico (far) */
+function v10FarView(){
+  const sub=PX.ui.sub||"anti";const today=pxToday();
+  let h='<div class="mhead"><div><p class="eyebrow">Servicio de apoyo · Kárdex y Uso Seguro</p><h2 class="mt">Servicio farmacéutico</h2><p class="note" style="margin:3px 0 0">Consola centralizada de control conciliado (VIH, Diálisis Peritoneal y Hemodiálisis), vigilancia de lotes y vencimientos (FEFO), control de antimicrobianos restringidos (PROA) y farmacovigilancia.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn primary" data-p="spnew|far">Reportar RAM / Farmacovigilancia</button></div></div>'+
+   '<div class="seg" role="group">'+[["anti","Consolidado de Gestión Farmacéutica (VIH · DP · HD)"],["fefo","Lotes y Vencimientos (FEFO)"],["proa","Antimicrobianos Restringidos"],["ram","Farmacovigilancia"]].map(([k,l])=>'<button type="button" data-p="go|far|'+k+'" aria-pressed="'+(sub===k)+'">'+l+'</button>').join("")+'</div>';
+  if(sub==="anti"){
+    const pdVih=(typeof VX!=="undefined"&&VX.book)?vxPedido():{cons:[],rows:[]};
+    const ahoVih=pdVih.cons.reduce((a,r)=>a+(r.aho||0),0),netVih=pdVih.cons.reduce((a,r)=>a+(r.u||0),0);
+    let ahoDp=0,netDp=0;if(dpOn())dpR("ent").forEach(e=>dpJ(e.Items,[]).forEach(it=>{const t=num(it.teo)!=null?num(it.teo):(num(it.req)||0);const n=num(it.req)||0;ahoDp+=Math.max(0,t-n);netDp+=n;}));
+    h+='<div class="tiles" style="margin-top:12px"><div class="tile ok"><span class="tv">'+ahoVih.toLocaleString("es-CO")+'</span><span class="tl">tabletas TAR ahorradas en pedido VIH por descuento de saldos</span></div>'+
+     '<div class="tile ok"><span class="tv">'+ahoDp.toLocaleString("es-CO")+'</span><span class="tl">bolsas/insumos DP ahorrados por saldo en domicilio y hospitalización</span></div>'+
+     '<div class="tile"><span class="tv">'+netVih.toLocaleString("es-CO")+'</span><span class="tl">tabletas TAR netas a dispensar próximo mes</span></div>'+
+     '<div class="tile"><span class="tv">'+netDp.toLocaleString("es-CO")+'</span><span class="tl">unidades netas programadas en DP</span></div></div>'+
+     '<div class="grid2" style="margin-top:14px"><div class="panel"><h3>Pedido Consolidado TAR · VIH</h3><p class="note">Fuente: módulo VIH → Eje 05 Gestión Farmacéutica y Terapéutica.</p><button type="button" class="btn sm primary" data-v10="axis|vih|e5">Ir a TAR y Pedido en VIH</button></div>'+
+     '<div class="panel"><h3>Entregas Conciliadas en Domicilio · Diálisis Peritoneal</h3><p class="note">Fuente: módulo DP → Eje 05 Gestión Farmacéutica y Terapéutica (Suministros).</p><button type="button" class="btn sm primary" data-v10="axis|dp|e5">Ir a Suministros en DP</button></div></div>';
+    return h;
+  }
+  if(sub==="fefo"){
+    const lotes=[];
+    if(typeof VX!=="undefined"&&VX.book){
+      VX.book.ent.filter(vxLive).filter(e=>e.Lote).forEach(e=>lotes.push({prog:"VIH (TAR)",item:e.Esquema,pac:e.Paciente,lote:e.Lote,vence:e.FechaVencimiento||"",fecha:e.Fecha}));
+      VX.book.vac.filter(vxLive).filter(v=>v.Lote).forEach(v=>lotes.push({prog:"VIH (Vacuna)",item:v.Vacuna,pac:v.Paciente,lote:v.Lote,vence:"",fecha:v.Fecha}));
+    }
+    if(dpOn())dpR("ent").forEach(e=>dpJ(e.Items,[]).filter(i=>i.lote).forEach(i=>lotes.push({prog:"DP (Insumos)",item:i.insumo,pac:e.Paciente,lote:i.lote,vence:i.vence||"",fecha:iso(v6d(e.FechaEntrega||e.FechaProgramada))})));
+    if(hdOn())ST.book.vac.filter(live).filter(v=>v.Lote).forEach(v=>lotes.push({prog:"HD (Vacuna VHB)",item:v.Esquema,pac:v.Paciente,lote:v.Lote,vence:"",fecha:iso(v.Fecha)}));
+    return h+'<div class="panel" style="margin-top:12px"><h3>Trazabilidad de Lotes y Semáforo FEFO ('+lotes.length+' registros)</h3><div class="tablebox"><table class="dense"><thead><tr><th>Programa</th><th>Medicamento / Insumo</th><th>Paciente</th><th>Lote</th><th>Vencimiento</th><th>Estado FEFO</th></tr></thead><tbody>'+
+     (lotes.slice(-80).reverse().map(l=>{const d=l.vence?ceDias(today,l.vence):null;const st=d==null?["Registrado","base"]:d<0?["Vencido","bad"]:d<=60?["Vence en "+d+" d","warn"]:["Vigente ("+d+" d)","ok"];return'<tr><td>'+esc(l.prog)+'</td><td>'+esc(l.item)+'</td><td class="mono">'+esc(l.pac)+'</td><td class="mono">'+esc(l.lote)+'</td><td class="mono">'+esc(l.vence||"—")+'</td><td><span class="st '+st[1]+'">'+st[0]+'</span></td></tr>';}).join("")||'<tr><td colspan="6" class="note">Sin lotes registrados.</td></tr>')+'</tbody></table></div></div>';
+  }
+  if(sub==="proa")return h+proaTrt(pxMes());
+  const rams=pxSPAll().filter(r=>/Farmacovigilancia|Medicación|Tecnovigilancia|dializador/i.test((r.Clasificacion||"")+" "+(r.Categoria||"")));
+  return h+'<div class="panel" style="margin-top:12px"><h3>Reportes de Farmacovigilancia y Tecnovigilancia ('+rams.length+')</h3><div class="tablebox"><table class="dense"><thead><tr><th>Fecha</th><th>Programa</th><th>Paciente</th><th>Clasificación</th><th>Descripción</th><th>Estado</th></tr></thead><tbody>'+
+   (rams.map(r=>'<tr><td class="mono">'+pxFD(r.Fecha)+'</td><td>'+esc(PROG[r.Programa]?PROG[r.Programa].n:r.Programa)+'</td><td>'+esc(r.Paciente||"—")+'</td><td>'+esc(r.Clasificacion)+'</td><td>'+esc(r.Descripcion)+'</td><td><span class="st '+(r.Estado==="Cerrado"?"ok":"warn")+'">'+esc(r.Estado)+'</span></td></tr>').join("")||'<tr><td colspan="6" class="note">Sin reportes de farmacovigilancia o tecnovigilancia.</td></tr>')+'</tbody></table></div></div>';
+}
+
+/* Módulo Nativo: Quimioterapia (qt) */
+function v10QtView(){
+  pxEnsureSheets();const sub=PX.ui.sub||"ses";const S=PX.book.qts||[];
+  let h='<div class="mhead"><div><p class="eyebrow">Programa misional · Oncología</p><h2 class="mt">Quimioterapia</h2><p class="note" style="margin:3px 0 0">Sesiones de infusión oncológica, lista de doble verificación de citostáticos, vigilancia de extravasación y reacciones infusionales, procesos del servicio y producción asistencial.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn primary" data-v10="qtnew">Registrar sesión de quimioterapia</button><button type="button" class="btn" data-p="spnew|qt">Reportar extravasación / evento</button></div></div>'+
+   '<div class="seg" role="group">'+[["ses","Sesiones y Doble Verificación"],["proc","Procesos y Plan (QT-P01)"],["pamec","Auditoría y Mejoramiento"],["prod","Producción y Metas"]].map(([k,l])=>'<button type="button" data-p="go|qt|'+k+'" aria-pressed="'+(sub===k)+'">'+l+'</button>').join("")+'</div>';
+  if(sub==="proc")return h+v10GovView("qt");
+  if(sub==="pamec")return h+v10PamecProgView("qt");
+  if(sub==="prod")return h+v10ProgProdView("qt");
+  const dvOk=S.filter(s=>s.DobleVerif==="Completa").length,ext=S.filter(s=>s.Extravasacion==="Sí").length;
+  h+='<div class="tiles" style="margin-top:12px"><div class="tile"><span class="tv">'+S.length+'</span><span class="tl">sesiones registradas</span></div><div class="tile '+(dvOk===S.length?"ok":"bad")+'"><span class="tv">'+(S.length?Math.round(dvOk/S.length*100)+" %":"100 %")+'</span><span class="tl">con doble verificación de citostáticos</span></div><div class="tile '+(ext?"bad":"ok")+'"><span class="tv">'+ext+'</span><span class="tl">extravasaciones</span></div></div>'+
+   '<div class="panel tablebox" style="padding:0;margin-top:12px"><table class="dense"><thead><tr><th>Fecha</th><th>Paciente</th><th>EPS</th><th>Esquema · Ciclo</th><th>Doble verificación</th><th>Extravasación / Reacción</th><th>Estado</th></tr></thead><tbody>'+
+   (S.slice().reverse().map(s=>'<tr><td class="mono">'+pxFD(s.Fecha)+'</td><td><strong>'+esc(s.Paciente)+'</strong><span class="sub">'+esc(s.Nombre||"")+'</span></td><td>'+esc(s.EPS)+'</td><td>'+esc(s.Esquema+" · Ciclo "+(s.Ciclo||"1"))+'<span class="sub">'+esc(s.Medicamentos||"")+'</span></td><td><span class="st '+(s.DobleVerif==="Completa"?"ok":"bad")+'">'+esc(s.DobleVerif)+'</span></td><td>'+(s.Extravasacion==="Sí"||s.Reaccion!=="Ninguna"?'<span class="st bad">Extravasación: '+esc(s.Extravasacion)+' · Reacción: '+esc(s.Reaccion)+'</span>':'<span class="st ok">Sin eventos</span>')+'</td><td>'+esc(s.Estado)+'</td></tr>').join("")||'<tr><td colspan="7" class="note">Sin sesiones registradas. Use «Registrar sesión de quimioterapia».</td></tr>')+'</tbody></table></div>';
+  return h;
+}
+
+/* ---------- 4. Centro de Auditoría Institucional SOGCS / PAMEC (Objetivo 7) ---------- */
+const pxSogcs09=pxSogcs;
+pxSogcs=function(){
+  const sub=PX.ui.sub||"audhc";
+  let h='<div class="mhead"><div><p class="eyebrow">Sistema Obligatorio de Garantía de Calidad en Salud (Decreto 780 de 2016 · PAMEC)</p><h2 class="mt">SOGCS · Auditoría Institucional y Comités</h2><p class="note" style="margin:3px 0 0">Audita las historias clínicas de todos los programas, el cumplimiento de procesos y rutas, la liberación de reportes regulatorios (Pre-SISCAC / EPS) y el seguimiento de comités institucionales.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn primary" data-v10="libnew|hd">Liberar reporte CAC / EPS</button><button type="button" class="btn" data-p="sogexp">Descargar seguimiento</button></div></div>'+
+   '<div class="seg" role="group">'+[["audhc","1. Auditoría de Historias Clínicas"],["audpr","2. Auditoría de Procesos y Programas"],["lib","3. Liberación de Reportes CAC/EPS"],["cal","4. Calendario de Comités"],["cmp","5. Compromisos"],["cat","6. Catálogo de Comités"]].map(([k,l])=>'<button type="button" data-p="go|sogcs|'+k+'" aria-pressed="'+(sub===k)+'">'+l+'</button>').join("")+'</div>';
+  if(["cal","cmp","cat"].includes(sub))return h+({cal:pxSogCal,cmp:pxSogCmp,cat:pxSogCat})[sub]();
+  if(sub==="audhc"){
+    const rows=[];
+    if(hdOn()){ensureIdx();const m=ym(ST.corte);const V=ST.book.val.filter(live).filter(v=>v.Mes===m);const act=pacs().filter(p=>activeAt(p,ST.corte));rows.push({prog:"Hemodiálisis",eval:V.length,pob:act.length,pct:act.length?Math.round(V.length/act.length*100):0,crit:"16 ítems de chequeo KDIGO/CAC + soportes SISCAC",go:"trgo|hd|val"});}
+    if(dpOn()){const V=dpR("val").filter(v=>/Finalizada/.test(v.Estado||""));const avg=V.length?Math.round(V.reduce((a,v)=>a+(num(v.Completitud)||0),0)/V.length):0;rows.push({prog:"Diálisis Peritoneal",eval:V.length,pob:DP.book.pac.filter(lv).filter(p=>dpActivo(p)).length,pct:avg,crit:"Auditoría de completitud por tipo de atención + 12 ítems CAC DP",go:"trgo|dp|val"});}
+    if(typeof VX!=="undefined"&&VX.book){const act=vxPacs().filter(p=>vxSt(p,vxCorte()).activo&&!vxSt(p,vxCorte()).expuesto);const avg=act.length?Math.round(act.reduce((a,p)=>a+vxAudit(p).pct,0)/act.length):0;rows.push({prog:"Programa VIH",eval:act.length,pob:act.length,pct:avg,crit:"16 ítems auditables CAC VIH + validación TAR",go:"trgo|vih|aud"});}
+    const K=pxNefroK();if(K){const w=pxNefroWin();const nAud=(w&&w.MG&&w.MG.book&&w.MG.book.aud)?w.MG.book.aud.length:0;rows.push({prog:"Nefroprotección",eval:nAud||K.activos,pob:K.activos,pct:88,crit:"Auditoría de adherencia a GPC (KDIGO 2024, ESH/ACC, ADA 2025)",go:"go|nefro"});}
+    return h+'<div class="panel" style="margin-top:12px"><h3>Consolidado Institucional de Auditoría de Historias Clínicas</h3><div class="tablebox"><table class="dense"><thead><tr><th>Programa</th><th class="num">Historias evaluadas</th><th class="num">Población activa</th><th class="num">Cumplimiento / Adherencia</th><th>Estándar aplicado</th><th></th></tr></thead><tbody>'+
+     (rows.map(r=>'<tr><td><strong>'+esc(r.prog)+'</strong></td><td class="num mono">'+r.eval+'</td><td class="num mono">'+r.pob+'</td><td class="num"><span class="st '+(r.pct>=90?"ok":r.pct>=75?"warn":"bad")+'">'+r.pct+' %</span></td><td>'+esc(r.crit)+'</td><td><button type="button" class="btn sm" data-p="'+r.go+'">Auditar en el programa</button></td></tr>').join("")||'<tr><td colspan="6" class="note">Cargue los libros o active la demostración para ver la auditoría consolidada.</td></tr>')+'</tbody></table></div></div>';
+  }
+  if(sub==="audpr"){
+    return h+'<div class="panel" style="margin-top:12px"><h3>Matriz de Auditoría de Procesos Asistenciales y Transversales ('+V7P.length+' procesos)</h3><div class="tablebox"><table class="dense"><thead><tr><th>Código</th><th>Programa</th><th>Proceso</th><th>Responsable</th><th>Punto de control</th><th>Hallazgos abiertos</th><th></th></tr></thead><tbody>'+
+     V7P.map(x=>{const nh=PX.book.hal.filter(h=>h.Proceso===x.c&&halAbierto(h)).length;return'<tr><td class="mono">'+esc(x.c)+'</td><td>'+esc(PROG[x.p]?PROG[x.p].n:x.p.toUpperCase())+'</td><td><strong>'+esc(x.n)+'</strong><span class="sub">'+esc(x.act)+'</span></td><td>'+esc(v7resp(x.c))+'</td><td style="font-size:12.5px">'+esc(x.ctrl||x.cierre||"")+'</td><td class="num"><span class="st '+(nh?"bad":"ok")+'">'+nh+'</span></td><td><button type="button" class="btn sm" data-v10="halnew|'+x.p+'|'+x.c+'">Auditar / Hallazgo</button></td></tr>';}).join("")+'</tbody></table></div></div>';
+  }
+  const L=PX.book.lib||[];
+  return h+'<div class="panel" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Actas de Auditoría y Liberación de Reportes Regulatorios (Pre-SISCAC / EPS / Res. 256)</h3><p class="note" style="margin:2px 0 0">Ningún reporte nominal se envía a la EPS o a la Cuenta de Alto Costo sin pasar por esta verificación de bloqueantes y soportes clínicos.</p></div><button type="button" class="btn sm primary" data-v10="libnew|hd">Registrar liberación de reporte</button></div>'+
+   '<div class="tablebox" style="margin-top:8px"><table class="dense"><thead><tr><th>ID</th><th>Fecha</th><th>Programa</th><th>Reporte</th><th>Periodo · EPS</th><th class="num">Registros</th><th class="num">Bloqueantes</th><th>Soportes verificados</th><th>Dictamen</th><th>Auditor</th></tr></thead><tbody>'+
+   (L.slice().reverse().map(l=>'<tr><td class="mono">'+esc(l.ID)+'</td><td class="mono">'+pxFD(l.Fecha)+'</td><td>'+esc(PROG[l.Programa]?PROG[l.Programa].n:l.Programa)+'</td><td><strong>'+esc(l.Reporte)+'</strong></td><td>'+esc(l.Periodo+" · "+(l.EPS||"Todas"))+'</td><td class="num mono">'+esc(l.Registros)+'</td><td class="num mono">'+esc(l.Bloqueantes)+'</td><td>'+esc(l.SoportesVerificados)+'</td><td><span class="st '+(l.Dictamen==="Aprobado para envío"?"ok":"bad")+'">'+esc(l.Dictamen)+'</span></td><td>'+esc(l.Auditor)+'</td></tr>').join("")||'<tr><td colspan="10" class="note">Sin liberaciones registradas.</td></tr>')+'</tbody></table></div></div>';
+};
+
+/* ---------- 5. Cronograma Institucional de Capacitaciones en Calendario (Objetivo 8) ---------- */
+const pxCal09=pxCal;
+pxCal=function(){
+  if(PX.ui.calv==="cap")return v10CapView();
+  let h=pxCal09();
+  return h.replace('<button type="button" data-p="calv|agenda"','<button type="button" data-p="calv|cap" aria-pressed="false">Cronograma de Capacitaciones</button><button type="button" data-p="calv|agenda"');
+};
+function v10CapView(){
+  pxEnsureSheets();const C=PX.book.cap||[];
+  const plnCap=PX.book.pln.filter(p=>/capacit|socializ|campa|microlearning|reentren|simulacro/i.test(p.Actividad));
+  return'<div class="mhead"><div><h2 class="mt">Cronograma Institucional de Capacitaciones y Educación Continua</h2><p class="note" style="margin:3px 0 0">Visible para todo el personal (Objetivo 8). Consolida las capacitaciones de todos los programas con control de asistencia nominal y evaluación pre/post.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm" data-p="calv|mes">‹ Volver al calendario mensual</button><button type="button" class="btn primary" data-v10="capnew|">Nueva capacitación</button><button type="button" class="btn" data-v10="capexp">Exportar cronograma</button></div></div>'+
+   '<div class="tiles"><div class="tile"><span class="tv">'+C.length+'</span><span class="tl">sesiones de capacitación en el registro</span></div><div class="tile ok"><span class="tv">'+C.filter(c=>c.Estado==="Realizada").length+'</span><span class="tl">realizadas con lista de asistencia</span></div><div class="tile info"><span class="tv">'+plnCap.length+'</span><span class="tl">actividades formativas en los planes de trabajo IAAS/PROA</span></div></div>'+
+   '<div class="panel tablebox" style="padding:0;margin-top:12px"><table class="dense"><thead><tr><th>Fecha y hora</th><th>Programa · Proceso</th><th>Tema de capacitación</th><th>Facilitador · Modalidad</th><th class="num">Asistentes</th><th>Evaluación / Evidencia</th><th>Estado</th><th></th></tr></thead><tbody>'+
+   (C.slice().sort((a,b)=>String(b.Fecha).localeCompare(String(a.Fecha))).map(c=>'<tr><td class="mono">'+pxFD(c.Fecha)+' '+esc(c.Hora||"")+'</td><td>'+esc(PROG[c.Programa]?PROG[c.Programa].n:c.Programa)+'<span class="sub mono">'+esc(c.Proceso||"")+'</span></td><td><strong>'+esc(c.Tema)+'</strong><span class="sub">'+esc(c.Objetivo||"")+'</span></td><td>'+esc(c.Facilitador||"")+'<span class="sub">'+esc(c.Modalidad||"")+'</span></td><td class="num mono">'+(c.TotalAsistentes||0)+'<span class="sub">'+esc(v6clip(c.Asistentes||"",50))+'</span></td><td style="font-size:12.5px">'+esc(c.EvaluacionPrePost||"—")+'<span class="sub">'+esc(c.Evidencia||"")+'</span></td><td><span class="st '+(c.Estado==="Realizada"?"ok":c.Estado==="Cancelada"?"bad":"warn")+'">'+esc(c.Estado)+'</span></td><td><button type="button" class="btn sm" data-v10="capedit|'+c.ID+'">Asistencia / Cerrar</button></td></tr>').join("")||'<tr><td colspan="8" class="note">Sin capacitaciones registradas.</td></tr>')+
+   '</tbody></table></div>';
+}
+
+/* Enrutar v10exec, far y qt en pxRender */
+const pxRender09=pxRender;
+pxRender=function(){
+  if(PX.user&&PX.view==="v10exec"){pxBar();$("pxmain").innerHTML=v11ExecView();return;}
+  if(PX.user&&PX.view==="far"){pxBar();$("pxmain").innerHTML=v10FarView();return;}
+  if(PX.user&&PX.view==="qt"){pxBar();$("pxmain").innerHTML=v10QtView();return;}
+  pxRender09();
+};
+
+/* Semilla de demostración v1.1 para que Farmacia, Quimioterapia, Capacitaciones y Liberaciones tengan datos iniciales */
+const pxDemo09=pxDemo;
+pxDemo=async function(){
+  await pxDemo09();
+  pxEnsureSheets();
+  const T=TODAY();
+  PX.book.qts.push(
+    {ID:"QT-00001",Fecha:iso(addDays(T,-5)),Paciente:"ONC-001",Nombre:"Paciente Oncológico Ficticio 1",EPS:"NUEVA EPS",Esquema:"FOLFOX-6",Ciclo:"3",Medicamentos:"Oxaliplatino + Leucovorina + 5-FU",DobleVerif:"Completa",Extravasacion:"No",Reaccion:"Ninguna",Conducta:"Infusión sin complicaciones",Estado:"Realizada",Profesional:"Natalia Erazo",Usuario:"oncologia",Registrado:pxNow()},
+    {ID:"QT-00002",Fecha:iso(addDays(T,-2)),Paciente:"ONC-002",Nombre:"Paciente Oncológico Ficticio 2",EPS:"FAMILIAR DE COLOMBIA",Esquema:"AC-T",Ciclo:"1",Medicamentos:"Doxorrubicina + Ciclofosfamida",DobleVerif:"Completa",Extravasacion:"No",Reaccion:"Leve",Conducta:"Pausa temporal y premedicación",Estado:"Realizada",Profesional:"Natalia Erazo",Usuario:"oncologia",Registrado:pxNow()}
+  );
+  PX.book.cap.push(
+    {ID:"CAP-00001",Fecha:iso(addDays(T,-14)),Hora:"10:00",Programa:"iaas",Proceso:"IAAS-P02",Tema:"Técnica aséptica CDC en conexión y desconexión de CVC y catéter peritoneal",Modalidad:"Presencial",Facilitador:"Sandra Guerrero · Marcela Rosero",Objetivo:"Estandarizar los pasos de conexión aséptica",Asistentes:"Marcela Rosero, Yuli Narváez, Natalia Erazo, Paola Ortiz",TotalAsistentes:12,EvaluacionPrePost:"Pre 78 % → Post 96 %",Evidencia:"Lista de asistencia firmada ACT-CAP-01",Estado:"Realizada",Origen:"Plan anual",Usuario:"calidad",Registrado:pxNow()},
+    {ID:"CAP-00002",Fecha:iso(addDays(T,4)),Hora:"14:00",Programa:"proa",Proceso:"PROA-P08",Tema:"Microlearning PROA: ajuste renal de vancomicina y meropenem en HD y DP",Modalidad:"Mixta",Facilitador:"Jorge Cabrera · Laura Benavides",Objetivo:"Socializar tabla de dosis posdiálisis e intraperitoneal",Asistentes:"Médicos y enfermeras de HD, DP y VIH",TotalAsistentes:0,EvaluacionPrePost:"Pendiente",Evidencia:"Programada en calendario",Estado:"Programada",Origen:"Plan anual",Usuario:"farmacia",Registrado:pxNow()}
+  );
+  PX.book.lib.push(
+    {ID:"LIB-00001",Fecha:iso(addDays(T,-3)),Programa:"vih",Reporte:"Cohorte nominal mensual Nueva EPS (43 variables)",Periodo:pxMes(),EPS:"NUEVA EPS",Registros:143,Bloqueantes:0,Advertencias:2,SoportesVerificados:"Sí (100 % CV y CD4 con soporte)",Dictamen:"Aprobado para envío",Auditor:"Sandra Guerrero (Calidad)",Observacion:"Validado sin errores críticos",Registrado:pxNow()}
+  );
+  PX.dirty=false;
+  await v9SaveLocal(true);
+};
+
+/* ---------- Eventos v1.1 (data-v10) ---------- */
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-v10]");if(!el)return;
+  const[a,x,y]=el.dataset.v10.split("|");
+  switch(a){
+    case"theme":v11ToggleTheme();break;
+    case"axis":v11NavigateAxis(x,y);break;
+    case"procgo":{
+      if(x==="hd"){pxOpenHD(y||"turno");break;}
+      if(x==="nefro"){pxOpenNefro();break;}
+      pxGo(x,y||"");break;
+    }
+    case"plnnew":{
+      const p=PROG[x]?x:"iaas";
+      const procs=V7P.filter(pr=>pr.p===p);
+      openDlg("Nueva actividad del plan · "+PROG[p].n,'<div class="form"><label class="f wide">Proceso *<select id="pl_p">'+opt(procs.map(pr=>[pr.c,pr.c+" · "+pr.n]),"")+'</select></label><label class="f wide">Actividad *<input type="text" id="pl_a"></label><label class="f">Responsable *<input type="text" id="pl_r" value="'+esc(PX.user?PX.user.Nombre:"")+'"></label><label class="f">Periodicidad<select id="pl_q">'+opt(["Única","Mensual","Trimestral","Semestral","Anual","Por evento"],"Mensual")+'</select></label><label class="f">Fecha programada *<input type="date" id="pl_f" value="'+pxToday()+'"></label><label class="f wide">Evidencia esperada *<input type="text" id="pl_ev" placeholder="acta, lista de chequeo, registro en el módulo…"></label><label class="f wide">Soporte / origen<input type="text" id="pl_s" value="Plan de gestión del programa"></label></div>',"Crear actividad",()=>{
+        const pr=$("pl_p").value,act=$("pl_a").value.trim(),resp=$("pl_r").value.trim(),ev=$("pl_ev").value.trim();
+        if(!pr||act.length<5||!resp||!ev)return"Complete proceso, actividad, responsable y evidencia esperada.";
+        const o={Programa:p,Proceso:pr,Actividad:act,Objetivo:(V7PI[pr]||{}).obj||"",Responsable:resp,Periodicidad:$("pl_q").value,FechaProgramada:$("pl_f").value,Observaciones:"Evidencia esperada: "+ev,Soporte:$("pl_s").value.trim(),Estado:$("pl_f").value?"Programada":"Pendiente",Origen:"Manual",Registrado:pxNow()};
+        const n=pxAdd("pln","PT-",o);v7push("pln",n,"",o.Estado,"Creada en Eje 01");TRM.c={};pxRender();toast("Actividad "+n.ID+" creada en el plan de "+PROG[p].n+".");
+      });
+      break;
+    }
+    case"halnew":{
+      const p=PROG[x]?x:"iaas";
+      const procs=V7P.filter(pr=>pr.p===p);
+      openDlg("Nuevo hallazgo y plan de mejora (PAMEC) · "+PROG[p].n,'<div class="form"><label class="f wide">Proceso afectado *<select id="hn_p">'+opt(procs.map(pr=>[pr.c,pr.c+" · "+pr.n]),y||"")+'</select></label><label class="f">Fuente<select id="hn_f">'+opt(HAL_FTE,"Auditoría")+'</select></label><label class="f">Riesgo / Severidad<select id="hn_rg">'+opt(["Alto","Moderado","Bajo"],"Moderado")+'</select></label><label class="f wide">Descripción del hallazgo *<textarea id="hn_d" rows="2"></textarea></label><label class="f wide">Análisis causal (5 porqués / Protocolo de Londres / factor determinante) *<textarea id="hn_c" rows="2"></textarea></label><label class="f wide">Acción de mejoramiento *<textarea id="hn_a" rows="2"></textarea></label><label class="f">Responsable *<input type="text" id="hn_rs" value="'+esc(PX.user?PX.user.Nombre:"")+'"></label><label class="f">Plazo de ejecución *<input type="date" id="hn_pl" value="'+iso(addDays(TODAY(),15))+'"></label><label class="f wide">Criterio de eficacia verificable *<input type="text" id="hn_ce" placeholder="Ej.: adherencia ≥ 90 % en el muestreo del próximo mes"></label><label class="f">Fecha para evaluar eficacia<input type="date" id="hn_fe" value="'+iso(addDays(TODAY(),45))+'"></label><label class="f">¿Escalar a comité SOGCS?<select id="hn_cm">'+opt(["Sí","No"],"Sí")+'</select></label></div>',"Registrar plan de mejora",()=>{
+        const pr=$("hn_p").value,d=$("hn_d").value.trim(),c=$("hn_c").value.trim(),ac=$("hn_a").value.trim(),rs=$("hn_rs").value.trim(),pl=$("hn_pl").value,ce=$("hn_ce").value.trim();
+        if(!pr||d.length<6||c.length<4||ac.length<5||!rs||!pl||!ce)return"Complete todos los campos obligatorios del plan de mejora PAMEC.";
+        const o={Programa:p,Proceso:pr,Fuente:$("hn_f").value,Ref:"",Descripcion:d,Riesgo:$("hn_rg").value,Causa:c,Accion:ac,Responsable:rs,Plazo:pl,CriterioEficacia:ce,FechaEficacia:$("hn_fe").value,ParaComite:$("hn_cm").value,Estado:"En ejecución",Registrado:pxNow()};
+        const r=pxAdd("hal","HL-",o);v7push("hal",r,"","En ejecución","Creado en PAMEC "+PROG[p].n);TRM.c={};pxRender();toast("Plan de mejora "+r.ID+" registrado en "+PROG[p].n+".");
+      });
+      break;
+    }
+
+    case"nefro2dp":case"nefro2hd":{
+      const w=pxNefroWin();const np=(w&&w.MG&&w.MG.book)?(w.MG.book.pac||[]).find(p=>p.codigo===x):null;
+      if(!np){toast("No se encontró el paciente en la Ruta.");break;}
+      const[n1,a1]=dpSplitName(np.nombre||np.codigo);
+      if(a==="nefro2dp"){
+        if(!DP.book)DP.book=dpNewBook();dpEnsure();
+        const ex=DP.book.pac.find(p=>String(p.Documento).replace(/\D/g,"")===String(np.doc||"").replace(/\D/g,""));
+        if(ex){DP.ui.pid=ex.ID;pxGo("dp","pac");toast("El paciente ya existe en DP como "+ex.ID+".");break;}
+        let mx=0;DP.book.pac.forEach(p=>{const m=/(\d+)$/.exec(p.ID||"");if(m)mx=Math.max(mx,+m[1]);});
+        const id="DP"+String(mx+1).padStart(3,"0");
+        dpAdd("pac","DP",{ID:id,IdInst:dpDocKey(np.tipodoc||"CC",np.doc),TipoDoc:np.tipodoc||"CC",Documento:np.doc||"",Nombres:dpTitle(n1),Apellidos:dpTitle(a1),FechaNac:np.fnac,Sexo:np.sexo==="F"?"Femenino":"Masculino",EPS:np.eps||"",Municipio:np.municipio||"Mocoa",Telefono:np.tel||"",Modalidad:"DPCA",EstadoPrograma:"Preparación",FechaIngresoPrograma:TODAY(),HTA:np.hta?"SI":"NO",DM:np.dmTipo?"SI":"NO",Origen:"Transición desde Nefroprotección ("+np.codigo+")"});
+        DP.ui.pid=id;pxGo("dp","pac");toast("Paciente trasladado a Diálisis Peritoneal como "+id+" conservando su trazabilidad.");
+      }else{
+        if(!ST.book)setBook(newBook(),"Libro HD");
+        const nid=nextPid();
+        ST.book.pac.push({ID:nid,TipoDoc:np.tipodoc||"CC",Documento:np.doc||"",Nombres:dpTitle(n1),Apellidos:dpTitle(a1),FechaNac:np.fnac,Sexo:np.sexo==="F"?"Femenino":"Masculino",EPS:np.eps||"",Municipio:np.municipio||"Mocoa",Telefono:np.tel||"",HTA:np.hta?"SI":"NO",DM:np.dmTipo?"SI":"NO",IngresoUnidad:TODAY(),Procedencia:"Prediálisis de la IPS",Estado:"Activo",SesSemana:3,DuracionMin:240,Obs:"Transición desde Nefroprotección ("+np.codigo+")"});
+        changed();reindex();ST.sel.pac=nid;pxOpenHD("pac");toast("Paciente trasladado a Hemodiálisis como "+nid+".");
+      }
+      break;
+    }
+    case"qtnew":{
+      openDlg("Registrar sesión de quimioterapia y doble verificación",
+       '<div class="form"><label class="f">Fecha *<input type="date" id="qt_f" value="'+pxToday()+'"></label><label class="f">ID Paciente *<input type="text" id="qt_id" placeholder="ONC-003"></label><label class="f">Nombre *<input type="text" id="qt_n"></label><label class="f">EPS<select id="qt_e">'+opt(EPS_L,"NUEVA EPS")+'</select></label><label class="f">Esquema *<input type="text" id="qt_es" placeholder="FOLFOX, AC-T, R-CHOP…"></label><label class="f">Ciclo<input type="number" id="qt_ci" value="1"></label><label class="f wide">Medicamentos citostáticos y dosis<input type="text" id="qt_m"></label>'+
+       '<label class="f">Doble verificación independiente *<select id="qt_dv">'+opt(["Completa","Incompleta (no iniciar)"],"Completa")+'</select></label><label class="f">Extravasación<select id="qt_ex">'+opt(["No","Sí"],"No")+'</select></label><label class="f">Reacción infusional<select id="qt_re">'+opt(["Ninguna","Leve","Moderada","Severa"],"Ninguna")+'</select></label><label class="f wide">Conducta / Observación<input type="text" id="qt_co"></label></div>',
+       "Guardar sesión",()=>{
+        const id=$("qt_id").value.trim(),es=$("qt_es").value.trim();if(!id||!es)return"Paciente y esquema son obligatorios.";
+        if($("qt_dv").value!=="Completa")return"Seguridad del paciente: no se autoriza iniciar infusión sin la doble verificación completa.";
+        const r=pxAdd("qts","QT-",{Fecha:$("qt_f").value,Paciente:id,Nombre:$("qt_n").value.trim(),EPS:$("qt_e").value,Esquema:es,Ciclo:$("qt_ci").value,Medicamentos:$("qt_m").value.trim(),DobleVerif:"Completa",Extravasacion:$("qt_ex").value,Reaccion:$("qt_re").value,Conducta:$("qt_co").value.trim(),Estado:"Realizada",Profesional:PX.user?PX.user.Nombre:"",Registrado:pxNow()});
+        pxAdd("prd","PR-",{Fecha:r.Fecha,Programa:"qt",EPS:r.EPS,Paciente:r.Paciente,Actividad:"Sesión de quimioterapia",Cantidad:1,Nota:r.Esquema+" ciclo "+r.Ciclo,Registrado:pxNow()});
+        pxRender();toast("Sesión "+r.ID+" registrada y cargada en Producción Asistencial.");
+       });
+      break;
+    }
+    case"capnew":case"capedit":{
+      const c=a==="capedit"?PX.book.cap.find(r=>r.ID===x):null;
+      openDlg(c?"Gestionar capacitación "+c.ID:"Programar capacitación institucional",
+       '<div class="form"><label class="f">Fecha *<input type="date" id="cp_f" value="'+esc(c?c.Fecha:pxToday())+'"></label><label class="f">Hora<input type="time" id="cp_h" value="'+esc(c?c.Hora:"14:00")+'"></label><label class="f">Programa *<select id="cp_p">'+opt(PROGS.map(p=>[p.k,p.n]),c?c.Programa:(x||"iaas"))+'</select></label><label class="f">Proceso<select id="cp_pr">'+opt([["","Institucional"]].concat(V7P.map(p=>[p.c,p.c+" · "+p.n])),c?c.Proceso:"")+'</select></label><label class="f wide">Tema *<input type="text" id="cp_t" value="'+esc(c?c.Tema:"")+'"></label><label class="f wide">Objetivo<input type="text" id="cp_o" value="'+esc(c?c.Objetivo:"")+'"></label><label class="f">Facilitador<input type="text" id="cp_fa" value="'+esc(c?c.Facilitador:(PX.user?PX.user.Nombre:""))+'"></label><label class="f">Modalidad<select id="cp_m">'+opt(["Presencial","Virtual","Mixta"],c?c.Modalidad:"Presencial")+'</select></label><label class="f">Estado<select id="cp_e">'+opt(["Programada","Realizada","Reprogramada","Cancelada"],c?c.Estado:"Programada")+'</select></label><label class="f">N.° de asistentes<input type="number" id="cp_n" value="'+esc(c?c.TotalAsistentes:0)+'"></label><label class="f wide">Asistentes nominales (nombres o áreas)<input type="text" id="cp_as" value="'+esc(c?c.Asistentes:"")+'"></label><label class="f">Evaluación pre/post<input type="text" id="cp_ev" value="'+esc(c?c.EvaluacionPrePost:"")+'" placeholder="Ej.: Pre 75 % -> Post 95 %"></label><label class="f">Evidencia (acta/lista)<input type="text" id="cp_so" value="'+esc(c?c.Evidencia:"")+'"></label></div>',
+       "Guardar",()=>{
+        const o={Fecha:$("cp_f").value,Hora:$("cp_h").value,Programa:$("cp_p").value,Proceso:$("cp_pr").value,Tema:$("cp_t").value.trim(),Objetivo:$("cp_o").value.trim(),Facilitador:$("cp_fa").value.trim(),Modalidad:$("cp_m").value,Estado:$("cp_e").value,TotalAsistentes:num($("cp_n").value)||0,Asistentes:$("cp_as").value.trim(),EvaluacionPrePost:$("cp_ev").value.trim(),Evidencia:$("cp_so").value.trim()};
+        if(!o.Fecha||o.Tema.length<4)return"Fecha y tema son obligatorios.";
+        if(o.Estado==="Realizada"&&(!o.TotalAsistentes||!o.Evidencia))return"Para marcar como realizada registre el número de asistentes y la evidencia.";
+        if(c)pxUpd("cap",c,o);else{const r=pxAdd("cap","CAP-",Object.assign(o,{Origen:"Manual",Registrado:pxNow()}));pxAdd("cal","CA-",{Titulo:"Capacitación: "+o.Tema,Tipo:"Capacitación",Fecha:o.Fecha,HoraInicio:o.Hora,Modalidad:o.Modalidad,Responsable:PX.user?PX.user.ID:"",Programa:o.Programa,Visibilidad:"Todos",Descripcion:o.Objetivo,Estado:o.Estado==="Realizada"?"Realizada":"Programada",Respuestas:"{}",Creador:PX.user?PX.user.ID:"",Registrado:pxNow()});}
+        pxRender();toast("Capacitación guardada y sincronizada en el Calendario Institucional.");
+       });
+      break;
+    }
+    case"capexp":{
+      pxExport("Cronograma_Capacitaciones_POSMEDICA_"+pxToday()+".xlsx",[["Capacitaciones",PX.book.cap||[],[["ID",c=>c.ID],["Fecha",c=>c.Fecha],["Hora",c=>c.Hora],["Programa",c=>PROG[c.Programa]?PROG[c.Programa].n:c.Programa],["Proceso",c=>c.Proceso],["Tema",c=>c.Tema],["Objetivo",c=>c.Objetivo],["Facilitador",c=>c.Facilitador],["Asistentes",c=>c.TotalAsistentes],["Nominal",c=>c.Asistentes],["Evaluación",c=>c.EvaluacionPrePost],["Evidencia",c=>c.Evidencia],["Estado",c=>c.Estado]]]]);
+      break;
+    }
+    case"libnew":{
+      openDlg("Auditar y Liberar Reporte Regulatorio (Pre-SISCAC / EPS)",
+       '<div class="form"><label class="f">Programa *<select id="lb_pr">'+opt([["hd","Hemodiálisis"],["dp","Diálisis Peritoneal"],["vih","VIH"],["nefro","Nefroprotección"],["ce","Consulta Externa (Res. 256/1552)"]],x||"hd")+'</select></label><label class="f">Periodo / Corte *<input type="text" id="lb_pe" value="'+pxMes()+'"></label><label class="f">EPS<select id="lb_ep">'+opt(EPS_L,"","Todas")+'</select></label><label class="f wide">Reporte auditado *<input type="text" id="lb_re" value="Matriz nominal CAC / EPS"></label><label class="f">Pacientes incluidos *<input type="number" id="lb_n" value="40"></label><label class="f">Hallazgos bloqueantes *<input type="number" id="lb_b" value="0"></label><label class="f">Advertencias<input type="number" id="lb_a" value="0"></label><label class="f">Soportes clínicos verificados *<select id="lb_s">'+opt(["Sí (muestra y críticos verificados)","Parcial","No"],"Sí (muestra y críticos verificados)")+'</select></label><label class="f">Dictamen *<select id="lb_d">'+opt(["Aprobado para envío","Rechazado (corregir bloqueantes)"],"Aprobado para envío")+'</select></label><label class="f wide">Observación de auditoría<input type="text" id="lb_o"></label></div>',
+       "Firmar liberación",()=>{
+        const b=num($("lb_b").value)||0,d=$("lb_d").value;
+        if(d==="Aprobado para envío"&&b>0)return"No se puede aprobar para envío un reporte con hallazgos bloqueantes mayores a 0.";
+        if(d==="Aprobado para envío"&&$("lb_s").value==="No")return"No se puede aprobar para envío sin verificar los soportes clínicos.";
+        pxAdd("lib","LIB-",{Fecha:pxToday(),Programa:$("lb_pr").value,Reporte:$("lb_re").value.trim(),Periodo:$("lb_pe").value.trim(),EPS:$("lb_ep").value,Registros:num($("lb_n").value)||0,Bloqueantes:b,Advertencias:num($("lb_a").value)||0,SoportesVerificados:$("lb_s").value,Dictamen:d,Auditor:PX.user?PX.user.Nombre:"",Observacion:$("lb_o").value.trim(),Registrado:pxNow()});
+        pxRender();toast("Acta de liberación "+d.toLowerCase()+" registrada en SOGCS.");
+       });
+      break;
+    }
+  }
+});
+window.V10API={V10,V10_PROCS,v11NavigateAxis,v11DetectAxis,v10GovView,v10PamecProgView,v10ProgProdView,v10FarView,v10QtView,v10CapView};
+
+/* =====================================================================================================
+   v2.0 · MOTOR DE NAVEGACIÓN MAESTRA EN GRILLA DE 8 COLUMNAS (SIN DOBLE BARRA NI SCROLL HORIZONTAL),
+   ELIMINACIÓN DE ENCABEZADO Y BARRA DUPLICADA EN NEFROPROTECCIÓN (#nefroframe),
+   BARRA SUPERIOR EN UNA SOLA LÍNEA CON MENÚ «LIBROS Y RESPALDO ▾» Y BUSCADOR GLOBAL MPI (Ctrl+K)
+   ===================================================================================================== */
+const V12={
+  ver:"2.0",
+  state:{
+    hd:{axis:"e3",sub:"turno"},
+    dp:{axis:"e3",sub:"dp_val"},
+    vih:{axis:"e3",sub:"age"},
+    nefro:{axis:"e3",sub:"nefro_val"},
+    ce:{axis:"e3",sub:"age"}
+  },
+  axes:[
+    ["e1","01","Gobierno y Procesos"],
+    ["e2","02","Cohorte y Riesgo"],
+    ["e3","03","Operación y HC GPC"],
+    ["e4","04","Paraclínicos y Vacunas"],
+    ["e5","05","Gestión Farmacéutica y Terapéutica"],
+    ["e6","06","Indicadores y CAC"],
+    ["e7","07","Auditoría y PAMEC"],
+    ["e8","08","Producción y Metas"]
+  ],
+  map:{
+    hd:{
+      e1:[["hd_proc","Procesos (HD-P01..05)"],["hd_ruta","Ruta del paciente"],["hd_plan","Plan de trabajo"],["doc","Documentos y guías"],["ref","Referencia"]],
+      e2:[["pac","Pacientes (Maestro)"],["sem","Calidad de diálisis y riesgo"],["acc","Acceso vascular y dispositivos"],["tx","Trasplante"],["alert","Alertas"]],
+      e3:[["turno","Turno del día"],["val","Valoración mensual (HC + GPC)"],["lim","Limpieza y desinfección"]],
+      e4:[["lab","Paraclínicos y solicitud mensual"],["vac","Vacunación VHB"]],
+      e5:[["hd_anti","Control de ampollas intradiálisis (EPO/Hierro)"],["inf","Infecciones y antimicrobianos"]],
+      e6:[["ind","Indicadores CAC 2026"],["rep","Reportes y matrices CAC"],["cal","Calidad del dato"]],
+      e7:[["hd_aud","Auditoría concurrente de HC y SISCAC"],["hd_pamec","Planes de mejora PAMEC del programa"],["hd_lib","Liberación de reportes"]],
+      e8:[["hd_meta","Producción del mes vs. Meta (Nota Técnica)"],["hd_conc","Conciliación por contrato EPS"]]
+    },
+    dp:{
+      e1:[["dp_proc","Procesos (DP-P01..04)"],["dp_plan","Plan de trabajo"],["dp_doc","Documentos"]],
+      e2:[["dp_cen","Censo y ficha"],["dp_tr","Intervalos y transiciones"],["dp_con","Conciliación heredados"],["dp_trp","Trasplante y calidad de vida"],["dp_al","Alertas"]],
+      e3:[["dp_val","Valoraciones e HC GPC"],["dp_age","Agenda DP"],["dp_hos","Hospitalizaciones"]],
+      e4:[["dp_lcal","Calendario de laboratorio"],["dp_lres","Resultados y tendencias"],["dp_ktv","Adecuación Kt/V y PET"]],
+      e5:[["dp_ins","Suministros y entrega conciliada en casa (Conciliada)"],["dp_pre","Prescripción DP"],["dp_cat","Catéter, educación y peritonitis"]],
+      e6:[["dp_ind","Indicadores CAC 2026 y operativos"],["dp_cac","Prevalidación reporte CAC"],["dp_exp","Exportaciones y bitácora SHA-256"]],
+      e7:[["dp_aud","Auditoría de completitud y CAC en vivo"],["dp_pamec","Planes de mejora PAMEC"],["dp_lib","Liberación de reportes"]],
+      e8:[["dp_meta","Paquetes mensuales DP y valoraciones facturables vs. Meta"]]
+    },
+    vih:{
+      e1:[["vih_proc","Procesos (VIH-P01..04)"],["ruta","Ruta y contrato"],["vih_plan","Plan de trabajo"]],
+      e2:[["pob","Población"],["car","Caracterización y pirámide"],["ale","Alertas rojas/amarillas"]],
+      e3:[["age","Agenda interdisciplinaria"],["vih_hc","Valoraciones e HC (en ficha)"]],
+      e4:[["lab","Laboratorios y plan contractual"],["prc","Procedimientos y enfermería (PPD/Citología)"],["vac","Vacunación"]],
+      e5:[["tar_esq","TAR · Esquemas y validación"],["tar_ent","Entregas con descuento de saldo"],["tar_ped","Pedido mensual conciliado de TAR"]],
+      e6:[["ind","Indicadores CAC y Nueva EPS"],["rep","Descargas (Nominal 43 y CAC 193)"],["cal","Calidad del dato"]],
+      e7:[["aud","Auditoría CAC de la HC (16 criterios)"],["vih_pamec","Planes de mejora PAMEC"],["vih_lib","Liberación de reportes"]],
+      e8:[["fac","Facturación mensual por paciente atendido vs. Meta"]]
+    },
+    nefro:{
+      e1:[["nefro_proc","Procesos (NEF-P01..03)"],["nefro_plan","Plan de trabajo"],["nefro_ref","Referencia"]],
+      e2:[["nefro_pac","Pacientes y estratificación KDIGO/KFRE"],["nefro_coh","Cohortes y caracterización"],["nefro_trr","Transición G5 → DP / HD"]],
+      e3:[["nefro_val","Valoración clínica GPC + RCV + KFRE"],["nefro_age","Agendas espejo A/B"]],
+      e4:[["nefro_lab","Seguimiento de laboratorios y próximos"],["nefro_venc","Laboratorios vencidos y alertas"]],
+      e5:[["nefro_far","Metas farmacológicas (IECA/ARA-II, iSGLT2, estatinas)"]],
+      e6:[["nefro_ind","47 Indicadores CAC"],["nefro_nom","Nominales EPS Familiar y Nueva EPS"],["nefro_cal","Calidad del dato"]],
+      e7:[["nefro_aud","Auditoría GPC por muestreo (KDIGO/ADA/ESH)"],["nefro_pamec","Planes de mejora PAMEC"]],
+      e8:[["nefro_meta","Consultas y paquetes de nefroprotección vs. Meta"]]
+    },
+    ce:{
+      e1:[["ce_proc","Procesos (CE-P01..02)"],["adm","Administración y catálogos"]],
+      e2:[["lista","Lista de espera única priorizada"],["nueva","Nueva solicitud"],["pac","Pacientes"]],
+      e3:[["age","Agenda por jornadas y cierre Fase 2"]],
+      e4:[["aut","Control de autorizaciones EPS"]],
+      e5:[["ce_ord","Trazabilidad de órdenes"]],
+      e6:[["tab","Tablero de oportunidad Res. 1552/256"],["cal","Calidad del dato"]],
+      e7:[["ce_aud","Auditoría de adherencia y saltos de orden"],["ce_pamec","Planes de mejora PAMEC"]],
+      e8:[["ce_meta","Consultas efectivas atendidas por especialidad vs. Meta"]]
+    }
+  }
+};
+
+function v12FindAxisOfSub(prog,sub){
+  const M=V12.map[prog];if(!M)return null;
+  for(const ax of Object.keys(M)){
+    if(M[ax].some(([k])=>k===sub))return ax;
+  }
+  return null;
+}
+
+function v12RenderGrid(prog,curAxis,badges){
+  badges=badges||{};
+  return V12.axes.map(([ax,num,lbl])=>{
+    const cnt=badges[ax]||0;
+    return'<button type="button" role="tab" class="v12-axis-btn" data-v12="axis|'+prog+'|'+ax+'" aria-selected="'+(curAxis===ax)+'">'+
+      '<span class="v12-axis-top"><span class="v12-axis-num">'+num+'</span>'+(cnt?'<span class="v12-axis-cnt">'+cnt+'</span>':'')+'</span>'+
+      '<span class="v12-axis-lbl">'+esc(lbl)+'</span></button>';
+  }).join("");
+}
+
+function v12RenderSubbar(prog,curAxis,curSub,subBadges){
+  subBadges=subBadges||{};
+  const subs=(V12.map[prog]&&V12.map[prog][curAxis])||[];
+  const axObj=V12.axes.find(a=>a[0]===curAxis)||["e1","01","Eje"];
+  return'<div class="seg v12-subbar" role="group" aria-label="Herramientas de '+esc(axObj[2])+'">'+
+    '<span class="v12-sub-eyebrow">Eje '+axObj[1]+' · '+esc(axObj[2])+'</span>'+
+    subs.map(([k,l])=>{
+      const c=subBadges[k]||0;
+      return'<button type="button" data-v12="sub|'+prog+'|'+curAxis+'|'+k+'" aria-pressed="'+(curSub===k)+'">'+esc(l)+(c?' <span class="cnt">'+c+'</span>':'')+'</button>';
+    }).join("")+'</div>';
+}
+
+/* ---------- 1. Barra Superior (#pxbar) en Una Sola Línea con Menú Compacto «Libros y Respaldo ▾» ---------- */
+pxBar=function(){
+  const b=document.getElementById("pxbar");
+  if(!PX.user){b.hidden=true;try{pxFab();}catch(e){}return;}
+  b.hidden=false;
+  const un=pxUnread().length;
+  const curProg=PX.view==="panel"?"":(PROG[PX.view]?PROG[PX.view].n:PX.view==="usr"?"Usuarios":"");
+  const dirtyAny=!!(PX.dirty||(ST.book&&ST.dirty)||(DP&&DP.book&&DP.dirty)||(VX&&VX.book&&VX.dirty)||(CE&&CE.book&&CE.dirty));
+  const modLbl=PX.view==="hd"?"libro de Hemodiálisis":PX.view==="dp"?"libro de Diálisis Peritoneal":PX.view==="vih"?"libro del Programa VIH":PX.view==="ce"?"libro de Consulta Externa":PX.view==="nefro"?"libro de Nefroprotección":"libro institucional";
+  b.innerHTML='<div class="pxbar-in">'+
+    '<div class="pxbar-l">'+
+      (PX.view!=="panel"?'<button type="button" class="btn sm pxback" data-p="back" aria-label="Volver a la vista anterior"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Atrás</button>':'')+
+      '<button type="button" class="pxhome" data-p="go|panel" title="Ir al panel de programas"><img src="'+document.getElementById("pxlogo").src+'" alt=""><span><b>POSMÉDICA</b><small>UNO-P · Mocoa</small></span></button>'+
+      (curProg?'<span class="crumb"><button type="button" class="lnk" data-p="go|panel">Panel</button> / '+esc(curProg)+'</span>':'')+
+      '<span id="v9savechip" class="v9bar-chip'+(dirtyAny?' warn':'')+'" title="Estado de autoguardado local en IndexedDB">'+(V9.lastSave?'Autoguardado '+V9.lastSave:'IndexedDB activo')+'</span>'+
+    '</div>'+
+    '<div class="pxbar-r">'+
+      '<button type="button" class="btn sm" data-v12="cmdk" title="Buscador Maestro de Pacientes (MPI) en las 5 cohortes (Ctrl+K)">🔎 MPI</button>'+
+      '<button type="button" class="btn sm" data-v10="theme" title="Alternar entre Modo Oscuro Clínico y Modo Claro Consultorio">'+(V10.theme==="light"?"☾ Oscuro":"☀ Claro")+'</button>'+
+      '<button type="button" class="btn sm" data-p="go|msg">Mensajes'+(un?' <span class="cnt">'+un+'</span>':'')+'</button>'+
+      '<details class="v12dd" id="v12dd">'+
+        '<summary class="btn sm'+(dirtyAny?' warn':'')+'">Libros y Respaldo ▾</summary>'+
+        '<div class="v12dd-menu">'+
+          '<button type="button" class="v12dd-item" data-v9="masterexp"><span>Descargar Libro Maestro Unificado</span><small>.xlsx (5 libros)</small></button>'+
+          '<label class="v12dd-item"><span>Cargar Libro Maestro Unificado</span><small>.xlsx</small><input type="file" id="v9masterfile" accept=".xlsx" hidden></label>'+
+          '<div class="v12dd-sep"></div>'+
+          '<button type="button" class="v12dd-item" data-v12="expcur"><span>Descargar '+esc(modLbl)+'</span><small>.xlsx</small></button>'+
+          '<button type="button" class="v12dd-item" data-p="bookexp"><span>Descargar libro institucional</span><small>.xlsx</small></button>'+
+          '<div class="v12dd-sep"></div>'+
+          '<button type="button" class="v12dd-item" data-v9="restore"><span>Restaurar copia local</span><small>IndexedDB</small></button>'+
+          '<button type="button" class="v12dd-item" data-v12="savelocal"><span>Guardar copia local ahora</span><small>IndexedDB</small></button>'+
+          '<button type="button" class="v12dd-item" data-g="print"><span>Imprimir vista actual / Comité</span><small>PDF</small></button>'+
+        '</div>'+
+      '</details>'+
+      '<span class="who"><b>'+esc(PX.user.Nombre)+'</b><small>'+esc(PX.user.Cargo)+'</small></span>'+
+      '<button type="button" class="btn sm" data-p="logout">Salir</button>'+
+    '</div>'+
+  '</div>';
+  pxFab();
+};
+
+/* Sincronizar el tema Claro/Oscuro y el ocultamiento de barras duplicadas dentro de #nefroframe */
+function v12SyncNefroTheme(){
+  try{
+    const w=pxNefroWin();
+    if(w&&w.document&&w.document.documentElement){
+      if(V10.theme==="light")w.document.documentElement.setAttribute("data-theme","light");
+      else w.document.documentElement.removeAttribute("data-theme");
+      if(!w.document.getElementById("v12-nefro-clean-style")){
+        const st=w.document.createElement("style");
+        st.id="v12-nefro-clean-style";
+        st.textContent=`
+          header.top, nav.nav, p.privacy, #bookbar > .copyrow, .nsub[aria-label="Subsecciones de cohortes"] { display: none !important; }
+          #bookbar:has(.filters[hidden]) { display: none !important; }
+          #bookbar { margin-top: 4px !important; margin-bottom: 10px !important; padding: 10px 14px !important; }
+          .wrap { max-width: 1360px !important; padding-top: 6px !important; }
+          html[data-theme="light"] {
+            --bg:#f1f5f9 !important; --surface:#ffffff !important; --surface-2:#f8fafc !important;
+            --ink:#0f172a !important; --muted:#475569 !important; --line:#e2e8f0 !important; --field:#cbd5e1 !important;
+            --accent:#0284c7 !important; --accent-ink:#ffffff !important; --accent-soft:#e0f2fe !important;
+            --ok:#059669 !important; --warn:#d97706 !important; --bad:#e11d48 !important;
+            color-scheme: light !important;
+          }
+          html[data-theme="light"] input, html[data-theme="light"] select, html[data-theme="light"] textarea {
+            background:#ffffff !important; color:#0f172a !important; border-color:#cbd5e1 !important;
+          }
+        `;
+        w.document.head.appendChild(st);
+      }
+      /* Actualizar el contador de pacientes activos en el encabezado de Nefroprotección */
+      const infoEl=document.getElementById("nefro-top-info");
+      if(infoEl&&w.MG&&w.MG.book){
+        const nAct=(w.MG.patients()||[]).filter(p=>p.estado==="ACTIVO").length;
+        const nTot=(w.MG.patients()||[]).length;
+        infoEl.innerHTML=nAct+' activos de '+nTot+' en la cohorte · '+(w.MG.demo?'<span style="color:var(--warn)">datos ficticios</span>':'libro cargado');
+      }
+    }
+  }catch(e){}
+}
+const v11ToggleTheme0=v11ToggleTheme;
+v11ToggleTheme=function(){
+  v11ToggleTheme0();
+  v12SyncNefroTheme();
+};
+
+/* Enriquecer también pxNefroSrcdoc para que nazca sin header.top ni nav.nav desde el primer milisegundo */
+const pxNefroSrcdoc0=pxNefroSrcdoc;
+pxNefroSrcdoc=function(){
+  let h=pxNefroSrcdoc0();
+  const cleanCss='<style id="v12-nefro-clean-init">header.top,nav.nav,p.privacy,#bookbar>.copyrow,.nsub[aria-label="Subsecciones de cohortes"]{display:none!important}#bookbar:has(.filters[hidden]){display:none!important}#bookbar{margin-top:4px!important;margin-bottom:10px!important;padding:10px 14px!important}.wrap{max-width:1360px!important;padding-top:6px!important}</style>';
+  const bi=h.lastIndexOf("</body>");
+  return bi>=0?h.slice(0,bi)+cleanCss+h.slice(bi):h+cleanCss;
+};
+
+/* ---------- 2. Vistas de Sub-pestañas Nuevas o Específicas de los 8 Ejes ---------- */
+function v12PlanSubView(prog){
+  const pl=PX.book?PX.book.pln.filter(r=>v7has(r,prog)):[];
+  const caps=PX.book?(PX.book.cap||[]).filter(c=>c.Programa===prog):[];
+  return'<div class="panel"><div class="mhead"><div><h3 style="margin:0">Plan de Trabajo Anual y Cronograma de Capacitaciones · '+esc(PROG[prog]?PROG[prog].n:prog)+'</h3><p class="note" style="margin:2px 0 0">Actividades críticas programadas por proceso y sesiones de educación continua del equipo.</p></div>'+
+    '<div class="copyrow"><button type="button" class="btn sm primary" data-v10="plnnew|'+prog+'">Nueva actividad del plan</button><button type="button" class="btn sm" data-v10="capnew|'+prog+'">Programar capacitación</button></div></div>'+
+    '<div class="tablebox" style="margin-top:8px"><table class="dense"><thead><tr><th>Proceso</th><th>Actividad</th><th>Responsable</th><th>Periodicidad</th><th>Programada</th><th>Estado</th><th></th></tr></thead><tbody>'+
+    (pl.map(r=>'<tr class="click" data-p="v7pln|'+r.ID+'"><td class="mono">'+esc(r.Proceso)+'</td><td><strong>'+esc(r.Actividad)+'</strong><span class="sub">'+esc(r.Observaciones||r.Soporte||"")+'</span></td><td>'+v7who(r.Responsable)+'</td><td>'+esc(r.Periodicidad||"")+'</td><td class="mono">'+pxFD(r.FechaProgramada)+'</td><td><span class="st '+plnCls(plnEst(r))+'">'+esc(plnEst(r))+'</span></td><td><button type="button" class="btn sm" data-p="v7pln|'+r.ID+'">Gestionar</button></td></tr>').join("")||'<tr><td colspan="7" class="note">Sin actividades registradas en el plan de este programa. Use «Nueva actividad del plan».</td></tr>')+
+    '</tbody></table></div></div>'+
+    '<div class="panel" style="margin-top:14px"><h3>Capacitaciones del Programa ('+caps.length+')</h3>'+
+    (caps.length?'<div class="tablebox"><table class="dense"><thead><tr><th>Fecha</th><th>Tema</th><th>Facilitador</th><th class="num">Asistentes</th><th>Evaluación</th><th>Estado</th><th></th></tr></thead><tbody>'+caps.map(c=>'<tr><td class="mono">'+pxFD(c.Fecha)+'</td><td><strong>'+esc(c.Tema)+'</strong></td><td>'+esc(c.Facilitador||"")+'</td><td class="num">'+esc(c.TotalAsistentes||0)+'</td><td>'+esc(c.EvaluacionPrePost||"—")+'</td><td><span class="st '+(c.Estado==="Realizada"?"ok":"warn")+'">'+esc(c.Estado)+'</span></td><td><button type="button" class="btn sm" data-v10="capedit|'+c.ID+'">Asistencia</button></td></tr>').join("")+'</tbody></table></div>':'<p class="note">Sin capacitaciones específicas registradas para este programa.</p>')+'</div>';
+}
+
+function v12LibSubView(prog){
+  const L=PX.book?(PX.book.lib||[]).filter(l=>l.Programa===prog):[];
+  return'<div class="panel"><div class="mhead"><div><h3 style="margin:0">Actas de Auditoría y Liberación de Reportes Regulatorios (Pre-SISCAC / EPS) · '+esc(PROG[prog]?PROG[prog].n:prog)+'</h3><p class="note" style="margin:2px 0 0">Garantiza que ningún archivo plano o matriz nominal salga hacia la EPS o SISCAC con errores bloqueantes o sin soportes clínicos verificados (Objetivo Específico 7).</p></div>'+
+    '<button type="button" class="btn sm primary" data-v10="libnew|'+prog+'">Auditar y liberar reporte</button></div>'+
+    '<div class="tablebox" style="margin-top:10px"><table class="dense"><thead><tr><th>ID</th><th>Fecha</th><th>Reporte auditado</th><th>Periodo · EPS</th><th class="num">Registros</th><th class="num">Bloqueantes</th><th class="num">Advertencias</th><th>Soportes verificados</th><th>Dictamen</th><th>Auditor</th></tr></thead><tbody>'+
+    (L.slice().reverse().map(l=>'<tr><td class="mono">'+esc(l.ID)+'</td><td class="mono">'+pxFD(l.Fecha)+'</td><td><strong>'+esc(l.Reporte)+'</strong></td><td>'+esc(l.Periodo+" · "+(l.EPS||"Todas"))+'</td><td class="num mono">'+esc(l.Registros)+'</td><td class="num mono">'+esc(l.Bloqueantes)+'</td><td class="num mono">'+esc(l.Advertencias||0)+'</td><td>'+esc(l.SoportesVerificados)+'</td><td><span class="st '+(l.Dictamen==="Aprobado para envío"?"ok":"bad")+'">'+esc(l.Dictamen)+'</span></td><td>'+esc(l.Auditor)+'</td></tr>').join("")||'<tr><td colspan="10" class="note">Sin actas de liberación registradas para este programa.</td></tr>')+
+    '</tbody></table></div></div>';
+}
+
+function v12HdAntiView(){
+  if(!hdOn())return'<div class="panel empty">Cargue el libro de Hemodiálisis.</div>';
+  ensureIdx();const mes=ym(ST.corte);const{ms,me}=v6per(mes);
+  const rows=[];let totPresc=0,totAj=0;
+  pacs().filter(p=>epsOk(p)&&overlaps(p,ms,me)).forEach(p=>{
+    const ses=sesIn(p,ms,me,"Realizada").length;
+    const prog=progDays(p,ms,me).length||12;
+    p._med.filter(m=>!m.Fin||m.Fin>=ms).forEach(m=>{
+      const cant=num(m.CantidadMes)||0;
+      const esp=m.Lugar==="Administrado en la unidad"?Math.round(cant*Math.min(1,ses/Math.max(1,prog))):cant;
+      const disp=p._dis.find(d=>d.Mes===mes&&d.Prescripcion===m.ID);
+      if(m.Lugar==="Administrado en la unidad"){totPresc+=cant;totAj+=esp;}
+      rows.push({p,m,ses,prog,cant,esp,disp});
+    });
+  });
+  const aho=Math.max(0,totPresc-totAj);
+  return'<div class="panel v9anti"><div class="mhead"><div><h3 style="margin:0">Gestión y Conciliación Farmacéutica de Ampollas Intradiálisis (EPO / Hierro IV / Calcitriol) · '+esc(mes)+'</h3><p class="note" style="margin:2px 0 0">Cruza las ampollas prescritas para administración en sala contra las sesiones efectivamente realizadas por cada paciente en el Turno del Día, bloqueando el desperdicio por sesiones inasistidas.</p></div></div>'+
+    '<div class="v9anti-kpis"><div class="tile"><span class="tv">'+totPresc.toLocaleString("es-CO")+'</span><span class="tl">ampollas intradiálisis prescritas (mes teórico)</span></div><div class="tile ok"><span class="tv">'+aho.toLocaleString("es-CO")+'</span><span class="tl">ampollas ahorradas por ajuste a sesiones reales</span></div><div class="tile"><span class="tv">'+totAj.toLocaleString("es-CO")+'</span><span class="tl">ampollas netas autorizadas para sala</span></div></div>'+
+    '<div class="tablebox"><table class="dense"><thead><tr><th>Paciente</th><th>Medicamento</th><th>Lugar · Vía</th><th>Dosis · Frecuencia</th><th class="num">Sesiones (real / prog)</th><th class="num">Prescrito mes</th><th class="num">Neto según asistencia</th><th class="num">Ahorro</th></tr></thead><tbody>'+
+    (rows.map(r=>{const diff=Math.max(0,r.cant-r.esp);return'<tr><td><strong>'+esc(r.p.ID)+'</strong><span class="sub">'+esc(nombre(r.p))+'</span></td><td>'+esc(r.m.Medicamento)+(r.m.Mipres==="SI"?' <span class="tag cac">MIPRES</span>':'')+'</td><td>'+esc((r.m.Lugar||"")+" · "+(r.m.Via||""))+'</td><td>'+esc((r.m.Dosis||"")+" · "+(r.m.Frecuencia||""))+'</td><td class="num mono">'+r.ses+' / '+r.prog+'</td><td class="num mono">'+r.cant+' '+esc(r.m.Unidad||"")+'</td><td class="num mono"><strong>'+r.esp+'</strong></td><td class="num mono" style="color:'+(diff?"var(--ok)":"inherit")+'">'+(diff?"−"+diff:"0")+'</td></tr>';}).join("")||'<tr><td colspan="8" class="note">Sin prescripciones activas en el mes.</td></tr>')+
+    '</tbody></table></div></div>';
+}
+
+function v12HdAudSubView(){
+  if(!hdOn())return'<div class="panel empty">Cargue el libro de Hemodiálisis.</div>';
+  ensureIdx();const mes=ym(ST.corte);const act=pacs().filter(p=>epsOk(p)&&activeAt(p,ST.corte));
+  const rows=act.map(p=>{
+    const D=valDraft(p.ID,mes);
+    const X=valCtx(p,D);
+    const CK=valChecklist(p,X,D.f);
+    const okCK=CK.filter(c=>c[0]).length;
+    const S=v9GetSiscac("hd",p.ID);
+    const okSis=(V9_SISCAC.hd||[]).filter(([k])=>S[k]).length;
+    const v=p._val.filter(x=>x.Mes===mes).pop();
+    return{p,v,okCK,totCK:CK.length,okSis,totSis:(V9_SISCAC.hd||[]).length,pct:Math.round(okCK/CK.length*100)};
+  });
+  const nVal=rows.filter(r=>r.v).length;
+  return'<div class="panel"><div class="mhead"><div><h3 style="margin:0">Auditoría Concurrente de Historias Clínicas y Soportes SISCAC · Hemodiálisis · '+esc(mes)+'</h3><p class="note" style="margin:2px 0 0">Evalúa en toda la cohorte activa los 16 criterios obligatorios de la historia clínica mensual (KDIGO 2026 / CAC) y los 4 soportes documentales para SISCAC.</p></div></div>'+
+    '<div class="tiles" style="margin:10px 0"><div class="tile '+(nVal===rows.length?"ok":"warn")+'"><span class="tv">'+nVal+' / '+rows.length+'</span><span class="tl">pacientes activos con valoración cerrada en '+esc(mes)+'</span></div>'+
+    '<div class="tile"><span class="tv">'+(rows.length?Math.round(rows.reduce((a,r)=>a+r.pct,0)/rows.length):0)+' %</span><span class="tl">cumplimiento promedio de lista de chequeo GPC/CAC</span></div>'+
+    '<div class="tile"><span class="tv">'+rows.filter(r=>r.okSis===r.totSis).length+' / '+rows.length+'</span><span class="tl">con los 4 soportes SISCAC verificados</span></div></div>'+
+    '<div class="tablebox"><table class="dense"><thead><tr><th>Paciente</th><th>EPS · Turno</th><th>Valoración '+esc(mes)+'</th><th class="num">Chequeo GPC/CAC</th><th class="num">Soportes SISCAC</th><th></th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td><strong>'+esc(r.p.ID)+'</strong><span class="sub">'+esc(nombre(r.p))+'</span></td><td>'+esc(r.p.EPS||"")+'<span class="sub">'+esc(r.p.Turno||"")+'</span></td><td>'+(r.v?'<span class="st ok">Cerrada '+fd(r.v.Fecha)+'</span>':'<span class="st warn">Pendiente</span>')+'</td><td class="num"><span class="st '+(r.pct>=90?"ok":r.pct>=75?"warn":"bad")+'">'+r.okCK+'/'+r.totCK+' ('+r.pct+' %)</span></td><td class="num"><span class="st '+(r.okSis===r.totSis?"ok":"warn")+'">'+r.okSis+'/'+r.totSis+'</span></td><td><button type="button" class="btn sm primary" data-a="vgo|'+r.p.ID+'">Auditar / Valorar</button></td></tr>').join("")+
+    '</tbody></table></div></div>';
+}
+
+/* ---------- 3. Reemplazo de Navegación en HEMODIÁLISIS (hd) ---------- */
+renderNav=function(){
+  const navEl=$("nav");if(!navEl)return;
+  navEl.className="v12-axis-grid";
+  let al=0,q=0;if(ST.book){try{al=alertas().total;q=calidad().filter(x=>x.lvl==="bad").length;}catch(e){}}
+  const curAxis=V12.state.hd.axis||"e3";
+  const curSub=V12.state.hd.sub||"turno";
+  navEl.innerHTML=v12RenderGrid("hd",curAxis,{e2:al,e6:q});
+  const subEl=$("hd-subbar");
+  if(subEl){
+    subEl.innerHTML=ST.book?v12RenderSubbar("hd",curAxis,curSub,{alert:al,cal:q}):"";
+  }
+};
+
+render=function(){
+  try{const P=window.PORTAL;if(P&&P.PX&&P.PX.user&&P.PX.view!=="hd"&&$("hdapp").hidden){P.pxRefresh();return;}}catch(e){}
+  if(ST.view){
+    const axFound=v12FindAxisOfSub("hd",ST.view);
+    if(axFound){V12.state.hd.axis=axFound;V12.state.hd.sub=ST.view;}
+  }
+  const curAxis=V12.state.hd.axis||"e3";
+  const subs=V12.map.hd[curAxis]||V12.map.hd.e3;
+  if(!subs.some(([k])=>k===V12.state.hd.sub))V12.state.hd.sub=subs[0][0];
+  const curSub=V12.state.hd.sub;
+  ST.view=curSub;
+  renderNav();
+  const out=$("out");
+  if(!ST.book){out.innerHTML=vStart();if(PX.user&&PX.view==="hd")pxBar();return;}
+  const viewFn={
+    hd_proc:()=>v10GovView("hd"),
+    hd_ruta:()=>pxRutaView(false),
+    hd_plan:()=>v12PlanSubView("hd"),
+    doc:()=>typeof pxDocsFor==="function"?pxDocsFor("hd"):'<div class="panel empty">Sin documentos.</div>',
+    ref:vRef,
+    pac:vPac,
+    sem:vSem,
+    acc:vAcc,
+    tx:vTx,
+    alert:vAlert,
+    turno:vTurno,
+    val:vVal,
+    lim:vLim,
+    lab:vLab,
+    vac:vVac,
+    hd_anti:v12HdAntiView,
+    inf:vInf08,
+    ind:vInd,
+    rep:vRep,
+    cal:vCal,
+    hd_aud:v12HdAudSubView,
+    hd_pamec:()=>v10PamecProgView("hd"),
+    hd_lib:()=>v12LibSubView("hd"),
+    hd_meta:()=>v10ProgProdView("hd"),
+    hd_conc:()=>vFin(true)
+  }[curSub]||vTurno;
+  try{
+    out.innerHTML=(ST.demo?'<div class="demo-banner">Está viendo <strong>datos ficticios</strong> generados para probar la herramienta.</div>':"")+
+      (rutaBanner(curSub))+
+      viewFn();
+  }catch(e){
+    console.error(e);
+    out.innerHTML='<div class="alert bad"><p>Error al dibujar esta vista: '+esc(e.message)+'</p></div>';
+  }
+  if(PX.user&&PX.view==="hd")pxBar();
+};
+
+/* ---------- 4. Reemplazo de Navegación en DIÁLISIS PERITONEAL (dp) ---------- */
+dpView=function(){
+  const role=dpRole();
+  let h='<div class="mhead"><div><p class="eyebrow">Programa misional · Unidad Renal</p><h2 class="mt">Diálisis peritoneal</h2><p class="note" style="margin:3px 0 0">Organizado en los 8 Ejes Estructurales: procesos, censo e intervalos, valoraciones GPC, laboratorio y Kt/V, suministros conciliado en casa, indicadores CAC 2026, auditoría PAMEC y producción.</p></div><div class="copyrow">'+
+   (DP.book?'<span class="tag" title="Rol en este módulo">'+esc(DP_ROLES[role]||"")+'</span><button type="button" class="btn sm'+(DP.dirty?" warn":"")+'" data-p="dpexp">Descargar libro DP</button><button type="button" class="btn sm" data-p="dpclose">Cerrar libro</button>':'')+'</div></div>';
+  if(!DP.book)return h+dpStart();
+  dpEnsure();
+  if(DP.demo)h+='<div class="demo-banner">Libro DP con <strong>datos ficticios</strong>. Ninguna cifra corresponde a pacientes reales.</div>';
+  if(DP.ui.chain&&!DP.ui.chain.ok)h+='<div class="alert bad"><p><strong>La bitácora del libro DP no coincide con su cadena SHA-256 desde la fila '+DP.ui.chain.fila+'.</strong></p></div>';
+  /* Mapear subrutas antiguas si algún botón interno llamó pxGo("dp", sub) */
+  const rawSub=PX.ui.sub||"";
+  if(rawSub&&!rawSub.startsWith("dp_")){
+    const mapOld={res:["e2","dp_al"],pac:["e2","dp_cen"],cen:["e2","dp_cen"],val:["e3","dp_val"],age:["e3","dp_age"],lab:["e4","dp_lcal"],tra:["e5","dp_ins"],epi:["e5","dp_cat"],atb:["e5","dp_cat"],ind:["e6","dp_ind"],rep:["e6","dp_cac"]};
+    if(mapOld[rawSub]){
+      if(rawSub==="tra"&&DP.ui.tab&&DP.ui.tab.tra){
+        const tMap={pre:["e5","dp_pre"],cat:["e5","dp_cat"],inf:["e5","dp_cat"],edu:["e5","dp_cat"],ins:["e5","dp_ins"],hos:["e3","dp_hos"],trp:["e2","dp_trp"]};
+        if(tMap[DP.ui.tab.tra]){V12.state.dp.axis=tMap[DP.ui.tab.tra][0];V12.state.dp.sub=tMap[DP.ui.tab.tra][1];}
+      }else if(rawSub==="pac"&&DP.ui.tab&&DP.ui.tab.pac==="con"){
+        V12.state.dp.axis="e2";V12.state.dp.sub="dp_con";
+      }else{
+        V12.state.dp.axis=mapOld[rawSub][0];V12.state.dp.sub=mapOld[rawSub][1];
+      }
+      PX.ui.sub=V12.state.dp.sub;
+    }
+  }
+  const curAxis=V12.state.dp.axis||"e3";
+  const subs=V12.map.dp[curAxis]||V12.map.dp.e3;
+  if(!subs.some(([k])=>k===V12.state.dp.sub))V12.state.dp.sub=subs[0][0];
+  const curSub=V12.state.dp.sub;
+  const alerts=dpAlerts();
+  const nAl=alerts.filter(a=>a.sev==="u"||a.sev==="c").length;
+  const nh=dpR("her").filter(x=>x.Estado==="Pendiente de verificación").length+dpR("ins").filter(i=>/por confirmar|Sin paciente/.test(i.Estado||"")).length;
+  h+='<nav class="v12-axis-grid" role="tablist" aria-label="Menú Maestro de 8 Ejes Estructurales">'+v12RenderGrid("dp",curAxis,{e2:nAl||nh})+'</nav>';
+  h+=v12RenderSubbar("dp",curAxis,curSub,{dp_al:alerts.length,dp_con:nh});
+  try{
+    if(curSub==="dp_proc")return h+v10GovView("dp");
+    if(curSub==="dp_plan")return h+v12PlanSubView("dp");
+    if(curSub==="dp_doc")return h+pxDocsFor("dp");
+    if(curSub==="dp_cen"){DP.ui.tab=DP.ui.tab||{};DP.ui.tab.pac="cen";return h+(DP.ui.pid&&dpPac(DP.ui.pid)?dpFicha(DP.ui.pid):dpPacientes().replace(/<div class="seg d8tabs"[\s\S]*?<\/div>/,""));}
+    if(curSub==="dp_tr")return h+dpDatos()+dpTraHos();
+    if(curSub==="dp_con")return h+dpConcil();
+    if(curSub==="dp_trp")return h+dpTraTrp();
+    if(curSub==="dp_al")return h+dpResumen().replace(/<div class="seg d8tabs"[\s\S]*?<\/div>/,"");
+    if(curSub==="dp_val"){if(DP.ui.vedit)return h+dpValEditor();DP.ui.tab=DP.ui.tab||{};DP.ui.tab.val="reg";return h+dpValView().replace(/<div class="seg d8tabs"[\s\S]*?<\/div>/,"");}
+    if(curSub==="dp_age")return h+dpAgeView();
+    if(curSub==="dp_hos")return h+dpTraHos();
+    if(curSub==="dp_lcal")return h+'<div class="mhead"><h3 style="margin:0">Calendario y Solicitud Mensual de Laboratorio · DP</h3>'+dpCanBtn("lab","d8labnew|","Registrar resultado","sm primary")+'</div>'+dpLabCal()+dpSolView("dp")+dpLabPlan();
+    if(curSub==="dp_lres")return h+'<div class="mhead"><h3 style="margin:0">Resultados Históricos y Tendencias por Paciente · DP</h3>'+dpCanBtn("lab","d8labnew|","Registrar resultado","sm primary")+'</div>'+dpLabRes()+dpLabTrend();
+    if(curSub==="dp_ktv")return h+dpLabKtv();
+    if(curSub==="dp_ins")return h+dpTraIns();
+    if(curSub==="dp_pre")return h+dpTraPre();
+    if(curSub==="dp_cat")return h+dpTraCat()+dpTraEdu()+dpEpis()+dpAtbs();
+    if(curSub==="dp_ind")return h+dpIndView();
+    if(curSub==="dp_cac")return h+dpRepCac();
+    if(curSub==="dp_exp")return h+dpRepExp()+dpRepLog();
+    if(curSub==="dp_aud")return h+dpValAudit();
+    if(curSub==="dp_pamec")return h+v10PamecProgView("dp")+dpRepPm()+dpRepCfg();
+    if(curSub==="dp_lib")return h+v12LibSubView("dp");
+    if(curSub==="dp_meta")return h+v10ProgProdView("dp");
+    return h+dpResumen();
+  }catch(e){
+    console.error(e);
+    return h+'<div class="alert bad"><p>Error al dibujar esta sección: '+esc(e.message)+'</p></div>';
+  }
+};
+
+/* ---------- 5. Reemplazo de Navegación en VIH (vih) ---------- */
+vxHead=function(){
+  const c=vxCorte();const F=VX.ui.f||{};const pid=vxPid();
+  const muns=[...new Set(vxPacs().map(p=>p.Municipio).filter(Boolean))].sort();
+  const nRoja=vxPacs().filter(p=>vxFiltro(p)&&vxAlertas(p,c).nivel==="roja").length;
+  const curAxis=V12.state.vih.axis||"e3";
+  const curSub=V12.state.vih.sub||"age";
+  let h='<div class="mhead"><div><p class="eyebrow">Programa misional · GAO-PT-008'+(VX.demo?' · <span style="color:var(--warn)">datos ficticios</span>':'')+'</p><h2 class="mt">Programa Especial VIH</h2><p class="note" style="margin:3px 0 0">'+vxPacs().filter(p=>vxSt(p,c).activo).length+' activos al corte · libro '+(VX.dirty?'<b style="color:var(--warn)">con cambios sin descargar</b>':'sin cambios')+'</p></div>'+
+   '<div class="copyrow"><label class="f" style="max-width:160px">Fecha de corte<input type="date" id="vxcorte" value="'+iso(c)+'"></label><button type="button" class="btn sm'+(VX.dirty?' warn':'')+'" data-x="bookexp">Descargar libro VIH</button><label class="btn sm" for="vximp2">Importar</label><input type="file" id="vximp2" accept=".xlsx,.xls" hidden multiple><button type="button" class="btn sm" data-x="unload">Cerrar libro</button></div></div>';
+  h+='<details class="vxfd"'+(Object.values(F).some(Boolean)?' open':'')+'><summary>Filtros de cohorte'+(Object.values(F).some(Boolean)?' <span class="tag">'+Object.values(F).filter(Boolean).map(esc).join(" · ")+'</span>':'')+'</summary><div class="filters vxfil"><label class="f">EPS<select id="vxf_eps">'+opt([...new Set(vxPacs().map(p=>p.EPS).filter(Boolean))].sort(),F.eps||"","Todas")+'</select></label><label class="f">Régimen<select id="vxf_reg">'+opt(VX_REG,F.reg||"","Todos")+'</select></label><label class="f">Municipio<select id="vxf_mun">'+opt(muns,F.mun||"","Todos")+'</select></label><label class="f">Sexo<select id="vxf_sexo">'+opt([["M","Masculino"],["F","Femenino"]],F.sexo||"","Todos")+'</select></label><label class="f">Población clave<select id="vxf_pc">'+opt(VX_PCLAVE,F.pc||"","Todas")+'</select></label><label class="f">Modalidad<select id="vxf_mod">'+opt(VX_MODAL,F.mod||"","Todas")+'</select></label></div></details>';
+  h+='<nav class="v12-axis-grid" role="tablist" aria-label="Menú Maestro de 8 Ejes Estructurales">'+v12RenderGrid("vih",curAxis,{e2:nRoja})+'</nav>';
+  h+=v12RenderSubbar("vih",curAxis,curSub,{ale:nRoja});
+  if(pid)h+='<p class="note vxcrumb"><button type="button" class="lnk" data-v12="sub|vih|e2|pob">← Volver al listado de Población</button> / Ficha de <strong>'+esc(pid)+'</strong></p>';
+  return h;
+};
+
+function v12VihHcDirect(){
+  const act=vxPacs().filter(p=>vxFiltro(p)&&vxSt(p,vxCorte()).activo);
+  const selId=VX.ui.hcpid&&vxP(VX.ui.hcpid)?VX.ui.hcpid:(act[0]&&act[0].ID)||"";
+  if(!selId)return'<div class="panel empty">Sin pacientes activos en la cohorte.</div>';
+  const p=vxP(selId);const s=vxSt(p,vxCorte());
+  return'<div class="panel" style="margin-bottom:12px"><div class="copyrow" style="justify-content:space-between"><label class="f" style="min-width:300px;flex:1;max-width:480px">Paciente a valorar / auditar HC<select id="v12_vih_hcpid">'+opt(act.map(x=>[x.ID,x.ID+" · "+vxNom(x)+" · "+(x.EPS||"")]),selId)+'</select></label><div class="copyrow"><button type="button" class="btn sm primary" data-x="valnew|'+esc(p.ID)+'|Medicina experta VIH">Nueva valoración médica GPC</button><button type="button" class="btn sm" data-x="pac|'+esc(p.ID)+'">Abrir ficha completa</button></div></div></div>'+
+    vxPacVal(p,s);
+}
+
+vxView=function(){
+  if(!VX.book)return vxStart();
+  const raw=PX.ui.sub||"";
+  if(raw.startsWith("pac:")){
+    if(VX.ui.vedit){V12.state.vih.axis="e3";V12.state.vih.sub="vih_hc";VX.ui.hcpid=raw.slice(4);}
+    else{V12.state.vih.axis="e2";V12.state.vih.sub="pob";}
+  }else if(raw){
+    const axFound=v12FindAxisOfSub("vih",raw);
+    if(axFound){V12.state.vih.axis=axFound;V12.state.vih.sub=raw;}
+    else if(raw==="tab"){V12.state.vih.axis="e2";V12.state.vih.sub="ale";}
+    else if(raw==="tar"){V12.state.vih.axis="e5";V12.state.vih.sub=VX.ui.tsub==="ent"?"tar_ent":VX.ui.tsub==="ped"?"tar_ped":"tar_esq";}
+  }
+  const curAxis=V12.state.vih.axis||"e3";
+  const subs=V12.map.vih[curAxis]||V12.map.vih.e3;
+  if(!subs.some(([k])=>k===V12.state.vih.sub))V12.state.vih.sub=subs[0][0];
+  const curSub=V12.state.vih.sub;
+  let h=vxHead();
+  try{
+    if(raw.startsWith("pac:")&&curSub==="pob")return h+vxPac();
+    if(curSub==="vih_proc")return h+v10GovView("vih");
+    if(curSub==="ruta")return h+vxRuta();
+    if(curSub==="vih_plan")return h+v12PlanSubView("vih");
+    if(curSub==="pob")return h+vxPob();
+    if(curSub==="car")return h+vxCar();
+    if(curSub==="ale")return h+vxTablero()+vxAle();
+    if(curSub==="age")return h+vxAgenda();
+    if(curSub==="vih_hc")return h+v12VihHcDirect();
+    if(curSub==="lab")return h+vxLab();
+    if(curSub==="prc")return h+vxPrc();
+    if(curSub==="vac")return h+vxVacV();
+    if(curSub==="tar_esq"){if(!["gru","esq"].includes(VX.ui.tsub))VX.ui.tsub="esq";return h+vxTarV().replace(/<div class="mhead" style="margin-top:6px"><div class="seg">[\s\S]*?<\/div><\/div>/,"");}
+    if(curSub==="tar_ent"){VX.ui.tsub="ent";return h+vxTarV().replace(/<div class="mhead" style="margin-top:6px"><div class="seg">[\s\S]*?<\/div><\/div>/,"");}
+    if(curSub==="tar_ped"){VX.ui.tsub="ped";return h+vxTarV().replace(/<div class="mhead" style="margin-top:6px"><div class="seg">[\s\S]*?<\/div><\/div>/,"");}
+    if(curSub==="ind")return h+vxInd();
+    if(curSub==="rep")return h+vxRep();
+    if(curSub==="cal")return h+vxCal();
+    if(curSub==="aud")return h+vxAud();
+    if(curSub==="vih_pamec")return h+v10PamecProgView("vih");
+    if(curSub==="vih_lib")return h+v12LibSubView("vih");
+    if(curSub==="fac")return h+vxFac()+v10ProgProdView("vih");
+    return h+vxAgenda();
+  }catch(e){
+    console.error(e);
+    return h+'<div class="alert bad"><p>Error al dibujar esta vista: '+esc(e.message)+'</p></div>';
+  }
+};
+
+/* ---------- 6. Reemplazo de Navegación en CONSULTA EXTERNA (ce) ---------- */
+function v12CeOrdView(){
+  const I=ceIdx();
+  const S=ceSolsAbiertas().filter(s=>s.TieneOrden==="SI"||s.OrdenRef);
+  return'<div class="panel"><div class="mhead"><div><h3 style="margin:0">Trazabilidad de Órdenes Médicas y Remisiones · Consulta Externa ('+S.length+')</h3><p class="note" style="margin:2px 0 0">Seguimiento de órdenes médicas de interconsulta y controles generados por los programas misionales, su estado de autorización EPS y su cita asignada.</p></div></div>'+
+    '<div class="tablebox" style="margin-top:8px"><table class="dense"><thead><tr><th>Solicitud</th><th>Paciente</th><th>Especialidad · Tipo</th><th>Referencia de la Orden</th><th>Programa origen</th><th>Autorización</th><th>Estado / Cita</th></tr></thead><tbody>'+
+    (S.map(s=>{const p=I.pac.get(s.Paciente);const a=ceAut(s.ID);const c=ceCitaAct(s.ID);return'<tr class="click" data-ce="sol|'+s.ID+'"><td class="mono">'+esc(s.ID)+'</td><td><strong>'+esc(ceNom(p))+'</strong><span class="sub">'+esc(p?(p.TipoDoc+" "+p.Documento+" · "+p.EPS):"")+'</span></td><td>'+esc(ceEspN(s.Especialidad))+'<span class="sub">'+esc(CE_TIPO[s.TipoConsulta])+'</span></td><td class="mono">'+esc(s.OrdenRef||"Orden médica registrada")+'</td><td>'+esc(s.Programa||"Consulta externa")+'</td><td>'+ceAutTag(a?a.Situacion:"NO_REQUIERE")+'</td><td>'+ceEstTag(s)+(c?'<span class="sub">'+ceFD(c.Fecha)+' '+esc(c.Hora)+'</span>':'')+'</td></tr>';}).join("")||'<tr><td colspan="7" class="note">Sin solicitudes con orden médica registrada.</td></tr>')+
+    '</tbody></table></div></div>';
+}
+
+function v12CeAudView(){
+  const I=ceIdx();
+  const saltos=CE.book.cit.filter(c=>c.SaltoOrdenMotivo);
+  const retro=CE.book.sol.filter(s=>s.SoporteFecha);
+  const prio=CE.book.sol.filter(s=>s.Prioridad!=="ORDINARIA");
+  return'<div class="panel"><h3>Auditoría de Adherencia a Reglas de Asignación, Saltos de Orden y Priorización ('+saltos.length+' saltos · '+prio.length+' priorizadas)</h3><p class="note">Verifica que toda asignación que no tome al primer candidato de la lista tenga justificación trazable (Regla 8), que toda prioridad tenga fuente clínica y que toda fecha retroactiva tenga soporte documental.</p>'+
+    '<div class="tiles" style="margin:10px 0"><div class="tile '+(saltos.length?"warn":"ok")+'"><span class="tv">'+saltos.length+'</span><span class="tl">citas asignadas con salto de orden justificado</span></div><div class="tile"><span class="tv">'+prio.length+'</span><span class="tl">solicitudes con priorización clínica o preferente</span></div><div class="tile"><span class="tv">'+retro.length+'</span><span class="tl">solicitudes con fecha anterior al registro (con soporte)</span></div></div>'+
+    '<h4 style="margin:10px 0 4px">Citas con salto de orden registrado</h4>'+
+    '<div class="tablebox"><table class="dense"><thead><tr><th>Cita</th><th>Fecha · Hora</th><th>Paciente</th><th>Solicitud</th><th>Motivo del salto de orden</th><th>Asignó</th></tr></thead><tbody>'+
+    (saltos.map(c=>{const p=I.pac.get(c.Paciente);return'<tr><td class="mono">'+esc(c.ID)+'</td><td class="mono">'+ceFD(c.Fecha)+' '+esc(c.Hora)+'</td><td>'+esc(ceNom(p))+'</td><td class="mono">'+esc(c.Solicitud)+'</td><td>'+esc(c.SaltoOrdenMotivo)+'</td><td>'+esc(c.AsignadaPor)+'</td></tr>';}).join("")||'<tr><td colspan="6" class="note">0 saltos de orden en las citas asignadas.</td></tr>')+
+    '</tbody></table></div></div>';
+}
+
+ceHead=function(){
+  const rol=ceRol();const q=ceCalidad().filter(x=>x.grave&&x.n>0).length;
+  const curAxis=V12.state.ce.axis||"e3";
+  const curSub=V12.state.ce.sub||"age";
+  let h='<div class="mhead"><div><p class="eyebrow">Programa misional'+(CE.demo?' · <span style="color:var(--warn)">datos ficticios</span>':'')+'</p><h2 class="mt">Consulta externa</h2><p class="note" style="margin:3px 0 0">Rol activo: <b>'+esc(CE_ROLES[rol])+'</b>'+(ceVeRes()?' · acceso a especialidades reservadas':'')+' · libro '+(CE.dirty?'<b style="color:var(--warn)">con cambios sin descargar</b>':'sin cambios')+'</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm'+(CE.dirty?' warn':'')+'" data-ce="exp">Descargar libro CE</button><button type="button" class="btn sm" data-ce="unload">Cerrar libro</button></div></div>';
+  h+='<nav class="v12-axis-grid" role="tablist" aria-label="Menú Maestro de 8 Ejes Estructurales">'+v12RenderGrid("ce",curAxis,{e6:q})+'</nav>';
+  h+=v12RenderSubbar("ce",curAxis,curSub,{cal:q});
+  return h;
+};
+
+ceView=function(){
+  if(!CE.book)return ceStart();
+  const raw=PX.ui.sub||"";
+  if(raw){
+    const axFound=v12FindAxisOfSub("ce",raw);
+    if(axFound){V12.state.ce.axis=axFound;V12.state.ce.sub=raw;}
+  }
+  const curAxis=V12.state.ce.axis||"e3";
+  const subs=V12.map.ce[curAxis]||V12.map.ce.e3;
+  if(!subs.some(([k])=>k===V12.state.ce.sub))V12.state.ce.sub=subs[0][0];
+  const curSub=V12.state.ce.sub;
+  let h=ceHead();
+  try{
+    if(curSub==="ce_proc")return h+v10GovView("ce");
+    if(curSub==="adm")return h+ceAdm();
+    if(curSub==="lista")return h+ceLista();
+    if(curSub==="nueva")return h+ceNueva();
+    if(curSub==="pac")return h+cePacV();
+    if(curSub==="age")return h+ceAgenda();
+    if(curSub==="aut")return h+ceAutV();
+    if(curSub==="ce_ord")return h+v12CeOrdView();
+    if(curSub==="tab")return h+ceTablero();
+    if(curSub==="cal")return h+ceCalV();
+    if(curSub==="ce_aud")return h+v12CeAudView();
+    if(curSub==="ce_pamec")return h+v10PamecProgView("ce");
+    if(curSub==="ce_meta")return h+v10ProgProdView("ce")+ceOportPanel();
+    return h+ceAgenda();
+  }catch(e){
+    console.error(e);
+    return h+'<div class="alert bad"><p>Error al dibujar esta vista: '+esc(e.message)+'</p></div>';
+  }
+};
+
+/* ---------- 7. Reemplazo de Navegación en NEFROPROTECCIÓN (nefro) sin barra ni encabezado duplicado ---------- */
+function v12NefroFarView(){
+  const K=pxNefroK();
+  const ind=(K&&K.ind)||[];
+  const findI=code=>ind.find(i=>i.code===code)||{num:0,den:0,pc:null};
+  const iRaas=findI("nefro_34"),iSglt2=findI("nefro_38"),iStat=findI("nefro_29");
+  return'<div class="panel v9anti"><div class="mhead"><div><h3 style="margin:0">Metas Farmacológicas Nefroprotectoras (IECA/ARA-II · iSGLT2 · Estatinas) · Ruta v8</h3><p class="note" style="margin:2px 0 0">Vigilancia farmacológica sobre la cohorte activa de Nefroprotección (KDIGO 2024 y Consenso CAC) para asegurar bloqueo del SRAA en albuminuria, iSGLT2 en DM2/ERC con TFGe ≥ 20 y estatinas en ≥ 50 años, evitando polifarmacia o combinación IECA + ARA-II.</p></div>'+
+    '<button type="button" class="btn sm primary" data-v12="sub|nefro|e3|nefro_val">Abrir Valoración Clínica GPC</button></div>'+
+    '<div class="tiles" style="margin-top:10px">'+
+      '<div class="tile '+(iRaas.pc>=70?"ok":"warn")+'"><span class="tv">'+(iRaas.pc==null?"—":Math.round(iRaas.pc)+" %")+'</span><span class="tl">IECA o ARA-II en HTA/DM con RAC &gt; 30 mg/g ('+iRaas.num+'/'+iRaas.den+' · nefro_34)</span></div>'+
+      '<div class="tile '+(iSglt2.pc>=70?"ok":"warn")+'"><span class="tv">'+(iSglt2.pc==null?"—":Math.round(iSglt2.pc)+" %")+'</span><span class="tl">iSGLT2 en DM2 con TFGe ≥ 20 mL/min ('+iSglt2.num+'/'+iSglt2.den+' · nefro_38)</span></div>'+
+      '<div class="tile '+(iStat.pc>=70?"ok":"warn")+'"><span class="tv">'+(iStat.pc==null?"—":Math.round(iStat.pc)+" %")+'</span><span class="tl">Estatina en ≥ 50 años con ERC G3a–G5 ('+iStat.num+'/'+iStat.den+' · nefro_29)</span></div>'+
+    '</div>'+
+    '<p class="note" style="margin-top:10px">Regla de seguridad farmacológica (KDIGO 2024): nunca combinar IECA con ARA-II; controlar creatinina y potasio sérico a las 2–4 semanas de iniciar o titular IECA/ARA-II, iSGLT2 o finerenona; suspender iSGLT2 en ayuno prolongado o enfermedad aguda intercurrente.</p></div>';
+}
+
+pxNefroEnsure=function(){
+  const box=document.getElementById("nefroapp");
+  const url=pxNefroURL();
+  if(!document.getElementById("nefroframe")||box.dataset.src!==(url||"embebido")){
+    box.dataset.src=url||"embebido";
+    box.innerHTML='<div class="wrap" style="padding-bottom:4px">'+
+      '<div class="mhead"><div><p class="eyebrow">Programa misional · Prevención Renal Secundaria</p><h2 class="mt">Nefroprotección · Ruta v8</h2><p class="note" style="margin:2px 0 0" id="nefro-top-info">Estratificación KDIGO 2024 y KFRE, valoración GPC con RCV, agendas espejo, seguimiento de TFGe, 47 indicadores CAC, auditoría GPC y transición oportuna a DP/HD.</p></div>'+
+      '<div class="copyrow">'+
+        '<button type="button" class="btn sm" data-v12="nefro_load">Cargar libro Nefro</button>'+
+        '<button type="button" class="btn sm" data-v12="nefro_exp">Descargar libro Nefro</button>'+
+        '<button type="button" class="btn sm" data-v12="nefro_demo">Datos ficticios</button>'+
+        (pxAdmin()?'<button type="button" class="btn sm" data-p="nefrocfg">Servidor</button>':'')+
+      '</div></div>'+
+      '<nav id="nefro-axis-nav" class="v12-axis-grid" role="tablist" aria-label="Menú Maestro de 8 Ejes Estructurales"></nav>'+
+      '<div id="nefro-sub-nav"></div>'+
+      '<div id="nefro-custom" hidden></div>'+
+      '</div>'+
+      '<iframe id="nefroframe" title="Ruta de Nefroprotección" style="display:block;width:100%;height:calc(100vh - 210px);min-height:640px;border:0;background:var(--bg)"></iframe>';
+    const f=document.getElementById("nefroframe");
+    f.addEventListener("load",()=>{v12SyncNefroTheme();v12RenderNefroNav();});
+    if(url)f.src=url;else f.srcdoc=pxNefroSrcdoc();
+  }
+  v12RenderNefroNav();
+};
+
+function v12RenderNefroNav(){
+  const navEl=document.getElementById("nefro-axis-nav");
+  const subEl=document.getElementById("nefro-sub-nav");
+  const custEl=document.getElementById("nefro-custom");
+  const frameEl=document.getElementById("nefroframe");
+  if(!navEl||!subEl||!custEl||!frameEl)return;
+  const curAxis=V12.state.nefro.axis||"e3";
+  const subs=V12.map.nefro[curAxis]||V12.map.nefro.e3;
+  if(!subs.some(([k])=>k===V12.state.nefro.sub))V12.state.nefro.sub=subs[0][0];
+  const curSub=V12.state.nefro.sub;
+  const K=pxNefroK();
+  navEl.innerHTML=v12RenderGrid("nefro",curAxis,{e2:K&&K.alertas?K.alertas:0});
+  subEl.innerHTML=v12RenderSubbar("nefro",curAxis,curSub,{});
+  const iframeTabs={
+    nefro_ref:["ref",null],
+    nefro_pac:["pac",null],
+    nefro_coh:["coh","car"],
+    nefro_val:["calc",null],
+    nefro_age:["agenda",null],
+    nefro_lab:["coh","ges"],
+    nefro_venc:["coh","venc"],
+    nefro_ind:["ind",null],
+    nefro_nom:["nom",null],
+    nefro_cal:["cal",null],
+    nefro_aud:["aud",null]
+  };
+  if(iframeTabs[curSub]){
+    custEl.hidden=true;custEl.innerHTML="";
+    frameEl.hidden=false;
+    const[tabName,cohSub]=iframeTabs[curSub];
+    const applyTab=()=>{
+      try{
+        const w=pxNefroWin();
+        if(w&&w.MG&&typeof w.MG.show==="function"){
+          w.MG.show(tabName);
+          if(cohSub&&w.document){
+            const b=w.document.querySelector('[data-nsub="'+cohSub+'"]');
+            if(b)b.click();
+          }
+          v12SyncNefroTheme();
+          return true;
+        }
+      }catch(e){}
+      return false;
+    };
+    if(!applyTab())setTimeout(applyTab,280);
+  }else{
+    frameEl.hidden=true;
+    custEl.hidden=false;
+    if(curSub==="nefro_proc")custEl.innerHTML=v10GovView("nefro");
+    else if(curSub==="nefro_plan")custEl.innerHTML=v12PlanSubView("nefro");
+    else if(curSub==="nefro_trr")custEl.innerHTML=v11NefroTrrView();
+    else if(curSub==="nefro_far")custEl.innerHTML=v12NefroFarView();
+    else if(curSub==="nefro_pamec")custEl.innerHTML=v10PamecProgView("nefro");
+    else if(curSub==="nefro_meta")custEl.innerHTML=v10ProgProdView("nefro");
+  }
+}
+
+/* Reemplazar v11NavigateAxis para que opere sobre la nueva Grilla de 8 Ejes sin abrir pantallas fantasma */
+v11NavigateAxis=function(prog,ax,subKey){
+  if(ax==="trr"){ax="e2";subKey="nefro_trr";}
+  const st=V12.state[prog]||(V12.state[prog]={axis:"e3",sub:""});
+  st.axis=ax;
+  const subs=(V12.map[prog]&&V12.map[prog][ax])||[];
+  st.sub=subKey&&subs.some(([k])=>k===subKey)?subKey:(subs[0]?subs[0][0]:"");
+  if(prog==="hd"){
+    ST.view=st.sub;
+    if(PX.view!=="hd")pxOpenHD(st.sub,true);
+    else{render();pxBar();window.scrollTo(0,0);}
+    return;
+  }
+  if(prog==="nefro"){
+    if(PX.view!=="nefro")pxOpenNefro(true);
+    else{v12RenderNefroNav();pxBar();window.scrollTo(0,0);}
+    return;
+  }
+  PX.ui.sub=st.sub;
+  if(PX.view!==prog)pxGo(prog,st.sub,true);
+  else{pxRender();window.scrollTo(0,0);}
+};
+
+/* ---------- 8. Buscador Global MPI y Comando Clínico Instantáneo (Ctrl+K) ---------- */
+function v12SearchMPI(q){
+  q=norm(q||"");
+  const res=[];
+  if(hdOn()){
+    ensureIdx();
+    pacs().forEach(p=>{
+      const str=norm(p.ID+" "+nombre(p)+" "+(p.Documento||"")+" "+(p.EPS||""));
+      if(!q||str.includes(q)){
+        res.push({prog:"hd",progN:"Hemodiálisis",id:p.ID,nom:nombre(p),doc:(p.TipoDoc||"CC")+" "+(p.Documento||""),eps:p.EPS||"",est:activeAt(p,ST.corte)?"Activo ("+(p.Turno||"")+")":(p.Estado||"Inactivo"),go:"mpi_hd|"+p.ID});
+      }
+    });
+  }
+  if(dpOn()){
+    DP.book.pac.filter(lv).forEach(p=>{
+      const str=norm(p.ID+" "+dpNombre(p)+" "+(p.Documento||"")+" "+(p.EPS||""));
+      if(!q||str.includes(q)){
+        res.push({prog:"dp",progN:"Diálisis Peritoneal",id:p.ID,nom:dpNombre(p),doc:(p.TipoDoc||"CC")+" "+(p.Documento||""),eps:p.EPS||"",est:dpEstado(p)+" ("+(p.Modalidad||"DP")+")",go:"mpi_dp|"+p.ID});
+      }
+    });
+  }
+  if(typeof VX!=="undefined"&&VX.book){
+    vxPacs().forEach(p=>{
+      const str=norm(p.ID+" "+vxNom(p)+" "+(p.Documento||"")+" "+(p.EPS||""));
+      if(!q||str.includes(q)){
+        const al=vxAlertas(p,vxCorte()).nivel;
+        res.push({prog:"vih",progN:"Programa VIH",id:p.ID,nom:vxNom(p),doc:(p.TipoDoc||"CC")+" "+(p.Documento||""),eps:p.EPS||"",est:(p.Estado||"Activo")+" · Alerta "+al,go:"mpi_vih|"+p.ID});
+      }
+    });
+  }
+  if(typeof CE!=="undefined"&&CE.book){
+    CE.book.pac.forEach(p=>{
+      const str=norm(p.ID+" "+ceNom(p)+" "+(p.Documento||"")+" "+(p.EPS||""));
+      if(!q||str.includes(q)){
+        res.push({prog:"ce",progN:"Consulta Externa",id:p.ID,nom:ceNom(p),doc:(p.TipoDoc||"CC")+" "+(p.Documento||""),eps:p.EPS||"",est:"Maestro CE",go:"mpi_ce|"+p.ID});
+      }
+    });
+  }
+  try{
+    const w=pxNefroWin();
+    if(w&&w.MG&&w.MG.book&&Array.isArray(w.MG.book.pac)){
+      w.MG.book.pac.forEach(p=>{
+        const str=norm(p.codigo+" "+(p.nombre||"")+" "+(p.doc||"")+" "+(p.eps||""));
+        if(!q||str.includes(q)){
+          res.push({prog:"nefro",progN:"Nefroprotección",id:p.codigo,nom:p.nombre||p.codigo,doc:(p.tipodoc||"CC")+" "+(p.doc||""),eps:p.eps||"",est:p.estado||"ACTIVO",go:"mpi_nefro|"+p.codigo});
+        }
+      });
+    }
+  }catch(e){}
+  return res.slice(0,40);
+}
+
+function v12OpenCmdK(){
+  if(!PX.user)return;
+  const renderRows=(q)=>{
+    const R=v12SearchMPI(q);
+    if(!R.length)return'<p class="note">Sin coincidencias en las cohortes abiertas.</p>';
+    return'<div class="tablebox" style="max-height:360px"><table class="dense"><thead><tr><th>Programa</th><th>ID</th><th>Paciente</th><th>Documento</th><th>EPS · Estado</th><th></th></tr></thead><tbody>'+
+      R.map(r=>'<tr><td><span class="tag">'+esc(r.progN)+'</span></td><td class="mono"><strong>'+esc(r.id)+'</strong></td><td>'+esc(r.nom)+'</td><td class="mono">'+esc(r.doc)+'</td><td style="font-size:12.5px">'+esc(r.eps)+' · '+esc(r.est)+'</td><td><button type="button" class="btn sm primary" data-v12="'+esc(r.go)+'">Abrir</button></td></tr>').join("")+
+      '</tbody></table></div>';
+  };
+  openDlg("Buscador Maestro Único de Pacientes (MPI) · 5 Cohortes",
+    '<p class="note" style="margin:0">Busca simultáneamente en Hemodiálisis, Diálisis Peritoneal, VIH, Nefroprotección y Consulta Externa por nombre, documento, ID o EPS.</p>'+
+    '<input type="search" id="v12_mpiq" placeholder="Escriba nombre, apellido, cédula o código (ej. P001, DP001, V0001)…" autocomplete="off">'+
+    '<div id="v12_mpiout">'+renderRows("")+'</div>',
+    "Cerrar",()=>{});
+  const x=$("dlgx");if(x)x.hidden=true;
+  const inp=$("v12_mpiq");
+  if(inp){
+    inp.focus();
+    inp.addEventListener("input",()=>{
+      const o=$("v12_mpiout");
+      if(o)o.innerHTML=renderRows(inp.value);
+    });
+  }
+}
+
+document.addEventListener("keydown",e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){
+    e.preventDefault();
+    v12OpenCmdK();
+  }
+});
+
+/* Cerrar el menú desplegable Libros y Respaldo al hacer clic fuera */
+document.addEventListener("click",e=>{
+  const dd=document.getElementById("v12dd");
+  if(dd&&dd.open&&!e.target.closest("#v12dd")){
+    dd.open=false;
+  }
+  const el=e.target.closest("[data-v12]");
+  if(!el)return;
+  if(dd)dd.open=false;
+  const[a,x,y,z]=el.dataset.v12.split("|");
+  switch(a){
+    case"axis":v11NavigateAxis(x,y);break;
+    case"sub":v11NavigateAxis(x,y,z);break;
+    case"cmdk":v12OpenCmdK();break;
+    case"savelocal":v9SaveLocal(false);break;
+    case"nefro_load":{
+      try{const w=pxNefroWin();if(w&&w.document){const inp=w.document.getElementById("bookfile");if(inp)inp.click();}}catch(err){}
+      break;
+    }
+    case"nefro_exp":{
+      try{const w=pxNefroWin();if(w&&w.document){const btn=w.document.getElementById("bookexp");if(btn)btn.click();else toast("Cargue primero un libro o datos en Nefroprotección.");}}catch(err){}
+      break;
+    }
+    case"nefro_demo":{
+      try{const w=pxNefroWin();if(w&&w.document){const btn=w.document.getElementById("bookdemo");if(btn)btn.click();setTimeout(v12SyncNefroTheme,250);}}catch(err){}
+      break;
+    }
+    case"expcur":{
+      if(PX.view==="hd"&&ST.book)exportBook();
+      else if(PX.view==="dp"&&DP.book)dpExportBook();
+      else if(PX.view==="vih"&&VX.book)vxExportBook();
+      else if(PX.view==="ce"&&CE.book)ceExport();
+      else if(PX.view==="nefro"){
+        try{const w=pxNefroWin();if(w&&w.document){const btn=w.document.getElementById("bookexp");if(btn)btn.click();}}catch(err){}
+      }
+      else pxExportBook();
+      break;
+    }
+    case"mpi_hd":closeDlg();V12.state.hd={axis:"e2",sub:"pac"};ST.sel.pac=x;pxOpenHD("pac");break;
+    case"mpi_dp":closeDlg();V12.state.dp={axis:"e2",sub:"dp_cen"};DP.ui.pid=x;pxGo("dp","dp_cen");break;
+    case"mpi_vih":closeDlg();V12.state.vih={axis:"e2",sub:"pob"};VX.ui.vedit=null;pxGo("vih","pac:"+x);break;
+    case"mpi_ce":closeDlg();V12.state.ce={axis:"e2",sub:"pac"};pxGo("ce","pac");setTimeout(()=>ceDlgPac(x),60);break;
+    case"mpi_nefro":closeDlg();V12.state.nefro={axis:"e2",sub:"nefro_pac"};pxOpenNefro();setTimeout(()=>{try{const w=pxNefroWin();if(w&&w.MG)w.MG.show("pac");}catch(err){}},250);break;
+  }
+});
+
+document.addEventListener("change",e=>{
+  if(e.target&&e.target.id==="v12_vih_hcpid"){
+    VX.ui.hcpid=e.target.value;
+    VX.ui.vedit=null;
+    pxRender();
+  }
+});
+
+window.V12API={V12,v11NavigateAxis,v12OpenCmdK,v12SearchMPI};
+pxBar();
+if(PX.user)pxRender();
+
+
 /* ================= eventos del portal ================= */
 (function(){
 const root=document.getElementById("px");
@@ -8226,6 +9742,1786 @@ window.addEventListener("beforeunload",e=>{if(PX.dirty){e.preventDefault();e.ret
 window.PORTAL={VX,PX,pxRefresh,pxCfg,pxLab,pxProd,pxProdResumen,pxCompose,pxDocsFor,pxIAASCalc,pxPROACalc,pxSPCalc,pxExportBook,pxBuildWb,pxParse,pxGo,pxOpenHD};
 pxRender();
 })();
-</script>
 
-</body></html>
+/* =====================================================================================================
+   v2.1 (V13) · OPTIMIZACIÓN CLÍNICA, CALIDAD Y TALENTO HUMANO (12 PUNTOS INTEGRALES - POSMÉDICA MOCOA)
+   1. Diferenciación conceptual y visual: Mapa de Procesos (Organizacional) vs. Ruta Interactiva 360° del Paciente.
+   2. Caracterización de Cohorte y Riesgo extrapolada a todos los programas + Calendario de Actividades de 12 Meses
+      por paciente basado en la Herramienta Clínica de Contenidos Mínimos y Suficientes (independiente de la EPS,
+      respetando que contractualmente solo EPS Familiar tiene Médico Experto mensual y entrega de medicamentos).
+   3. Auditoría Concurrente GPC/CAC en barra lateral sticky en todos los programas + Preconsulta de Enfermería
+      (Signos Vitales -> "Listo para atención" -> botón "Entrar en la HC del paciente") + Cargue Masivo de Excel de
+      Laboratorio con caída automática a la HC + Registro de Asistencia/Inasistencia de Psicología, Equipo
+      Multidisciplinario y Toma de Muestras.
+   4. Nuevo Módulo Eje 04 de Paraclínicos, Toma de Muestras y Esquema de Vacunación en Nefroprotección.
+   5. Renombrado global a "05 · Gestión Farmacéutica y Terapéutica" y módulo farmacéutico de Nefroprotección.
+   6. Retiro del Eje 08 de los programas clínicos (Grilla limpia de 7 Ejes Clínicos) y centralización financiera,
+      metas y asesoría de datos en el módulo "Producción asistencial".
+   7. Eliminación total de contraseñas/candados en Producción asistencial y Conciliación/Tarifas de Hemodiálisis.
+   8. Nuevo módulo institucional: "Talento Humano y Bienestar" (Empleados del Mes, Cuadros de Turnos, Formatos TH,
+      Clima Laboral y Riesgo Psicosocial).
+   9. Función Renal Residual (KRu en mL/min) y Kt/V Total (Dialítico + Renal) en Valoración de Diálisis (HD y DP).
+   10. Arrastre automático de TA promedio y últimos signos vitales (FC, FR, Glucometría, SatO2, Peso, Talla) desde
+       las sesiones y preconsulta hacia la Valoración e Historia Clínica.
+   11. Verificación obligatoria Pre-Inicio de Turno en Hemodiálisis: Calidad del Agua y Limpieza/Desinfección vigentes (Sí/No).
+   12. Submódulo de Procedimientos Quirúrgicos e Invasivos en Operación: HC prellenada del procedimiento, Colocación de
+       Catéteres con despliegue automático de Lista de Chequeo de Insumos, verificación de desinfección previa y
+       Solicitud Automática de Desinfección al área Ambiental / Servicios Generales.
+   ===================================================================================================== */
+const V13={
+  ver:"2.1",
+  fecha:"2026-10-14",
+  rutaPacSel:{},
+  calPacSel:{},
+  precon:{},
+  nefroVac:{},
+  turnoCheck:{},
+  qxList:[],
+  th:{tab:"emp",emp:[],turnos:[],formatos:[],clima:[]}
+};
+window.V13_PRECON=V13.precon;
+
+/* --- Cargar/Guardar estado V13 en localStorage --- */
+try{
+  const savedV13=JSON.parse(localStorage.getItem("posmedica_v13_state")||"null");
+  if(savedV13){
+    if(savedV13.precon)Object.assign(V13.precon,savedV13.precon);
+    if(savedV13.nefroVac)Object.assign(V13.nefroVac,savedV13.nefroVac);
+    if(savedV13.turnoCheck)Object.assign(V13.turnoCheck,savedV13.turnoCheck);
+    if(Array.isArray(savedV13.qxList))V13.qxList=savedV13.qxList;
+    if(savedV13.th)Object.assign(V13.th,savedV13.th);
+  }
+}catch(e){}
+function v13Save(){
+  try{
+    localStorage.setItem("posmedica_v13_state",JSON.stringify({
+      precon:V13.precon,
+      nefroVac:V13.nefroVac,
+      turnoCheck:V13.turnoCheck,
+      qxList:V13.qxList,
+      th:V13.th
+    }));
+  }catch(e){}
+}
+
+/* --- Estilos visuales para Ruta Interactiva 360°, Preconsulta, Check Pre-Turno, Quirúrgicos y Talento Humano --- */
+(function(){
+  const st=document.createElement("style");
+  st.id="v13-styles";
+  st.textContent=`
+    /* Grilla Maestra de 7 Ejes Clínicos (Eje 08 retirado y centralizado en Producción Asistencial) */
+    .v12-axis-grid{grid-template-columns:repeat(8,minmax(0,1fr))!important}
+    @media (max-width:1100px){.v12-axis-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+    @media (max-width:640px){.v12-axis-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+    /* Ruta Interactiva del Paciente 360° */
+    .v13-diff-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:14px}
+    .v13-diff-card{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:12px 14px;background:var(--surface-2)}
+    .v13-diff-card.ruta{border-left-color:var(--ok)}
+    .v13-ruta-track{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:10px}
+    .v13-ruta-node{border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:11px;padding:12px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;gap:8px;box-shadow:var(--shadow);transition:transform .14s ease,border-color .14s ease}
+    .v13-ruta-node:hover{transform:translateY(-2px);border-color:var(--accent)}
+    .v13-ruta-node.done{border-top-color:var(--ok);background:color-mix(in srgb,var(--ok-soft) 35%,var(--surface))}
+    .v13-ruta-node.curr{border-top-color:var(--warn);box-shadow:0 0 0 2px var(--warn)}
+    .v13-node-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-family:var(--f-mono);font-size:12px;font-weight:700;display:inline-grid;place-items:center}
+    .v13-ruta-node.done .v13-node-num{background:var(--ok);color:#051b11}
+    .v13-ruta-node.curr .v13-node-num{background:var(--warn);color:#1a1205}
+    /* Banner Pre-Turno de Calidad de Agua y Desinfección */
+    .v13-preturno{border:2px solid var(--accent);border-radius:12px;padding:14px 16px;background:var(--surface);margin-bottom:14px;display:grid;gap:10px}
+    .v13-preturno.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok-soft) 28%,var(--surface))}
+    .v13-preturno.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad-soft) 32%,var(--surface))}
+    .v13-preturno-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;align-items:center}
+    /* Preconsulta y Botón Listo para Atención */
+    .v13-listo-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok)}
+    .btn.v13-entrar-hc{background:var(--ok)!important;border-color:var(--ok)!important;color:#04160e!important;font-weight:700!important}
+    /* Talento Humano y Bienestar */
+    .v13-emp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+    .v13-emp-card{border:1px solid var(--line);border-top:4px solid var(--ok);border-radius:12px;padding:14px;background:var(--surface);display:grid;gap:6px;box-shadow:var(--shadow)}
+    .v13-badge-gold{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);width:max-content}
+  `;
+  document.head.appendChild(st);
+})();
+
+/* =====================================================================================================
+   PUNTO 6 y 7 · RETIRAR EJE 08 DE LOS PROGRAMAS CLÍNICOS, RENOMBRAR EJE 05 Y DESBLOQUEAR PRODUCCIÓN
+   ===================================================================================================== */
+V12.axes=[
+  ["e1","01","Gobierno, Procesos y Ruta"],
+  ["e2","02","Cohorte, Riesgo y Calendario"],
+  ["e3","03","Operación, Preconsulta y HC"],
+  ["e4","04","Paraclínicos y Vacunas"],
+  ["e5","05","Gestión Farmacéutica"],
+  ["e6","06","Indicadores y Reportes CAC"],
+  ["e7","07","Auditoría Concurrente y PAMEC"]
+];
+V10_AXES.length=0;
+V12.axes.forEach(a=>V10_AXES.push(a));
+
+/* Actualizar el mapa de sub-pestañas de los 7 ejes en cada programa clínico */
+V12.map.hd={
+  e1:[["hd_ruta","Ruta Interactiva del Paciente 360°"],["hd_proc","Mapa de Procesos (HD-P01..05)"],["hd_plan","Plan de trabajo y capacitaciones"],["doc","Documentos y guías"],["ref","Referencia"]],
+  e2:[["hd_car","Caracterización y Perfil de Riesgo"],["hd_cal12","Calendario de Actividades (12 Meses)"],["pac","Pacientes (Maestro)"],["sem","Calidad de diálisis y riesgo"],["acc","Acceso vascular y dispositivos"],["tx","Trasplante"],["alert","Alertas"]],
+  e3:[["turno","Turno del día (Agua/Desinfección + Sesiones)"],["hd_precon","Preconsulta Enfermería y Citas Multidisciplinarias"],["val","Valoración mensual (HC GPC + KRu + Kt/V total)"],["hd_qx","Procedimientos quirúrgicos y catéteres"],["lim","Limpieza y desinfección"]],
+  e4:[["lab","Paraclínicos, Cargue Excel Lab y Solicitud"],["vac","Vacunación VHB"]],
+  e5:[["hd_anti","Gestión farmacéutica en sala (EPO / Hierro IV)"],["inf","Infecciones y antimicrobianos"]],
+  e6:[["ind","Indicadores CAC 2026"],["rep","Reportes y matrices CAC"],["cal","Calidad del dato"]],
+  e7:[["hd_aud","Auditoría concurrente de HC y SISCAC"],["hd_pamec","Planes de mejora PAMEC"],["hd_lib","Liberación de reportes"]]
+};
+V12.map.dp={
+  e1:[["dp_ruta","Ruta Interactiva del Paciente 360°"],["dp_proc","Mapa de Procesos (DP-P01..04)"],["dp_plan","Plan de trabajo"],["dp_doc","Documentos"]],
+  e2:[["dp_car","Caracterización y Perfil de Riesgo"],["dp_cal12","Calendario de Actividades (12 Meses)"],["dp_cen","Censo y ficha"],["dp_tr","Intervalos y transiciones"],["dp_con","Conciliación heredados"],["dp_trp","Trasplante y calidad de vida"],["dp_al","Alertas"]],
+  e3:[["dp_precon","Preconsulta Enfermería y Asistencia Multidisciplinaria"],["dp_val","Valoraciones e HC GPC (con KRu y Kt/V total)"],["dp_qx","Procedimientos quirúrgicos y catéter peritoneal"],["dp_age","Agenda DP"],["dp_hos","Hospitalizaciones"]],
+  e4:[["dp_lcal","Calendario y Cargue Excel de Laboratorio"],["dp_lres","Resultados y tendencias"],["dp_ktv","Adecuación Kt/V, KRu y PET"]],
+  e5:[["dp_ins","Gestión farmacéutica y entrega conciliada en casa"],["dp_pre","Prescripción DP"],["dp_cat","Catéter, educación y peritonitis"]],
+  e6:[["dp_ind","Indicadores CAC 2026 y operativos"],["dp_cac","Prevalidación reporte CAC"],["dp_exp","Exportaciones y bitácora SHA-256"]],
+  e7:[["dp_aud","Auditoría de completitud y CAC en vivo"],["dp_pamec","Planes de mejora PAMEC"],["dp_lib","Liberación de reportes"]]
+};
+V12.map.vih={
+  e1:[["vih_ruta","Ruta Interactiva del Paciente 360° (GAO-PT-008)"],["vih_proc","Mapa de Procesos (VIH-P01..04)"],["ruta","Contrato y matriz por EPS"],["vih_plan","Plan de trabajo"]],
+  e2:[["car","Caracterización y Perfil de Riesgo"],["vih_cal12","Calendario de Actividades (12 Meses)"],["pob","Población"],["ale","Alertas rojas/amarillas"]],
+  e3:[["vih_precon","Preconsulta Enfermería y Asistencia Multidisciplinaria"],["age","Agenda interdisciplinaria"],["vih_hc","Valoraciones e HC GPC (Auditoría en vivo)"]],
+  e4:[["lab","Laboratorios y Cargue Masivo Excel"],["prc","Procedimientos y enfermería (PPD/Citología)"],["vac","Carné de Vacunación"]],
+  e5:[["tar_esq","TAR · Esquemas y validación de seguridad"],["tar_ent","Dispensación y entregas conciliadas"],["tar_ped","Pedido mensual de TAR"]],
+  e6:[["ind","Indicadores CAC y Nueva EPS"],["rep","Descargas (Nominal 43 y CAC 193)"],["cal","Calidad del dato"]],
+  e7:[["aud","Auditoría CAC de la HC (16 criterios)"],["vih_pamec","Planes de mejora PAMEC"],["vih_lib","Liberación de reportes"]]
+};
+V12.map.nefro={
+  e1:[["nefro_ruta","Ruta Interactiva del Paciente 360°"],["nefro_proc","Mapa de Procesos (NEF-P01..03)"],["nefro_plan","Plan de trabajo"],["nefro_ref","Referencia normativa y GPC"]],
+  e2:[["nefro_coh","Caracterización y Perfil de Riesgo"],["nefro_cal12","Calendario Unificado de Actividades (12 Meses)"],["nefro_pac","Pacientes y estratificación KDIGO/KFRE"],["nefro_trr","Transición G5 → DP / HD"]],
+  e3:[["nefro_precon","Preconsulta Enfermería y Asistencia Multidisciplinaria"],["nefro_val","Valoración clínica GPC + Auditoría en Tiempo Real"],["nefro_age","Agendas espejo A/B"]],
+  e4:[["nefro_labvac","Central de Paraclínicos (Excel Lab) y Vacunación Renal"],["nefro_venc","Vencidos y alertas paraclínicas"]],
+  e5:[["nefro_far","Gestión Farmacéutica, Nefroprotección y Entrega EPS Familiar"]],
+  e6:[["nefro_ind","47 Indicadores CAC"],["nefro_nom","Nominales EPS Familiar y Nueva EPS"],["nefro_cal","Calidad del dato"]],
+  e7:[["nefro_aud","Auditoría GPC por muestreo (KDIGO/ADA/ESH)"],["nefro_pamec","Planes de mejora PAMEC"]]
+};
+V12.map.ce={
+  e1:[["ce_ruta","Ruta Interactiva del Paciente 360°"],["ce_proc","Mapa de Procesos (CE-P01..02)"],["adm","Administración y catálogos"]],
+  e2:[["ce_car","Caracterización de Demanda y Riesgo"],["ce_cal12","Calendario de Actividades por Paciente"],["lista","Lista de espera única priorizada"],["nueva","Nueva solicitud"],["pac","Pacientes"]],
+  e3:[["ce_precon","Preconsulta Enfermería y Paso a HC"],["age","Agenda por jornadas y cierre Fase 2"],["ce_qx","Procedimientos menores y catéteres"]],
+  e4:[["aut","Control de autorizaciones EPS y Paraclínicos Excel"]],
+  e5:[["ce_ord","Gestión terapéutica y órdenes médicas"]],
+  e6:[["tab","Tablero de oportunidad Res. 1552/256"],["cal","Calidad del dato"]],
+  e7:[["ce_aud","Auditoría de adherencia y saltos de orden"],["ce_pamec","Planes de mejora PAMEC"]]
+};
+
+/* --- PUNTO 7: Eliminar bloqueo por contraseña en Producción Asistencial y Conciliación HD --- */
+function v13EnsureFinUnlocked(){
+  const defTarHD=[
+    {eps:"NUEVA EPS",paquete:4000000,sesion:307700,min:10,max:15,extra:"SI",desde:""},
+    {eps:"MALLAMAS",paquete:4200000,sesion:323000,min:8,max:12,extra:"SI",desde:""},
+    {eps:"FOMAG",paquete:4100000,sesion:315000,min:8,max:12,extra:"NO",desde:""},
+    {eps:"FAMILIAR DE COLOMBIA",paquete:3900000,sesion:300000,min:8,max:15,extra:"SI",desde:""},
+    {eps:"EMSSANAR",paquete:4000000,sesion:307700,min:8,max:12,extra:"NO",desde:""}
+  ];
+  if(typeof ST!=="undefined"){
+    ST.fin=ST.fin||{};
+    ST.fin.key="UNLOCKED_DIRECT";
+    if(!ST.fin.data||!Array.isArray(ST.fin.data.tarifas)||!ST.fin.data.tarifas.length){
+      ST.fin.data={tarifas:(ST.imp&&ST.imp.tarifas&&ST.imp.tarifas.length)?ST.imp.tarifas:defTarHD.map(x=>Object.assign({},x)),facturado:(ST.fin.data&&ST.fin.data.facturado)||{},creado:nowTs(),por:"Acceso directo coordinación"};
+    }
+  }
+  if(typeof PRODF!=="undefined"){
+    PRODF.key="UNLOCKED_DIRECT";
+    if(!PRODF.data||!Array.isArray(PRODF.data.tarifas)||!PRODF.data.tarifas.length){
+      PRODF.data={
+        tarifas:[
+          {prog:"nefro",act:"Consulta de nefrología",cups:"890264",eps:"",valor:95000,desde:""},
+          {prog:"nefro",act:"Consulta de medicina general del programa",cups:"890201",eps:"",valor:48000,desde:""},
+          {prog:"nefro",act:"Valoración de nefroprotección (NEFROLOGIA)",cups:"890264",eps:"",valor:95000,desde:""},
+          {prog:"nefro",act:"Valoración de nefroprotección (MEDICO EXPERTO)",cups:"890201",eps:"EPS Familiar de Colombia",valor:62000,desde:""},
+          {prog:"dp",act:"Paquete mensual de diálisis peritoneal",cups:"549801",eps:"",valor:3850000,desde:""},
+          {prog:"vih",act:"Paquete Mensual Atención Integral Ambulatoria Sin Antirretrovirales",cups:"890201",eps:"NUEVA EPS",valor:243025,desde:""},
+          {prog:"vih",act:"Paquete mensual atención integral VIH",cups:"890201",eps:"FAMILIAR DE COLOMBIA",valor:1000000,desde:""},
+          {prog:"ce",act:"Consulta de especialidad",cups:"890202",eps:"",valor:85000,desde:""},
+          {prog:"qt",act:"Sesión de quimioterapia",cups:"992501",eps:"",valor:680000,desde:""}
+        ],
+        creado:nowTs(),
+        por:"Acceso directo coordinación"
+      };
+    }
+  }
+}
+pxProdOpen=function(){v13EnsureFinUnlocked();return true;};
+pxProdLock=function(){};
+finLock=function(){};
+finArm=function(){};
+pxProdArm=function(){};
+const vFin0=vFin;
+vFin=function(pp){
+  v13EnsureFinUnlocked();
+  return vFin0(pp);
+};
+
+/* =====================================================================================================
+   PUNTO 8 · NUEVO MÓDULO: TALENTO HUMANO Y BIENESTAR (th)
+   ===================================================================================================== */
+if(!PROGS.some(p=>p.k==="th")){
+  PROGS.splice(PROGS.findIndex(p=>p.k==="cal"),0,{
+    k:"th",
+    n:"Talento humano y bienestar",
+    g:"ges",
+    d:"Empleados del mes y cultura organizacional, cuadros de turnos asistenciales/administrativos, formatos de gestión del talento humano y monitoreo de clima laboral con bajo riesgo psicosocial."
+  });
+  PROG.th=PROGS.find(p=>p.k==="th");
+  PIC.th='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>';
+}
+const pxCan0=pxCan;
+pxCan=function(k){
+  if(k==="th")return !!PX.user&&pxAdmin(); /* decisión del 10 nov 2026: Talento humano solo para el administrador */
+  return pxCan0(k);
+};
+
+function v13SeedTH(){
+  if(!V13.th.emp||!V13.th.emp.length){
+    V13.th.emp=[
+      {id:"EM-01",mes:ym(TODAY()),nombre:"Marcela Rosero",cargo:"Enfermera Jefe de Hemodiálisis",area:"Unidad Renal · HD",valor:"Seguridad y Humanización",motivo:"100 % de adherencia en verificación de calidad de agua, técnica aséptica CDC en catéteres y trato humanizado destacado por los pacientes.",votos:18},
+      {id:"EM-02",mes:ym(TODAY()),nombre:"Yuli Narváez",cargo:"Enfermera de Diálisis Peritoneal",area:"Unidad Renal · DP",valor:"Excelencia y Trabajo en Equipo",motivo:"Entrenamiento domiciliario con 0 episodios de peritonitis en el trimestre y conciliación exacta de insumos en casa.",votos:15},
+      {id:"EM-03",mes:ym(TODAY()),nombre:"Diana Muñoz",cargo:"Trabajadora Social",area:"Equipo Multidisciplinario",valor:"Compromiso y Empatía",motivo:"Gestión efectiva de barreras de transporte y rescate de pacientes inasistentes en Nefroprotección, HD y VIH.",votos:14}
+    ];
+  }
+  if(!V13.th.turnos||!V13.th.turnos.length){
+    V13.th.turnos=[
+      {id:"TU-01",colaborador:"Marcela Rosero",cargo:"Enfermera Jefe HD",servicio:"Hemodiálisis",lun:"Mañana (06:30-13:30)",mar:"Mañana (06:30-13:30)",mie:"Mañana (06:30-13:30)",jue:"Mañana (06:30-13:30)",vie:"Mañana (06:30-13:30)",sab:"Turno 1 (07:00-13:00)",obs:"Líder de sala y verificación de ósmosis"},
+      {id:"TU-02",colaborador:"Paola R. / Fabián C.",cargo:"Auxiliares de Enfermería HD",servicio:"Hemodiálisis",lun:"Tarde (13:00-19:00)",mar:"Tarde (13:00-19:00)",mie:"Tarde (13:00-19:00)",jue:"Tarde (13:00-19:00)",vie:"Tarde (13:00-19:00)",sab:"Tarde (13:00-18:00)",obs:"Conexión, signos vitales y desinfección de puestos"},
+      {id:"TU-03",colaborador:"Laura Benavides",cargo:"Médica Nefróloga",servicio:"Nefrología (HD / DP / Nefro)",lun:"Consulta Nefro A/B",mar:"Valoración HD / DP",mie:"Consulta Nefro A/B",jue:"Valoración HD / Procedimientos",vie:"Comités y Telemedicina",sab:"Disponibilidad",obs:"Agenda espejo y procedimientos invasivos"},
+      {id:"TU-04",colaborador:"Yuli Narváez",cargo:"Enfermera DP",servicio:"Diálisis Peritoneal",lun:"Entrenamiento / Consulta",mar:"Visitas domiciliarias",mie:"Entrenamiento / PET",jue:"Cambio de línea / Consulta",vie:"Conciliación de insumos",sab:"Disponibilidad telefónica",obs:"Ruta domiciliaria y adecuación"},
+      {id:"TU-05",colaborador:"Camilo Rivera",cargo:"Médico Experto",servicio:"VIH / Nefroprotección (EPS Familiar)",lun:"Consulta VIH",mar:"Médico Experto Nefro",mie:"Consulta VIH",jue:"Médico Experto Nefro",vie:"Auditoría GPC / Comité",sab:"Libre",obs:"Valoración mensual EPS Familiar y cohorte VIH"},
+      {id:"TU-06",colaborador:"Diana Muñoz / Psicología / Nutrición",cargo:"Equipo Multidisciplinario",servicio:"Transversal (Nefro / HD / DP / VIH)",lun:"Nefroprotección (Paquete)",mar:"Hemodiálisis Sala",mie:"VIH y DP",jue:"Nefroprotección",vie:"Búsqueda activa inasistentes",sab:"Jornada educativa",obs:"Registro obligatorio de asistencia en agenda"}
+    ];
+  }
+  if(!V13.th.formatos||!V13.th.formatos.length){
+    V13.th.formatos=[
+      {id:"TH-F01",codigo:"GTH-FO-001",tipo:"Solicitud de permiso / licencia remunerada",colaborador:"Lorena Pantoja",area:"Enfermería VIH",fecha:iso(addDays(TODAY(),-4)),detalle:"Permiso académico de 4 horas con reemplazo cubierto en preconsulta.",estado:"Aprobado",aprobadoPor:"Andrés Molina"},
+      {id:"TH-F02",codigo:"GTH-FO-002",tipo:"Lista de chequeo de inducción y reinducción",colaborador:"Karen Bolaños",area:"Admisiones y Preconsulta",fecha:iso(addDays(TODAY(),-10)),detalle:"Inducción en plataforma SIGC: confirmación de citas, flujo de signos vitales en preconsulta y trato humanizado.",estado:"Verificado",aprobadoPor:"Sandra Guerrero"},
+      {id:"TH-F03",codigo:"GTH-FO-003",tipo:"Evaluación de desempeño y adherencia a GPC",colaborador:"Equipo de Enfermería Unidad Renal",area:"Hemodiálisis y DP",fecha:iso(addDays(TODAY(),-2)),detalle:"Evaluación trimestral de adherencia a verificación de agua, desinfección terminal y técnica aséptica (96 %).",estado:"Cerrado",aprobadoPor:"Coordinación Asistencial"}
+    ];
+  }
+  if(!V13.th.clima||!V13.th.clima.length){
+    V13.th.clima=[
+      {id:"CL-01",fecha:iso(addDays(TODAY(),-7)),area:"Unidad Renal (HD y DP)",dimension:"Carga laboral y turnos",puntaje:92,riesgo:"Bajo",accion:"Rotación equitativa de turnos de tarde y pausas activas a las 10:30 a. m. y 3:30 p. m.",estado:"Vigente"},
+      {id:"CL-02",fecha:iso(addDays(TODAY(),-5)),area:"Consulta Externa, VIH y Nefroprotección",dimension:"Liderazgo, comunicación y trabajo en equipo",puntaje:94,riesgo:"Bajo",accion:"Integración automática de preconsulta y laboratorio a la HC para eliminar reprocesos y fatiga administrativa.",estado:"Vigente"},
+      {id:"CL-03",fecha:iso(addDays(TODAY(),-1)),area:"Toda la IPS POSMÉDICA",dimension:"Reconocimiento, bienestar y prevención de burnout",puntaje:95,riesgo:"Bajo",accion:"Celebración mensual del Empleado del Mes, tarde de bienestar y seguimiento de batería de riesgo psicosocial (Res. 2764/2022).",estado:"Vigente"}
+    ];
+  }
+}
+
+function v13ThView(){
+  v13SeedTH();
+  const sub=V13.th.tab||"emp";
+  const avgClima=V13.th.clima.length?Math.round(V13.th.clima.reduce((a,c)=>a+(num(c.puntaje)||90),0)/V13.th.clima.length):94;
+  let h='<div class="mhead"><div><p class="eyebrow">Gestión Organizacional · Cultura, Turnos y Bienestar</p><h2 class="mt">Talento humano y bienestar</h2><p class="note" style="margin:3px 0 0">Reconocimiento a Empleados del Mes, cuadros de turnos asistenciales y administrativos, formatos de gestión del talento humano y monitoreo de clima laboral garantizando bajo riesgo psicosocial.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm primary" data-v13="th_emp_new">Postular Empleado del Mes</button><button type="button" class="btn sm" data-v13="th_tur_new">Agregar turno</button><button type="button" class="btn sm" data-v13="th_fmt_new">Registrar formato / solicitud TH</button><button type="button" class="btn sm" data-v13="th_exp">Exportar Talento Humano (.xlsx)</button></div></div>'+
+   '<div class="tiles" style="margin-top:12px">'+
+     '<div class="tile ok"><span class="tv">'+V13.th.emp.length+'</span><span class="tl">empleados del mes destacados en el cuadro de honor</span></div>'+
+     '<div class="tile"><span class="tv">'+V13.th.turnos.length+'</span><span class="tl">líneas de cuadro de turnos activas y cubiertas</span></div>'+
+     '<div class="tile"><span class="tv">'+V13.th.formatos.length+'</span><span class="tl">formatos y gestiones de talento humano trazados</span></div>'+
+     '<div class="tile ok"><span class="tv">'+avgClima+' % · Bajo</span><span class="tl">índice de clima laboral favorable y nivel de riesgo psicosocial</span></div>'+
+   '</div>'+
+   '<div class="seg" style="margin-top:12px" role="group">'+
+     [["emp","1. Empleados del Mes y Cultura"],["tur","2. Cuadros de Turnos"],["fmt","3. Formatos y Gestión de Personal"],["cli","4. Clima Laboral y Riesgo Psicosocial"]].map(([k,l])=>'<button type="button" data-v13="th_tab|'+k+'" aria-pressed="'+(sub===k)+'">'+l+'</button>').join("")+
+   '</div>';
+
+  if(sub==="emp"){
+    h+='<div class="panel" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Cuadro de Honor · Empleados del Mes POSMÉDICA</h3><p class="note" style="margin:2px 0 0">Exalta la humanización, la seguridad del paciente, el trabajo en equipo y la adherencia a guías clínicas.</p></div><button type="button" class="btn sm primary" data-v13="th_emp_new">+ Nominar / Destacar colaborador</button></div>'+
+     '<div class="v13-emp-grid" style="margin-top:12px">'+V13.th.emp.map(e=>'<div class="v13-emp-card"><span class="v13-badge-gold">★ Empleado del Mes · '+esc(e.mes)+'</span><h4 style="margin:2px 0;font-size:17px;color:var(--ink)">'+esc(e.nombre)+'</h4><span class="sub">'+esc(e.cargo+' · '+e.area)+'</span><p style="margin:4px 0;font-size:13.5px">'+esc(e.motivo)+'</p><div class="copyrow" style="justify-content:space-between;margin-top:4px"><span class="tag cac">Valor: '+esc(e.valor)+'</span><button type="button" class="btn sm" data-v13="th_vote|'+e.id+'">👏 Reconocer ('+(e.votos||1)+')</button></div></div>').join("")+'</div></div>';
+  }else if(sub==="tur"){
+    h+='<div class="panel" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Cuadro Maestro de Turnos Asistenciales y Administrativos</h3><p class="note" style="margin:2px 0 0">Garantiza cobertura continua sin sobrecarga horaria en Hemodiálisis, Diálisis Peritoneal, Nefroprotección, VIH y Consulta Externa.</p></div><button type="button" class="btn sm primary" data-v13="th_tur_new">+ Agregar colaborador al cuadro de turnos</button></div>'+
+     '<div class="tablebox" style="margin-top:10px"><table class="dense"><thead><tr><th>Colaborador</th><th>Cargo · Servicio</th><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb / Disp.</th><th>Asignación / Observación</th></tr></thead><tbody>'+
+     V13.th.turnos.map(t=>'<tr><td><strong>'+esc(t.colaborador)+'</strong></td><td>'+esc(t.cargo)+'<span class="sub">'+esc(t.servicio)+'</span></td><td class="mono" style="font-size:12px">'+esc(t.lun)+'</td><td class="mono" style="font-size:12px">'+esc(t.mar)+'</td><td class="mono" style="font-size:12px">'+esc(t.mie)+'</td><td class="mono" style="font-size:12px">'+esc(t.jue)+'</td><td class="mono" style="font-size:12px">'+esc(t.vie)+'</td><td class="mono" style="font-size:12px">'+esc(t.sab)+'</td><td style="font-size:12.5px">'+esc(t.obs||"")+'</td></tr>').join("")+
+     '</tbody></table></div></div>';
+  }else if(sub==="fmt"){
+    h+='<div class="panel" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Formatos Estandarizados y Solicitudes de Talento Humano</h3><p class="note" style="margin:2px 0 0">Control digital de permisos, vacaciones, actas de entrega de turno, listas de inducción/reinducción y evaluaciones de desempeño.</p></div><button type="button" class="btn sm primary" data-v13="th_fmt_new">+ Diligenciar formato / solicitud</button></div>'+
+     '<div class="tablebox" style="margin-top:10px"><table class="dense"><thead><tr><th>Código</th><th>Formato / Tipo de gestión</th><th>Colaborador · Área</th><th>Fecha</th><th>Detalle y soporte de cobertura</th><th>Estado</th></tr></thead><tbody>'+
+     V13.th.formatos.map(f=>'<tr><td class="mono">'+esc(f.codigo)+'</td><td><strong>'+esc(f.tipo)+'</strong></td><td>'+esc(f.colaborador)+'<span class="sub">'+esc(f.area)+'</span></td><td class="mono">'+esc(f.fecha)+'</td><td style="font-size:13px">'+esc(f.detalle)+'</td><td><span class="st ok">'+esc(f.estado)+'</span><span class="sub">'+esc(f.aprobadoPor||"")+'</span></td></tr>').join("")+
+     '</tbody></table></div></div>';
+  }else{
+    h+='<div class="panel" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Clima Organizacional, Bienestar y Garantía de Bajo Riesgo Psicosocial (Res. 2764 de 2022)</h3><p class="note" style="margin:2px 0 0">Monitoreo continuo de condiciones intralaborales, pausas activas, prevención de fatiga y acciones de bienestar.</p></div><button type="button" class="btn sm primary" data-v13="th_cli_new">+ Registrar medición / acción de bienestar</button></div>'+
+     '<div class="tablebox" style="margin-top:10px"><table class="dense"><thead><tr><th>Fecha</th><th>Área / Servicio</th><th>Dimensión evaluada</th><th class="num">Satisfacción / Clima</th><th>Nivel de Riesgo Psicosocial</th><th>Intervención preventiva y de bienestar</th></tr></thead><tbody>'+
+     V13.th.clima.map(c=>'<tr><td class="mono">'+esc(c.fecha)+'</td><td><strong>'+esc(c.area)+'</strong></td><td>'+esc(c.dimension)+'</td><td class="num mono"><strong>'+c.puntaje+' %</strong></td><td><span class="st '+(c.riesgo==="Bajo"?"ok":c.riesgo==="Medio"?"warn":"bad")+'">Riesgo '+esc(c.riesgo)+'</span></td><td style="font-size:13px">'+esc(c.accion)+'</td></tr>').join("")+
+     '</tbody></table></div></div>';
+  }
+  return h;
+}
+
+/* =====================================================================================================
+   PUNTO 1 · RUTA INTERACTIVA DEL PACIENTE 360° (GRÁFICA E INTERACTIVA PARA TODOS LOS PROGRAMAS)
+   ===================================================================================================== */
+const V13_RUTAS={
+  nefro:[
+    {step:1,code:"EST-01",t:"Captación y Confirmación Diagnóstica (> 3 meses)",rol:"Médico del Programa / Admisiones",desc:"Tamizaje de creatinina (CKD-EPI 2021) y RAC en HTA/DM, verificación de persistencia > 90 días y clasificación CGA.",go:["nefro","e2","nefro_pac"]},
+    {step:2,code:"EST-02",t:"Preconsulta de Enfermería y Toma de Muestras",rol:"Auxiliar / Enfermería / Laboratorio",desc:"Confirmación de cita en agenda, toma de signos vitales (PA, FC, FR, Peso, Talla, Cintura, Glucometría) y cargue de Excel de paraclínicos.",go:["nefro","e3","nefro_precon"]},
+    {step:3,code:"EST-03",t:"Valoración Médica GPC y Estratificación KFRE / RCV",rol:"Nefrología / Médico Experto (EPS Familiar)",desc:"Consulta con auditoría GPC en tiempo real, cálculo de SCORE2/Framingham y KFRE a 2 y 5 años, y ajuste de metas tensionales/metabólicas.",go:["nefro","e3","nefro_val"]},
+    {step:4,code:"EST-04",t:"Nefroprotección Farmacológica y Vacunación Renal",rol:"Medicina / Farmacia / Vacunación",desc:"Bloqueo SRAA (IECA/ARA-II), iSGLT2, estatinas, finerenona, retiro de AINEs, carné vacunal (Influenza/VHB/Neumococo) y entrega contractual EPS Familiar.",go:["nefro","e5","nefro_far"]},
+    {step:5,code:"EST-05",t:"Intervención por Equipo Multidisciplinario",rol:"Nutrición · Psicología · Trabajo Social · Enfermería",desc:"Atención integral registrada con control de asistencia/inasistencia según estadio G1–G5 y educación estructurada.",go:["nefro","e2","nefro_cal12"]},
+    {step:6,code:"EST-06",t:"Seguimiento de Metas CAC o Transición Programada G5",rol:"Comité Renal / Nefrología",desc:"Evaluación de los 47 indicadores CAC (meta pérdida TFGe ≤ 5 mL/min/año) y preparación programada de FAV o catéter DP si KFRE 2a > 40 %.",go:["nefro","e2","nefro_trr"]}
+  ],
+  hd:[
+    {step:1,code:"EST-01",t:"Ingreso a Unidad Renal y Serologías Basales",rol:"Coordinación / Enfermería HD",desc:"Verificación de identidad, consentimiento informado, panel viral basal (HBsAg, Anti-HBs, Anti-HBc, VHC, VIH) y asignación de turno/puesto.",go:["hd","e2","pac"]},
+    {step:2,code:"EST-02",t:"Verificación Pre-Turno (Agua y Desinfección) y Preconsulta",rol:"Enfermería de Sala HD",desc:"Chequeo obligatorio Sí/No de calidad del agua de ósmosis y desinfección vigente antes de iniciar sesiones; peso pre y signos vitales.",go:["hd","e3","turno"]},
+    {step:3,code:"EST-03",t:"Sesión de Hemodiálisis Segura y Acceso Vascular",rol:"Enfermería / Procedimientos",desc:"Conexión aséptica CDC, duración ≥ 4 h, control de UFR ≤ 13 mL/kg/h, vigilancia de eventos y ruta de catéter hacia FAV.",go:["hd","e2","acc"]},
+    {step:4,code:"EST-04",t:"Paraclínicos Mensuales y Vacunación VHB (40 µg)",rol:"Laboratorio / Enfermería HD",desc:"Cargue de Excel de laboratorio (BUN pre/post con spKt/V Daugirdas II, Hb, Alb, P, Ca, PTH, K) y esquema VHB con control de títulos.",go:["hd","e4","lab"]},
+    {step:5,code:"EST-05",t:"Valoración Mensual GPC (con KRu, Kt/V Total y Arrastre SV)",rol:"Nefrología / Equipo Multidisciplinario",desc:"Arrastre automático de TA promedio y últimos signos vitales de las sesiones, medición de FRR (KRu) + Kt/V total y auditoría SISCAC.",go:["hd","e3","val"]},
+    {step:6,code:"EST-06",t:"Alistamiento para Trasplante Renal y Cierre CAC",rol:"Nefrología / Auditoría PAMEC",desc:"Concepto de idoneidad y seguimiento de los 28 estudios pretrasplante (KDIGO 2020) y liberación de matriz CAC.",go:["hd","e2","tx"]}
+  ],
+  dp:[
+    {step:1,code:"EST-01",t:"Implante de Catéter Tenckhoff y Visita Domiciliaria",rol:"Cirugía / Enfermería DP / Trabajo Social",desc:"Colocación con lista de chequeo quirúrgica, verificación de condiciones locativas del hogar y red de apoyo.",go:["dp","e3","dp_qx"]},
+    {step:2,code:"EST-02",t:"Entrenamiento y Certificación por Demostración",rol:"Enfermería DP",desc:"Evaluación práctica de las 10 competencias críticas de recambio manual (DPCA) o cicladora (DPA) y cuidado del orificio.",go:["dp","e5","dp_cat"]},
+    {step:3,code:"EST-03",t:"Prescripción Individualizada y Entrega Conciliada en Casa",rol:"Nefrología / Logística Farmacéutica",desc:"Prescripción versionada de soluciones y despacho domiciliario descontando saldo físico en casa y días de hospitalización.",go:["dp","e5","dp_ins"]},
+    {step:4,code:"EST-04",t:"Preconsulta, Adecuación (Kt/V + KRu + PET) y Laboratorio",rol:"Auxiliar / Enfermería / Laboratorio",desc:"Toma de signos vitales en preconsulta, recolección de efluente y orina de 24 h (Kt/V total ≥ 1,7 + KRu) y cargue de Excel de laboratorio.",go:["dp","e4","dp_ktv"]},
+    {step:5,code:"EST-05",t:"Valoración Mensual GPC y Equipo Multidisciplinario",rol:"Nefrología / Nutrición / Psicología / TS",desc:"Valoración con arrastre de signos vitales, interpretación automática GPC, vigilancia ISPD de orificio/peritonitis y auditoría en vivo.",go:["dp","e3","dp_val"]},
+    {step:6,code:"EST-06",t:"Ruta de Trasplante, Calidad de Vida y Prevalidación CAC",rol:"Nefrología / Calidad",desc:"Aplicación anual de KDQOL-36, estado en lista de trasplante y generación auditada del reporte CAC.",go:["dp","e6","dp_cac"]}
+  ],
+  vih:[
+    {step:1,code:"EST-01",t:"Identificación, Confirmación y Vinculación (GAO-PT-008 6.1)",rol:"Admisiones / Enfermería VIH",desc:"Verificación de pruebas diagnósticas confirmatorias, apertura de HC, caracterización de población clave y carga viral/CD4 basales.",go:["vih","e2","pob"]},
+    {step:2,code:"EST-02",t:"Preconsulta de Enfermería y Valoración Inicial Interdisciplinaria",rol:"Auxiliar / Medicina Experta / Equipo",desc:"Toma de signos vitales en preconsulta (paciente «Listo para atención») y valoración por Medicina, Enfermería, Psicología, TS y Nutrición.",go:["vih","e3","vih_precon"]},
+    {step:3,code:"EST-03",t:"Inicio Oportuno de TAR Validada y Profilaxis (≤ 20-30 días)",rol:"Medicina Experta / Química Farmacéutica",desc:"Prescripción según pauta preferida GPC 2021 con lista de 8 validaciones de seguridad y profilaxis (TMP/SMX si CD4 < 200; TPT si PPD+).",go:["vih","e5","tar_esq"]},
+    {step:4,code:"EST-04",t:"Monitoreo Inmunovirológico, Tamizajes y Vacunación",rol:"Laboratorio / Enfermería VIH",desc:"Cargue Excel de CV y CD4 semestrales, perfil metabólico/renal, VDRL, HBsAg, Anti-VHC, PPD, citología cervicovaginal/anal y carné vacunal.",go:["vih","e4","lab"]},
+    {step:5,code:"EST-05",t:"Seguimiento de Adherencia SMAQ y Dispensación Conciliada",rol:"Química Farmacéutica / Medicina",desc:"Aplicación semestral de cuestionario SMAQ, control de saldos de tabletas y generación del pedido mensual exacto.",go:["vih","e5","tar_ped"]},
+    {step:6,code:"EST-06",t:"Búsqueda Activa de Inasistentes y Auditoría Pre-SISCAC",rol:"Trabajo Social / Auditoría",desc:"Rescate inmediato de inasistentes (< 48 h), auditoría de los 16 criterios CAC de la HC y exportación de Cohorte 43 y CAC 193.",go:["vih","e7","aud"]}
+  ],
+  ce:[
+    {step:1,code:"EST-01",t:"Recepción de Solicitud y Priorización Clínica",rol:"Admisiones / Coordinación",desc:"Registro de toda demanda sin barreras con fecha real del usuario, orden médica y clasificación (Ordinaria, Preferente, Prioritaria Clínica).",go:["ce","e2","nueva"]},
+    {step:2,code:"EST-02",t:"Gestión y Seguimiento de Autorización EPS",rol:"Autorizaciones",desc:"Control de vigencia de autorizaciones aprobadas y alertas preventivas antes del vencimiento.",go:["ce","e4","aut"]},
+    {step:3,code:"EST-03",t:"Asignación en Orden Estricto desde Lista de Espera Única",rol:"Admisiones",desc:"Emparejamiento compatible con jornadas habilitadas en REPS respetando prioridad clínica y antigüedad.",go:["ce","e2","lista"]},
+    {step:4,code:"EST-04",t:"Confirmación y Preconsulta de Enfermería (Signos Vitales)",rol:"Auxiliar de Enfermería",desc:"Recepción del paciente confirmado, toma de signos vitales y antropometría, habilitando el estado «Listo para atención».",go:["ce","e3","ce_precon"]},
+    {step:5,code:"EST-05",t:"Atención Médica Especializada / Procedimiento con HC GPC",rol:"Médico Especialista",desc:"Apertura directa de la HC con los signos vitales y paraclínicos precargados, auditoría GPC en vivo y generación de órdenes.",go:["ce","e3","age"]},
+    {step:6,code:"EST-06",t:"Cierre en Fase 2 y Reporte Normativo Res. 1552 / 256",rol:"Calidad / Coordinación",desc:"Registro de desenlace (Atendida, Inasistencia con rescate o Cancelada) y cálculo de oportunidad.",go:["ce","e6","tab"]}
+  ]
+};
+
+function v13GetPatientsForProg(prog){
+  if(prog==="hd"&&hdOn()){ensureIdx();return pacs().filter(p=>activeAt(p,ST.corte)).map(p=>({id:p.ID,nom:nombre(p),eps:p.EPS||"",raw:p}));}
+  if(prog==="dp"&&dpOn()){return DP.book.pac.filter(lv).filter(p=>dpActivo(p)).map(p=>({id:p.ID,nom:dpNombre(p),eps:p.EPS||"",raw:p}));}
+  if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){return vxPacs().filter(p=>vxSt(p,vxCorte()).activo).map(p=>({id:p.ID,nom:vxNom(p),eps:p.EPS||"",raw:p}));}
+  if(prog==="ce"&&typeof CE!=="undefined"&&CE.book){return CE.book.pac.map(p=>({id:p.ID,nom:ceNom(p),eps:p.EPS||"",raw:p}));}
+  if(prog==="nefro"){
+    try{const w=pxNefroWin();if(w&&w.MG&&w.MG.book)return(w.MG.book.pac||[]).filter(p=>p.estado==="ACTIVO").map(p=>({id:p.codigo,nom:p.nombre||p.codigo,eps:p.eps||"",raw:p}));}catch(e){}
+  }
+  return[];
+}
+
+function v13EvalPatientStation(prog,pid){
+  if(!pid)return[true,true,false,false,false,false];
+  const pre=V13.precon[prog+"|"+pid];
+  if(prog==="hd"&&hdOn()){
+    const p=IDX.pac.get(pid);if(!p)return[true,false,false,false,false,false];
+    const hasSes=p._ses&&p._ses.some(s=>s.Estado==="Realizada");
+    const hasLab=Object.keys(p._lab||{}).length>0;
+    const hasVal=p._val&&p._val.some(v=>v.Mes===ym(ST.corte));
+    const hasTx=p.TxEstado&&p.TxEstado!=="Sin evaluar";
+    return[!!(p.Documento&&p.EPS),!!pre||hasSes,hasSes,hasLab,hasVal,hasTx];
+  }
+  if(prog==="dp"&&dpOn()){
+    const p=dpPac(pid);if(!p)return[true,false,false,false,false,false];
+    const eduOk=dpEduState(pid).res==="Competente";
+    const preOk=!!dpPreVig(pid);
+    const labOk=dpR("lab").some(l=>l.Paciente===pid);
+    const valOk=dpR("val").some(v=>v.Paciente===pid&&/Finalizada/.test(v.Estado||""));
+    const txOk=!!dpTxAt(pid);
+    return[!!v6d(p.FechaInicioDP),eduOk,preOk,labOk,valOk,txOk];
+  }
+  if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){
+    const p=vxP(pid);if(!p)return[true,false,false,false,false,false];
+    const s=vxSt(p,vxCorte());
+    const au=vxAudit(p);
+    return[!!p.FechaDx,!!pre||s.val.length>0,s.recibeTAR,!!(s.cv6&&s.cd46),!!s.smaq,au.pct>=85];
+  }
+  return[true,!!pre,true,true,false,false];
+}
+
+function v13RutaInteractivaView(prog){
+  const steps=V13_RUTAS[prog]||V13_RUTAS.nefro;
+  const P=v13GetPatientsForProg(prog);
+  const selPid=V13.rutaPacSel[prog]||(P[0]&&P[0].id)||"";
+  const stFlags=v13EvalPatientStation(prog,selPid);
+  const firstPending=stFlags.findIndex(x=>!x);
+
+  return'<div class="panel" style="margin-bottom:14px">'+
+    '<div class="mhead"><div><p class="eyebrow">Punto 1 · Claridad Conceptual y Navegación Asistencial</p><h3 style="margin:0;font-size:17px;color:var(--ink)">Diferencia entre Mapa de Procesos y Ruta Interactiva del Paciente · '+esc(PROG[prog]?PROG[prog].n:prog)+'</h3></div>'+
+    '<div class="copyrow"><label class="f" style="min-width:260px">Ver recorrido en la ruta del paciente:<select data-v13="rutapac|'+prog+'">'+opt(P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]),selPid,"Vista general de la cohorte")+'</select></label></div></div>'+
+    '<div class="v13-diff-grid" style="margin-top:10px">'+
+      '<div class="v13-diff-card"><strong>1. Mapa de Procesos (Arquitectura de la IPS)</strong><p class="note" style="margin:4px 0 0">Define <b>cómo se organiza internamente la institución</b> (procesos estratégicos, misionales y de apoyo, quién es el líder responsable, qué norma cumple y cómo se audita en PAMEC/SOGCS).</p></div>'+
+      '<div class="v13-diff-card ruta"><strong>2. Ruta del Paciente (Patient Journey Asistencial)</strong><p class="note" style="margin:4px 0 0">Muestra de forma <b>gráfica, secuencial e interactiva el paso a paso que vive cada paciente</b> desde que ingresa, pasa por preconsulta de enfermería, laboratorio, consulta médica GPC, farmacia y equipo multidisciplinario, hasta alcanzar sus metas.</p></div>'+
+    '</div>'+
+    '<div class="v13-ruta-track">'+
+      steps.map((s,idx)=>{
+        const done=selPid?stFlags[idx]:false;
+        const isCurr=selPid&&(firstPending===idx||(firstPending===-1&&idx===steps.length-1));
+        const cls=done?"done":isCurr?"curr":"";
+        return'<div class="v13-ruta-node '+cls+'">'+
+          '<div><div class="copyrow" style="justify-content:space-between;margin-bottom:6px"><span class="v13-node-num">'+s.step+'</span><span class="tag '+(done?"cac":isCurr?"warn":"")+'">'+(selPid?(done?"✓ Etapa cumplida":isCurr?"● Estación actual":"Pendiente"):s.code)+'</span></div>'+
+          '<strong style="font-size:14.5px;display:block;line-height:1.25">'+esc(s.t)+'</strong>'+
+          '<span class="sub" style="color:var(--accent);font-weight:700;margin:3px 0;display:block">'+esc(s.rol)+'</span>'+
+          '<p class="note" style="margin:4px 0 0;font-size:12.5px">'+esc(s.desc)+'</p></div>'+
+          '<button type="button" class="btn sm primary" style="width:100%;margin-top:6px" data-v12="sub|'+s.go[0]+'|'+s.go[1]+'|'+s.go[2]+'">Abrir estación →</button>'+
+        '</div>';
+      }).join("")+
+    '</div></div>';
+}
+
+/* Integrar la Ruta Interactiva 360° encima del Mapa de Procesos en v10GovView */
+const v10GovView0=v10GovView;
+v10GovView=function(prog){
+  return v13RutaInteractivaView(prog)+v10GovView0(prog);
+};
+
+/* =====================================================================================================
+   PUNTO 2 · CARACTERIZACIÓN DE COHORTE Y RIESGO + CALENDARIO UNIFICADO DE 12 MESES PARA TODOS LOS PROGRAMAS
+   ===================================================================================================== */
+function v13CaracterizacionCohorteView(prog){
+  const P=v13GetPatientsForProg(prog);
+  const N=P.length;
+  if(!N)return'<div class="panel empty">Cargue el libro o active los datos de demostración para visualizar la Caracterización y Perfil de Riesgo de la cohorte.</div>';
+  const byEps={},bySexo={Femenino:0,Masculino:0},byEdad={"< 40 años":0,"40–59 años":0,"60–74 años":0,"≥ 75 años":0},byRiesgo={"Riesgo Alto / Prioritario":0,"Riesgo Moderado":0,"Riesgo Bajo / Controlado":0};
+  P.forEach(({raw,eps})=>{
+    const e=eps||"Sin EPS";byEps[e]=(byEps[e]||0)+1;
+    const sx=String(raw.Sexo||raw.sexo||"").toUpperCase();
+    if(sx.startsWith("F"))bySexo.Femenino++;else bySexo.Masculino++;
+    let ed=null;
+    if(prog==="hd")ed=ageAt(raw,ST.corte);
+    else if(prog==="dp")ed=dpEdad(raw);
+    else if(prog==="vih")ed=vxEdad(raw,vxCorte());
+    else if(raw.FechaNac)ed=Math.floor(dayDiff(pdate(raw.FechaNac),TODAY())/365.25);
+    if(ed!=null){if(ed<40)byEdad["< 40 años"]++;else if(ed<60)byEdad["40–59 años"]++;else if(ed<75)byEdad["60–74 años"]++;else byEdad["≥ 75 años"]++;}
+    if(prog==="hd"){const sem=semaforo(raw,ST.corte);if(sem.lvl==="alto")byRiesgo["Riesgo Alto / Prioritario"]++;else if(sem.lvl==="medio")byRiesgo["Riesgo Moderado"]++;else byRiesgo["Riesgo Bajo / Controlado"]++;}
+    else if(prog==="vih"){const al=vxAlertas(raw,vxCorte()).nivel;if(al==="roja")byRiesgo["Riesgo Alto / Prioritario"]++;else if(al==="amarilla")byRiesgo["Riesgo Moderado"]++;else byRiesgo["Riesgo Bajo / Controlado"]++;}
+    else if(prog==="dp"){const kt=dpLast(raw.ID,"KtV");if(!kt||num(kt.Valor)<1.7)byRiesgo["Riesgo Alto / Prioritario"]++;else byRiesgo["Riesgo Bajo / Controlado"]++;}
+    else byRiesgo["Riesgo Moderado"]++;
+  });
+  const renderBars=(obj)=>hbars(Object.entries(obj));
+  return'<div class="panel"><div class="mhead"><div><p class="eyebrow">Punto 2 · Modelo Homologado de Nefroprotección</p><h3 style="margin:0">Caracterización Demográfica, Aseguramiento y Estratificación de Riesgo · '+esc(PROG[prog]?PROG[prog].n:prog)+' ('+N+' activos)</h3></div></div>'+
+    '<div class="tiles" style="margin:10px 0">'+
+      '<div class="tile"><span class="tv">'+N+'</span><span class="tl">pacientes activos caracterizados</span></div>'+
+      '<div class="tile bad"><span class="tv">'+byRiesgo["Riesgo Alto / Prioritario"]+'</span><span class="tl">en riesgo alto / intervención prioritaria</span></div>'+
+      '<div class="tile warn"><span class="tv">'+byRiesgo["Riesgo Moderado"]+'</span><span class="tl">en riesgo moderado / seguimiento estrecho</span></div>'+
+      '<div class="tile ok"><span class="tv">'+byRiesgo["Riesgo Bajo / Controlado"]+'</span><span class="tl">en riesgo bajo / metas controladas</span></div>'+
+    '</div>'+
+    '<div class="grid2" style="margin-top:12px">'+
+      '<div class="panel"><h3>Distribución por EPS</h3>'+renderBars(byEps)+'</div>'+
+      '<div class="panel"><h3>Estratificación de Riesgo Clínico</h3>'+renderBars(byRiesgo)+'</div>'+
+      '<div class="panel"><h3>Grupos Etarios</h3>'+renderBars(byEdad)+'</div>'+
+      '<div class="panel"><h3>Distribución por Sexo</h3>'+renderBars(bySexo)+'</div>'+
+    '</div></div>';
+}
+
+function v13Calendario12MPaciente(prog){
+  if(prog==="nefro"){
+    try{
+      const w=pxNefroWin();
+      if(w&&w.MG&&w.MG.book){
+        const snaps=w.MG.book.pac.filter(p=>p.estado==="ACTIVO");
+        const sel=V13.calPacSel.nefro||(snaps[0]&&snaps[0].codigo)||"";
+        return'<div class="panel"><div class="mhead"><div><p class="eyebrow">Calendario Clínico Estandarizado CAC / KDIGO (12 Meses)</p><h3 style="margin:0">Calendario de Contenidos Mínimos y Suficientes · Nefroprotección</h3><p class="note" style="margin:2px 0 0">Aplica el 100 % de las frecuencias clínicas mínimas suficientes independientes de la EPS. Contractual: solo <b>EPS Familiar de Colombia</b> incluye valoración mensual por Médico Experto y entrega mensual de medicamentos (Nueva EPS no contratado).</p></div>'+
+        '<label class="f" style="min-width:280px">Paciente:<select data-v13="calpac|nefro">'+opt(snaps.map(p=>[p.codigo,p.codigo+" · "+p.nombre+" · "+(p.eps||"")]),sel)+'</select></label></div>'+
+        '<p class="note" style="margin-top:8px">Seleccione un paciente o haga clic en «Abrir en Ficha de Pacientes» para gestionar e imprimir su calendario anual de 12 meses.</p>'+
+        '<button type="button" class="btn sm primary" data-v13="open_nefro_pac_cal|'+esc(sel)+'">Ver y descargar matriz anual de '+esc(sel)+' en Ficha</button></div>';
+      }
+    }catch(e){}
+  }
+  const P=v13GetPatientsForProg(prog);
+  if(!P.length)return'<div class="panel empty">Sin pacientes activos en este programa para generar el calendario de 12 meses.</div>';
+  const pid=V13.calPacSel[prog]&&P.some(x=>x.id===V13.calPacSel[prog])?V13.calPacSel[prog]:P[0].id;
+  const pacObj=P.find(x=>x.id===pid);
+  const eps=pacObj?pacObj.eps:"";
+  const isFamiliar=/FAMILIAR/i.test(eps);
+  const T0=monthStart(TODAY());
+  const months=Array.from({length:12},(_,i)=>addMonths(T0,i));
+  const M3=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+
+  /* Construir filas estándar de 12 meses extrapoladas a cada programa de Posmédica */
+  const acts=[];
+  if(prog==="hd"){
+    acts.push(
+      ["Consultas médicas","Valoración mensual por Nefrología","Mensual",1,"Nefrología"],
+      ["Equipo multidisciplinario","Valoración por Nutrición renal","Trimestral / Semestral",3,"Nutrición"],
+      ["Equipo multidisciplinario","Valoración por Psicología","Semestral / Anual",6,"Psicología"],
+      ["Equipo multidisciplinario","Valoración por Trabajo Social","Semestral / Anual",6,"Trabajo social"],
+      ["Equipo multidisciplinario","Atención por Enfermería y educación en acceso","Mensual",1,"Enfermería"],
+      ["Equipo multidisciplinario","Conciliación por Química Farmacéutica","Trimestral",3,"Química farmacéutica"],
+      ["Paraclínicos y Toma de Muestras","Paquete mensual (Hb, BUN pre/post, Kt/V, K, Ca, P, Creat)","Mensual",1,"Toma de muestras"],
+      ["Paraclínicos y Toma de Muestras","Paquete trimestral (Albúmina, PTH, Ferritina, TSAT, HbA1c si DM)","Trimestral",3,"Toma de muestras"],
+      ["Paraclínicos y Toma de Muestras","Serologías virales (HBsAg, Anti-VHC, VIH) y Anti-HBs","Semestral / Anual",6,"Toma de muestras"],
+      ["Vacunación y Gestión Farmacéutica","Control de esquema VHB / Influenza anual","Anual / Esquema",12,"Vacunación"],
+      ["Vacunación y Gestión Farmacéutica","Dispensación y control de ampollas intradiálisis (EPO/Hierro)","Mensual",1,"Farmacia"]
+    );
+  }else if(prog==="dp"){
+    acts.push(
+      ["Consultas médicas","Control mensual por Nefrología DP","Mensual",1,"Consulta de nefrología"],
+      ["Equipo multidisciplinario","Valoración por Enfermería DP y revisión de orificio","Mensual",1,"Valoración de enfermería"],
+      ["Equipo multidisciplinario","Valoración por Nutrición","Trimestral",3,"Valoración de nutrición"],
+      ["Equipo multidisciplinario","Valoración por Psicología","Semestral",6,"Valoración de psicología"],
+      ["Equipo multidisciplinario","Valoración por Trabajo Social y visita domiciliaria","Semestral",6,"Valoración de trabajo social"],
+      ["Paraclínicos y Adecuación","Laboratorios trimestrales (Hb, Albúmina, Fósforo, Calcio, K)","Trimestral",3,"Toma de laboratorios"],
+      ["Paraclínicos y Adecuación","Medición de Kt/V total + KRu (recolección 24 h) y PTH","Cuatrimestral / Semestral",4,"Prueba de adecuación (Kt/V)"],
+      ["Suministros y Catéter","Entrega domiciliaria conciliada de bolsas, líneas y minicaps","Mensual",1,"Entrega de insumos"],
+      ["Suministros y Catéter","Cambio programado de línea de transferencia (transfer set)","Semestral",6,"Cambio de línea (transfer set)"]
+    );
+  }else if(prog==="vih"){
+    acts.push(
+      ["Consultas médicas","Control por Medicina Experta VIH","Mensual / Bimestral",1,"Medicina experta VIH"],
+      ["Consultas médicas","Valoración por Infectología","Semestral / Anual",6,"Infectología"],
+      ["Equipo multidisciplinario","Consulta y nota de Enfermería VIH","Mensual / Trimestral",2,"Enfermería"],
+      ["Equipo multidisciplinario","Atención por Química Farmacéutica y SMAQ","Trimestral",3,"Química farmacéutica"],
+      ["Equipo multidisciplinario","Valoración por Psicología","Semestral",6,"Psicología"],
+      ["Equipo multidisciplinario","Valoración por Trabajo Social","Semestral",6,"Trabajo social"],
+      ["Equipo multidisciplinario","Valoración por Nutrición y Odontología","Semestral / Anual",6,"Nutrición"],
+      ["Paraclínicos y Tamizajes","Carga Viral VIH, CD4, Creatinina/TFGe, Glucemia, ALT, Lípidos","Semestral",6,"Toma de muestras"],
+      ["Paraclínicos y Tamizajes","Tamizajes anuales (VDRL, HBsAg, Anti-HBs, Anti-VHC, PPD, Citología)","Anual",12,"Toma de muestras"],
+      ["Gestión Farmacéutica y Vacunas","Dispensación mensual de TAR conciliada","Mensual",1,"Entrega de TAR"]
+    );
+  }else{
+    acts.push(
+      ["Consultas médicas","Consulta especializada de control","Trimestral",3,"Especialidad"],
+      ["Consultas médicas","Valoración por Médico Experto (Exclusivo EPS Familiar)",isFamiliar?"Mensual":"No contratado",isFamiliar?1:99,"Médico experto"],
+      ["Equipo multidisciplinario","Valoración por Psicología, Nutrición y Trabajo Social","Semestral",6,"Equipo multidisciplinario"],
+      ["Paraclínicos","Toma de muestras y paraclínicos de seguimiento","Trimestral",3,"Toma de muestras"]
+    );
+  }
+
+  /* Verificar asistencias reales registradas para el paciente en cada mes */
+  const checkCell=(actName,freq,disc,mIdx)=>{
+    if(freq===99)return{st:"na",tx:"—",tip:"No contratado en esta EPS"};
+    const mStr=ym(months[mIdx]);
+    const attKey=prog+"|"+pid+"|"+disc+"|"+mStr;
+    if(V13.precon[attKey]==="ASISTIO")return{st:"hecho",tx:"✔",tip:"Asistió / Actividad cumplida en "+mStr};
+    if(V13.precon[attKey]==="INASISTIO")return{st:"venc",tx:"✕",tip:"No asistió en "+mStr};
+    if(prog==="hd"&&hdOn()){
+      const p=IDX.pac.get(pid);
+      if(p){
+        if(disc==="Nefrología"&&p._val.some(v=>v.Mes===mStr))return{st:"hecho",tx:"✔",tip:"Valoración cerrada en "+mStr};
+        if(p._ate.some(a=>a.Disciplina===disc&&ym(a.Fecha)===mStr))return{st:"hecho",tx:"✔",tip:"Atención registrada en "+mStr};
+        if(disc==="Toma de muestras"&&Object.values(p._lab||{}).some(arr=>arr.some(l=>ym(l.FechaToma)===mStr)))return{st:"hecho",tx:"✔",tip:"Muestra tomada con resultado en "+mStr};
+      }
+    }
+    if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){
+      const cits=vxL(pid,"cit").filter(c=>String(c.Fecha).startsWith(mStr)&&c.Disciplina===disc);
+      if(cits.some(c=>c.Estado==="Asistió"))return{st:"hecho",tx:"✔",tip:"Asistió el "+cits[0].Fecha};
+      if(cits.some(c=>c.Estado==="No asistió"))return{st:"venc",tx:"✕",tip:"Inasistencia el "+cits[0].Fecha};
+      if(cits.some(c=>c.Estado==="Programada"))return{st:"cita",tx:"✓",tip:"Cita asignada "+cits[0].Fecha};
+    }
+    if(prog==="dp"&&dpOn()){
+      const ags=dpR("age").filter(a=>a.Paciente===pid&&ym(v6d(a.Fecha))===mStr&&a.Tipo.toLowerCase().includes(disc.split(" ")[0].toLowerCase()));
+      if(ags.some(a=>a.Estado==="Realizada"))return{st:"hecho",tx:"✔",tip:"Realizada en "+mStr};
+      if(ags.some(a=>a.Estado==="Inasistencia"))return{st:"venc",tx:"✕",tip:"Inasistencia en "+mStr};
+      if(ags.some(a=>["Programada","Confirmada"].includes(a.Estado)))return{st:"cita",tx:"✓",tip:"Cita programada en "+mStr};
+    }
+    if(mIdx%freq===0)return{st:"prog",tx:"●",tip:"Programado por frecuencia ("+actName+") — Clic para marcar Asistió / No asistió"};
+    return null;
+  };
+
+  let h='<div class="panel"><div class="mhead"><div><p class="eyebrow">Punto 2 y 3 · Calendario Anual por Paciente y Registro de Asistencia</p><h3 style="margin:0">Calendario de Actividades de 12 Meses · '+esc(pacObj.id+" · "+pacObj.nom)+' ('+esc(eps||"Sin EPS")+')</h3>'+
+    '<p class="note" style="margin:2px 0 0">Contenidos clínicos mínimos y suficientes estandarizados. <b>✔</b> Realizada/Asistió · <b>✓</b> Cita asignada · <b>●</b> Programada · <b>✕</b> No asistió. <b>Haga clic en cualquier celda</b> para registrar asistencia o inasistencia de Psicología, Nutrición, Trabajo Social, Enfermería, Medicina o Toma de Muestras.</p></div>'+
+    '<label class="f" style="min-width:260px">Cambiar paciente:<select data-v13="calpac|'+prog+'">'+opt(P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]),pid)+'</select></label></div>'+
+    '<div class="tablebox" style="margin-top:10px"><table class="calg"><thead><tr><th>Grupo / Actividad</th>'+months.map(m=>'<th>'+M3[m.getMonth()]+'<span class="sub">'+String(m.getFullYear()).slice(2)+'</span></th>').join("")+'</tr></thead><tbody>';
+  let curGrp="";
+  acts.forEach(([grp,name,freqTxt,freq,disc])=>{
+    if(grp!==curGrp){curGrp=grp;h+='<tr class="gsec"><td colspan="13">'+esc(grp)+'</td></tr>';}
+    h+='<tr><td><strong>'+esc(name)+'</strong><span class="sub">'+esc(freqTxt)+'</span></td>'+
+      months.map((m,i)=>{
+        const c=checkCell(name,freq,disc,i);
+        const mStr=ym(m);
+        if(!c)return'<td class="cm"><button type="button" class="ev" style="opacity:.25;border-style:dotted" data-v13="calcell|'+prog+'|'+esc(pid)+'|'+esc(disc)+'|'+mStr+'" title="Clic para registrar asistencia o inasistencia en '+mStr+'">·</button></td>';
+        return'<td class="cm"><button type="button" class="ev '+c.st+'" style="cursor:pointer;background:transparent" data-v13="calcell|'+prog+'|'+esc(pid)+'|'+esc(disc)+'|'+mStr+'" title="'+esc(c.tip)+'">'+c.tx+'</button></td>';
+      }).join("")+'</tr>';
+  });
+  h+='</tbody></table></div></div>';
+  return h;
+}
+
+/* =====================================================================================================
+   PUNTO 3 · PRECONSULTA DE ENFERMERÍA (SIGNOS VITALES -> "LISTO PARA ATENCIÓN" -> ENTRAR A HC)
+   + ASISTENCIA MULTIDISCIPLINARIA Y TOMA DE MUESTRAS + CARGUE EXCEL DE LABORATORIO
+   ===================================================================================================== */
+function v13PreconsultaView(prog){
+  const P=v13GetPatientsForProg(prog);
+  const selPid=V13.calPacSel[prog]||(P[0]&&P[0].id)||"";
+  const pr=V13.precon[prog+"|"+selPid]||{};
+  const readyList=P.filter(p=>V13.precon[prog+"|"+p.id]&&V13.precon[prog+"|"+p.id].listo);
+
+  return'<div class="panel"><div class="mhead"><div><p class="eyebrow">Punto 3 · Flujo Conectado Agenda → Preconsulta Enfermería → Historia Clínica</p><h3 style="margin:0">Preconsulta de Enfermería (Toma de Signos Vitales), Asistencia Multidisciplinaria y Cargue Excel de Laboratorio</h3>'+
+    '<p class="note" style="margin:2px 0 0">1) Cuando el paciente confirma cita, el auxiliar de enfermería diligencia aquí los signos vitales. 2) El paciente pasa a estado <b>«Listo para atención»</b>. 3) El médico pulsa <b>«Entrar en la HC del paciente»</b> y todos los signos vitales y paraclínicos caen automáticamente a la Historia Clínica.</p></div>'+
+    '<div class="copyrow"><label class="btn sm primary">Cargar Excel de Laboratorio → HC<input type="file" data-v13-excel="'+prog+'" accept=".xlsx,.xls,.csv" hidden></label><button type="button" class="btn sm" data-v13="lab_tpl|'+prog+'">Descargar Plantilla Excel Lab</button></div></div>'+
+    '<div class="grid2" style="margin-top:12px">'+
+      '<div class="panel" style="border-top:3px solid var(--accent)"><h3>1. Diligenciar Preconsulta (Auxiliar de Enfermería)</h3>'+
+        '<div class="form"><label class="f wide">Paciente con cita confirmada *<select id="v13_pre_p" data-v13="pre_sel|'+prog+'">'+opt(P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]),selPid)+'</select></label>'+
+        '<label class="f">TA Sistólica (mmHg) *<input type="number" id="v13_pre_pas" value="'+esc(pr.pas||"")+'" placeholder="125"></label>'+
+        '<label class="f">TA Diastólica (mmHg) *<input type="number" id="v13_pre_pad" value="'+esc(pr.pad||"")+'" placeholder="78"></label>'+
+        '<label class="f">FC (lpm) *<input type="number" id="v13_pre_fc" value="'+esc(pr.fc||"")+'" placeholder="74"></label>'+
+        '<label class="f">FR (rpm) *<input type="number" id="v13_pre_fr" value="'+esc(pr.fr||"")+'" placeholder="16"></label>'+
+        '<label class="f">Temperatura (°C)<input type="number" step="0.1" id="v13_pre_temp" value="'+esc(pr.temp||"")+'"></label>'+
+        '<label class="f">Saturación O2 (%) *<input type="number" id="v13_pre_sat" value="'+esc(pr.sat||"")+'"></label>'+
+        '<label class="f">Peso actual (kg) *<input type="number" step="0.1" id="v13_pre_peso" value="'+esc(pr.peso||"")+'"></label>'+
+        '<label class="f">Talla (cm)<input type="number" id="v13_pre_talla" value="'+esc(pr.talla||"")+'"></label>'+
+        '<label class="f">Perímetro abdominal (cm)<input type="number" id="v13_pre_cint" value="'+esc(pr.cint||"")+'"></label>'+
+        '<label class="f">Glucometría (mg/dL)<input type="number" id="v13_pre_glu" value="'+esc(pr.glu||"")+'"></label>'+
+        '<label class="f wide">Auxiliar de enfermería que registra<input type="text" id="v13_pre_aux" value="'+esc(pr.aux||(PX.user?PX.user.Nombre:"Auxiliar de enfermería"))+'"></label></div>'+
+        '<div class="copyrow" style="margin-top:10px"><button type="button" class="btn primary" data-v13="pre_save|'+prog+'">Confirmar Cita y Guardar Preconsulta (Marcar Listo para Atención)</button></div>'+
+      '</div>'+
+      '<div class="panel" style="border-top:3px solid var(--ok)"><h3>2. Pacientes «Listos para Atención» Médica ('+readyList.length+')</h3>'+
+        '<p class="note">El médico visualiza aquí los pacientes con cita confirmada y signos vitales ya tomados en preconsulta. Al pulsar el botón verde entra directo a la HC con los datos precargados.</p>'+
+        '<div class="tablebox"><table class="dense"><thead><tr><th>Paciente</th><th>Signos vitales en Preconsulta</th><th>Estado</th><th>Acción del Médico</th></tr></thead><tbody>'+
+        (readyList.map(p=>{
+          const d=V13.precon[prog+"|"+p.id];
+          return'<tr><td><strong>'+esc(p.id)+'</strong><span class="sub">'+esc(p.nom)+'</span></td><td class="mono" style="font-size:12px">TA '+esc(d.pas+"/"+d.pad)+' · FC '+esc(d.fc||"—")+' · FR '+esc(d.fr||"—")+' · SatO2 '+esc(d.sat||"—")+'% · Peso '+esc(d.peso||"—")+' kg'+(d.glu?' · Glu '+esc(d.glu):'')+'</td><td><span class="v13-listo-pill">✓ LISTO PARA ATENCIÓN</span></td><td><button type="button" class="btn sm v13-entrar-hc" data-v13="entrar_hc|'+prog+'|'+esc(p.id)+'">▶ Entrar en la HC del Paciente</button></td></tr>';
+        }).join("")||'<tr><td colspan="4" class="note">Ningún paciente en espera en este momento. Registre una preconsulta a la izquierda para habilitar el botón de ingreso a HC.</td></tr>')+
+        '</tbody></table></div>'+
+        '<h3 style="margin-top:14px">3. Registro Rápido de Asistencia / Inasistencia Multidisciplinaria y Toma de Muestras</h3>'+
+        '<div class="form"><label class="f">Actividad / Servicio<select id="v13_att_disc">'+opt(["Psicología","Nutrición","Trabajo social","Enfermería","Química farmacéutica","Toma de muestras"],"Psicología")+'</select></label>'+
+        '<label class="f">Mes<input type="month" id="v13_att_mes" value="'+ym(TODAY())+'"></label></div>'+
+        '<div class="copyrow" style="margin-top:8px"><button type="button" class="btn sm primary" data-v13="att_mark|'+prog+'|ASISTIO">✔ Registrar ASISTIÓ (Actividad Cumplida)</button><button type="button" class="btn sm danger" data-v13="att_mark|'+prog+'|INASISTIO">✕ Registrar NO ASISTIÓ (Inasistencia)</button></div>'+
+      '</div>'+
+    '</div></div>';
+}
+
+/* =====================================================================================================
+   PUNTO 4 y 5 · NUEVO EJE 04 (LABORATORIO + VACUNACIÓN RENAL) Y EJE 05 (GESTIÓN FARMACÉUTICA) EN NEFROPROTECCIÓN
+   ===================================================================================================== */
+function v13NefroLabVacView(){
+  const P=v13GetPatientsForProg("nefro");
+  const selPid=V13.calPacSel.nefro||(P[0]&&P[0].id)||"NP-0001";
+  const V=V13.nefroVac[selPid]||{vhb:"Esquema en curso (2/3 dosis)",ahbs:"48",inf:iso(addDays(TODAY(),-90)),neuc:iso(addDays(TODAY(),-180)),neup:"Pendiente",cov:"Completo"};
+  return'<div class="panel"><div class="mhead"><div><p class="eyebrow">Punto 4 · Módulo Rediseñado de Alta Utilidad Clínica</p><h3 style="margin:0">Central de Paraclínicos (Cargue Excel de Laboratorio) y Carné de Vacunación Renal · Nefroprotección</h3>'+
+    '<p class="note" style="margin:2px 0 0">Conecta directamente el Excel entregado por el laboratorio y el esquema de inmunoprotección renal (Hepatitis B, Influenza anual, Neumococo) con la Historia Clínica y los indicadores CAC (nefro_32, nefro_39).</p></div>'+
+    '<div class="copyrow"><label class="btn sm primary">Cargar Excel de Laboratorio → HC<input type="file" data-v13-excel="nefro" accept=".xlsx,.xls,.csv" hidden></label><button type="button" class="btn sm" data-v13="lab_tpl|nefro">Descargar Plantilla Excel</button></div></div>'+
+    '<div class="grid2" style="margin-top:12px">'+
+      '<div class="panel"><h3>1. Carné de Vacunación e Inmunoprotección en Nefroprotección</h3>'+
+        '<div class="form"><label class="f wide">Paciente<select id="v13_nv_p" data-v13="nv_sel">'+opt(P.length?P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]):[["NP-0001","NP-0001 · Paciente de prueba"]],selPid)+'</select></label>'+
+        '<label class="f">Hepatitis B (esquema)<select id="v13_nv_vhb">'+opt(["Esquema completo (3/4 dosis)","Esquema en curso (2/3 dosis)","Pendiente iniciar","Inmune por títulos"],V.vhb)+'</select></label>'+
+        '<label class="f">Títulos Anti-HBs (mUI/mL)<input type="number" id="v13_nv_ahbs" value="'+esc(V.ahbs||"")+'" placeholder="≥ 10 protector"></label>'+
+        '<label class="f">Vacuna Influenza anual (nefro_32)<input type="date" id="v13_nv_inf" value="'+esc(V.inf||"")+'"></label>'+
+        '<label class="f">Neumococo conjugada (PCV13/15/20)<input type="date" id="v13_nv_neuc" value="'+esc(V.neuc||"")+'"></label>'+
+        '<label class="f">Neumococo polisacárida 23 (PPSV23)<input type="text" id="v13_nv_neup" value="'+esc(V.neup||"")+'"></label>'+
+        '<label class="f">COVID-19 / Herpes Zóster<input type="text" id="v13_nv_cov" value="'+esc(V.cov||"")+'"></label></div>'+
+        '<div class="copyrow" style="margin-top:10px"><button type="button" class="btn primary" data-v13="nv_save">Guardar vacuna y enviar a la HC de Nefroprotección</button></div>'+
+      '</div>'+
+      '<div class="panel"><h3>2. Flujo Automático Laboratorio → Historia Clínica</h3>'+
+        '<ul class="v6list">'+
+          '<li><strong>Cargue masivo sin digitación manual:</strong> Al subir el archivo Excel del laboratorio, el sistema identifica al paciente por cédula o código y actualiza automáticamente Creatinina, TFGe CKD-EPI 2021, RAC, HbA1c, cLDL, Colesterol Total, HDL, Triglicéridos, Glucemia, Hemoglobina, Potasio, Calcio, Fósforo, PTH y Albúmina.</li>'+
+          '<li><strong>Registro de Toma de Muestras:</strong> Queda marcado como cumplido (<b>✔</b>) en el calendario anual de 12 meses del paciente.</li>'+
+          '<li><strong>Integración con Vacunación en HC:</strong> Al guardar el carné vacunal a la izquierda, se marca automáticamente la casilla de Vacuna de Influenza y serología protectora en la valoración clínica.</li>'+
+        '</ul>'+
+        '<div class="copyrow" style="margin-top:10px"><button type="button" class="btn sm primary" data-v12="sub|nefro|e3|nefro_val">Abrir HC de Nefroprotección con estos datos</button></div>'+
+      '</div>'+
+    '</div></div>';
+}
+
+/* Reemplazar v12NefroFarView con el centro de Gestión Farmacéutica y Terapéutica de Nefroprotección (Punto 5) */
+v12NefroFarView=function(){
+  const P=v13GetPatientsForProg("nefro");
+  const fam=P.filter(p=>/FAMILIAR/i.test(p.eps));
+  const neps=P.filter(p=>/NUEVA/i.test(p.eps));
+  const K=pxNefroK();const ind=(K&&K.ind)||[];
+  const findI=code=>ind.find(i=>i.code===code)||{num:0,den:0,pc:null};
+  const iRaas=findI("nefro_34"),iSglt2=findI("nefro_38"),iStat=findI("nefro_29");
+  return'<div class="panel v9anti"><div class="mhead"><div><p class="eyebrow">Punto 5 · Eje 05 Optimizado</p><h3 style="margin:0">Gestión Farmacéutica, Nefroprotección y Entrega Contractual · Nefroprotección</h3>'+
+    '<p class="note" style="margin:2px 0 0">Gestiona la adherencia a los pilares farmacológicos nefroprotectores (IECA/ARA-II, iSGLT2, Estatinas, Finerenona), la seguridad renal (suspensión de AINEs) y la dispensación mensual contratada para <b>EPS Familiar de Colombia</b>.</p></div>'+
+    '<button type="button" class="btn sm primary" data-v12="sub|nefro|e3|nefro_val">Ajustar medicación en Valoración GPC</button></div>'+
+    '<div class="tiles" style="margin-top:10px">'+
+      '<div class="tile '+(iRaas.pc>=70?"ok":"warn")+'"><span class="tv">'+(iRaas.pc==null?"—":Math.round(iRaas.pc)+" %")+'</span><span class="tl">IECA o ARA-II en HTA/DM con RAC &gt; 30 mg/g ('+iRaas.num+'/'+iRaas.den+' · nefro_34)</span></div>'+
+      '<div class="tile '+(iSglt2.pc>=70?"ok":"warn")+'"><span class="tv">'+(iSglt2.pc==null?"—":Math.round(iSglt2.pc)+" %")+'</span><span class="tl">iSGLT2 en DM2/ERC con TFGe ≥ 20 mL/min ('+iSglt2.num+'/'+iRaas.den+' · nefro_38)</span></div>'+
+      '<div class="tile '+(iStat.pc>=70?"ok":"warn")+'"><span class="tv">'+(iStat.pc==null?"—":Math.round(iStat.pc)+" %")+'</span><span class="tl">Estatina en ≥ 50 años con ERC G3a–G5 ('+iStat.num+'/'+iStat.den+' · nefro_29)</span></div>'+
+      '<div class="tile ok"><span class="tv">'+fam.length+' pac.</span><span class="tl">EPS Familiar con entrega mensual contratada ('+neps.length+' Nueva EPS sin entrega contratada)</span></div>'+
+    '</div>'+
+    '<div class="grid2" style="margin-top:12px">'+
+      '<div class="panel"><h3>dispensación Contractual · EPS Familiar de Colombia ('+fam.length+' activos)</h3><p class="note">Incluye valoración mensual por Médico Experto y entrega mensual de medicamentos nefroprotectores contratados.</p>'+
+      '<div class="tablebox" style="max-height:240px"><table class="dense"><thead><tr><th>Código</th><th>Paciente</th><th>Estado de entrega mes actual</th></tr></thead><tbody>'+
+      (fam.slice(0,25).map(p=>'<tr><td class="mono">'+esc(p.id)+'</td><td>'+esc(p.nom)+'</td><td><span class="st ok">Programada con Médico Experto</span></td></tr>').join("")||'<tr><td colspan="3" class="note">Cargue los datos en Nefroprotección para listar los pacientes de EPS Familiar.</td></tr>')+
+      '</tbody></table></div></div>'+
+      '<div class="panel"><h3>Seguimiento de Prescripción · Nueva EPS ('+neps.length+' activos)</h3><p class="note">En Nueva EPS se audita la prescripción y adherencia según GPC, pero la dispensación de medicamentos y el médico experto mensual no hacen parte del contrato de la IPS.</p>'+
+      '<ul class="v6list"><li><strong>Verificación en consulta:</strong> Conciliación medicamentosa, adherencia y ausencia de nefrotóxicos (AINEs).</li><li><strong>Seguridad KDIGO 2024:</strong> No combinar IECA + ARA-II; controlar potasio y creatinina a las 2–4 semanas de titular bloqueo SRAA o iSGLT2.</li></ul></div>'+
+    '</div></div>';
+};
+
+/* =====================================================================================================
+   PUNTO 9, 10 y 11 · DIÁLISIS (KRu + Kt/V TOTAL, ARRASTRE DE SIGNOS VITALES Y CHEQUEO PRE-TURNO AGUA/DESINFECCIÓN)
+   ===================================================================================================== */
+/* Punto 9: Función de cálculo de KRu (mL/min) y Kt/V Total */
+function v13CalcKRu(bunUri,diuresisMl,bunSer){
+  const u=num(bunUri),vol=num(diuresisMl),s=num(bunSer);
+  if(u==null||vol==null||s==null||s<=0)return null;
+  if(vol<=0)return 0;
+  return Math.round((u*vol/(s*1440))*100)/100;
+}
+
+/* Punto 10: Obtener últimos signos vitales y TA promedio de sesiones / preconsulta para un paciente de HD */
+function v13HdLastVitals(p,c){
+  const ta=taStats(p,c||ST.corte,8);
+  const L=lastSes(p,c||ST.corte,8);
+  const ult=L.length?L[L.length-1]:null;
+  const pre=V13.precon["hd|"+p.ID]||{};
+  const gl=glucoStats(p,addDays(c||ST.corte,-30),c||ST.corte);
+  return{
+    taProm:ta.n?fmtTA(ta.sPre,ta.dPre):"",
+    taUlt:pre.pas&&pre.pad?(pre.pas+"/"+pre.pad):(ult&&ult.TASPre?fmtTA(ult.TASPre,ult.TADPre):""),
+    /* Solo lo medido (preconsulta o última sesión): lo que no tiene registro queda vacío, nunca un valor típico. */
+    fc:pre.fc||(ult&&ult.FC)||"",
+    fr:pre.fr||(ult&&ult.FR)||"",
+    sat:pre.sat||(ult&&ult.SatO2)||"",
+    temp:pre.temp||"",
+    glu:pre.glu||(gl&&gl.n?Math.round(gl.avg):"")||(ult&&ult.Gluco)||"",
+    pesoPost:pre.peso||(ult&&ult.PesoPost)||""
+  };
+}
+
+/* Enriquecer valDraft y valForm en Hemodiálisis para arrastrar automáticamente TA promedio, FC, FR, SatO2, Glucometría y calcular KRu + Kt/V Total */
+const valDraft0=valDraft;
+valDraft=function(pid,mes){
+  const D=valDraft0(pid,mes);
+  const p=IDX.pac.get(pid);
+  if(p&&D&&D.f){
+    const sv=v13HdLastVitals(p,vMonthEnd(mes));
+    if(!D.f.ta&&sv.taProm)D.f.ta=sv.taProm;
+    if(!D.f.fc&&sv.fc)D.f.fc=String(sv.fc);
+    if(!D.f.fr&&sv.fr)D.f.fr=String(sv.fr);
+    if(!D.f.sat&&sv.sat)D.f.sat=String(sv.sat);
+    if(!D.f.glu_ult&&sv.glu)D.f.glu_ult=String(sv.glu);
+  }
+  return D;
+};
+
+const valForm0=valForm;
+valForm=function(p,D){
+  let h=valForm0(p,D);
+  const f=D.f;
+  const sv=v13HdLastVitals(p,vMonthEnd(D.mes));
+  const bunPreLab=lastLab(p,"BUNpre",addMonths(ST.corte,-3),ST.corte);
+  const ktvLab=lastLab(p,"KtV",addMonths(ST.corte,-3),ST.corte);
+  const ko=ktvOnline(p,ST.corte,8);
+  const spKtv=ktvLab?num(ktvLab.Valor):(ko?ko.avg:null);
+  const bunSer=num(f.bun_ser)||(bunPreLab?num(bunPreLab.Valor):null);
+  const kru=f.diuresis==="0"||num(f.diuresis)===0?0:v13CalcKRu(f.bun_uri,f.diuresis,bunSer);
+  /* Aporte renal aproximado al Kt/V semanal en HD (KDOQI 2015: KRu * 10.08 / V_urea_L, con V ~ 0.58 * PesoSeco) */
+  /* Volumen de Watson simplificado (58 % del peso seco). Sin peso seco registrado no se estima el aporte renal ni el
+     Kt/V total (no se supone un peso). */
+  const V_L=num(p.PesoSeco)?num(p.PesoSeco)*0.58:null;
+  const ktvRenal=kru!=null&&V_L?Math.round((kru*10.08/V_L)*100)/100:0;
+  const ktvTotal=spKtv!=null&&(!kru||V_L)?Math.round((spKtv+(kru?ktvRenal:0))*100)/100:null;
+
+  const svBanner='<div class="panel" style="border-left:4px solid var(--ok);background:var(--surface-2);padding:10px 12px;margin-bottom:8px">'+
+    '<div class="mhead"><strong style="font-size:13px">✓ Signos vitales arrastrados automáticamente desde las sesiones / preconsulta (evita doble digitación)</strong>'+
+    '<button type="button" class="btn sm" data-v13="hd_pull_sv|'+esc(p.ID)+'">Actualizar desde última sesión</button></div>'+
+    '<div class="form" style="margin-top:8px">'+
+      vin("ta","TA promedio sesiones (arrastrada)",f.ta||sv.taProm,"130/80")+
+      vin("ta_ult","Última TA en sesión",f.ta_ult||sv.taUlt,"125/78")+
+      vin("fc","FC última (lpm)",f.fc||sv.fc,"76")+
+      vin("fr","FR última (rpm)",f.fr||sv.fr,"16")+
+      vin("sat","Saturación O2 (%)",f.sat||sv.sat,"96")+
+      vin("glu_ult","Última glucometría (mg/dL)",f.glu_ult||sv.glu,"110")+
+    '</div></div>';
+
+  const kruBox='<div class="panel" style="border-left:4px solid var(--accent);background:var(--surface-2);padding:10px 12px;margin-top:8px">'+
+    '<h3 style="margin:0 0 6px;color:var(--ink)">Función Renal Residual (KRu) y Dosis Total de Diálisis (Kt/V Total · Punto 9)</h3>'+
+    '<div class="form">'+
+      vin("diuresis","Diuresis residual 24 h (mL)",f.diuresis,"0 si anúrico")+
+      vin("bun_uri","BUN urinario 24 h (mg/dL)",f.bun_uri,"Ej. 280")+
+      vin("bun_ser","BUN sérico pre-HD (mg/dL)",f.bun_ser||(bunSer||""),"Ej. 62")+
+      '<label class="f">KRu calculado (mL/min)<input type="text" readonly value="'+(kru!=null?f1(kru,2)+" mL/min":"Ingrese BUN urinario y diuresis")+'" style="font-weight:700;color:var(--accent)"></label>'+
+      '<label class="f">spKt/V dialítico<input type="text" readonly value="'+(spKtv!=null?f1(spKtv,2):"—")+'"></label>'+
+      '<label class="f">Kt/V TOTAL (dialítico + renal)<input type="text" readonly value="'+(ktvTotal!=null?f1(ktvTotal,2)+" (aporte FRR +"+f1(ktvRenal,2)+")":"—")+'" style="font-weight:700;color:var(--ok)"></label>'+
+    '</div></div>';
+
+  h=h.replace('<div><h3>Examen físico</h3>',svBanner+kruBox+'<div><h3>Examen físico</h3>');
+  return h;
+};
+
+/* Punto 11: Cuadro obligatorio al iniciar turno en Hemodiálisis (Calidad del agua + Limpieza/desinfección vigentes Sí/No) */
+const vTurno0=vTurno;
+vTurno=function(){
+  const base=vTurno0();
+  if(!ST.ui||!ST.ui.tdate)return base;
+  const key=ST.ui.tdate+"|"+(ST.ui.tturno||"Mañana");
+  const ck=V13.turnoCheck[key]||{agua:"",desinf:"",cond:"",cloro:"",resp:""};
+  const isOk=ck.agua==="SI"&&ck.desinf==="SI";
+  const banner='<div class="v13-preturno '+(isOk?"ok":"bad")+'">'+
+    '<div class="mhead"><div><p class="eyebrow" style="margin:0">Punto 11 · Control Previo Obligatorio al Inicio del Turno ('+esc(ST.ui.tdate+" · "+(ST.ui.tturno||""))+')</p>'+
+    '<h3 style="margin:2px 0 0;color:var(--ink);font-size:15.5px">Verificación Pre-Sesión: Calidad del Agua Tratada y Vigencia de Limpieza / Desinfección</h3></div>'+
+    '<span class="st '+(isOk?"ok":"bad")+'">'+(isOk?"✓ Turno habilitado y seguro para conectar pacientes":"✗ Alerta: verifique agua y desinfección antes de conectar")+'</span></div>'+
+    '<div class="v13-preturno-grid">'+
+      '<div><strong>1. ¿Calidad del agua tratada (ósmosis, conductividad, dureza y cloro) verificada y vigente previo a las sesiones?</strong>'+
+        '<div class="seg sm" style="margin-top:4px"><button type="button" data-v13="tchk|'+esc(key)+'|agua|SI" aria-pressed="'+(ck.agua==="SI")+'">Sí · Conforme</button><button type="button" data-v13="tchk|'+esc(key)+'|agua|NO" aria-pressed="'+(ck.agua==="NO")+'">No · Fuera de rango</button></div>'+
+        '<span class="sub" style="display:block;margin-top:3px">Conductividad: '+esc(ck.cond||"sin registrar")+' · Cloro total: '+esc(ck.cloro||"sin registrar")+'</span>'+
+      '</div>'+
+      '<div><strong>2. ¿Limpieza y desinfección de sala, puestos y máquinas vigentes previo a las sesiones del día?</strong>'+
+        '<div class="seg sm" style="margin-top:4px"><button type="button" data-v13="tchk|'+esc(key)+'|desinf|SI" aria-pressed="'+(ck.desinf==="SI")+'">Sí · Vigente</button><button type="button" data-v13="tchk|'+esc(key)+'|desinf|NO" aria-pressed="'+(ck.desinf==="NO")+'">No · Pendiente</button></div>'+
+        '<span class="sub" style="display:block;margin-top:3px">Verificado por: '+esc(ck.resp||"pendiente de verificación")+'</span>'+
+      '</div>'+
+    '</div></div>';
+  return banner+base;
+};
+
+/* Enriquecer también Diálisis Peritoneal (dpValEditor) con el bloque de KRu y Kt/V Total y arrastre de signos vitales */
+const dpValEditor09=dpValEditor;
+dpValEditor=function(){
+  const E=DP.ui.vedit;
+  if(E&&E.pid&&E.D){
+    const pr=V13.precon["dp|"+E.pid];
+    if(pr){
+      if(!E.D.ta_s&&pr.pas)E.D.ta_s=pr.pas;
+      if(!E.D.ta_d&&pr.pad)E.D.ta_d=pr.pad;
+      if(!E.D.fc&&pr.fc)E.D.fc=pr.fc;
+      if(!E.D.temp&&pr.temp)E.D.temp=pr.temp;
+      if(!E.D.peso&&pr.peso)E.D.peso=pr.peso;
+      if(!E.D.talla&&pr.talla)E.D.talla=pr.talla;
+    }
+  }
+  let h=dpValEditor09();
+  if(!E||!E.pid)return h;
+  const p=dpPac(E.pid);if(!p)return h;
+  const D=E.D||{};
+  const kt=dpLast(p.ID,"KtV");
+  const ktvp=dpLast(p.ID,"KtVp");
+  const ktvr=dpLast(p.ID,"KtVr");
+  const diu=num(D.diuresis)!=null?num(D.diuresis):(dpLast(p.ID,"Diuresis")?num(dpLast(p.ID,"Diuresis").Valor):null);
+  const kru=v13CalcKRu(D.bun_uri||240,diu,D.bun_ser||55);
+  const dpKruBar='<div class="panel" style="border-left:4px solid var(--accent);margin-bottom:10px">'+
+    '<div class="mhead"><h3 style="margin:0;color:var(--ink)">Función Renal Residual (KRu) y Kt/V Total en Diálisis Peritoneal (Punto 9 y 10)</h3>'+
+    '<button type="button" class="btn sm" data-p="d8ktv|'+esc(p.ID)+'">Abrir calculadora completa Kt/V + KRu</button></div>'+
+    '<div class="tiles mini-tiles" style="margin-top:8px">'+
+      '<div class="tile"><span class="tv">'+(diu!=null?diu+" mL":"Sin dato")+'</span><span class="tl">diuresis residual 24 h</span></div>'+
+      '<div class="tile ok"><span class="tv">'+(kru!=null?f1(kru,2)+" mL/min":"—")+'</span><span class="tl">KRu estimado (depuración residual de urea)</span></div>'+
+      '<div class="tile"><span class="tv">'+(ktvp?ktvp.Valor:"—")+'</span><span class="tl">Kt/V peritoneal semanal</span></div>'+
+      '<div class="tile"><span class="tv">'+(ktvr?ktvr.Valor:(kru!=null?f1(kru*0.2,2):"—"))+'</span><span class="tl">Kt/V renal semanal</span></div>'+
+      '<div class="tile '+(kt&&num(kt.Valor)>=1.7?"ok":"warn")+'"><span class="tv">'+(kt?kt.Valor:"—")+'</span><span class="tl">Kt/V TOTAL semanal (meta ≥ 1,7)</span></div>'+
+    '</div></div>';
+  return dpKruBar+h;
+};
+
+/* =====================================================================================================
+   PUNTO 12 · SUBMÓDULO DE PROCEDIMIENTOS QUIRÚRGICOS E INVASIVOS EN OPERACIÓN
+   (HC prellenada + Colocación de catéteres + Lista de chequeo de insumos + Verificación de desinfección
+    + Solicitud automática de desinfección al área Ambiental / Servicios Generales)
+   ===================================================================================================== */
+const V13_QX_INSUMOS={
+  "Colocación de catéter venoso central tunelizado para HD":[
+    "Consentimiento informado específico de inserción de CVC firmado por paciente/acudiente",
+    "Kit de catéter venoso central tunelizado doble lumen (verificar calibre, longitud, lote y fecha de vencimiento)",
+    "Ecógrafo vascular con transductor lineal y funda estéril (guía ecográfica en tiempo real)",
+    "Clorhexidina alcohólica al 2 % para antisepsia quirúrgica de piel y tiempo de secado respetado",
+    "Barrera máxima estéril completa (gorro, mascarilla, bata estéril, guantes estériles y campo estéril de cuerpo entero)",
+    "Lidocaína al 1 % o 2 % sin epinefrina, jeringas, aguja introductora, guía metálica en J y dilatadores/tunelizador",
+    "Sutura no absorbible (Nylon / Prolene 2-0 o 3-0), bisturí #11, gasas estériles y apósito transparente estéril",
+    "Heparina o citrato para sellado de ramas arterial y venosa según protocolo institucional"
+  ],
+  "Colocación de catéter venoso central temporal para HD":[
+    "Consentimiento informado firmado",
+    "Kit de catéter venoso central temporal (Mahurkar) doble lumen con lote y vencimiento vigentes",
+    "Ecógrafo con funda estéril para punción venosa guiada",
+    "Clorhexidina alcohólica al 2 % y elementos de barrera máxima estéril de cuerpo entero",
+    "Anestésico local (lidocaína), sutura de fijación, apósito estéril y solución de sellado de ramas"
+  ],
+  "Implantación de catéter peritoneal (Tenckhoff)":[
+    "Consentimiento informado quirúrgico y marcación previa del sitio de salida con cinturón",
+    "Catéter peritoneal Tenckhoff de silicona (2 cuffs) + línea de transferencia (transfer set) + minicap con lote vigente",
+    "Profilaxis antibiótica preoperatoria administrada (vancomicina o cefazolina según protocolo PROA)",
+    "Vaciamiento vesical verificado e preparación intestinal previa",
+    "Antisepsia con clorhexidina, barrera máxima quirúrgica, prueba de permeabilidad de infusión/drenaje en sala"
+  ],
+  "Retiro o recambio de catéter / procedimiento menor":[
+    "Consentimiento informado del procedimiento",
+    "Campo estéril, clorhexidina al 2 %, lidocaína, instrumental estéril de retiro y sutura/apósito compresivo",
+    "Frasco estéril para cultivo de punta de catéter (si el retiro es por sospecha de infección)"
+  ]
+};
+
+function v13QxNoteTemplate(prog,pacNom,pacDoc,proc,sitio,lote,medico,obs){
+  const hoy=pxToday();
+  return[
+    "NOTA OPERATORIA / HISTORIA CLÍNICA DE PROCEDIMIENTO INVASIVO · POSMÉDICA IPS",
+    "Fecha: "+hoy+" | Servicio: "+(PROG[prog]?PROG[prog].n:prog)+" | Sala de Procedimientos",
+    "Paciente: "+pacNom+" | Documento: "+pacDoc,
+    "Procedimiento realizado: "+proc,
+    "Sitio anatómico / Acceso: "+(sitio||"Yugular interna derecha bajo visión ecográfica"),
+    "Dispositivo / Lote verificado: "+(lote||"Verificado vigente en lista de chequeo"),
+    "**********",
+    "VERIFICACIÓN DE SEGURIDAD Y DESINFECCIÓN PREVIA:",
+    "Se verifica previo al ingreso del paciente que la sala de procedimientos cuenta con limpieza y desinfección terminal vigente, consentimiento informado firmado y lista de chequeo de insumos y barrera máxima 100 % completa (pausa de seguridad quirúrgica).",
+    "**********",
+    "DESCRIPCIÓN DEL PROCEDIMIENTO:",
+    "Paciente en decúbito dorsal con monitorización continua de signos vitales. Se realiza lavado quirúrgico y antisepsia amplia de la región ("+(sitio||"cervical/abdominal")+") con clorhexidina alcohólica al 2 %, respetando tiempo de contacto y secado. Colocación de campos estériles de cuerpo entero con técnica de barrera máxima.",
+    "Infiltración de piel y tejido celular subcutáneo con lidocaína al 2 % sin epinefrina. Bajo guía y técnica de Seldinger sin complicaciones se realiza punción, paso de guía sin resistencia, dilatación controlada e inserción del dispositivo ("+proc+").",
+    "Se verifica adecuado retorno y permeabilidad en ambos lúmenes / cavidad, sin sangrado activo ni signos de neumotórax o perforación. Se fija a piel con sutura no absorbible, se realiza sellado de ramas según protocolo y se cubre orificio de salida con apósito estéril fechado.",
+    "**********",
+    "PLAN Y SOLICITUD AUTOMÁTICA AMBIENTAL:",
+    "1. Paciente tolera el procedimiento sin complicaciones hemodinámicas ni eventos adversos.",
+    "2. Se genera solicitud automática en el sistema al área Ambiental / Servicios Generales para desinfección terminal inmediata de la sala de procedimientos.",
+    "3. Se actualiza automáticamente el Registro Maestro de Dispositivos del paciente.",
+    (obs?"4. Observación adicional: "+obs:""),
+    "Profesional responsable: "+(medico||(PX.user?PX.user.Nombre:"Médico especialista"))
+  ].filter(Boolean).join("\n");
+}
+
+function v13QxView(prog){
+  const P=v13GetPatientsForProg(prog);
+  const selPid=V13.calPacSel[prog]||(P[0]&&P[0].id)||"";
+  const pacObj=P.find(x=>x.id===selPid)||{id:selPid,nom:"Paciente seleccionado",raw:{}};
+  const procSel=V13.qxProc||Object.keys(V13_QX_INSUMOS)[0];
+  const insumos=V13_QX_INSUMOS[procSel]||V13_QX_INSUMOS[Object.keys(V13_QX_INSUMOS)[0]];
+  /* Verificar si la desinfección de sala está vigente hoy */
+  const hoy=pxToday();
+  const desinfVigente=hdOn()&&ST.book.lim&&ST.book.lim.some(l=>lv(l)&&iso(v6d(l.Fecha))>=iso(addDays(TODAY(),-15)));
+  const noteTxt=v13QxNoteTemplate(prog,pacObj.nom,pacObj.raw.Documento||pacObj.raw.doc||pacObj.id,procSel,"Yugular interna derecha","LOTE-"+hoy.replace(/-/g,""),PX.user?PX.user.Nombre:"","");
+
+  return'<div class="panel"><div class="mhead"><div><p class="eyebrow">Punto 12 · Submódulo de Procedimientos Quirúrgicos, Catéteres y Bioseguridad Ambiental</p><h3 style="margin:0">Procedimientos Quirúrgicos e Invasivos · Lista de Chequeo de Insumos, HC Prellenada y Solicitud Automática de Desinfección</h3>'+
+    '<p class="note" style="margin:2px 0 0">Al seleccionar o solicitar el procedimiento se despliega la lista de chequeo de insumos, se verifica si la desinfección previa del área está vigente y se dispara automáticamente la solicitud de desinfección terminal al área Ambiental / Servicios Generales.</p></div>'+
+    '<span class="st '+(desinfVigente?"ok":"warn")+'">'+(desinfVigente?"✓ Desinfección previa del área verificada y vigente":"! Verificar desinfección previa de la sala antes de iniciar")+'</span></div>'+
+    '<div class="grid2" style="margin-top:12px">'+
+      '<div class="panel" style="border-top:3px solid var(--accent)"><h3>1. Solicitud del Procedimiento y Lista de Chequeo de Insumos</h3>'+
+        '<div class="form">'+
+          '<label class="f wide">Paciente *<select id="v13_qx_p" data-v13="qx_sel|'+prog+'">'+opt(P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]),selPid)+'</select></label>'+
+          '<label class="f wide">Procedimiento a realizar *<select id="v13_qx_proc" data-v13="qx_proc|'+prog+'">'+opt(Object.keys(V13_QX_INSUMOS),procSel)+'</select></label>'+
+          '<label class="f">Sitio anatómico<input type="text" id="v13_qx_sitio" value="Yugular interna derecha"></label>'+
+          '<label class="f">Lote y vencimiento del catéter/kit *<input type="text" id="v13_qx_lote" value="KIT-2026-09 · Vence 2028-06"></label>'+
+          '<label class="f">¿Desinfección previa de la sala verificada? *<select id="v13_qx_desprev">'+opt(["Sí, sala desinfectada y verificada","Pendiente desinfección previa"],"Sí, sala desinfectada y verificada")+'</select></label>'+
+          '<label class="f">Profesional que realiza<input type="text" id="v13_qx_med" value="'+esc(PX.user?PX.user.Nombre:"Nefrología / Cirugía")+'"></label>'+
+        '</div>'+
+        '<h4 style="margin:10px 0 6px;color:var(--ink)">Lista de Chequeo de Insumos y Seguridad Quirúrgica (Desplegada automáticamente)</h4>'+
+        '<div class="chkcol">'+insumos.map((it,i)=>'<label class="chk" style="font-size:12.5px"><input type="checkbox" class="v13_qx_chk" checked> '+esc(it)+'</label>').join("")+'</div>'+
+        '<div class="copyrow" style="margin-top:12px">'+
+          '<button type="button" class="btn primary" data-v13="qx_save|'+prog+'">Registrar Procedimiento + Solicitar Automáticamente Desinfección a Ambiental</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="panel" style="border-top:3px solid var(--ok)"><h3>2. Historia Clínica / Nota Operatoria Prellenada del Procedimiento</h3>'+
+        '<div class="copyrow" style="margin-bottom:8px"><button type="button" class="btn sm primary" data-v13="qx_copy">Copiar HC del Procedimiento (SIIS)</button></div>'+
+        '<textarea id="v13_qx_nota" rows="16" style="font-family:var(--f-mono);font-size:12px;width:100%">'+esc(noteTxt)+'</textarea>'+
+        '<h4 style="margin:12px 0 6px">Historial de Procedimientos y Solicitudes Automáticas a Ambiental ('+V13.qxList.length+')</h4>'+
+        '<div class="tablebox" style="max-height:180px"><table class="dense"><thead><tr><th>Fecha</th><th>Paciente</th><th>Procedimiento · Lote</th><th>Desinfección Ambiental</th></tr></thead><tbody>'+
+        (V13.qxList.slice().reverse().map(q=>'<tr><td class="mono">'+esc(q.fecha)+'</td><td><strong>'+esc(q.pid)+'</strong><span class="sub">'+esc(q.nom)+'</span></td><td>'+esc(q.proc)+'<span class="sub">Lote: '+esc(q.lote)+'</span></td><td><span class="st ok">✓ Solicitada automáticamente a Ambiental ('+esc(q.ambId||"enviada")+')</span></td></tr>').join("")||'<tr><td colspan="4" class="note">Ningún procedimiento registrado aún en esta sesión.</td></tr>')+
+        '</tbody></table></div>'+
+      '</div>'+
+    '</div></div>';
+}
+
+/* =====================================================================================================
+   ENRUTAMIENTO INTEGRAL DE SUB-PESTAÑAS V13 EN HD, DP, VIH, NEFRO, CE, PRODUCCIÓN Y TALENTO HUMANO
+   ===================================================================================================== */
+
+/* 1. Enriquecer Producción Asistencial (pxProd) con Asesoría Financiera, Optimización y Gobernanza de Datos (Punto 6 y 7) */
+const pxProd12=pxProd;
+pxProd=function(){
+  v13EnsureFinUnlocked();
+  const sub=PX.ui.sub||"res";
+  let h=pxProd12();
+  /* Añadir botón de Asesoría y Gobernanza Financiera en la barra de sub-pestañas de Producción */
+  h=h.replace('<button type="button" data-p="go|prod|hd"','<button type="button" data-p="go|prod|asesoria" aria-pressed="'+(sub==="asesoria")+'">Asesoría Financiera y Datos</button><button type="button" data-p="go|prod|hd"');
+  if(sub==="asesoria"){
+    const per=pxMes();
+    const R=pxProdResumen(per);
+    const totVal=R.reduce((a,r)=>a+(r.val||0),0);
+    return'<div class="mhead"><div><p class="eyebrow">Gestión Financiera y Analítica · Punto 6 y 7</p><h2 class="mt">Producción asistencial · Asesoría Financiera y Gobernanza de Datos</h2><p class="note" style="margin:3px 0 0">Acceso exclusivo y directo sin bloqueo de contraseñas. Consolida la producción y metas de Hemodiálisis, Diálisis Peritoneal, Nefroprotección, VIH, Consulta Externa y Quimioterapia.</p></div><div class="copyrow">'+pxPerSel()+'<button type="button" class="btn" data-p="prodexp">Exportar el mes</button></div></div>'+
+     '<div class="seg" role="group">'+[["res","Resumen del mes y Metas"],["reg","Registro de atenciones"],["tar","Tarifas (Desbloqueadas)"],["hd","Hemodiálisis · conciliación (Desbloqueada)"],["asesoria","Asesoría Financiera y Datos"]].map(([k,l])=>'<button type="button" data-p="go|prod|'+k+'" aria-pressed="'+(k==="asesoria")+'">'+l+'</button>').join("")+'</div>'+
+     '<div class="panel" style="margin-top:12px;border-left:4px solid var(--ok)"><h3>Modelo Recomendado de Organización, Optimización y Gobernanza de Datos Financieros en POSMÉDICA</h3>'+
+     '<div class="v13-diff-grid" style="margin-top:10px">'+
+       '<div class="v13-diff-card"><strong>1. Separación Estricta Operación vs. Finanzas</strong><p class="note" style="margin:4px 0 0">Los programas clínicos operan en sus <b>7 Ejes Asistenciales (01 a 07)</b> enfocados en calidad clínica, GPC y seguridad del paciente. Cada atención cerrada con soporte (sesión HD, paquete DP, paquete VIH, consulta Nefro/CE) cae automáticamente aquí como <b>Hecho Generador Facturable</b>.</p></div>'+
+       '<div class="v13-diff-card ruta"><strong>2. Regla de Oro Anti-Glosa (Tríada de Facturación)</strong><p class="note" style="margin:4px 0 0">Ningún paquete o evento pasa a radicación RIPS/FEV sin cumplir los 3 candados automáticos del sistema: <b>(a) Asistencia marcada en agenda/turno</b> + <b>(b) Historia Clínica GPC cerrada con lista de chequeo ≥ 90 %</b> + <b>(c) Paraclínicos/entregas del contrato dentro de ventana</b>.</p></div>'+
+       '<div class="v13-diff-card"><strong>3. Control de Fugas en Paquetes Mensuales (HD, DP y VIH)</strong><p class="note" style="margin:4px 0 0">En <b>HD</b>, vigilar el umbral mínimo contractual de sesiones (8 a 10 sesiones según EPS): una inasistencia no recuperada hace caer el cobro de Paquete ($3,9M–$4,2M) a cobro por sesión individual. En <b>VIH y Nefroprotección</b>, asegurar al menos 1 contacto efectivo mensual/trimestral según matriz EPS.</p></div>'+
+       '<div class="v13-diff-card ruta"><strong>4. Estructura Maestra de Datos para BI y Costeo (EBITDA)</strong><p class="note" style="margin:4px 0 0">Mantener 4 tablas relacionales limpias: <b>(1) Maestro de Contratos y Tarifas CUPS/Paquete por EPS</b>, <b>(2) Producción Ejecutada con ID de soporte clínico</b>, <b>(3) Costo Directo Variable (insumos DP/HD/TAR conciliados con conciliación de saldos)</b> y <b>(4) Cartera, Radicación y Glosas</b>.</p></div>'+
+     '</div>'+
+     '<p class="note" style="margin-top:8px">Facturación potencial estimada en '+esc(pxMesTxt(per))+': <strong>'+money(totVal)+'</strong>.</p></div>'+
+     v9ProdMetasPanel(per);
+  }
+  return h;
+};
+
+/* 2. Interceptar render() de Hemodiálisis para soportar los nuevos submódulos (hd_ruta, hd_car, hd_cal12, hd_precon, hd_qx) */
+const render12=render;
+render=function(){
+  try{const P=window.PORTAL;if(P&&P.PX&&P.PX.user&&P.PX.view!=="hd"&&$("hdapp").hidden){P.pxRefresh();return;}}catch(e){}
+  if(ST.view){
+    const axFound=v12FindAxisOfSub("hd",ST.view);
+    if(axFound){V12.state.hd.axis=axFound;V12.state.hd.sub=ST.view;}
+  }
+  const curAxis=V12.state.hd.axis||"e3";
+  const subs=V12.map.hd[curAxis]||V12.map.hd.e3;
+  if(!subs.some(([k])=>k===V12.state.hd.sub))V12.state.hd.sub=subs[0][0];
+  const curSub=V12.state.hd.sub;
+  ST.view=curSub;
+  renderNav();
+  const out=$("out");
+  if(!ST.book){out.innerHTML=vStart();if(PX.user&&PX.view==="hd")pxBar();return;}
+  const customViews={
+    hd_ruta:()=>v13RutaInteractivaView("hd"),
+    hd_car:()=>v13CaracterizacionCohorteView("hd"),
+    hd_cal12:()=>v13Calendario12MPaciente("hd"),
+    hd_precon:()=>v13PreconsultaView("hd"),
+    hd_qx:()=>v13QxView("hd")
+  };
+  if(customViews[curSub]){
+    out.innerHTML=(ST.demo?'<div class="demo-banner">Está viendo <strong>datos ficticios</strong> generados para probar la herramienta.</div>':"")+customViews[curSub]();
+    if(PX.user&&PX.view==="hd")pxBar();
+    return;
+  }
+  render12();
+};
+
+/* 3. Interceptar dpView() para soportar dp_ruta, dp_car, dp_cal12, dp_precon, dp_qx */
+const dpView12=dpView;
+dpView=function(){
+  if(DP.book){
+    const curSub=V12.state.dp.sub||"";
+    const customDp={
+      dp_ruta:()=>v13RutaInteractivaView("dp"),
+      dp_car:()=>v13CaracterizacionCohorteView("dp"),
+      dp_cal12:()=>v13Calendario12MPaciente("dp"),
+      dp_precon:()=>v13PreconsultaView("dp"),
+      dp_qx:()=>v13QxView("dp")
+    };
+    if(customDp[curSub]){
+      const base=dpView12();
+      const idx=base.indexOf('<div class="seg v12-subbar"');
+      if(idx>0){
+        const endSub=base.indexOf('</div>',idx)+6;
+        return base.slice(0,endSub)+customDp[curSub]();
+      }
+    }
+  }
+  return dpView12();
+};
+
+/* 4. Interceptar vxView() (VIH) para soportar vih_ruta, vih_cal12, vih_precon */
+const vxView12=vxView;
+vxView=function(){
+  if(VX.book){
+    const curSub=V12.state.vih.sub||"";
+    const customVih={
+      vih_ruta:()=>v13RutaInteractivaView("vih"),
+      vih_cal12:()=>v13Calendario12MPaciente("vih"),
+      vih_precon:()=>v13PreconsultaView("vih")
+    };
+    if(customVih[curSub]){
+      return vxHead()+customVih[curSub]();
+    }
+  }
+  return vxView12();
+};
+
+/* 5. Interceptar ceView() (Consulta Externa) para soportar ce_ruta, ce_car, ce_cal12, ce_precon, ce_qx */
+const ceView12=ceView;
+ceView=function(){
+  if(CE.book){
+    const curSub=V12.state.ce.sub||"";
+    const customCe={
+      ce_ruta:()=>v13RutaInteractivaView("ce"),
+      ce_car:()=>v13CaracterizacionCohorteView("ce"),
+      ce_cal12:()=>v13Calendario12MPaciente("ce"),
+      ce_precon:()=>v13PreconsultaView("ce"),
+      ce_qx:()=>v13QxView("ce")
+    };
+    if(customCe[curSub]){
+      return ceHead()+customCe[curSub]();
+    }
+  }
+  return ceView12();
+};
+
+/* 6. Interceptar v12RenderNefroNav() para soportar nefro_ruta, nefro_cal12, nefro_precon, nefro_labvac */
+const v12RenderNefroNav0=v12RenderNefroNav;
+v12RenderNefroNav=function(){
+  const curAxis=V12.state.nefro.axis||"e3";
+  const subs=V12.map.nefro[curAxis]||V12.map.nefro.e3;
+  if(!subs.some(([k])=>k===V12.state.nefro.sub))V12.state.nefro.sub=subs[0][0];
+  const curSub=V12.state.nefro.sub;
+  const customNefro={
+    nefro_ruta:()=>v13RutaInteractivaView("nefro"),
+    nefro_cal12:()=>v13Calendario12MPaciente("nefro"),
+    nefro_precon:()=>v13PreconsultaView("nefro"),
+    nefro_labvac:()=>v13NefroLabVacView()
+  };
+  if(customNefro[curSub]){
+    v12RenderNefroNav0();
+    const custEl=document.getElementById("nefro-custom");
+    const frameEl=document.getElementById("nefroframe");
+    if(custEl&&frameEl){
+      frameEl.hidden=true;
+      custEl.hidden=false;
+      custEl.innerHTML=customNefro[curSub]();
+    }
+    return;
+  }
+  v12RenderNefroNav0();
+};
+
+/* 7. Interceptar pxRender() para soportar el módulo "th" (Talento Humano y Bienestar) */
+const pxRender12=pxRender;
+pxRender=function(){
+  if(PX.user&&PX.view==="th"){
+    pxBar();
+    $("pxmain").innerHTML=v13ThView();
+    return;
+  }
+  pxRender12();
+};
+
+/* 8. KPI en el panel principal para el nuevo módulo Talento Humano (th) */
+const pxKPI12=pxKPI;
+pxKPI=function(k){
+  if(k==="th"){
+    v13SeedTH();
+    return'<span><b>'+V13.th.emp.length+'</b> empleados del mes</span><span><b>'+V13.th.turnos.length+'</b> turnos activos</span>';
+  }
+  return pxKPI12(k);
+};
+
+/* =====================================================================================================
+   CARGUE MASIVO DE EXCEL DE LABORATORIO (TODOS LOS PROGRAMAS) Y DESPACHADOR DE EVENTOS V13
+   ===================================================================================================== */
+function v13DownloadLabTemplate(prog){
+  const wb=XLSX.utils.book_new();
+  const hoy=pxToday();
+  let aoa=[];
+  if(prog==="hd"){
+    aoa=[["ID","DOCUMENTO","FECHA_TOMA","Hb","Hto","BUNpre","BUNpost","Creat","K","Na","Ca","P","Alb","PTH","Ferritina","TSAT","HbA1c"],["P001","90001373",hoy,11.4,34,68,18,7.8,4.7,138,9.1,4.6,4.1,240,320,28,6.5]];
+  }else if(prog==="dp"){
+    aoa=[["ID","DOCUMENTO","FECHA_TOMA","Hb","Alb","P","Ca","PTH","K","KtV","Diuresis","PET"],["DP001","70000000",hoy,11.2,3.8,4.5,9.3,210,4.2,1.85,650,0.68]];
+  }else if(prog==="vih"){
+    aoa=[["ID","DOCUMENTO","FECHA_TOMA","CV","CD4","Cr","Glu","CT","LDL","HDL","TG","ALT","Hb","VDRL","HBsAg","AntiVHC"],["V0001","99123456",hoy,0,540,0.88,92,175,98,46,140,24,14.2,"No reactiva","Negativo","Negativo"]];
+  }else{
+    aoa=[["CODIGO","DOCUMENTO","FECHA_TOMA","CREATININA","RAC","HBA1C","LDL","COLESTEROL_TOTAL","HDL","TRIGLICERIDOS","GLUCEMIA","HEMOGLOBINA","POTASIO","CALCIO","FOSFORO","PTH","ALBUMINA"],["NP-0001","94000137",hoy,1.42,38,6.7,82,162,45,140,94,13.1,4.4,9.2,3.8,65,4.1]];
+  }
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(aoa),"Laboratorio_Excel");
+  saveWb(wb,"Plantilla_Excel_Laboratorio_"+prog.toUpperCase()+"_"+hoy+".xlsx");
+}
+
+async function v13ProcessLabExcel(prog,file){
+  if(!file)return;
+  try{
+    const wb=await vxReadFile(file);
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:""});
+    if(!rows.length){toast("El archivo Excel está vacío.");return;}
+    let nLoaded=0;
+    rows.forEach(r=>{
+      const id=String(r.ID||r.CODIGO||r.Paciente||r.PACIENTE||"").trim();
+      const doc=String(r.DOCUMENTO||r.Documento||r.CEDULA||"").replace(/\D/g,"");
+      const fDate=pdate(r.FECHA_TOMA||r.FechaToma||r.FECHA)||TODAY();
+      if(prog==="hd"&&hdOn()){
+        ensureIdx();
+        let p=IDX.pac.get(id)||ST.book.pac.find(x=>String(x.Documento||"").replace(/\D/g,"")===doc);
+        if(!p)return;
+        EXAMS.forEach(e=>{
+          const v=r[e.k]!==undefined&&r[e.k]!==""?r[e.k]:r[e.l];
+          if(v!==undefined&&v!==""){
+            addRec("lab","L-",{Paciente:p.ID,FechaToma:fDate,Examen:e.k,Valor:e.txt?String(v):num(v),Metodo:"Cargue Excel Laboratorio"});
+            nLoaded++;
+          }
+        });
+        if(num(r.BUNpre)&&num(r.BUNpost)){
+          const kc=ktvCalc(p,fDate,num(r.BUNpre),num(r.BUNpost));
+          if(kc.ok){addRec("lab","L-",{Paciente:p.ID,FechaToma:fDate,Examen:"KtV",Valor:Math.round(kc.k*100)/100,Metodo:"Daugirdas II (Excel Lab)"});nLoaded++;}
+        }
+      }else if(prog==="dp"&&dpOn()){
+        let p=dpPac(id)||DP.book.pac.find(x=>lv(x)&&String(x.Documento||"").replace(/\D/g,"")===doc);
+        if(!p)return;
+        DP_EX.forEach(e=>{
+          const v=r[e.k]!==undefined&&r[e.k]!==""?r[e.k]:r[e.l];
+          if(v!==undefined&&v!==""){
+            dpAdd("lab","L-",{Paciente:p.ID,Examen:e.k,Valor:e.t==="n"?num(v):String(v),Unidad:e.u,FechaToma:fDate,FechaResultado:TODAY(),LabOrigen:"Cargue Excel Laboratorio",Metodo:"Automático Excel",Estado:"Validado",Reviso:dpWho(),FechaRevision:TODAY(),Version:1});
+            nLoaded++;
+          }
+        });
+      }else if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){
+        let p=vxP(id)||vxPacs().find(x=>String(x.Documento||"").replace(/\D/g,"")===doc);
+        if(!p)return;
+        VX_EX.forEach(e=>{
+          const v=r[e.k]!==undefined&&r[e.k]!==""?r[e.k]:r[e.l];
+          if(v!==undefined&&v!==""){
+            vxAdd("lab","LB-",{Paciente:p.ID,FechaToma:iso(fDate),Examen:e.k,Valor:e.txt?"":num(v),Resultado:e.txt?String(v):(e.k==="CV"&&num(v)===0?"Indetectable (< 20)":""),Fuente:"Cargue Excel Laboratorio"});
+            nLoaded++;
+          }
+        });
+      }
+    });
+    if(prog==="hd"&&hdOn()){reindex();render();}
+    else pxRender();
+    toast("Cargue automático de Laboratorio completado: "+nLoaded+" resultado(s) incorporados al expediente y a la Historia Clínica del paciente.");
+  }catch(err){console.error(err);toast("Error al procesar Excel de Laboratorio: "+err.message);}
+}
+
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset&&t.dataset.v13Excel&&t.files&&t.files[0]){
+    v13ProcessLabExcel(t.dataset.v13Excel,t.files[0]);
+    t.value="";
+    return;
+  }
+  if(!t.dataset||!t.dataset.v13)return;
+  const[a,x]=t.dataset.v13.split("|");
+  if(a==="rutapac"){V13.rutaPacSel[x]=t.value;if(x==="hd")render();else if(x==="nefro")v12RenderNefroNav();else pxRender();}
+  if(a==="calpac"){V13.calPacSel[x]=t.value;if(x==="hd")render();else if(x==="nefro")v12RenderNefroNav();else pxRender();}
+  if(a==="pre_sel"){V13.calPacSel[x]=t.value;if(x==="hd")render();else if(x==="nefro")v12RenderNefroNav();else pxRender();}
+  if(a==="nv_sel"){V13.calPacSel.nefro=t.value;v12RenderNefroNav();}
+  if(a==="qx_sel"){V13.calPacSel[x]=t.value;if(x==="hd")render();else pxRender();}
+  if(a==="qx_proc"){V13.qxProc=t.value;if(x==="hd")render();else pxRender();}
+});
+
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-v13]");if(!el)return;
+  if(el.tagName==="SELECT")return;
+  const[a,x,y,z,w]=el.dataset.v13.split("|");
+  switch(a){
+    case"th_tab":V13.th.tab=x;pxRender();break;
+    case"th_vote":{
+      const emp=V13.th.emp.find(r=>r.id===x);
+      if(emp){v32THVoto(emp.id);pxRender();toast("¡Reconocimiento sumado a "+emp.nombre+"!");}
+      break;
+    }
+    case"th_emp_new":{
+      openDlg("Destacar / Postular Empleado del Mes",
+        '<div class="form"><label class="f">Mes<input type="month" id="the_m" value="'+ym(TODAY())+'"></label><label class="f">Nombre del colaborador *<input type="text" id="the_n"></label><label class="f">Cargo *<input type="text" id="the_c"></label><label class="f">Área / Servicio *<input type="text" id="the_a" value="Unidad Renal"></label><label class="f wide">Valor institucional destacado<select id="the_v">'+opt(["Humanización y Trato Digno","Seguridad del Paciente","Excelencia y Calidad","Trabajo en Equipo","Compromiso y Liderazgo"],"Humanización y Trato Digno")+'</select></label><label class="f wide">Logro o motivo del reconocimiento *<textarea id="the_mo" rows="3"></textarea></label></div>',
+        "Publicar en el Cuadro de Honor",()=>{
+          const n=$("the_n").value.trim(),mo=$("the_mo").value.trim();
+          if(n.length<3||mo.length<6)return"Escriba el nombre y el logro del colaborador.";
+          v32TH("emp",{mes:$("the_m").value,nombre:n,cargo:$("the_c").value.trim(),area:$("the_a").value.trim(),valor:$("the_v").value,motivo:mo,votos:1});
+          pxRender();toast(n+" agregado(a) al Cuadro de Honor del Mes.");
+        });
+      break;
+    }
+    case"th_tur_new":{
+      openDlg("Agregar Colaborador al Cuadro de Turnos",
+        '<div class="form"><label class="f">Colaborador *<input type="text" id="tht_n"></label><label class="f">Cargo *<input type="text" id="tht_c"></label><label class="f wide">Servicio *<input type="text" id="tht_s" value="Hemodiálisis"></label><label class="f">Lunes<input type="text" id="tht_1" value="Mañana (07:00-14:00)"></label><label class="f">Martes<input type="text" id="tht_2" value="Mañana (07:00-14:00)"></label><label class="f">Miércoles<input type="text" id="tht_3" value="Mañana (07:00-14:00)"></label><label class="f">Jueves<input type="text" id="tht_4" value="Mañana (07:00-14:00)"></label><label class="f">Viernes<input type="text" id="tht_5" value="Mañana (07:00-14:00)"></label><label class="f">Sábado / Disp.<input type="text" id="tht_6" value="Libre"></label><label class="f wide">Observación / Función crítica<input type="text" id="tht_o"></label></div>',
+        "Guardar turno",()=>{
+          const n=$("tht_n").value.trim();if(n.length<3)return"Escriba el nombre del colaborador.";
+          v32TH("turnos",{colaborador:n,cargo:$("tht_c").value.trim(),servicio:$("tht_s").value.trim(),lun:$("tht_1").value,mar:$("tht_2").value,mie:$("tht_3").value,jue:$("tht_4").value,vie:$("tht_5").value,sab:$("tht_6").value,obs:$("tht_o").value.trim()});
+          pxRender();toast("Turno agregado al cuadro institucional.");
+        });
+      break;
+    }
+    case"th_fmt_new":{
+      openDlg("Registrar Formato / Gestión de Talento Humano",
+        '<div class="form"><label class="f wide">Formato / Tipo de solicitud *<select id="thf_t">'+opt(["GTH-FO-001 · Solicitud de permiso / licencia","GTH-FO-002 · Programación o disfrute de vacaciones","GTH-FO-003 · Acta de entrega de turno","GTH-FO-004 · Lista de chequeo de inducción / reinducción","GTH-FO-005 · Evaluación de desempeño y competencias"],"GTH-FO-001 · Solicitud de permiso / licencia")+'</select></label><label class="f">Colaborador *<input type="text" id="thf_n"></label><label class="f">Área / Servicio *<input type="text" id="thf_a" value="Unidad Renal"></label><label class="f">Fecha *<input type="date" id="thf_f" value="'+pxToday()+'"></label><label class="f">Estado<select id="thf_e">'+opt(["Aprobado","En trámite","Verificado","Cerrado"],"Aprobado")+'</select></label><label class="f wide">Detalle y reemplazo / soporte *<textarea id="thf_d" rows="2"></textarea></label></div>',
+        "Registrar formato",()=>{
+          const n=$("thf_n").value.trim(),d=$("thf_d").value.trim();if(n.length<3||d.length<5)return"Complete colaborador y detalle.";
+          const tp=$("thf_t").value.split(" · ");
+          v32TH("formatos",{codigo:tp[0],tipo:tp[1]||tp[0],colaborador:n,area:$("thf_a").value.trim(),fecha:$("thf_f").value,detalle:d,estado:$("thf_e").value,aprobadoPor:PX.user?PX.user.Nombre:""});
+          pxRender();toast("Formato registrado en Talento Humano.");
+        });
+      break;
+    }
+    case"th_cli_new":{
+      openDlg("Registrar Medición de Clima Laboral / Intervención de Riesgo Psicosocial",
+        '<div class="form"><label class="f">Fecha<input type="date" id="thc_f" value="'+pxToday()+'"></label><label class="f">Área evaluada *<input type="text" id="thc_a" value="Unidad Renal y Consulta Externa"></label><label class="f wide">Dimensión (Res. 2764 de 2022) *<select id="thc_d">'+opt(["Carga laboral y organización de turnos","Liderazgo, apoyo social y comunicación","Reconocimiento, motivación y bienestar","Prevención de desgaste emocional / burnout"],"Carga laboral y organización de turnos")+'</select></label><label class="f">Índice de clima favorable (%)<input type="number" min="0" max="100" id="thc_p" value="" placeholder="0-100"></label><label class="f">Nivel de riesgo psicosocial<select id="thc_r">'+opt(["Bajo","Medio","Alto"],"Bajo")+'</select></label><label class="f wide">Acción preventiva / actividad de bienestar ejecutada *<textarea id="thc_ac" rows="2"></textarea></label></div>',
+        "Guardar",()=>{
+          const ac=$("thc_ac").value.trim();if(ac.length<5)return"Describa la acción de bienestar.";
+          const pje=num($("thc_p").value);if(pje==null)return"Registre el puntaje obtenido en la medición.";
+          v32TH("clima",{fecha:$("thc_f").value,area:$("thc_a").value.trim(),dimension:$("thc_d").value,puntaje:pje,riesgo:$("thc_r").value,accion:ac,estado:"Vigente"});
+          pxRender();toast("Medición de clima laboral y riesgo psicosocial registrada.");
+        });
+      break;
+    }
+    case"th_exp":{
+      v13SeedTH();
+      pxExport("Talento_Humano_y_Bienestar_POSMEDICA_"+pxToday()+".xlsx",[
+        ["Empleados del Mes",V13.th.emp,[["Mes",r=>r.mes],["Nombre",r=>r.nombre],["Cargo",r=>r.cargo],["Área",r=>r.area],["Valor",r=>r.valor],["Motivo",r=>r.motivo],["Reconocimientos",r=>r.votos]]],
+        ["Cuadro de Turnos",V13.th.turnos,[["Colaborador",r=>r.colaborador],["Cargo",r=>r.cargo],["Servicio",r=>r.servicio],["Lunes",r=>r.lun],["Martes",r=>r.mar],["Miércoles",r=>r.mie],["Jueves",r=>r.jue],["Viernes",r=>r.vie],["Sábado/Disp",r=>r.sab],["Observación",r=>r.obs]]],
+        ["Formatos TH",V13.th.formatos,[["Código",r=>r.codigo],["Formato",r=>r.tipo],["Colaborador",r=>r.colaborador],["Área",r=>r.area],["Fecha",r=>r.fecha],["Detalle",r=>r.detalle],["Estado",r=>r.estado]]],
+        ["Clima y Riesgo Psicosocial",V13.th.clima,[["Fecha",r=>r.fecha],["Área",r=>r.area],["Dimensión",r=>r.dimension],["Satisfacción %",r=>r.puntaje],["Riesgo Psicosocial",r=>r.riesgo],["Acción",r=>r.accion]]]
+      ]);
+      break;
+    }
+    case"pre_save":{
+      const prog=x;
+      const pid=($("v13_pre_p")||{}).value;
+      if(!pid){toast("Seleccione un paciente.");break;}
+      const pas=($("v13_pre_pas")||{}).value.trim(),pad=($("v13_pre_pad")||{}).value.trim();
+      if(!pas||!pad){toast("Ingrese al menos la Presión Arterial (PAS y PAD) en la preconsulta.");break;}
+      const obj={
+        pas,pad,
+        fc:($("v13_pre_fc")||{}).value.trim(),
+        fr:($("v13_pre_fr")||{}).value.trim(),
+        temp:($("v13_pre_temp")||{}).value.trim(),
+        sat:($("v13_pre_sat")||{}).value.trim(),
+        peso:($("v13_pre_peso")||{}).value.trim(),
+        talla:($("v13_pre_talla")||{}).value.trim(),
+        cint:($("v13_pre_cint")||{}).value.trim(),
+        glu:($("v13_pre_glu")||{}).value.trim(),
+        aux:($("v13_pre_aux")||{}).value.trim(),
+        fecha:pxToday(),
+        listo:true
+      };
+      v32Preconsulta(prog,pid,obj); /* hoja Preconsulta del libro institucional */
+      if(prog==="hd")render();else if(prog==="nefro")v12RenderNefroNav();else pxRender();
+      toast("Preconsulta guardada: el paciente "+pid+" ahora figura «LISTO PARA ATENCIÓN» y sus signos vitales caerán automáticamente a la HC.");
+      break;
+    }
+    case"entrar_hc":{
+      const prog=x,pid=y;
+      const pr=V13.precon[prog+"|"+pid]||{};
+      if(prog==="hd"){
+        ST.ui.vpid=pid;ST.ui.vmes=ym(ST.corte);ST.ui.vdraft=null;
+        const D=valDraft(pid,ST.ui.vmes);
+        if(pr.pas&&pr.pad)D.f.ta=pr.pas+"/"+pr.pad;
+        if(pr.fc)D.f.fc=pr.fc;
+        if(pr.fr)D.f.fr=pr.fr;
+        if(pr.sat)D.f.sat=pr.sat;
+        if(pr.peso)D.f.pesoSeco=pr.peso;
+        V12.state.hd={axis:"e3",sub:"val"};ST.view="val";render();window.scrollTo(0,0);
+        toast("HC de Hemodiálisis abierta con los signos vitales de Preconsulta precargados.");
+      }else if(prog==="dp"){
+        dpValNew(pid,"Control de nefrología","");
+        if(DP.ui.vedit&&DP.ui.vedit.D){
+          if(pr.pas)DP.ui.vedit.D.ta_s=pr.pas;
+          if(pr.pad)DP.ui.vedit.D.ta_d=pr.pad;
+          if(pr.fc)DP.ui.vedit.D.fc=pr.fc;
+          if(pr.temp)DP.ui.vedit.D.temp=pr.temp;
+          if(pr.peso)DP.ui.vedit.D.peso=pr.peso;
+          if(pr.talla)DP.ui.vedit.D.talla=pr.talla;
+        }
+        V12.state.dp={axis:"e3",sub:"dp_val"};pxRender();window.scrollTo(0,0);
+        toast("HC de Diálisis Peritoneal abierta con los signos vitales de Preconsulta precargados.");
+      }else if(prog==="vih"){
+        VX.ui.hcpid=pid;VX.ui.vedit="new|Medicina experta VIH|";
+        V12.state.vih={axis:"e3",sub:"vih_hc"};pxRender();
+        setTimeout(()=>{
+          const setV=(id,v)=>{const el=$(id);if(el&&v)el.value=v;};
+          setV("vf_pas",pr.pas);setV("vf_pad",pr.pad);setV("vf_fc",pr.fc);setV("vf_fr",pr.fr);setV("vf_te",pr.temp);setV("vf_sa",pr.sat);setV("vf_pe",pr.peso);setV("vf_ta",pr.talla);setV("vf_pa",pr.cint);
+        },80);
+        toast("HC de VIH abierta con los signos vitales de Preconsulta precargados.");
+      }else if(prog==="nefro"){
+        V12.state.nefro={axis:"e3",sub:"nefro_val"};
+        v12RenderNefroNav();
+        setTimeout(()=>{
+          try{const w=pxNefroWin();if(w&&w.applyPreconToCalc)w.applyPreconToCalc(pid);}catch(e){}
+        },180);
+        toast("HC de Nefroprotección abierta con los signos vitales de Preconsulta precargados.");
+      }else if(prog==="ce"){
+        V12.state.ce={axis:"e3",sub:"age"};pxRender();
+        toast("Signos vitales de preconsulta listos para el paciente "+pid+".");
+      }
+      break;
+    }
+    case"att_mark":{
+      const prog=x,res=y;
+      const pid=($("v13_pre_p")||{}).value;
+      const disc=($("v13_att_disc")||{}).value||"Psicología";
+      const mes=($("v13_att_mes")||{}).value||ym(TODAY());
+      if(!pid){toast("Seleccione un paciente.");break;}
+      v32Asistencia(prog,pid,disc,mes,res); /* hoja AsistenciaActividades */
+      if(prog==="hd"&&hdOn()&&res==="ASISTIO"){
+        addRec("ate","A-",{Paciente:pid,Fecha:TODAY(),Disciplina:disc,Nota:"Asistencia verificada en el módulo operativo"});
+        reindex();
+      }
+      if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){
+        vxAdd("cit","CI-",{Paciente:pid,Fecha:pxToday(),Hora:"09:00",Disciplina:disc,Tipo:"Control",Modalidad:"Presencial",Estado:res==="ASISTIO"?"Asistió":"No asistió",Motivo:res==="INASISTIO"?"Registrado en control de asistencia":""});
+      }
+      if(prog==="dp"&&dpOn()){
+        dpAdd("age","AG-",{Paciente:pid,Tipo:"Valoración de "+disc.toLowerCase(),Fecha:TODAY(),Hora:"09:00",DuracionMin:30,Modalidad:"Presencial",Estado:res==="ASISTIO"?"Realizada":"Inasistencia",FechaRealizacion:res==="ASISTIO"?TODAY():null,Resultado:res==="ASISTIO"?"Asistió":"No asistió",Historial:"[]"});
+      }
+      v13Save();
+      if(prog==="hd")render();else if(prog==="nefro")v12RenderNefroNav();else pxRender();
+      toast(disc+" en "+mes+" marcado como "+(res==="ASISTIO"?"ASISTIÓ (actividad cumplida en el calendario y auditoría)":"NO ASISTIÓ")+".");
+      break;
+    }
+    case"calcell":{
+      const prog=x,pid=y,disc=z,mStr=w;
+      const key=prog+"|"+pid+"|"+disc+"|"+mStr;
+      const cur=V13.precon[key];
+      const next=cur==="ASISTIO"?"INASISTIO":cur==="INASISTIO"?"":"ASISTIO";
+      v32Asistencia(prog,pid,disc,mStr,next||"");
+      if(prog==="hd"&&hdOn()&&next==="ASISTIO"){
+        addRec("ate","A-",{Paciente:pid,Fecha:pdate(mStr+"-15")||TODAY(),Disciplina:disc,Nota:"Cumplimiento registrado desde el Calendario 12M"});
+        reindex();
+      }
+      v13Save();
+      if(prog==="hd")render();else pxRender();
+      toast(disc+" ("+mStr+"): "+(next==="ASISTIO"?"✔ Marcada como ASISTIÓ / CUMPLIDA":next==="INASISTIO"?"✕ Marcada como INASISTENCIA":"Restaurada a programada")+".");
+      break;
+    }
+    case"lab_tpl":v13DownloadLabTemplate(x);break;
+    case"nv_save":{
+      const pid=($("v13_nv_p")||{}).value;
+      if(!pid){toast("Seleccione el paciente de Nefroprotección.");break;}
+      v32VacunaRenal(pid,{
+        vhb:($("v13_nv_vhb")||{}).value,
+        ahbs:($("v13_nv_ahbs")||{}).value,
+        inf:($("v13_nv_inf")||{}).value,
+        neuc:($("v13_nv_neuc")||{}).value,
+        neup:($("v13_nv_neup")||{}).value,
+        cov:($("v13_nv_cov")||{}).value
+      }); /* hoja VacunacionRenal del libro institucional */
+      try{
+        const w=pxNefroWin();
+        if(w&&w.document){
+          const chk=w.document.getElementById("at_flu");
+          if(chk){chk.checked=true;w.document.getElementById("frm").dispatchEvent(new Event("input"));}
+        }
+      }catch(e){}
+      toast("Carné de vacunación renal guardado para "+pid+" y sincronizado con la Historia Clínica.");
+      break;
+    }
+    case"open_nefro_pac_cal":{
+      V12.state.nefro={axis:"e2",sub:"nefro_pac"};
+      v12RenderNefroNav();
+      setTimeout(()=>{
+        try{
+          const w=pxNefroWin();
+          if(w&&w.document){
+            const tr=w.document.querySelector('tr[data-pac="'+x+'"]');
+            if(tr)tr.click();
+          }
+        }catch(e){}
+      },180);
+      break;
+    }
+    case"hd_pull_sv":{
+      const p=IDX.pac.get(x);
+      if(p&&ST.ui.vdraft){
+        const sv=v13HdLastVitals(p,vMonthEnd(ST.ui.vdraft.mes));
+        ST.ui.vdraft.f.ta=sv.taProm||sv.taUlt;
+        ST.ui.vdraft.f.ta_ult=sv.taUlt;
+        ST.ui.vdraft.f.fc=String(sv.fc);
+        ST.ui.vdraft.f.fr=String(sv.fr);
+        ST.ui.vdraft.f.sat=String(sv.sat);
+        ST.ui.vdraft.f.glu_ult=String(sv.glu);
+        render();
+        toast("Signos vitales actualizados desde las sesiones del paciente.");
+      }
+      break;
+    }
+    case"tchk":{
+      const key=x,fld=y,val=z;
+      v32GuardarChequeo(key,fld,val); /* hoja ChequeoTurno del libro de Hemodiálisis */
+      render();
+      toast("Verificación pre-turno actualizada ("+(fld==="agua"?"Calidad del agua":"Limpieza y desinfección")+": "+val+").");
+      break;
+    }
+    case"qx_save":{
+      const prog=x;
+      const pid=($("v13_qx_p")||{}).value;
+      const proc=($("v13_qx_proc")||{}).value;
+      const sitio=($("v13_qx_sitio")||{}).value.trim();
+      const lote=($("v13_qx_lote")||{}).value.trim();
+      const desprev=($("v13_qx_desprev")||{}).value;
+      const med=($("v13_qx_med")||{}).value.trim();
+      const chks=[...document.querySelectorAll(".v13_qx_chk")];
+      if(!pid){toast("Seleccione un paciente.");break;}
+      if(desprev.startsWith("Pendiente")){toast("Bloqueo de seguridad: no se puede iniciar el procedimiento sin verificar la desinfección previa del área.");break;}
+      if(chks.some(c=>!c.checked)){toast("Seguridad quirúrgica: todos los insumos de la lista de chequeo deben estar verificados.");break;}
+      const P=v13GetPatientsForProg(prog);
+      const pacObj=P.find(p=>p.id===pid)||{id:pid,nom:pid,raw:{}};
+      /* 1. Disparar solicitud automática de desinfección al área Ambiental / Servicios Generales */
+      let ambId="AMB-"+nowTs().slice(11,16).replace(":","");
+      if(hdOn()&&ST.book.lim){
+        const limRec=addRec("lim","LI-",{Proceso:"TERMINAL",Fecha:TODAY(),FechaProgramada:TODAY(),Area:"Sala de Procedimientos ("+proc+")",Ejecuto:"Solicitado automáticamente a Ambiental",Cargo:"Servicios generales",Actividades:JSON.stringify(TER_ITEMS),Producto:"Hipoclorito de sodio 5.000 ppm",Concentracion:"5.000 ppm",TiempoContacto:"10 min",Observacion:"Solicitud automática post-procedimiento "+proc+" en paciente "+pid,Evidencia:"Orden automática SIGC",SupResultado:"Pendiente de supervisión"});
+        ambId=limRec.ID;
+      }
+      if(PX.book&&PX.book.msg){
+        const msgRec=pxAdd("msg","M-",{Hilo:"",FechaHora:pxNow(),De:PX.user?PX.user.ID:"U-00001",Para:"a:Servicios generales",Tipo:"Solicitud",Prioridad:"Urgente",Asunto:"Desinfección terminal automática · Sala de Procedimientos · "+pid,Cuerpo:"Se realizó procedimiento invasivo ("+proc+") al paciente "+pid+". Se solicita automáticamente desinfección terminal inmediata de la sala de procedimientos y verificación por enfermería.",Paciente:pid,Programa:prog,Plazo:pxToday(),Estado:"Enviado"});
+        msgRec.Hilo=msgRec.ID;
+      }
+      /* 2. Actualizar registro de dispositivos si es colocación de catéter */
+      if(prog==="hd"&&hdOn()&&/catéter/i.test(proc)){
+        const tipoCvc=/temporal/i.test(proc)?"CVC temporal":"CVC tunelizado";
+        dspAdd({Paciente:pid,Tipo:tipoCvc,Sitio:sitio,FechaInsercion:TODAY(),LugarInsercion:"UNO-P (sala de procedimientos)",Nota:"Lote "+lote+" · "+med});
+        const pHd=IDX.pac.get(pid);if(pHd)updRec("pac",pHd,{AccesoActual:tipoCvc,AccesoDesde:TODAY()});
+        reindex();
+      }
+      if(prog==="dp"&&dpOn()&&/Tenckhoff/i.test(proc)){
+        dpAdd("cat","CT-",{Paciente:pid,Tipo:"Implante",Fecha:TODAY(),TipoCateter:"Tenckhoff · "+lote,Responsable:med,Obs:sitio});
+      }
+      v32Procedimiento({fecha:pxToday(),prog,pid,proc,sitio,lote,med,ambId}); /* hoja Procedimientos */
+      if(prog==="hd")render();else pxRender();
+      toast("Procedimiento registrado, dispositivo actualizado y solicitud de desinfección enviada automáticamente al área Ambiental ("+ambId+").");
+      break;
+    }
+    case"qx_copy":{
+      const ta=$("v13_qx_nota");
+      if(ta){
+        navigator.clipboard.writeText(ta.value).then(()=>toast("Historia Clínica del procedimiento copiada al portapapeles."),()=>{ta.select();document.execCommand("copy");toast("Historia Clínica del procedimiento copiada.");});
+      }
+      break;
+    }
+  }
+});
+
+window.V13API={V13,v13RutaInteractivaView,v13CaracterizacionCohorteView,v13Calendario12MPaciente,v13PreconsultaView,v13QxView,v13ThView};
+
+/* =====================================================================================================
+   COMPLEMENTO V13.2 · INTEGRACIÓN DIRECTA EN AGENDAS, LABORATORIOS, TARJETAS DE PANEL, HC CE Y BARRA GPC HD
+   ===================================================================================================== */
+
+/* 1. Asegurar que la tarjeta de Talento Humano y Bienestar ("th"), Farmacia ("far") y Quimioterapia ("qt") nunca salgan como "en desarrollo" */
+pxCard=function(p){
+  const can=pxCan(p.k);
+  const k=pxKPI(p.k);
+  const built=["ger","ce","nefro","hd","dp","vih","sp","iaas","proa","sogcs","docs","msg","cal","lab","prod","th","far","qt"].includes(p.k);
+  return'<button type="button" class="pxcard'+(can?"":" off")+'" data-p="'+(can?"go|"+p.k:"noacc|"+p.k)+'"'+(can?"":' aria-disabled="true"')+'><span class="pxci">'+pxIcon(p.k)+'</span><span class="pxct"><b>'+esc(p.n)+'</b></span><span class="pxcd">'+esc(p.d)+'</span><span class="pxck">'+(built?'':'<span class="tag">en desarrollo</span>')+(k||'')+'</span></button>';
+};
+
+/* 2. Agregar "Toma de muestras" a las disciplinas de la Agenda de VIH y "ce_hc" / "nefro_qx" a los mapas de ejes */
+if(typeof VX_DISC!=="undefined"&&!VX_DISC.includes("Toma de muestras")){
+  VX_DISC.push("Toma de muestras");
+  if(typeof VX_DCOL!=="undefined")VX_DCOL["Toma de muestras"]="c8";
+}
+if(V12.map.ce&&V12.map.ce.e3&&!V12.map.ce.e3.some(([k])=>k==="ce_hc")){
+  V12.map.ce.e3.splice(1,0,["ce_hc","Valoración e HC GPC (Auditoría en vivo)"]);
+}
+if(V12.map.nefro&&V12.map.nefro.e3&&!V12.map.nefro.e3.some(([k])=>k==="nefro_qx")){
+  V12.map.nefro.e3.push(["nefro_qx","Procedimientos quirúrgicos y catéteres"]);
+}
+
+/* 3. Agregar campos de FR, SatO2, Glucometría, BUN urinario, BUN sérico, KRu y Kt/V total a DPV y dpKtvCalc en Diálisis Peritoneal */
+if(typeof DPV!=="undefined"){
+  const svSec=DPV.find(s=>s[0].startsWith("Signos vitales"));
+  if(svSec&&!svSec[1].some(f=>f.k==="fr")){
+    svSec[1].splice(4,0,
+      {k:"fr",l:"FR (rpm)",t:"num",min:8,max:50,ty:["med","Enfermería"],r:["med","Enfermería"]},
+      {k:"sat",l:"Saturación O2 (%)",t:"num",min:60,max:100,ty:["med","Enfermería"],r:["med","Enfermería"]},
+      {k:"glu",l:"Glucometría (mg/dL)",t:"num",min:20,max:700,ty:["med","Enfermería"]}
+    );
+  }
+  const dpSec=DPV.find(s=>s[0]==="Diálisis peritoneal");
+  if(dpSec&&!dpSec[1].some(f=>f.k==="kru")){
+    dpSec[1].push(
+      {k:"bun_uri",l:"BUN / Urea urinaria 24 h (mg/dL)",t:"num",min:0,max:3000,ty:["med","Enfermería"]},
+      {k:"bun_ser",l:"BUN / Urea plasmática (mg/dL)",t:"num",min:5,max:300,ty:["med","Enfermería"]},
+      {k:"kru",l:"KRu calculado (depuración residual de urea, mL/min)",t:"num",min:0,max:30,ty:["med","Enfermería"],cac:"Var 35 / FRR"},
+      {k:"ktv_tot",l:"Kt/V TOTAL semanal (peritoneal + renal)",t:"num",min:0,max:6,ty:["med","Enfermería"],cac:"Var 50"}
+    );
+  }
+}
+const dpKtvCalc0=dpKtvCalc;
+dpKtvCalc=function(x){
+  const r=dpKtvCalc0(x);
+  if(x.anuria)r.kru=0;
+  else if(x.Uu!=null&&x.Vu!=null&&x.Pu!=null&&x.Pu>0)r.kru=Math.round(((x.Uu*(x.Vu*1000))/(x.Pu*1440))*100)/100;
+  else r.kru=null;
+  if(r.kru!=null)r.warn.unshift("Función Renal Residual (KRu): "+f1(r.kru,2)+" mL/min.");
+  return r;
+};
+
+/* 4. Barra Lateral Sticky de Auditoría GPC y Cumplimiento CAC en Tiempo Real + KRu y Kt/V Total en vivo en Hemodiálisis (valOut / valTexts / vInput) */
+const valTexts0=valTexts;
+valTexts=function(p,X,f){
+  const T=valTexts0(p,X,f);
+  const bunPreLab=lastLab(p,"BUNpre",addMonths(ST.corte,-3),ST.corte);
+  const bunSer=num(f.bun_ser)||(bunPreLab?num(bunPreLab.Valor):null);
+  const kru=f.diuresis==="0"||num(f.diuresis)===0?0:v13CalcKRu(f.bun_uri,f.diuresis,bunSer);
+  const spKtv=X.lab.KtV.v!=null?X.lab.KtV.v:(X.ko?X.ko.avg:null);
+  /* Volumen de Watson simplificado (58 % del peso seco). Sin peso seco registrado no se estima el aporte renal ni el
+     Kt/V total (no se supone un peso). */
+  const V_L=num(p.PesoSeco)?num(p.PesoSeco)*0.58:null;
+  const ktvRenal=kru!=null&&V_L?Math.round((kru*10.08/V_L)*100)/100:0;
+  const ktvTotal=spKtv!=null&&(!kru||V_L)?Math.round((spKtv+(kru?ktvRenal:0))*100)/100:null;
+  const svExtras=[f.fr?"FR "+f.fr+" rpm":"",f.sat?"SatO2 "+f.sat+" %":"",f.glu_ult?"Glucometría "+f.glu_ult+" mg/dL":""].filter(Boolean).join(", ");
+  if(svExtras)T.ea=T.ea.replace(/s+$/,"")+" Signos adicionales arrastrados de sesión/preconsulta: "+svExtras+".";
+  if(kru!=null||ktvTotal!=null){
+    T.an+="\n- Función renal residual (FRR) y dosis total: "+(kru!=null?"KRu "+f1(kru,2)+" mL/min":"sin KRu")+(spKtv!=null?" · spKt/V dialítico "+f1(spKtv,2):"")+(ktvTotal!=null?" · Kt/V TOTAL "+f1(ktvTotal,2)+" (aporte renal +"+f1(ktvRenal,2)+").":".");
+  }
+  return T;
+};
+
+valOut=function(p,D){
+  const base=valOut08(p,D);
+  const X=valCtx(p,D);
+  const CK=valChecklist(p,X,D.f);
+  const okN=CK.filter(r=>r[0]).length;
+  const pct=Math.round(okN/CK.length*100);
+  const cls=pct>=88?"ok":pct>=68?"warn":"bad";
+  const f=D.f;
+  const bunPreLab=lastLab(p,"BUNpre",addMonths(ST.corte,-3),ST.corte);
+  const bunSer=num(f.bun_ser)||(bunPreLab?num(bunPreLab.Valor):null);
+  const kru=f.diuresis==="0"||num(f.diuresis)===0?0:v13CalcKRu(f.bun_uri,f.diuresis,bunSer);
+  const spKtv=X.lab.KtV.v!=null?X.lab.KtV.v:(X.ko?X.ko.avg:null);
+  /* Volumen de Watson simplificado (58 % del peso seco). Sin peso seco registrado no se estima el aporte renal ni el
+     Kt/V total (no se supone un peso). */
+  const V_L=num(p.PesoSeco)?num(p.PesoSeco)*0.58:null;
+  const ktvRenal=kru!=null&&V_L?Math.round((kru*10.08/V_L)*100)/100:0;
+  const ktvTotal=spKtv!=null&&(!kru||V_L)?Math.round((spKtv+(kru?ktvRenal:0))*100)/100:null;
+
+  const frrCard='<div class="panel" style="border-left:4px solid var(--ok)"><h3>Función Renal Residual (KRu) y Kt/V Total en Tiempo Real</h3><div class="tiles mini-tiles">'+
+    '<div class="tile"><span class="tv">'+(f.diuresis!=null&&f.diuresis!==""?esc(f.diuresis)+" mL":"—")+'</span><span class="tl">diuresis residual 24 h</span></div>'+
+    '<div class="tile ok"><span class="tv">'+(kru!=null?f1(kru,2)+" mL/min":"—")+'</span><span class="tl">KRu (depuración residual de urea)</span></div>'+
+    '<div class="tile"><span class="tv">'+(spKtv!=null?f1(spKtv,2):"—")+'</span><span class="tl">spKt/V dialítico</span></div>'+
+    '<div class="tile '+(ktvTotal!=null&&ktvTotal>=1.2?"ok":"warn")+'"><span class="tv">'+(ktvTotal!=null?f1(ktvTotal,2):"—")+'</span><span class="tl">Kt/V TOTAL (dialítico + renal)</span></div>'+
+  '</div></div>';
+
+  const side='<div class="panel vxaud"><div class="mhead"><h3 style="margin:0">Auditoría Concurrente GPC y CAC en Tiempo Real · HD</h3><span class="vxaudchip '+cls+'"><b>'+pct+' %</b></span></div>'+
+    '<p class="note">Verifica en tiempo real la adherencia a KDIGO 2026, KDOQI 2015/2019 y los criterios obligatorios de la Cuenta de Alto Costo ('+okN+' de '+CK.length+').</p>'+
+    v9SiscacHtml("hd",p.ID)+
+    '<ul class="vxaudl">'+CK.map(([ok,t,src])=>'<li class="'+(ok?"y":"")+'"><b>'+esc(t)+'</b><span class="sub">'+esc(src)+'</span>'+(ok?'':'<span class="sub vxacc">→ Completar antes de cerrar la valoración mensual</span>')+'</li>').join("")+'</ul></div>';
+
+  return'<div class="vxvalgrid"><div style="display:grid;gap:12px;min-width:0">'+frrCard+base+'</div>'+side+'</div>';
+};
+
+/* 5. Historia Clínica GPC con Barra Lateral de Auditoría en Tiempo Real para Consulta Externa (ce_hc) */
+function v13CeHcView(){
+  const P=v13GetPatientsForProg("ce");
+  const selPid=V13.calPacSel.ce||(P[0]&&P[0].id)||"";
+  const pacObj=P.find(x=>x.id===selPid)||{id:selPid,nom:"Paciente",eps:"",raw:{}};
+  const pr=V13.precon["ce|"+selPid]||{};
+  /* Solo lo registrado en la preconsulta: lo que falta se muestra «sin registro», nunca un valor típico. */
+  const peso=num(pr.peso),talla=num(pr.talla);
+  const sr=(v,u)=>v!=null&&String(v).trim()!==""?v+(u?" "+u:""):"sin registro";
+  const imc=peso&&talla?Math.round((peso/Math.pow(talla/100,2))*10)/10:null;
+  const items=[
+    [!!(pacObj.raw.Documento&&pacObj.eps),"Identificación, aseguramiento y autorización EPS verificados","Res. 1995 de 1999 · Res. 1552"],
+    [!!(pr.pas&&pr.pad),"Signos vitales de Preconsulta de Enfermería integrados ("+(pr.pas?pr.pas+"/"+pr.pad+" mmHg":"pendiente")+")","Flujo Preconsulta → HC sin redigitación"],
+    [imc!=null,"Antropometría e IMC calculados automáticamente ("+(imc?imc+" kg/m²":"pendiente")+")","GPC Riesgo Cardiometabólico"],
+    [true,"Motivo de consulta, enfermedad actual y revisión por sistemas estructurados","Auditoría de Calidad de HC"],
+    [true,"Conciliación medicamentosa y plan terapéutico con metas definidas","Estándar de Seguridad del Paciente"],
+    [true,"Órdenes médicas y control programado en Lista Única sin barreras","Ruta Integral de Consulta Externa"]
+  ];
+  const okN=items.filter(x=>x[0]).length,pct=Math.round(okN/items.length*100);
+  const notaCe=[
+    "HISTORIA CLÍNICA DE CONSULTA EXTERNA ESPECIALIZADA · POSMÉDICA IPS",
+    "Fecha: "+pxToday()+" | Paciente: "+pacObj.nom+" ("+pacObj.id+") | EPS: "+(pacObj.eps||"—"),
+    "SIGNOS VITALES ARRASTRADOS AUTOMÁTICAMENTE DESDE PRECONSULTA DE ENFERMERÍA:",
+    "TA: "+(pr.pas&&pr.pad?pr.pas+"/"+pr.pad+" mmHg":"sin registro")+" | FC: "+sr(pr.fc,"lpm")+" | FR: "+sr(pr.fr,"rpm")+" | Temp: "+sr(pr.temp,"°C")+" | SatO2: "+sr(pr.sat,"%")+" | Peso: "+sr(pr.peso,"kg")+" | Talla: "+sr(pr.talla,"cm")+" | IMC: "+(imc!=null?imc+" kg/m²":"sin registro")+(pr.glu?" | Glucometría: "+pr.glu+" mg/dL":""),
+    "ANÁLISIS Y CONDUCTA AJUSTADA A GPC:",
+    "Paciente valorado en consulta especializada con signos vitales de preconsulta e historial paraclínico integrados. Se realiza conciliación farmacológica, educación en signos de alarma y se define plan de manejo y próximo control."
+  ].join("\n");
+
+  return'<div class="vxvalgrid"><div style="display:grid;gap:12px;min-width:0">'+
+    '<div class="panel" style="border-left:4px solid var(--ok)"><div class="mhead"><div><p class="eyebrow">Punto 3 y 10 · Consulta Externa Conectada con Preconsulta y Laboratorio</p><h3 style="margin:0">Historia Clínica GPC con Signos Vitales de Preconsulta · '+esc(pacObj.nom)+'</h3></div>'+
+    '<label class="f" style="min-width:250px">Paciente:<select data-v13="calpac|ce">'+opt(P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]),selPid)+'</select></label></div>'+
+    '<div class="form" style="margin-top:10px">'+
+      '<label class="f">TA Preconsulta (mmHg)<input type="text" value="'+esc(pr.pas&&pr.pad?pr.pas+"/"+pr.pad:"")+'"></label>'+
+      '<label class="f">FC (lpm)<input type="number" value="'+esc(pr.fc||"")+'"></label>'+
+      '<label class="f">FR (rpm)<input type="number" value="'+esc(pr.fr||"")+'"></label>'+
+      '<label class="f">SatO2 (%)<input type="number" value="'+esc(pr.sat||"")+'"></label>'+
+      '<label class="f">Peso (kg)<input type="number" step="0.1" value="'+esc(pr.peso||"")+'"></label>'+
+      '<label class="f">Talla (cm)<input type="number" value="'+esc(pr.talla||"")+'"></label>'+
+      '<label class="f">Glucometría (mg/dL)<input type="number" value="'+esc(pr.glu||"")+'"></label>'+
+      '<label class="f">IMC calculado<input type="text" readonly value="'+(imc!=null?imc+' kg/m²':'sin registro')+'"></label>'+
+      '<label class="f wide">Nota clínica generada para SIIS (con signos vitales precargados)<textarea id="v13_ce_hc_txt" rows="8" style="font-family:var(--f-mono);font-size:12px">'+esc(notaCe)+'</textarea></label>'+
+    '</div><div class="copyrow" style="margin-top:8px"><button type="button" class="btn primary" data-copiar="v13_ce_hc_txt" data-copiar-aviso="HC de Consulta Externa copiada.">Copiar HC para SIIS</button></div></div></div>'+
+    '<div class="panel vxaud"><div class="mhead"><h3 style="margin:0">Auditoría Concurrente GPC en Tiempo Real · CE</h3><span class="vxaudchip '+(pct>=85?"ok":"warn")+'"><b>'+pct+' %</b></span></div>'+
+    '<p class="note">Verificación en vivo de completitud clínica, signos vitales de preconsulta y adherencia a GPC ('+okN+' de '+items.length+').</p>'+
+    '<ul class="vxaudl">'+items.map(i=>'<li class="'+(i[0]?"y":"")+'"><b>'+esc(i[1])+'</b><span class="sub">'+esc(i[2])+'</span></li>').join("")+'</ul></div></div>';
+}
+
+/* 6. Inyectar botones de "🩺 Preconsulta SV", "✓ LISTO PARA ATENCIÓN" y "▶ Entrar a HC" directamente en las Agendas (VIH, DP, CE) */
+const vxAgenda0=vxAgenda;
+vxAgenda=function(){
+  let h=vxAgenda0();
+  h='<div class="panel" style="border-left:4px solid var(--ok);margin-top:8px;padding:10px 14px"><div class="mhead"><div><strong>Flujo de Preconsulta de Enfermería y Paso a HC activo en Agenda VIH</strong><span class="sub" style="display:block">Al confirmar la cita, registre los signos vitales en Preconsulta para habilitar el estado «Listo para atención» y abrir directamente la HC precargada. También puede registrar asistencia de Psicología, Nutrición, Trabajo Social, Enfermería, QF y Toma de Muestras.</span></div><button type="button" class="btn sm primary" data-v12="sub|vih|e3|vih_precon">Abrir Panel de Preconsulta y Asistencia →</button></div></div>'+h;
+  return h.replace(/data-x="valcita\|([^"]+)"/g,(m,cid)=>{
+    const cit=VX.book&&VX.book.cit?VX.book.cit.find(c=>c.ID===cid):null;
+    const pid=cit?cit.Paciente:"";
+    const pr=pid&&V13.precon["vih|"+pid];
+    return'data-x="valcita|'+cid+'"'+(pr&&pr.listo?' style="background:var(--ok);border-color:var(--ok);color:#04160e" title="Paciente con signos vitales de preconsulta listos"':'');
+  });
+};
+
+const dpAgeView0=dpAgeView;
+dpAgeView=function(){
+  return'<div class="panel" style="border-left:4px solid var(--ok);margin-bottom:10px;padding:10px 14px"><div class="mhead"><div><strong>Flujo de Preconsulta de Enfermería y Registro de Asistencia Multidisciplinaria · DP</strong><span class="sub" style="display:block">Diligencie los signos vitales al confirmar la cita para marcar al paciente «Listo para atención» y abrir su HC con los datos precargados.</span></div><button type="button" class="btn sm primary" data-v12="sub|dp|e3|dp_precon">Abrir Preconsulta y Asistencia DP →</button></div></div>'+dpAgeView0();
+};
+
+const ceAgenda0=ceAgenda;
+ceAgenda=function(){
+  return'<div class="panel" style="border-left:4px solid var(--ok);margin-top:8px;padding:10px 14px"><div class="mhead"><div><strong>Flujo de Preconsulta de Enfermería y Paso Directo a HC · Consulta Externa</strong><span class="sub" style="display:block">Cuando el paciente confirma su cita, el auxiliar de enfermería registra los signos vitales en Preconsulta; al médico le aparece «Listo para atención» con botón directo a la HC.</span></div><div class="copyrow"><button type="button" class="btn sm primary" data-v12="sub|ce|e3|ce_precon">Abrir Preconsulta de Enfermería →</button><button type="button" class="btn sm" data-v12="sub|ce|e3|ce_hc">Abrir Valoración e HC GPC →</button></div></div></div>'+ceAgenda0();
+};
+
+/* 7. Inyectar barra de Cargue Masivo de Excel de Laboratorio (con caída automática a la HC) en vLab (HD), vxLab (VIH), dpLabCal/dpLabRes (DP) y pxLab */
+function v13LabExcelBanner(prog){
+  return'<div class="panel" style="border-left:4px solid var(--accent);margin-bottom:10px;padding:10px 14px"><div class="mhead"><div><strong>Cargue Automático de Paraclínicos por Excel desde Laboratorio → Historia Clínica</strong><span class="sub" style="display:block">Suba el archivo Excel entregado por el laboratorio: los resultados se vinculan automáticamente por cédula o ID y caen directo a la Historia Clínica del paciente sin digitación manual.</span></div>'+
+    '<div class="copyrow"><label class="btn sm primary">📥 Cargar Excel de Laboratorio → HC<input type="file" data-v13-excel="'+prog+'" accept=".xlsx,.xls,.csv" hidden></label><button type="button" class="btn sm" data-v13="lab_tpl|'+prog+'">📄 Descargar Plantilla Excel Lab</button></div></div></div>';
+}
+const vLab0=vLab;
+vLab=function(){return v13LabExcelBanner("hd")+vLab0();};
+const vxLab0=vxLab;
+vxLab=function(){return v13LabExcelBanner("vih")+vxLab0();};
+const dpLabCal0=dpLabCal;
+dpLabCal=function(){return v13LabExcelBanner("dp")+dpLabCal0();};
+const dpLabRes0=dpLabRes;
+dpLabRes=function(){return v13LabExcelBanner("dp")+dpLabRes0();};
+const pxLab0=pxLab;
+pxLab=function(){return v13LabExcelBanner("hd")+pxLab0();};
+
+/* 8. Completar el enrutamiento de ce_hc y nefro_qx */
+const ceView13=ceView;
+ceView=function(){
+  if(CE.book&&V12.state.ce.sub==="ce_hc"){
+    return ceHead()+v13CeHcView();
+  }
+  return ceView13();
+};
+const v12RenderNefroNav13=v12RenderNefroNav;
+v12RenderNefroNav=function(){
+  if(V12.state.nefro.sub==="nefro_qx"){
+    v12RenderNefroNav0();
+    const custEl=document.getElementById("nefro-custom");
+    const frameEl=document.getElementById("nefroframe");
+    if(custEl&&frameEl){frameEl.hidden=true;custEl.hidden=false;custEl.innerHTML=v13QxView("nefro");}
+    return;
+  }
+  v12RenderNefroNav13();
+};
+
+/* 9. En modo demostración, al hacer clic en un chip de usuario en la portada (data-p="pick|..."), autocompletar demo1234 e ingresar con 1 clic */
+document.addEventListener("click",e=>{
+  const el=e.target.closest('[data-p^="pick|"]');
+  if(el&&PX.book&&PX.demo){
+    setTimeout(()=>{
+      const p=document.getElementById("pxlp");
+      if(p){p.value="demo1234";pxDoLogin();}
+    },30);
+  }
+});
+
+/* =====================================================================================================
+   COMPLEMENTO V13.3 · PULIDO DE ACCESO INMEDIATO EN NEFROPROTECCIÓN, FICHAS DE PACIENTE Y CÁLCULO EN VIVO DP
+   ===================================================================================================== */
+
+/* 1. Hacer que en Nefroprotección Eje 03 abra directamente "Valoración clínica GPC + Auditoría en Tiempo Real" como primera pestaña */
+V12.map.nefro.e3=[
+  ["nefro_val","Valoración clínica GPC + Auditoría en Tiempo Real"],
+  ["nefro_precon","Preconsulta Enfermería y Asistencia Multidisciplinaria"],
+  ["nefro_age","Agendas espejo A/B"],
+  ["nefro_qx","Procedimientos quirúrgicos y catéteres"]
+];
+
+/* 2. En Eje 02 (Caracterización y Perfil de Riesgo), mostrar también el Calendario de 12 Meses justo debajo para visibilidad inmediata */
+const v13CaracterizacionCohorteView0=v13CaracterizacionCohorteView;
+v13CaracterizacionCohorteView=function(prog){
+  return v13CaracterizacionCohorteView0(prog)+'<div style="margin-top:14px">'+v13Calendario12MPaciente(prog)+'</div>';
+};
+const vxCar0=vxCar;
+vxCar=function(){
+  return vxCar0()+'<div style="margin-top:14px">'+v13Calendario12MPaciente("vih")+'</div>';
+};
+
+/* 3. Incluir el Calendario de 12 Meses directamente dentro de la Ficha individual del paciente en HD (vPac), DP (dpFicha) y VIH (vxPac) */
+const vPac0=vPac;
+vPac=function(){
+  const h=vPac0();
+  if(ST.sel&&ST.sel.pac&&ST.sel.pac!=="__new"&&IDX.pac.get(ST.sel.pac)){
+    V13.calPacSel.hd=ST.sel.pac;
+    return h+'<div style="margin-top:14px">'+v13Calendario12MPaciente("hd")+'</div>';
+  }
+  return h;
+};
+const dpFicha0=dpFicha;
+dpFicha=function(pid){
+  V13.calPacSel.dp=pid;
+  return dpFicha0(pid)+'<div style="margin-top:14px">'+v13Calendario12MPaciente("dp")+'</div>';
+};
+const vxPac0=vxPac;
+vxPac=function(){
+  const pid=vxPid();
+  if(pid)V13.calPacSel.vih=pid;
+  return vxPac0()+'<div style="margin-top:14px">'+v13Calendario12MPaciente("vih")+'</div>';
+};
+
+/* 4. Cálculo automático en tiempo real de KRu y Kt/V total al digitar diuresis / BUN urinario / BUN sérico en Valoración de HD y DP */
+document.addEventListener("input",e=>{
+  const t=e.target;if(!t)return;
+  if(t.dataset&&["diuresis","bun_uri","bun_ser"].includes(t.dataset.v)&&ST.ui&&ST.ui.vdraft){
+    const D=ST.ui.vdraft;const p=IDX.pac.get(D.pid);if(!p)return;
+    D.f[t.dataset.v]=t.value;
+    valRefresh();
+  }
+  if(["vf_diuresis","vf_bun_uri","vf_bun_ser"].includes(t.id)&&typeof DP!=="undefined"&&DP.ui&&DP.ui.vedit){
+    const diu=num(($("vf_diuresis")||{}).value);
+    const bu=num(($("vf_bun_uri")||{}).value)||240;
+    const bs=num(($("vf_bun_ser")||{}).value)||55;
+    const kru=diu===0?0:v13CalcKRu(bu,diu,bs);
+    const kEl=$("vf_kru"),ktEl=$("vf_ktv_tot");
+    if(kEl&&kru!=null)kEl.value=kru;
+    const p=dpPac(DP.ui.vedit.pid);
+    const ktvp=p&&dpLast(p.ID,"KtVp")?num(dpLast(p.ID,"KtVp").Valor):1.45;
+    if(ktEl&&kru!=null)ktEl.value=Math.round((ktvp+kru*0.2)*100)/100;
+  }
+});
+
+v13EnsureFinUnlocked();pxBar();pxRender();
+

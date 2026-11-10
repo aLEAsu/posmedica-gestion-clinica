@@ -15,6 +15,10 @@ import { conReintentos, subirVersion } from "../../services/version.js";
 export const HOJAS_AGENDA = ["Jornadas", "Citas", "Citas_log", "Contactos", "Auditoria_GPC", "Arrastre_nominal", "Config_nominal"] as const;
 /** La configuración de la nominal (códigos de la IPS ante la EPS) solo la cambia el administrador. */
 const SOLO_ADMIN = new Set(["Config_nominal"]);
+/** Bitácora de gestión de citas (auditoría A13, 19 oct 2026): se puede agregar una entrada nueva (como cualquier
+    bitácora, la Ruta registra ahí cada cambio de estado de una cita), pero una vez guardada no se modifica —
+    igual que la auditoría del servidor, que tampoco se puede editar. */
+const SOLO_AGREGA = new Set(["Citas_log"]);
 const PROGRAMA = "nefro";
 
 const Fila = z.object({ clave: z.string().min(1).max(500), datos: z.record(z.unknown()), _ts: z.string().nullable().optional() });
@@ -77,11 +81,14 @@ nefroAgenda.post(
             (ts[hoja] ??= {})[f.clave] = r.actualizadoEn.toISOString();
             await auditar(req, { accion: "CREA", entidad: `nefro.agenda.${hoja}`, registroId: f.clave, programa: PROGRAMA, despues: f.datos }, tx);
           }
+          if ((c.modificados?.length ?? 0) > 0 && SOLO_AGREGA.has(hoja)) throw prohibido(`${hoja} es una bitácora: no se puede modificar una entrada ya registrada.`);
           for (const f of c.modificados ?? []) {
             const k = { hoja, clave: f.clave };
             const actual = await tx.nefroAgendaFila.findUnique({ where: { hoja_clave: k } });
             if (!actual) throw new HttpError(409, `${f.clave} ya no existe en la agenda. Se recargará la agenda.`, "CONFLICTO");
-            if (f._ts && actual.actualizadoEn.toISOString() !== f._ts) throw new HttpError(409, `Otro usuario modificó ${f.clave} en la agenda mientras usted trabajaba. Se recargará la agenda: revise y repita.`, "CONFLICTO");
+            // Control de concurrencia obligatorio (igual que el motor genérico, libro/servicio.ts): sin el sello no se
+            // sabe si el cliente vio la versión actual, así que se rechaza en vez de sobrescribir en silencio.
+            if (!f._ts || actual.actualizadoEn.toISOString() !== f._ts) throw new HttpError(409, `Otro usuario modificó ${f.clave} en la agenda mientras usted trabajaba. Se recargará la agenda: revise y repita.`, "CONFLICTO");
             const r = await tx.nefroAgendaFila.update({ where: { hoja_clave: k }, data: { datos: f.datos as Prisma.InputJsonValue, actualizadoPor: uid } });
             (ts[hoja] ??= {})[f.clave] = r.actualizadoEn.toISOString();
             const antes = actual.datos as Record<string, unknown>;

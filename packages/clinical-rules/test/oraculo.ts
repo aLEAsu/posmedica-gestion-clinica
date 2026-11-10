@@ -1,10 +1,10 @@
-/* Oráculo de equivalencia: ejecuta el prototipo ORIGINAL completo (sin modificar su código) en un contexto
-   aislado de Node, con un DOM simulado que acepta cualquier operación y un reloj fijo. Así se obtienen las
-   respuestas del prototipo para compararlas con el paquete extraído. */
+/* Oráculo de equivalencia: ejecuta el código COMPLETO de los módulos (apps/web/public/modulos/, el mismo que sirve la
+   aplicación) en un contexto aislado de Node, con un DOM simulado que acepta cualquier operación y un reloj fijo. Así
+   se obtienen las respuestas de la interfaz para compararlas con el paquete extraído. */
 import vm from "node:vm";
 import * as XLSX from "xlsx";
 // @ts-expect-error módulo JS sin tipos
-import { leerPrototipo } from "../scripts/fuente.mjs";
+import { leerModulos } from "../scripts/fuente.mjs";
 
 /** Objeto comodín: se puede leer, escribir, llamar, construir e iterar sin fallar. */
 function comodin(): unknown {
@@ -17,7 +17,9 @@ function comodin(): unknown {
       if (k === "length") return 0;
       if (k === "value" || k === "textContent" || k === "innerHTML") return "";
       if (k === "checked" || k === "hidden") return false;
-      if (k === "dataset" || k === "style") return {};
+      if (k === "dataset") return {};
+      // La interfaz ajusta variables CSS (tema, escala de letra) con style.setProperty.
+      if (k === "style") return { setProperty() {}, removeProperty() {}, getPropertyValue: () => "" };
       return comodin();
     },
     set: () => true,
@@ -78,6 +80,10 @@ function contexto(hoy: Date, extra: Record<string, unknown> = {}, relojReal = fa
     btoa,
     fetch: () => Promise.reject(new Error("sin red en el oráculo")),
     AbortController,
+    // La interfaz observa cambios del DOM y del tamaño de la ventana.
+    MutationObserver: comodin(),
+    ResizeObserver: comodin(),
+    IntersectionObserver: comodin(),
     ...extra,
   };
   g.window = g;
@@ -94,17 +100,17 @@ export interface Oraculo {
 
 /** Carga el portal completo (Hemodiálisis, VIH y núcleo del portal). */
 export function cargarPortal(hoy: Date, opciones: { relojReal?: boolean } = {}): Oraculo {
-  const P = leerPrototipo();
+  const P = leerModulos();
   // relojReal: usa la clase Date del anfitrión (necesario cuando el prototipo recibe fechas creadas por SheetJS).
   const ctx = contexto(hoy, {}, !!opciones.relojReal);
-  for (const s of P.scripts) vm.runInContext(s, ctx, { filename: "prototipo.html" });
+  for (const s of P.scripts) vm.runInContext(s, ctx, { filename: "portal.js" });
   return { ev: (e) => vm.runInContext(e, ctx) };
 }
 
 /** Carga la Ruta de Nefroprotección (documento aparte, como el iframe original). «extra» reemplaza globales del
     navegador simulado (p. ej. fetch y location para probar su modo base de datos contra el servidor). */
 export function cargarNefro(hoy: Date, extra: Record<string, unknown> = {}): Oraculo {
-  const P = leerPrototipo();
+  const P = leerModulos();
   const ctx = contexto(hoy, extra);
   for (const s of P.nefroScripts) vm.runInContext(s, ctx, { filename: "nefro.html" });
   return { ev: (e) => vm.runInContext(e, ctx) };

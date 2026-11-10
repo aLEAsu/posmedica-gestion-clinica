@@ -1,52 +1,39 @@
-/* Lectura del prototipo original «Gestión Clínica POSMÉDICA (1).html» (raíz del repositorio).
-   Lo usan el extractor de reglas y el oráculo de las pruebas de equivalencia: ambos parten del mismo archivo. */
+/* Lectura del código PROPIO de los módulos (apps/web/public/modulos/), el mismo que la aplicación sirve.
+   Lo usan el extractor de reglas y el oráculo de las pruebas de equivalencia: ambos parten de esos archivos, así las
+   pruebas verifican que el paquete de reglas coincide con lo que de verdad corre en el navegador.
+   El prototipo HTML de la coordinación médica es solo referencia funcional: nada aquí lo lee. */
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
-export const RUTA_PROTOTIPO = resolve(aqui, "../../../Gestión Clínica POSMÉDICA (1).html");
+export const RUTA_MODULOS = resolve(aqui, "../../../apps/web/public/modulos");
 
-const ENTIDADES = { "&quot;": '"', "&amp;": "&", "&lt;": "<", "&gt;": ">", "&#39;": "'" };
-
-/** Scripts en línea de un documento HTML, en orden. */
-export function scriptsDe(html) {
-  const out = [];
-  const re = /<script([^>]*)>([\s\S]*?)<\/script>/g;
-  let m;
-  while ((m = re.exec(html))) if (!/\bsrc=/.test(m[1]) && m[2].trim()) out.push(m[2]);
-  return out;
+/** Scripts propios que carga una página de módulo, en orden: [{ archivo, codigo }]. */
+function scriptsDePagina(pagina, incluir) {
+  const html = readFileSync(resolve(RUTA_MODULOS, pagina), "utf8");
+  const dir = dirname(resolve(RUTA_MODULOS, pagina));
+  return [...html.matchAll(/<script src="([^"]+)"><\/script>/g)]
+    .map((m) => m[1])
+    .filter(incluir)
+    .map((src) => ({ archivo: src, codigo: readFileSync(resolve(dir, src), "utf8") }));
 }
 
-/** Devuelve { html, scripts, principal, lineas, nefroHtml, nefroScripts } del prototipo. */
-export function leerPrototipo(ruta = RUTA_PROTOTIPO) {
-  const html = readFileSync(ruta, "utf8");
-  const scripts = scriptsDe(html);
-  const principal = scripts.find((s) => s.includes("/* ================= utilidades ================= */"));
-  if (!principal) throw new Error("No se encontró el script principal del prototipo.");
-  const lineas = principal.split("\n");
-  const ln = lineas.find((l) => l.startsWith("const NEFRO_HTML="));
-  const nefroHtml = ln ? JSON.parse(ln.slice("const NEFRO_HTML=".length).replace(/;\s*$/, "")) : null;
-  const nefroScripts = nefroHtml ? scriptsDe(nefroHtml) : [];
-  // Línea del archivo HTML que corresponde a la línea 1 del script principal (para citar el origen de cada regla).
-  const lineaBase = html.slice(0, html.indexOf(principal)).split("\n").length - 1;
-  return { html, scripts, principal, lineas, lineaBase, nefroHtml, nefroScripts };
+/** Devuelve { principal, scripts, porArchivo, lineaBase, nefroScripts } de los módulos.
+    principal: el núcleo del portal (portal.js: Hemodiálisis, VIH, transversales); scripts: todo el código propio de la
+    página del portal en orden de carga; porArchivo: el código de cada archivo del portal; nefroScripts: la Ruta. */
+export function leerModulos() {
+  // Todo lo que carga la página salvo librerías (../vendor) y adaptadores a la API: el código de la interfaz.
+  const propio = (s) => !s.includes("/") && !s.startsWith("adaptador");
+  const portal = scriptsDePagina("portal/index.html", propio);
+  const porArchivo = Object.fromEntries(portal.map((s) => [s.archivo, s.codigo]));
+  const principal = porArchivo["portal.js"];
+  if (!principal || !principal.includes("/* ================= utilidades ================= */"))
+    throw new Error("No se encontró el código principal del portal (apps/web/public/modulos/portal/portal.js).");
+  const nefroScripts = scriptsDePagina("nefro/index.html", propio).map((s) => s.codigo);
+  // Las líneas citadas («portal.js:línea») son las del propio archivo.
+  return { principal, scripts: portal.map((s) => s.codigo), porArchivo, lineaBase: 0, nefroScripts };
 }
 
-/** Rango de líneas [desde, hasta) del script principal entre dos marcadores (texto de inicio de línea). */
-export function seccion(lineas, inicio, fin) {
-  const a = lineas.findIndex((l) => l.startsWith(inicio));
-  const b = fin ? lineas.findIndex((l, i) => i > a && l.startsWith(fin)) : lineas.length;
-  if (a < 0 || b < 0) throw new Error(`Marcador no encontrado: ${a < 0 ? inicio : fin}`);
-  return { desde: a, hasta: b };
-}
-
-export const MARCAS = {
-  hd: ["\"use strict\";", "/* ================= PORTAL POSMÉDICA · núcleo"],
-  vih: ["/* ================= v0.4 · PROGRAMA VIH · estructura", "/* ================= eventos del portal"],
-};
-
-/** Nombre con que se cita el archivo del prototipo en el código generado («prototipo:línea»). */
-export const ETIQUETA = "prototipo";
-
-export { ENTIDADES };
+/** Nombre con que se cita el archivo de origen en el código generado («portal.js:línea»). */
+export const ETIQUETA = "portal.js";

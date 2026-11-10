@@ -129,7 +129,8 @@ describe("compatibilidad con el código original de la Ruta", () => {
     // fetch del navegador simulado → este servidor, con la sesión del administrador y la dirección de la fachada.
     const cookie = (await request(app).post("/api/v1/auth/login").set("Origin", ORIGEN).set("X-Posmedica", "1").send({ usuario: "admin.nefro", clave: CLAVE })).headers["set-cookie"];
     const fetchRuta = async (url: string, o: { method?: string; headers?: Record<string, string>; body?: string } = {}) => {
-      const ruta = "/api/v1/nefro/pg/" + String(url).replace(/^api\//, "");
+      // La Ruta pide a la fachada con su dirección configurada (/api/v1/nefro/pg/…).
+      const ruta = "/api/v1/nefro/pg/" + String(url).replace(/^(\/api\/v1\/nefro\/pg\/|api\/)/, "");
       const m = (o.method ?? "GET").toLowerCase() as "get" | "post" | "patch";
       let q = request(app)[m](ruta).set("Cookie", cookie).set("Origin", ORIGEN).set("X-Posmedica", "1");
       if (o.body) q = q.set("Content-Type", "application/json").send(o.body);

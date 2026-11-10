@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ACCIONES, GRUPOS, PROGRAMAS, ROLES, type Accion, type PermisoPrograma, type Rol } from "@posmedica/shared";
+import { ACCIONES, AYUDA_ROLES_CE, AYUDA_ROLES_DP, GRUPOS, PROGRAMAS, ROLES, ROLES_CE, ROLES_DP, ROL_CE_SIN, ROL_DP_SIN, type Accion, type PermisoPrograma, type Rol, type RolesModulo } from "@posmedica/shared";
 import { api, ErrorApi } from "../api";
 import { useAviso } from "../components/Aviso";
 import { Dialogo } from "../components/Dialogo";
@@ -18,6 +18,28 @@ interface UsuarioFila {
   bloqueadoHasta: string | null;
   ultimoIngreso: string | null;
   permisos: { programaClave: string; ver: boolean; registrar: boolean; anular: boolean; exportar: boolean }[];
+  rolesModulo: RolesModulo;
+}
+
+type Perm = Pick<PermisoPrograma, "ver" | "registrar">;
+const rolCe = (r: RolesModulo) => r.ce?.rol ?? ROL_CE_SIN;
+const rolDp = (r: RolesModulo) => (r.dp && r.dp.activo ? r.dp.rol : ROL_DP_SIN);
+
+/** Combinaciones incompletas entre el permiso del programa y el rol dentro del módulo (CE y DP tienen las dos capas). */
+function advertencias(perm: (p: string) => Perm | undefined, roles: RolesModulo): string[] {
+  const A: string[] = [];
+  const ce = perm("ce"), dp = perm("dp");
+  if (ce?.ver) {
+    const r = rolCe(roles);
+    if (ce.registrar && r === ROL_CE_SIN) A.push("Consulta externa: tiene «Registrar» pero su rol en el módulo es «Solo consulta»; no podrá registrar ni asignar.");
+    if (!ce.registrar && r !== ROL_CE_SIN) A.push(`Consulta externa: su rol es «${ROLES_CE[r]}», pero sin «Registrar» no podrá guardar.`);
+  }
+  if (dp?.ver) {
+    const r = rolDp(roles);
+    if (dp.registrar && r === ROL_DP_SIN) A.push("Diálisis peritoneal: tiene «Registrar» pero su rol en el módulo es «Solo consulta»; no podrá registrar.");
+    if (!dp.registrar && r !== ROL_DP_SIN && r !== "lab") A.push(`Diálisis peritoneal: su rol es «${ROLES_DP[r]}», pero sin «Registrar» no podrá guardar.`);
+  }
+  return A;
 }
 
 /* Programas con permisos asignables: los de acceso abierto (mensajes, documentos, calendario) no se asignan. */
@@ -92,8 +114,9 @@ export function Usuarios() {
                     <span className="sub">{[u.cargo, u.area].filter(Boolean).join(" · ")}</span>
                   </td>
                   <td>{ROLES[u.rol]}</td>
-                  <td style={{ fontSize: 13, maxWidth: 280 }}>
+                  <td style={{ fontSize: 13, maxWidth: 320 }}>
                     {u.rol === "ADMIN" ? "Todos" : u.permisos.length ? u.permisos.map((p) => ASIGNABLES.find((x) => x.clave === p.programaClave)?.nombre ?? p.programaClave).join(", ") : <span className="sd">sin programas</span>}
+                    {u.rol === "MEDICO" && <RolesFila u={u} />}
                   </td>
                   <td>
                     <span className={"st " + (u.activo ? (bloqueado ? "bad" : "ok") : "base")}>{u.activo ? (bloqueado ? "Bloqueado" : "Activo") : "Inactivo"}</span>
@@ -177,6 +200,25 @@ export function Usuarios() {
   );
 }
 
+/** Rol en CE y DP bajo la lista de programas, y advertencia si no concuerda con los permisos. */
+function RolesFila({ u }: { u: UsuarioFila }) {
+  const tiene = (p: string) => u.permisos.find((x) => x.programaClave === p);
+  const dp = rolDp(u.rolesModulo);
+  const txt = [
+    tiene("ce") && `Consulta externa: ${ROLES_CE[rolCe(u.rolesModulo)]}${u.rolesModulo.ce?.veReservadas ? " (ve reservadas)" : ""}`,
+    (tiene("dp") || (tiene("lab") && dp !== ROL_DP_SIN)) && `Diálisis peritoneal: ${ROLES_DP[dp]}`,
+  ].filter(Boolean);
+  const A = advertencias(tiene, u.rolesModulo);
+  return (
+    <>
+      {txt.length > 0 && <span className="sub">Rol en el módulo · {txt.join(" · ")}</span>}
+      {A.map((a) => (
+        <span key={a} className="sub" style={{ color: "var(--warn)" }}>⚠ {a}</span>
+      ))}
+    </>
+  );
+}
+
 function ClaveTemporal({ clave }: { clave?: string }) {
   if (!clave) return <p className="note">Se usó la clave inicial que usted escribió. El usuario deberá cambiarla en su primer ingreso.</p>;
   return (
@@ -256,6 +298,15 @@ function DlgPermisos(props: { u: UsuarioFila; onCerrar: () => void; onGuardado: 
     inicial[p.clave] = { programa: p.clave, ver: !!x?.ver, registrar: !!x?.registrar, anular: !!x?.anular, exportar: !!x?.exportar };
   }
   const [perm, setPerm] = useState(inicial);
+  const rm0 = props.u.rolesModulo;
+  const [ce, setCe] = useState({ rol: rolCe(rm0), veReservadas: !!rm0.ce?.veReservadas });
+  const [dp, setDp] = useState(rolDp(rm0));
+  const [motivo, setMotivo] = useState("");
+  // El rol de DP también aplica a Laboratorio: con el rol «Laboratorio» registra resultados de DP desde ese módulo.
+  const conCe = perm.ce?.ver, conDp = perm.dp?.ver || perm.lab?.ver;
+  const cambiaCe = !!conCe && (ce.rol !== rolCe(rm0) || ce.veReservadas !== !!rm0.ce?.veReservadas);
+  const cambiaDp = !!conDp && dp !== rolDp(rm0);
+  const avisos = advertencias((p) => perm[p], { ce, dp: { rol: dp, activo: true } });
 
   function cambiar(prog: string, acc: Accion, v: boolean) {
     const p = { ...perm[prog], [acc]: v };
@@ -270,7 +321,9 @@ function DlgPermisos(props: { u: UsuarioFila; onCerrar: () => void; onGuardado: 
       onCerrar={props.onCerrar}
       onAceptar={async () => {
         try {
-          await api.put(`/usuarios/${props.u.id}/permisos`, { permisos: Object.values(perm) });
+          if ((cambiaCe || cambiaDp) && motivo.trim().length < 4) return "Indique el motivo del rol en el módulo (la función que lo requiere).";
+          const rolesModulo = { ...(cambiaCe ? { ce } : {}), ...(cambiaDp ? { dp: { rol: dp, activo: true } } : {}), motivo: motivo.trim() };
+          await api.put(`/usuarios/${props.u.id}/permisos`, { permisos: Object.values(perm), ...(cambiaCe || cambiaDp ? { rolesModulo } : {}) });
           props.onGuardado();
         } catch (e) {
           return msgError(e);
@@ -305,6 +358,54 @@ function DlgPermisos(props: { u: UsuarioFila; onCerrar: () => void; onGuardado: 
           </tbody>
         </table>
       </div>
+      {(conCe || conDp) && (
+        <div style={{ display: "grid", gap: 8 }}>
+          <h3 style={{ margin: "4px 0 0", fontSize: 15 }}>Rol dentro del módulo</h3>
+          <p className="note" style={{ margin: 0 }}>
+            Consulta externa y Diálisis peritoneal tienen roles propios: el permiso del programa decide si entra y si puede guardar; el rol decide qué registra dentro del módulo. Sin rol queda en «Solo consulta».
+          </p>
+          <div className="form">
+            {conCe && (
+              <label className="f">
+                Consulta externa
+                <select value={ce.rol} onChange={(e) => setCe({ ...ce, rol: e.target.value })}>
+                  {Object.entries(ROLES_CE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+                <span className="note">{AYUDA_ROLES_CE[ce.rol]}</span>
+              </label>
+            )}
+            {conCe && (
+              <label className="f" style={{ alignContent: "start" }}>
+                Especialidades reservadas
+                <span style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 400 }}>
+                  <input type="checkbox" checked={ce.veReservadas} onChange={(e) => setCe({ ...ce, veReservadas: e.target.checked })} />
+                  Ve Infectología, Oncología y demás reservadas
+                </span>
+              </label>
+            )}
+            {conDp && (
+              <label className="f">
+                Diálisis peritoneal
+                <select value={dp} onChange={(e) => setDp(e.target.value)}>
+                  {Object.entries(ROLES_DP).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+                <span className="note">{AYUDA_ROLES_DP[dp]}</span>
+              </label>
+            )}
+            {(cambiaCe || cambiaDp) && (
+              <label className="f wide">
+                Motivo del rol *
+                <input type="text" value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="La función que lo requiere, p. ej. agenda de citas" maxLength={300} />
+              </label>
+            )}
+          </div>
+        </div>
+      )}
+      {avisos.length > 0 && (
+        <div className="alert warn">
+          {avisos.map((a) => <p key={a}>{a}</p>)}
+        </div>
+      )}
     </Dialogo>
   );
 }

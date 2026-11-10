@@ -13,6 +13,7 @@ import { prisma } from "../../db.js";
 import { HttpError } from "../../http/errors.js";
 import { requiereSesion } from "../../http/middleware.js";
 import { auditar, auditarConsulta } from "../../services/auditoria.js";
+import { conReintentos } from "../../services/version.js";
 import { aFecha, fechaTexto } from "../libro/servicio.js";
 
 type Tx = Prisma.TransactionClient;
@@ -46,9 +47,12 @@ const r =
   (fn: (req: Request, res: Response) => Promise<unknown>) =>
   (req: Request, res: Response, _next: NextFunction) =>
     fn(req, res).catch((e) => {
-      const status = e instanceof HttpError ? e.status : e?.code === "P2002" ? 409 : 500;
+      // P2034: la transacción serializable abortó por un conflicto con otra en curso (ver conReintentos); si persiste tras
+      // los reintentos, se responde como un conflicto normal, no como un error interno.
+      const status = e instanceof HttpError ? e.status : e?.code === "P2002" ? 409 : e?.code === "P2034" ? 409 : 500;
       if (status === 500) console.error(JSON.stringify({ nivel: "error", id: req.id, ruta: req.path, error: e?.name, mensaje: e?.message }));
-      res.status(status).json({ message: status === 500 ? "Error interno del servidor." : status === 409 ? `duplicate: ${e.message}` : e.message });
+      const mensaje = status === 500 ? "Error interno del servidor." : e?.code === "P2002" ? `duplicate: ${e.message}` : e?.code === "P2034" ? "Otro usuario guardó cambios al mismo tiempo. Repita la acción." : e.message;
+      res.status(status).json({ message: mensaje });
     });
 
 function exige(req: Request, accion: "ver" | "registrar" | "anular") {
@@ -76,7 +80,9 @@ function aFilaPaciente(p: PacConPersona) {
   };
 }
 
-/** Busca o crea la persona; un documento de otro paciente de la Ruta no se mezcla; un campo vacío no borra lo que otro programa registró. */
+/** Busca o crea la persona; un documento de otro paciente de la Ruta no se mezcla; un campo vacío no borra lo que otro
+    programa registró. Se fusiona por el número de documento SOLO (A5 de la auditoría, 19 oct 2026; igual que
+    resolverPersona del motor genérico): el tipo de documento no entra en la búsqueda. */
 async function persona(tx: Tx, P: Obj, usuarioId: string, propioId?: string) {
   const sexo = txt(P.sexo);
   const datos = {
@@ -85,7 +91,7 @@ async function persona(tx: Tx, P: Obj, usuarioId: string, propioId?: string) {
     municipio: txt(P.municipio), telefono: txt(P.telefono_1), direccion: txt(P.direccion),
   };
   if (datos.documento) {
-    const ex = await tx.persona.findFirst({ where: { documento: datos.documento, ...(datos.tipoDoc ? { tipoDoc: datos.tipoDoc } : {}) }, include: { nefroPaciente: true } });
+    const ex = await tx.persona.findFirst({ where: { documento: datos.documento }, include: { nefroPaciente: true } });
     if (ex) {
       if (ex.nefroPaciente && ex.nefroPaciente.id !== propioId) throw err(409, `Ya existe un paciente con ese documento (${ex.nefroPaciente.codigo}).`);
       // Al inscribir en la Ruta a una persona que ya existe en otro programa solo se completa lo que falta (misma regla del
@@ -196,7 +202,9 @@ nefroPg.post(
     if (tabla === "eps_modelo_atencion" && req.usuario!.rol !== "ADMIN") throw err(403, "Solo el administrador puede cambiar el modelo de atención por EPS.");
     exige(req, "registrar");
     const uid = req.usuario!.id;
-    await prisma.$transaction(async (tx) => {
+    // Serializable: «laboratorio» y «novedad» verifican duplicados con un findFirst antes de crear (insertarLab); sin este
+    // aislamiento, dos solicitudes casi simultáneas podían pasar la verificación las dos y quedar duplicadas.
+    await conReintentos(() => prisma.$transaction(async (tx) => {
       for (const x of filas) {
         const pid = String(x.paciente_id ?? "");
         if (tabla !== "eps_modelo_atencion" && !(await tx.nefroPaciente.findUnique({ where: { id: pid } }))) throw err(400, "El paciente no existe.");
@@ -223,7 +231,7 @@ nefroPg.post(
         } else throw err(404, `Tabla desconocida: ${tabla}`);
         await auditar(req, { accion: tabla === "eps_modelo_atencion" ? "CONFIGURA" : "CREA", entidad: `nefro.${tabla}`, registroId: id || undefined, programa: PROGRAMA, despues: x }, tx);
       }
-    });
+    }, { isolationLevel: "Serializable" }));
     res.status(201).end();
   }),
 );
@@ -262,7 +270,9 @@ nefroPg.post(
       case "guardar_paciente": {
         exige(req, "registrar");
         const P = (p.paciente ?? {}) as Obj;
-        const out = await prisma.$transaction(async (tx) => {
+        // Serializable: guardarPaciente busca o crea la persona por documento (findFirst+create); sin este aislamiento,
+        // dos registros casi simultáneos del mismo documento nuevo podían duplicar la persona.
+        const out = await conReintentos(() => prisma.$transaction(async (tx) => {
           const g = await guardarPaciente(tx, P, uid);
           const tipo = txt(p.novedad_tipo);
           if (g.nuevo) {
@@ -272,13 +282,14 @@ nefroPg.post(
           }
           await auditar(req, { accion: g.nuevo ? "CREA" : "MODIFICA", entidad: "nefro.paciente", registroId: g.p.codigo, programa: PROGRAMA, antes: g.antes ?? undefined, despues: P }, tx);
           return { id: g.p.id, nuevo: g.nuevo };
-        });
+        }, { isolationLevel: "Serializable" }));
         return res.json(out);
       }
       case "registrar_valoracion": {
         exige(req, "registrar");
         const v = (p.valoracion ?? {}) as Obj;
-        const out = await prisma.$transaction(async (tx) => {
+        // Serializable: insertarLab verifica duplicados con findFirst antes de crear, igual que en el POST normal.
+        const out = await conReintentos(() => prisma.$transaction(async (tx) => {
           const pid = String(v.paciente_id ?? "");
           if (!(await tx.nefroPaciente.findUnique({ where: { id: pid } }))) throw err(400, "El paciente no existe.");
           const fe = fecha(v.fecha, "fecha");
@@ -291,7 +302,7 @@ nefroPg.post(
           if (plan.length) await tx.nefroPlanItem.createMany({ data: plan });
           await auditar(req, { accion: "CREA", entidad: "nefro.valoracion", registroId: val.id, programa: PROGRAMA, despues: v, detalle: `${labs} paraclínicos nuevos, ${plan.length} ítems del plan` }, tx);
           return { valoracion_id: val.id, laboratorios: labs, plan: plan.length };
-        });
+        }, { isolationLevel: "Serializable" }));
         return res.json(out);
       }
       case "importar_libro": {

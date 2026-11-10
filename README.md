@@ -3,7 +3,7 @@
 Versión web multiusuario del prototipo «Gestión Clínica POSMÉDICA» (UNO-P · Mocoa, Putumayo).
 Frontend React, backend Node.js y base de datos PostgreSQL, desplegados en Render.
 
-> El prototipo HTML del coordinador médico es la **especificación funcional**: reglas clínicas, cálculos, indicadores, textos y diseño se conservan tal cual. Ver [docs/ANALISIS.md](docs/ANALISIS.md).
+> El prototipo HTML del coordinador médico es la **especificación funcional** (a dónde debe llegar el sistema). **No forma parte del proyecto**: no está en el repositorio (trae datos reales de pacientes), ni el build ni las pruebas lo leen. Desde el 10 nov 2026 el código de los módulos es propio y se edita en `apps/web/public/modulos/`. Hasta ese día los módulos se copiaban del prototipo: reglas clínicas, cálculos, indicadores, textos y diseño se conservan tal cual. Ver [docs/ANALISIS.md](docs/ANALISIS.md).
 
 ## Estado
 
@@ -21,6 +21,11 @@ Frontend React, backend Node.js y base de datos PostgreSQL, desplegados en Rende
 | 8 | Diálisis peritoneal: 24 tablas `dp_*`, roles del módulo en dos capas, importación del archivo de control, reporte CAC, bitácora desde la auditoría | ✅ Lista para pruebas |
 | 9 | Consulta externa: 13 tablas `ce_*`, roles del módulo, especialidades reservadas ocultas desde el servidor, un cupo nunca se asigna dos veces | ✅ Lista para pruebas |
 | 10 | Tablero gerencial (solo administradores), con Nefroprotección calculada en segundo plano | ✅ Lista para pruebas |
+| B (v3.2) | Interfaz v3.2 (barra lateral, tema, 8 ejes) y Hemodiálisis: 17 indicadores CAC v3.1, SIIS, oxígeno medicinal, chequeo pre-turno y FC/FR/SatO2 guardados en el servidor (`hd_actividad_siis`, `hd_oxigeno`, `hd_chequeo_turno`); sin signos vitales ni pesos supuestos; sin copias de datos en el navegador | ✅ Lista para pruebas |
+| C (v3.2) | Transversales: preconsulta, asistencia por disciplina, procedimientos, vacunación renal y soportes SISCAC en el servidor con permisos por programa en cada fila; Quimioterapia, Capacitaciones y Liberación de reportes (8 tablas `portal_*` nuevas); sin signos vitales supuestos en la HC de Consulta externa | ✅ Lista para pruebas |
+| D (v3.2) | Diálisis peritoneal v1.1 como página propia (`/modulos/dp11/`) con sus datos en el servidor (`dp11_paciente` enlazado al maestro `persona`, `dp11_registro` con llave foránea al paciente), anular en vez de borrar, metas/costos/catálogo solo del administrador, carga inicial desde la copia .json del módulo y paso desde las tablas `dp_*` de la v0.8 | ✅ Lista para pruebas |
+| E (v3.2) | Contratos y tecnologías (página propia `/modulos/ct11/`; la matriz contractual solo la entrega y la carga la API al administrador) y Talento humano y bienestar (4 tablas `portal_th_*`, solo administrador, sin personal ficticio) | ✅ Lista para pruebas |
+| F (v3.2) | Cierre: sin datos fijos de ejemplo (kárdex real de cilindros), contratos por EPS de DP en el servidor, puente de lectura de DP v1.1 para IAAS-09, PROA y Laboratorio, guías de despliegue y aceptación al día; la base arranca vacía | ✅ Lista para desplegar |
 | — | Optimización: respuestas comprimidas, lecturas en paralelo, carga paralela de libros (DP y CE solo a quien los usa), guardado de seguridad solo tras interacción, código de los módulos con huella para caché larga | ✅ |
 
 Quimioterapia y Servicio farmacéutico siguen «en desarrollo», igual que en el prototipo.
@@ -41,10 +46,10 @@ apps/api                 Backend: Express 5 + Prisma 6 + PostgreSQL (TypeScript)
   src/modulos/nefro/     Fachada de la API de la Ruta de nefroprotección y su agenda
   test/                  Pruebas de integración (Vitest + Supertest)
 apps/web                 Frontend: React 19 + Vite (estilos copiados del prototipo)
-  public/modulos/          Interfaz ORIGINAL del prototipo + adaptadores a la API: portal/ (HD, VIH, transversales) y nefro/
-  scripts/extraer-modulos.mjs  Copia textual del código del prototipo a public/modulos (corre en cada build)
+  public/modulos/          Código PROPIO de los módulos (partió del prototipo v0.8) + adaptadores a la API: portal/ (HD, VIH, transversales) y nefro/
+  scripts/preparar-modulos.mjs  Copia SheetJS local y, tras vite build, pone la huella de caché en dist/modulos/c/
 packages/shared          Catálogo de programas y regla única de permisos (front y back)
-packages/clinical-rules  Reglas clínicas extraídas del prototipo + pruebas de equivalencia (ver su README)
+packages/clinical-rules  Reglas clínicas extraídas del código de los módulos + pruebas de equivalencia (ver su README)
 _analisis/               Prototipo separado por módulos: referencia para las fases siguientes
 docs/                    Análisis y documentación
 ```
@@ -100,7 +105,7 @@ Cada corrida crea una base temporal `posmedica_test_<marca>` en el Postgres loca
 
 ## Cómo funcionan los módulos migrados
 
-Cada módulo conserva **la interfaz y la lógica originales del prototipo** (copiadas textualmente en cada build) y un **adaptador** (`public/modulos/<modulo>/adaptador-<modulo>.js`, con el motor de sincronización común en `public/modulos/adaptador-comun.js`) las conecta con el servidor. En el backend, un **motor genérico de libros** (`apps/api/src/modulos/libro/`) atiende a todos los programas con su configuración (`modulos/hd/config.ts`, `modulos/vih/config.ts`):
+Cada módulo conserva **la interfaz y la lógica del prototipo** (su código vive en `public/modulos/` y se edita ahí) y un **adaptador** (`public/modulos/<modulo>/adaptador-<modulo>.js`, con el motor de sincronización común en `public/modulos/adaptador-comun.js`) las conecta con el servidor. En el backend, un **motor genérico de libros** (`apps/api/src/modulos/libro/`) atiende a todos los programas con su configuración (`modulos/hd/config.ts`, `modulos/vih/config.ts`):
 
 - Al abrir, carga los datos desde la base (`GET /api/v1/<programa>/libro`), no desde un archivo de Excel.
 - Cada cambio que el módulo registra se guarda en el servidor en segundos (`POST /api/v1/<programa>/sincronizar`). La línea de estado muestra «Guardando…» o «Guardado · hora».
@@ -110,7 +115,7 @@ Cada módulo conserva **la interfaz y la lógica originales del prototipo** (cop
 - **Una sola página, como en el prototipo**: Hemodiálisis (sección `#hdapp`), VIH y los módulos transversales viven en el portal del prototipo (`public/modulos/portal/`), y la Ruta de Nefroprotección se abre dentro de él en su iframe («cargada desde el servidor»). Desde la v0.6, el código de Hemodiálisis usa definiciones que viven más abajo en el mismo script (dispositivos, Microbiología, IAAS), y la barra fija «Reportar evento adverso / Novedad a Coordinación» aparece en todos los programas.
 - **VIH** usa el portal del prototipo completo (VIH es un módulo nativo de ese portal); el adaptador manda la navegación hacia otros programas al portal nuevo. «Importar cohorte o archivo CAC» funciona para cualquier usuario con permiso de registrar y **acepta el reporte CAC sin fila de encabezado** (tal como se envía a la EPS).
 - **Maestro único de personas**: la identidad (documento, nombres, nacimiento, sexo, EPS, residencia, etnia, zona) vive en `persona` y la comparten los programas. Etnia y zona se guardan como código CAC y VIH las ve con su etiqueta (equivalencias del propio prototipo). **Un campo vacío no borra un dato que otro programa registró**: para cambiarlo, escriba el valor nuevo.
-- **Diálisis peritoneal y Consulta externa** tienen roles propios del prototipo (hojas RolesDP y RolesCE) además de los permisos del programa: el servidor valida las dos capas en cada hoja. El administrador es Dirección Médica en DP y Coordinación en CE. En CE, quien no tiene «ve reservadas» no recibe del servidor las solicitudes, autorizaciones, gestiones ni citas de Infectología u Oncología, y un cupo no puede recibir dos citas (se verifica dentro de la transacción serializable del guardado).
+- **Diálisis peritoneal y Consulta externa** tienen roles propios del prototipo (hojas RolesDP y RolesCE) además de los permisos del programa: el servidor valida las dos capas en cada hoja. El administrador es Dirección Médica en DP y Coordinación en CE. El rol de cada usuario se asigna en **Usuarios → Programas y permisos**, junto con los permisos del programa (se guarda en RolesCE/RolesDP con motivo y queda en la auditoría); la lista de usuarios advierte cuando un usuario tiene «Registrar» pero su rol es «Solo consulta», o al revés. En CE, quien no tiene «ve reservadas» no recibe del servidor las solicitudes, autorizaciones, gestiones ni citas de Infectología u Oncología, y un cupo no puede recibir dos citas (se verifica dentro de la transacción serializable del guardado).
 - Tablas de hemodiálisis: `hd_paciente` (la identidad vive en `persona`, el maestro único), `hd_sesion`, `hd_evento`, `hd_paraclinico`, `hd_novedad`, `hd_movimiento`, `hd_contacto`, `hd_acceso_novedad`, `hd_atencion`, `hd_valoracion`, `hd_estudio`, `hd_vacuna`, `hd_trasplante_item`, `hd_solicitud_lab`, `hd_seguridad_paciente`, `hd_antimicrobiano`, `hd_auditoria_iaas`, `hd_prescripcion`, `hd_dispensacion`, `hd_dispositivo`, `hd_limpieza`, `hd_corte`. Tablas de VIH (todo texto, como lo lee el prototipo): `vih_paciente`, `vih_antecedente`, `vih_laboratorio`, `vih_esquema_tar`, `vih_entrega_tar`, `vih_cita`, `vih_valoracion`, `vih_vacuna`, `vih_procedimiento`, `vih_profilaxis`, `vih_novedad`, `vih_solicitud_lab`, `vih_arrastre_cac`. Tablas de Diálisis peritoneal (`dp_*`, 24) y de Consulta externa (`ce_*`, 13), con los mismos nombres de hoja del prototipo. Todas se generan desde las hojas del prototipo con `npm run esquema -w apps/api`.
 
 ### Nefroprotección (Fase 5)
