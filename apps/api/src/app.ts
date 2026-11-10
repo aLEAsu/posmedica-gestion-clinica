@@ -18,6 +18,7 @@ import { CONFIG_VIH } from "./modulos/vih/config.js";
 import { CONFIG_PORTAL } from "./modulos/portal/config.js";
 import { nefroPg } from "./modulos/nefro/fachada.js";
 import { nefroAgenda } from "./modulos/nefro/agenda.js";
+import { dp11 } from "./modulos/dp11/rutas.js";
 import { CONFIG_DP } from "./modulos/dp/config.js";
 import { dpBitacora } from "./modulos/dp/bitacora.js";
 import { CONFIG_CE } from "./modulos/ce/config.js";
@@ -72,6 +73,7 @@ export function crearApp() {
   app.use("/api/v1/ce", crearRutasLibro(CONFIG_CE));
   app.use("/api/v1/nefro/pg", nefroPg);
   app.use("/api/v1/nefro", nefroAgenda);
+  app.use("/api/v1/dp11", dp11); // Diálisis peritoneal v1.1 (fase D)
 
   app.use("/api", (_req, _res, next) => next(noEncontrado("Ruta no encontrada.")));
   app.use(manejadorErrores);

@@ -172,6 +172,7 @@ model Persona {
   inscripciones InscripcionPrograma[]
   hdPaciente    HdPaciente?
   vihPaciente   VihPaciente?
+  dp11Paciente  Dp11Paciente?
   nefroPaciente NefroPaciente?
   dpPaciente    DpPaciente?
   cePaciente    CePaciente?
@@ -2303,6 +2304,45 @@ model NefroAgendaFila {
 
   @@id([hoja, clave])
   @@map("nefro_agenda_fila")
+}
+
+/// Diálisis peritoneal v1.1 (fase D): paciente del módulo. La identidad (documento, nombres, nacimiento, sexo, EPS,
+/// municipio, teléfono) vive en «persona», el maestro único; aquí, los demás campos del módulo.
+model Dp11Paciente {
+  id              String         @id
+  personaId       String         @unique @map("persona_id") @db.Uuid
+  datos           Json
+  anulado         Boolean        @default(false)
+  motivoAnulacion String?        @map("motivo_anulacion")
+  creadoPor       String?        @map("creado_por") @db.Uuid
+  creadoEn        DateTime       @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?        @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime       @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  persona         Persona        @relation(fields: [personaId], references: [id])
+  registros       Dp11Registro[]
+
+  @@map("dp11_paciente")
+}
+
+/// Diálisis peritoneal v1.1: un registro de una colección del módulo (Kt/V, laboratorios, eventos, valoraciones, visitas,
+/// fórmula, habilitación, obligaciones, catálogo, actividades hechas, farmacia del mes, plan, costos, metas). Lo que
+/// pertenece a un paciente lleva su llave foránea; anular conserva el registro (no se borra).
+model Dp11Registro {
+  coleccion       String
+  clave           String
+  paciente        String?
+  datos           Json
+  anulado         Boolean       @default(false)
+  motivoAnulacion String?       @map("motivo_anulacion")
+  creadoPor       String?       @map("creado_por") @db.Uuid
+  creadoEn        DateTime      @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?       @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime      @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  pacienteRel     Dp11Paciente? @relation(fields: [paciente], references: [id], onDelete: Restrict)
+
+  @@id([coleccion, clave])
+  @@index([paciente])
+  @@map("dp11_registro")
 }
 
 // <<< DIALISIS PERITONEAL (GENERADO por scripts/generar-esquema.mjs: no editar a mano)

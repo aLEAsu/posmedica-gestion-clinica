@@ -484,7 +484,7 @@ El coordinador entregó el prototipo v3.2. **Es la referencia de a dónde debe l
 ### Plan
 - **B. Interfaz v3.2 y Hemodiálisis**: ✅ hecha (ver «Fase B» abajo).
 - **C. Transversales**: ✅ hecha (ver «Fase C» abajo).
-- **D. Diálisis peritoneal v1.1.**
+- **D. Diálisis peritoneal v1.1**: ✅ hecha (ver «Fase D» abajo).
 - **E. Contratos y tecnologías, Talento humano y Producción.**
 - **F. Pruebas de la API completas, pruebas de aceptación y guía de despliegue.**
 
@@ -505,3 +505,12 @@ El coordinador entregó el prototipo v3.2. **Es la referencia de a dónde debe l
 - **Seguridad del paciente**: la HC de Consulta externa armaba la nota para SIIS con TA 126/78, FC 74, FR 16, 36,5 °C, SatO2 96 %, 68 kg, 165 cm, glucometría 98 e IMC 25 cuando no había preconsulta; el formulario de preconsulta precargaba 36,5 °C y 96 %; la vacunación renal usaba el paciente NP-0001; la calculadora UKM mezclaba ejemplos con los datos del paciente sin avisar; la copia de DP v1.1 al libro de DP inventaba nacimiento, EPS, municipio, fechas y talla (desactivada hasta la fase D). Ahora se muestra «sin registro» y se avisa qué falta.
 - **Pruebas**: `test/transversal-v32.test.ts` (9); API 111/111, reglas 164/164, build; verificado en el navegador (preconsulta → valoración de HD, persistencia tras recargar, sin `localStorage`).
 - **Queda para las fases D y E**: Diálisis peritoneal v1.1; Contratos y tecnologías; Talento humano y Bienestar (aún en memoria); metas de producción y ruta del proceso siguen en la configuración (solo administrador).
+
+### Fase D (hecha, 10 de noviembre de 2026)
+- **Código**: DP v1.1 es una página propia (`apps/web/public/modulos/dp11/`), sin pacientes en el código (semilla vacía salvo la plantilla general de actividades; se retiraron un nombre de paciente que estaba en un texto fijo y los nombres de los firmantes de los contratos). El portal la abre en su iframe (`portal/modulos-v11.js`, desde la v2.2) en lugar del DP v0.8.
+- **Datos**: `dp11_paciente` (identidad en «persona», el maestro único; los demás campos del módulo en JSON) y `dp11_registro` (cada elemento de Kt/V, laboratorios, eventos, valoraciones, visitas, fórmula, habilitación, obligaciones, catálogo, actividades hechas, farmacia del mes, plan, costos y metas, con llave foránea a su paciente). Migración `20261110180000_v32_dialisis_peritoneal_v11` (solo crea tablas; `dp_*` intactas). API `/api/v1/dp11` (`src/modulos/dp11/rutas.ts`).
+- **Reglas**: permisos del programa «dp»; sello de concurrencia por registro; lo que el módulo retira se anula (los registros clínicos exigen «anular»); metas, costos y catálogo los cambia solo el administrador, y los demás reciben el catálogo sin precios y no reciben los costos; auditoría de cada cambio y de cada exportación (copia .json y Excel exigen «exportar»).
+- **Carga inicial** (administrador, con el módulo vacío): la copia .json que descarga el propio módulo, o «Traer de DP v0.8»: pacientes con la misma persona y laboratorios con equivalencia clara; no traslada «Urea / BUN sérico» (ambiguo), Kt/V, PET, UF ni carga viral, y conserva los estados sin par (los informa para revisión).
+- **Pruebas**: `test/dp11.test.ts` (8); API 119/119, reglas 164/164, build (3 páginas con huella); verificado en el navegador (alta de paciente y laboratorio, persistencia tras recargar, sin `localStorage`).
+- **Decisión pendiente**: el contenido de los contratos por EPS (`CONTRATOS`, sin precios ni pacientes) sigue en el código del módulo, como en la referencia. Si debe ser solo del servidor, se mueve a la API.
+- **Pendiente**: IAAS-09, PROA-DP y la solicitud de laboratorio de DP leen todavía el libro DP v0.8; falta un puente de lectura desde la v1.1 (sin completar datos).
