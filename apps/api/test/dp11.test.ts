@@ -100,6 +100,36 @@ describe("solo el administrador", () => {
   });
 });
 
+describe("lectura transversal (IAAS, PROA, Laboratorio)", () => {
+  it("cada módulo recibe solo lo que usa", async () => {
+    const r = await sync(u["med.dp"], {
+      eventos: { nuevos: [{ clave: "E1", datos: { id: "E1", pac: PAC.id, tipo: "Peritonitis", fIni: "2026-10-03", leuc: 450, pmn: 80, grupo: "Gram positivo", germen: "S. epidermidis", trat: "Cefazolina IP 14 d", rca: "Técnica de conexión" } }, { clave: "E2", datos: { id: "E2", pac: PAC.id, tipo: "Hernia", fIni: "2026-10-05" } }] },
+      labs: { nuevos: [{ clave: "L9", datos: { id: "L9", pac: PAC.id, fecha: "2026-10-04", ex: "Alb", v: 3.4 } }] },
+    });
+    expect(r.status, JSON.stringify(r.body)).toBe(200);
+    const crear = async (nombre: string, programa: string) => {
+      const x = await crearUsuario(nombre, CLAVE, "MEDICO");
+      await admin.put(`/api/v1/usuarios/${x.id}/permisos`, { permisos: [{ programa, ver: true, registrar: false, anular: false, exportar: false }] });
+      const a = agente();
+      await a.post("/api/v1/auth/login", { usuario: nombre, clave: CLAVE });
+      return a;
+    };
+    const iaas = await crear("iaas.d", "iaas");
+    const lab = await crear("lab.d", "lab");
+    const otro = await crear("vih.d", "vih");
+    const ti = (await iaas.get("/api/v1/dp11/transversal")).body;
+    expect(ti.eventos.map((e: Datos) => e.id)).toEqual(["E1"]); // solo infecciosos
+    expect(ti.eventos[0].rca).toBeUndefined(); // sin el análisis de causa ni otros campos
+    expect(ti.laboratorios).toEqual([]);
+    expect(Object.keys(ti.pacientes[0]).sort()).not.toContain("telefono");
+    const tl = (await lab.get("/api/v1/dp11/transversal")).body;
+    expect(tl.eventos).toEqual([]);
+    expect(tl.laboratorios.map((l: Datos) => l.id)).toContain("L9");
+    expect((await otro.get("/api/v1/dp11/transversal")).status).toBe(403);
+    expect((await iaas.get("/api/v1/dp11/libro")).status).toBe(403); // el libro completo sigue siendo de DP
+  });
+});
+
 describe("paso desde Diálisis peritoneal v0.8", () => {
   it("trae pacientes (misma persona) y laboratorios con equivalencia; informa lo que no traslada", async () => {
     // Base sin datos de la v1.1 para este caso.

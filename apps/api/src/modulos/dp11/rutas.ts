@@ -393,6 +393,31 @@ dp11.post(
   }),
 );
 
+/* ---------- Lectura transversal (IAAS, PROA, Laboratorio) ----------
+   IAAS-09 (peritonitis), las infecciones del orificio y del túnel, los tratamientos que sigue PROA y los laboratorios
+   de DP salen ahora de la v1.1. Cada módulo transversal recibe SOLO lo que usa (Ley 1581):
+     · pacientes: identificación, fechas en DP, estado y catéter (para el tiempo en riesgo y los días-catéter);
+     · eventos infecciosos (peritonitis, orificio, túnel): IAAS y PROA;
+     · laboratorios: Laboratorio. Quien ve DP recibe todo esto. */
+const EVENTOS_INFECCIOSOS = new Set(["Peritonitis", "Infección del orificio de salida", "Infección del túnel"]);
+const recorta = (d: Datos, campos: string[]) => Object.fromEntries(campos.filter((c) => d[c] !== undefined).map((c) => [c, d[c]]));
+dp11.get(
+  "/transversal",
+  h(async (req, res) => {
+    const u = req.usuario;
+    const dp = puede(u, PROGRAMA, "ver");
+    const infecc = dp || puede(u, "iaas", "ver") || puede(u, "proa", "ver");
+    const labs = dp || puede(u, "lab", "ver");
+    if (!infecc && !labs) throw prohibido();
+    const { estado } = await leerEstado(u);
+    const pacientes = (estado.pacientes as Datos[]).map((p) => recorta(p, ["id", "tipoDoc", "doc", "nombre", "sexo", "eps", "modalidad", "estado", "fIngresoDP", "fIngresoTRR", "fEgreso", "causaEgreso", "cateter"]));
+    const eventos = infecc ? (estado.eventos as Datos[]).filter((e) => EVENTOS_INFECCIOSOS.has(String(e.tipo))).map((e) => recorta(e, ["id", "pac", "tipo", "fIni", "fFin", "leuc", "pmn", "cultivo", "grupo", "germen", "trat", "desenlace"])) : [];
+    const laboratorios = labs ? (estado.labs as Datos[]).map((l) => recorta(l, ["id", "pac", "fecha", "ex", "v"])) : [];
+    await auditarConsulta(req, PROGRAMA, `${ENTIDAD}.transversal`, `${pacientes.length} pacientes, ${eventos.length} eventos, ${laboratorios.length} laboratorios`);
+    res.json({ pacientes, eventos, laboratorios });
+  }),
+);
+
 /* ---------- Contenido de los contratos por EPS (qué cubre cada paquete de DP) ----------
    No lleva precios ni pacientes, pero es información contractual de la institución: no va en el código público. Lo lee
    quien ve Diálisis peritoneal y lo carga el administrador (parámetro «contratos» del programa dp). */

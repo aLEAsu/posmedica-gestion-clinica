@@ -11,12 +11,17 @@ El navegador **solo** habla con `posmedica-web`. Render reenvía las peticiones 
 
 Qué incluye el despliegue:
 
-- **Portal**: ingreso, usuarios y permisos, auditoría y respaldo.
-- **Hemodiálisis**.
+- **Portal** (interfaz v3.2): ingreso, usuarios y permisos, auditoría y respaldo.
+- **Hemodiálisis** (con gobierno clínico, SIIS, oxígeno medicinal, verificación pre-turno y tablero CAC de 17 indicadores).
 - **Nefroprotección**, con su agenda.
 - **VIH**.
-- **Módulos transversales**: Laboratorio, Producción asistencial, Seguridad del paciente, IAAS, PROA, SOGCS, Documentos, Mensajes y Calendario.
-- **Fichas de los programas sin módulo propio**: Diálisis peritoneal, Consulta externa, Quimioterapia y Servicio farmacéutico.
+- **Diálisis peritoneal v1.1** y **Consulta externa**.
+- **Quimioterapia**.
+- **Módulos transversales**: Laboratorio, Producción asistencial, Seguridad del paciente, IAAS, PROA, SOGCS, Documentos, Mensajes y Calendario, más preconsulta, asistencia por disciplina, procedimientos y capacitaciones.
+- **Solo administradores**: Tablero gerencial, Contratos y tecnologías, y Talento humano y bienestar.
+- **Ficha sin módulo propio**: Servicio farmacéutico.
+
+> **Arranque desde cero.** El backend crea las tablas y siembra solo el catálogo (programas, EPS, municipios) y el primer administrador. No hay pacientes, usuarios de prueba ni datos de demostración: lo que se registre desde el primer ingreso es real.
 
 ---
 
@@ -103,7 +108,7 @@ En **Advanced → Health Check Path** escriba `/api/health`.
 | `ADMIN_CLAVE_INICIAL` | Clave temporal: 10 caracteres o más, con letras y números. Se cambia obligatoriamente en el primer ingreso. |
 
 Clic en **Create Web Service**. En **Logs** debe ver, en este orden:
-1. Las migraciones aplicadas («All migrations have been successfully applied»). La primera vez son cinco: inicial, hemodiálisis, VIH, y Nefroprotección más portal.
+1. Las migraciones aplicadas («All migrations have been successfully applied»). La primera vez son quince (de la inicial a `20261110230000_v32_cilindros_oxigeno`).
 2. `Administrador inicial creado: …` (solo la primera vez) y `Siembra completa.`
 3. `API POSMÉDICA escuchando en el puerto …`
 
@@ -127,7 +132,7 @@ Render → **New → Static Site** → elija el repositorio:
 
 Variable de entorno: `NODE_VERSION` = `22`.
 
-> Las páginas de los módulos (`/modulos/portal`, donde viven Hemodiálisis, VIH y los módulos transversales, y `/modulos/nefro`, que el portal abre dentro de sí) son código propio en `apps/web/public/modulos/`. El build solo copia SheetJS local y, después de `vite build`, pone la huella de caché en `dist/modulos/c/`. El prototipo HTML no está en el repositorio ni se usa en el build.
+> Las páginas de los módulos (`/modulos/portal`, donde viven Hemodiálisis, VIH y los módulos transversales; `/modulos/nefro`, `/modulos/dp11` y `/modulos/ct11`, que el portal abre dentro de sí) son código propio en `apps/web/public/modulos/`. El build solo copia SheetJS local y, después de `vite build`, pone la huella de caché en `dist/modulos/c/`. El prototipo HTML no está en el repositorio ni se usa en el build, y ninguna página trae datos de pacientes ni la matriz de contratos (los entrega la API con sesión).
 
 Clic en **Create Static Site**.
 
@@ -163,7 +168,7 @@ Agregue también estas cabeceras de caché (rendimiento):
 | `/assets/*` | `Cache-Control` | `public, max-age=31536000, immutable` | Archivos del portal con huella en el nombre (los genera Vite). |
 | `/modulos/c/*` | `Cache-Control` | `public, max-age=31536000, immutable` | Código de los módulos con huella en el nombre (`portal.3f9a1c2b.js`). El navegador lo descarga una sola vez y vuelve a descargarlo solo cuando cambia. |
 
-Las páginas `/modulos/portal/index.html` y `/modulos/nefro/index.html` no llevan caché larga: así cada despliegue llega de inmediato.
+Las páginas `/modulos/*/index.html` (portal, nefro, dp11, ct11) no llevan caché larga: así cada despliegue llega de inmediato.
 
 **Compruebe las cabeceras después de cada cambio de configuración** (sin ellas el sitio funciona, pero queda sin la política de seguridad de contenido):
 ```bash
@@ -181,7 +186,7 @@ Deben aparecer las cuatro cabeceras de seguridad en la primera y `content-securi
 1. En el backend, confirme que `ALLOWED_ORIGINS` sea **exactamente** la URL del Static Site, con `https://` y sin `/` final. Si la cambió, haga **Manual Deploy → Deploy latest commit**.
 2. Abra `https://posmedica-web.onrender.com/api/health`. Debe responder `{"ok":true}`; eso confirma que el reenvío funciona.
 3. Abra `https://posmedica-web.onrender.com`, ingrese con `ADMIN_USUARIO` y `ADMIN_CLAVE_INICIAL` y cambie la clave.
-4. Abra **Hemodiálisis**, **VIH**, **Nefroprotección**, **Diálisis peritoneal**, **Consulta externa**, **Laboratorio**, **Mensajes** y el **Tablero gerencial**: cada uno debe cargar y mostrar «Datos al día» (o «BASE DE DATOS» en Nefroprotección).
+4. Abra **Hemodiálisis**, **VIH**, **Nefroprotección**, **Diálisis peritoneal** (v1.1), **Consulta externa**, **Quimioterapia**, **Laboratorio**, **IAAS**, **Mensajes**, el **Tablero gerencial**, **Contratos y tecnologías** y **Talento humano**: cada uno debe cargar y mostrar «Datos al día» (o «BASE DE DATOS» en Nefroprotección), vacío.
 5. En **Usuarios**, cree los usuarios y asígneles sus programas y permisos.
 6. En **Respaldo**, descargue un Excel de prueba.
 
@@ -211,10 +216,13 @@ Cada programa permite **una carga inicial** desde los archivos de Excel que se u
 | Hemodiálisis | Hemodiálisis → **Importar libro o Dashboard (carga inicial)** | Libro de hemodiálisis o «Dashboard MES.xlsx» |
 | VIH | VIH → **Cargar libro VIH** (solo carga inicial). **Importar cohorte o archivo CAC** sirve en cualquier momento para quien tenga permiso de registrar. | Libro VIH, cohorte nominal de Nueva EPS o reporte CAC de 193 variables. Se acepta **con o sin** fila de encabezado. |
 | Nefroprotección | Nefroprotección → **Importar libro de Excel a la base** | Libro de la Ruta: Pacientes, Laboratorios, Valoraciones, Atenciones y Novedades. Si trae hojas de agenda, auditoría GPC o nominal, también se importan. |
-| Diálisis peritoneal | Diálisis peritoneal → **Carga inicial · Cargar libro (.xlsx)** (aparece mientras el programa está vacío). **Pacientes → Importar archivos** sirve en cualquier momento para quien tenga el rol «Importar» y no duplica pacientes. | Libro DP del prototipo («DP_libro_….xlsx»); archivo de control de valoraciones y la plantilla del dashboard DP. |
+| Diálisis peritoneal v1.1 | Aviso de **carga inicial** del módulo (solo administrador, con el módulo vacío): **Traer pacientes y laboratorios de DP v0.8** (si se usó la v0.8; traslada solo lo que tiene equivalencia y lo informa) o **Importar copia .json del módulo**. Los **contratos por EPS** se cargan una vez desde el mismo aviso. | Copia .json que descarga el propio módulo («Guardar» en el prototipo); contratos: .json o el archivo .html del prototipo (en el navegador se extraen y solo se envían los contratos). |
 | Consulta externa | Consulta externa → **Carga inicial · Cargar libro (.xlsx)** (aparece mientras el programa está vacío). | Libro de Consulta externa del prototipo. Si no hay libro, el módulo arranca con las especialidades y EPS del prototipo. |
+| Contratos y tecnologías | Al abrirlo por primera vez (solo administrador). | Matriz contractual: .json o el archivo .html del prototipo (en el navegador se extrae y solo se envía la matriz). |
 
-**Roles dentro de DP y CE.** Además de los permisos del programa (Usuarios), cada persona necesita su rol dentro del módulo: en DP, **Reportes → Roles y parámetros** (Dirección Médica, Nefrología, Enfermería, Laboratorio…); en CE, **Administración → Roles** (Coordinación, Admisiones, Autorizaciones, Profesional, Calidad) y si **ve especialidades reservadas**. El administrador del sistema actúa como Dirección Médica en DP y como Coordinación en CE. Sin rol, la persona solo consulta.
+**Roles dentro de CE.** Además de los permisos del programa (Usuarios), cada persona de Consulta externa necesita su rol dentro del módulo, en **Administración → Roles** (Coordinación, Admisiones, Autorizaciones, Profesional, Calidad) y si **ve especialidades reservadas**. El administrador del sistema actúa como Coordinación. Sin rol, la persona solo consulta. Diálisis peritoneal v1.1 usa solo los permisos del programa (ver, registrar, anular, exportar).
+
+**Hemodiálisis · Dashboards mensuales.** Además de la carga inicial, la pestaña de caracterización y tablero CAC permite sumar cada Dashboard mensual (lectura estricta v3.1: lo que el Excel no trae queda vacío y se informa). El kárdex de cilindros de oxígeno se registra en **Oxígeno medicinal → Registrar cilindro** antes de diligenciar la bitácora.
 
 Antes de guardar, el sistema muestra lo que va a cargar y los avisos (p. ej. documentos repetidos). Todo queda en la auditoría.
 

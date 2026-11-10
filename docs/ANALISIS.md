@@ -486,7 +486,7 @@ El coordinador entregó el prototipo v3.2. **Es la referencia de a dónde debe l
 - **C. Transversales**: ✅ hecha (ver «Fase C» abajo).
 - **D. Diálisis peritoneal v1.1**: ✅ hecha (ver «Fase D» abajo).
 - **E. Contratos y tecnologías y Talento humano**: ✅ hecha (ver «Fase E» abajo).
-- **F. Pruebas de la API completas, pruebas de aceptación y guía de despliegue.**
+- **F. Cierre y despliegue**: ✅ hecha (ver «Fase F» abajo).
 
 ### Fase B (hecha, 10 de noviembre de 2026)
 - **Código**: el núcleo del portal y los archivos de la v3.2 (`hdx-lectura.js`, `hdx-nucleo.js`, `motor-v30.js`, `hdx-vistas.js`, `barra-lateral.js`) y la Ruta de Nefroprotección v3.2 son código propio en `apps/web/public/modulos/`, sin datos embebidos (`HDX_BASE` vacío; ningún documento ni nombre de paciente de la referencia, verificado). DP v1.1 y Contratos v1.1 quedan para las fases D y E.
@@ -520,3 +520,10 @@ El coordinador entregó el prototipo v3.2. **Es la referencia de a dónde debe l
 - **Talento humano y bienestar**: empleados del mes, cuadro de turnos, formatos y clima laboral pasan del navegador a 4 hojas del libro institucional que solo el administrador lee y registra (`talento-humano.js`, migración `20261110210000_v32_talento_humano`). Se retiró el personal ficticio con el que arrancaba la v3.2 y el puntaje 94 que traía por defecto la medición de clima.
 - **Catálogo**: «ct» y «th» son programas solo de administrador, como el Tablero gerencial.
 - **Pruebas**: `test/gestion-v32.test.ts` (6); API 125/125, reglas 164/164, build (4 páginas con huella); verificado en el navegador.
+
+### Fase F (hecha, 10 de noviembre de 2026): listo para desplegar desde cero
+- **Sin datos de prueba**: la base arranca vacía (el arranque en Render aplica las migraciones y siembra solo el catálogo y el primer administrador); no hay botones de demostración ni semillas de pacientes, personal o inventarios. Se retiró el inventario fijo de cilindros de oxígeno (su lote y vencimiento se copiaban a la bitácora clínica): ahora es un kárdex real (hoja CilindrosOxigeno, migración `20261110230000_v32_cilindros_oxigeno`).
+- **Contratos por EPS de DP v1.1** fuera del código público: `/api/v1/dp11/contratos` (lee quien ve DP; carga el administrador desde .json o el .html del prototipo). Resuelve la decisión pendiente de la fase D.
+- **Puente de lectura DP v1.1 → IAAS, PROA y Laboratorio** (`adaptador-portal.js`, `/api/v1/dp11/transversal` con datos mínimos por módulo): los pacientes, las peritonitis e infecciones del orificio y del túnel, sus tratamientos, el catéter y los laboratorios de la v1.1 entran, en memoria y solo para lectura, al libro DP que leen IAAS-09, PROA y Laboratorio. El episodio de la v1.1 es un diagnóstico (DxClinico «Confirmada») y la clasificación es la de la v1.1 (recaída ≤ 28 días con el mismo germen o cultivo negativo: no cuenta). Nada se completa con valores supuestos; esos registros no se envían al libro v0.8 ni se editan desde IAAS/PROA.
+- **CSP**: ninguna página tiene scripts ni manejadores en línea, `eval` ni recursos externos distintos de las fuentes de Google.
+- **Guías**: `DESPLIEGUE_RENDER.md` (15 migraciones, páginas dp11 y ct11, carga inicial de cada módulo) y `PRUEBAS_ACEPTACION.md` (novedades v3.2 por módulo).

@@ -178,6 +178,83 @@
     pintarEstado();
   }
 
+  /* Puente de lectura desde Diálisis peritoneal v1.1 (fase F). Desde la v3.2 DP se registra en la v1.1, pero IAAS-09
+     (peritonitis), las infecciones del orificio y del túnel, los tratamientos que sigue PROA y los laboratorios de DP los
+     leen estas vistas del libro DP de la v0.8. Aquí se agregan a ese libro, EN MEMORIA y solo para lectura, los registros
+     de la v1.1 con las mismas reglas del módulo de origen:
+       · el episodio registrado en la v1.1 es un diagnóstico del equipo (la v1.1 no tiene «en estudio»): DxClinico
+         «Confirmada»; la clasificación es la que calcula la v1.1 (peritonitisClasif): recaída = ≤ 28 días tras el fin del
+         episodio previo con el mismo germen o cultivo negativo, y no cuenta como episodio nuevo;
+       · el tiempo en riesgo usa la fecha de ingreso a DP y la de egreso, igual que la exposición de la v1.1.
+     Nada se completa con valores supuestos: lo que la v1.1 no registra queda vacío. Estos registros entran en la base de
+     sincronización (nunca se envían al libro v0.8) y no se editan desde aquí (se editan en la v1.1). */
+  const CLASIF_V11 = { "Recaída (no cuenta como episodio nuevo)": "Recaída", "Recurrente (cuenta)": "Recurrente", "De repetición (cuenta)": "De repetición", "Nuevo episodio": "Nuevo episodio" };
+  const normTxt = (s) => String(s == null ? "" : s).normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/\s+/g, " ").trim();
+  function clasificarPeritonitis(eventos) {
+    const res = {};
+    const porPac = {};
+    eventos.filter((e) => e.tipo === "Peritonitis").sort((a, b) => (a.fIni < b.fIni ? -1 : 1)).forEach((e) => (porPac[e.pac] = porPac[e.pac] || []).push(e));
+    Object.values(porPac).forEach((L) =>
+      L.forEach((e, i) => {
+        let cls = "Nuevo episodio";
+        if (i > 0) {
+          const prev = L[i - 1];
+          const fin = pdate(prev.fFin || prev.fIni), ini = pdate(e.fIni);
+          if (fin && ini) {
+            const d = dayDiff(fin, ini);
+            const igual = prev.germen && e.germen && normTxt(prev.germen) === normTxt(e.germen);
+            const neg = e.grupo === "Cultivo negativo" || prev.grupo === "Cultivo negativo";
+            if (d <= 28 && (igual || neg)) cls = "Recaída (no cuenta como episodio nuevo)";
+            else if (d <= 28) cls = "Recurrente (cuenta)";
+            else if (igual) cls = "De repetición (cuenta)";
+          }
+        }
+        res[e.id] = CLASIF_V11[cls];
+      }),
+    );
+    return res;
+  }
+  const ESTADO_V11_A_V08 = { Activo: "Activo", "Cambio a HD": "Transición a HD" };
+  async function puenteDp11(b) {
+    let t;
+    try {
+      t = await pedir("GET", "/dp11/transversal");
+    } catch (e) {
+      return; // sin acceso o sin datos de la v1.1: se mantiene solo el libro v0.8
+    }
+    const O = "DP v1.1";
+    const ids = new Set(b.pac.map((p) => p.ID));
+    for (const p of t.pacientes || []) {
+      if (ids.has(p.id)) continue; // el paciente ya existe en el libro v0.8 (p. ej. traído desde allí): no se duplica
+      const nom = String(p.nombre || "").trim().split(/\s+/);
+      const ape = nom.length >= 3 ? nom.splice(-2) : nom.splice(-1);
+      const estado = ESTADO_V11_A_V08[p.estado] || (p.estado ? "Egreso" : "");
+      b.pac.push(dpRow({ ID: p.id, TipoDoc: p.tipoDoc || "", Documento: p.doc ? String(p.doc) : "", Nombres: nom.join(" "), Apellidos: ape.join(" "), Sexo: p.sexo || "", EPS: p.eps || "", Modalidad: p.modalidad || "", EstadoPrograma: estado, FechaInicioDP: p.fIngresoDP || "", FechaInicioTRR: p.fIngresoTRR || "", FechaFinDP: p.fEgreso || "", MotivoFin: estado === "Egreso" ? p.estado : p.causaEgreso || "", Origen: O, _v11: true }));
+      ids.add(p.id);
+      const c = p.cateter || {};
+      if (c.fImplante || c.tipo) b.cat.push(dpRow({ ID: "V11-CAT-" + p.id, Paciente: p.id, Tipo: "Implante", Fecha: c.fImplante || "", TipoCateter: c.tipo || "", Responsable: c.cirujano || "", Obs: O, _v11: true }));
+    }
+    const cls = clasificarPeritonitis(t.eventos || []);
+    for (const e of t.eventos || []) {
+      const id = "V11-" + e.id;
+      b.epi.push(dpRow({ ID: id, Paciente: e.pac, Tipo: e.tipo, Fecha: e.fIni || "", Leucocitos: e.leuc ?? "", PMN: e.pmn ?? "", DxClinico: "Confirmada", Clasificacion: e.tipo === "Peritonitis" ? cls[e.id] || "" : "", Tratamiento: e.trat || "", FechaResolucion: e.fFin || "", Desenlace: e.desenlace || "", Seguimiento: [e.grupo, e.germen].filter(Boolean).join(" · "), Usuario: O, _v11: true }));
+      if (e.trat) b.atb.push(dpRow({ ID: id + "-ATB", Paciente: e.pac, Episodio: id, Inicio: e.fIni || "", Fin: e.fFin || "", Antimicrobiano: e.trat, Indicacion: e.tipo, Tipo: "Tratamiento", Nota: "Registrado en " + O + " (texto libre: antibiótico, vía y días)", Usuario: O, _v11: true }));
+    }
+    for (const l of t.laboratorios || []) b.lab.push(dpRow({ ID: "V11-" + l.id, Paciente: l.pac, Examen: l.ex, Valor: l.v == null ? "" : String(l.v), FechaToma: l.fecha || "", LabOrigen: O, Usuario: O, _v11: true }));
+  }
+
+  // Los registros del puente se editan en la v1.1, no aquí.
+  if (typeof window.dpUpd === "function") {
+    const dpUpdV08 = window.dpUpd;
+    window.dpUpd = function (k, r, ch) {
+      if (r && r._v11) {
+        toast("Este registro viene de Diálisis peritoneal v1.1: modifíquelo allí.");
+        return 0;
+      }
+      return dpUpdV08(k, r, ch);
+    };
+  }
+
   async function cargarDp() {
     if (!leeLibro("dp")) return;
     S_DP.estado = "Cargando…";
@@ -192,6 +269,7 @@
       if (p.Documento != null) p.Documento = String(p.Documento);
     });
     b.log = bit.bitacora; // Reportes → Bitácora: la auditoría del servidor para DP
+    await puenteDp11(b);
     const previo = DP.book ? DP.ui : null;
     DP.book = b;
     dpEnsure();
