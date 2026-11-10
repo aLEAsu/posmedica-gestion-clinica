@@ -353,7 +353,7 @@
 | `vxCit` | función | `portal.js:3820` |
 | `vxPrcPend` | función | `portal.js:3832` |
 | `` | constante / catálogo | `portal.js:7948` |
-| `` | constante / catálogo | `portal.js:11250` |
+| `` | constante / catálogo | `portal.js:11248` |
 
 ## NEFRO · `crearMotorNefro(ctx)` (4 definiciones)
 

@@ -561,7 +561,7 @@ function vxCit(p,tipo,ref){ref=ref||TODAY();const s=vxSt(p,ref);const fem=String
 function vxPrcPend(p){const o=[];const a=vxPPD(p);if(["bad","warn"].includes(a.cls))o.push({t:"Tuberculina (PPD)",est:a.est,fecha:a.fecha});["Citología cervicovaginal","Citología anal"].forEach(t=>{const c=vxCit(p,t);if(["bad","warn"].includes(c.cls)||c.car)o.push({t,est:c.est,fecha:c.fecha});});return o;}
 /* portal.js:7948 */
 if(!VXS.ent[1].includes("SaldoPrevio"))VXS.ent[1].push("SaldoPrevio","UnidadesTeoricas","Lote","FechaVencimiento","DiasInterrupcion");
-/* portal.js:11250 */
+/* portal.js:11248 */
 if(typeof VX_DISC!=="undefined"&&!VX_DISC.includes("Toma de muestras")){
   VX_DISC.push("Toma de muestras");
   if(typeof VX_DCOL!=="undefined")VX_DCOL["Toma de muestras"]="c8";

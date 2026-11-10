@@ -22,7 +22,13 @@ const LECTURA: Record<string, string[]> = {
   lst: ["iaas", "sp"], man: ["iaas", "proa", "sp"], prv: ["proa", "iaas"], ram: ["proa", "iaas", "sp"], prd: ["prod"],
   mic: ["lab", "iaas", "proa", "sp", "hd", "dp"], icl: ["iaas", "proa", "sp", "hd", "dp"], cie: ["iaas", "proa"], pln: ["iaas", "proa"],
   hal: ["iaas", "proa"], act: ["iaas", "proa", "sogcs"], ihi: ["iaas", "proa"],
+  qts: ["qt"],
 };
+/* Hojas cuyas filas pertenecen a un programa (columna «Programa»): las lee quien ve ese programa y las registra quien
+   registra en él (preconsulta, asistencia, procedimientos, vacunación renal, soportes SISCAC, liberación de reportes).
+   El programa y el paciente de una fila no cambian después de creada. */
+const POR_PROGRAMA = new Set(["pre", "asi", "qx", "vre", "sis", "lib"]);
+const delPrograma = (u: UsuarioSesion, f: Fila, a: "ver" | "registrar") => admin(u) || (!!f.Programa && puede(u, String(f.Programa), a));
 /** Hojas que registra solo una parte de quienes las leen (el propietario del dato). */
 const ESCRITURA: Record<string, string[]> = { mic: ["lab"], icl: ["iaas"], act: ["iaas", "proa"] };
 const IAAS_PROA = ["iaas", "proa"];
@@ -41,6 +47,7 @@ export const CONFIG_PORTAL: ConfigLibro = {
   leeFila: (h: string, f: Fila, u: UsuarioSesion) => {
     if (h === "msg") return f.De === u.id || f.Para === `u:${u.id}` || (!!u.area && f.Para === `a:${u.area}`);
     if (h === "rsp") return algun(u, ["sp"], "ver") || f.Usuario === u.usuario;
+    if (POR_PROGRAMA.has(h)) return delPrograma(u, f, "ver");
     return true;
   },
   escribe: (h, u, tipo, f) => {
@@ -58,6 +65,18 @@ export const CONFIG_PORTAL: ConfigLibro = {
         return algun(u, ["sogcs", ...IAAS_PROA], "registrar") || (tipo === "modificado" && (f.Responsable === u.id || f.Responsable === u.area));
       case "rsp":
         return tipo === "nuevo" || algun(u, ["sp"], "registrar");
+      case "pre":
+      case "asi":
+      case "qx":
+      case "vre":
+      case "sis":
+        return delPrograma(u, f, "registrar");
+      case "lib":
+        // La liberación de un reporte a la EPS la dictamina Calidad, el administrador o quien registra en el programa.
+        return esCalidad(u) || delPrograma(u, f, "registrar");
+      case "cap":
+        // Capacitaciones: Calidad, el comité (SOGCS) o quien registra en el programa de la capacitación.
+        return admin(u) || esCalidad(u) || algun(u, ["sogcs"], "registrar") || (!!f.Programa && puede(u, String(f.Programa), "registrar"));
       default:
         return algun(u, ESCRITURA[h] ?? LECTURA[h] ?? [], "registrar");
     }
@@ -69,6 +88,8 @@ export const CONFIG_PORTAL: ConfigLibro = {
     if (h === "cmp" && !algun(u, ["sogcs", ...IAAS_PROA], "registrar")) return HOJAS_PORTAL.cmp.columnas.filter((c) => !["Estado", "EstadoReportado", "Evidencia", "FechaCierre", "Historial"].includes(c));
     // IAAS y PROA solo asocian el documento existente a su proceso (columna «Programas»): no administran su contenido.
     if (h === "doc" && !admin(u) && !esCalidad(u) && !puede(u, "docs", "registrar")) return HOJAS_PORTAL.doc.columnas.filter((c) => c !== "Programas");
+    if (POR_PROGRAMA.has(h)) return h === "lib" ? ["Programa"] : ["Programa", "Paciente"];
+    if (h === "cap") return ["Programa"];
     return [];
   },
   fijarNuevo: (h, datos, u) => {

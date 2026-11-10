@@ -133,6 +133,9 @@
 
   /* Sincronizar automáticamente localStorage["dp_unop_v1"] hacia DP.book para que MPI, IAAS-09, PROA, Laboratorio y Gerencia vean la cohorte real de DP v1.1 */
   function v30SyncDp11ToNativeBook(){
+    /* Desactivado en la aplicación web: copiaba la cohorte de DP v1.1 del navegador al libro de DP completando con
+       valores supuestos (nacimiento, EPS, municipio, fechas, talla). DP v1.1 se conecta a sus propias tablas (fase D). */
+    return;
     try {
       const raw = localStorage.getItem("dp_unop_v1");
       const s = raw ? JSON.parse(raw) : DP11_SEED;
@@ -3286,11 +3289,14 @@
       if(p){
         const bp = lastLab(p, "BUNpre", addMonths(ST.corte, -3), ST.corte);
         const bq = lastLab(p, "BUNpost", addMonths(ST.corte, -3), ST.corte);
-        V30.ukmCalc.pre = bp ? num(bp.Valor) : 68;
-        V30.ukmCalc.post = bq ? num(bq.Valor) : 21;
-        V30.ukmCalc.tMin = num(p.DuracionMin) || 240;
-        V30.ukmCalc.wPost = num(p.PesoSeco) || 64.5;
+        /* Solo se cargan los datos que el paciente tiene; lo que falta conserva el valor de la simulación y se avisa. */
+        const falta = [];
+        if(bp) V30.ukmCalc.pre = num(bp.Valor); else falta.push("BUN pre (3 meses)");
+        if(bq) V30.ukmCalc.post = num(bq.Valor); else falta.push("BUN post (3 meses)");
+        if(num(p.DuracionMin)) V30.ukmCalc.tMin = num(p.DuracionMin); else falta.push("duración prescrita");
+        if(num(p.PesoSeco)) V30.ukmCalc.wPost = num(p.PesoSeco); else falta.push("peso seco");
         render();
+        if(falta.length) toast(p.ID + " no tiene " + falta.join(", ") + ": esos campos siguen con valores de simulación, no del paciente.");
       }
     }
   });

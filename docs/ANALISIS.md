@@ -483,7 +483,7 @@ El coordinador entregó el prototipo v3.2. **Es la referencia de a dónde debe l
 
 ### Plan
 - **B. Interfaz v3.2 y Hemodiálisis**: ✅ hecha (ver «Fase B» abajo).
-- **C. Transversales**: preconsulta, caracterización y calendario, procedimientos, cargue masivo de laboratorio, Nefroprotección ejes 04 y 05.
+- **C. Transversales**: ✅ hecha (ver «Fase C» abajo).
 - **D. Diálisis peritoneal v1.1.**
 - **E. Contratos y tecnologías, Talento humano y Producción.**
 - **F. Pruebas de la API completas, pruebas de aceptación y guía de despliegue.**
@@ -498,3 +498,10 @@ El coordinador entregó el prototipo v3.2. **Es la referencia de a dónde debe l
 - **Generador del esquema**: ahora emite las llaves foráneas al paciente (antes se habían agregado a mano y `npm run esquema` las habría borrado).
 - **Pruebas**: reglas 164/164, API 102/102 (nueva `test/hd-v32.test.ts`), build completo; verificado en el navegador con la cohorte ficticia en una base e2e aparte.
 - **Pendiente para la fase C**: hojas nuevas del portal (Quimioterapia, Capacitaciones, Liberación de reportes), preconsulta, procedimientos, SISCAC y metas en tablas propias; valores por defecto de la HC de Consulta externa (glucometría 98, IMC 25).
+
+### Fase C (hecha, 10 de noviembre de 2026)
+- **Persistencia** (`transversal-registros.js`, migración `20261110150000_v32_transversales`, solo crea tablas): preconsulta de enfermería, asistencia a actividades por disciplina y mes, procedimientos quirúrgicos e invasivos, vacunación renal de Nefroprotección y soportes pre-SISCAC pasan del navegador o de la configuración a hojas del libro institucional. Las vistas siguen leyendo `V13.precon`, `V13.qxList` y `V13.nefroVac`, que ahora se arman desde esas hojas.
+- **Permisos por programa en cada fila**: la fila la ve quien ve su programa y la registra quien registra en él; el programa y el paciente no cambian después de creada. Quimioterapia (programa `qt`, ahora en uso) lee y registra sus sesiones; capacitaciones las registra Calidad, el SOGCS o el programa de la capacitación; la liberación de reportes la ve solo su programa.
+- **Seguridad del paciente**: la HC de Consulta externa armaba la nota para SIIS con TA 126/78, FC 74, FR 16, 36,5 °C, SatO2 96 %, 68 kg, 165 cm, glucometría 98 e IMC 25 cuando no había preconsulta; el formulario de preconsulta precargaba 36,5 °C y 96 %; la vacunación renal usaba el paciente NP-0001; la calculadora UKM mezclaba ejemplos con los datos del paciente sin avisar; la copia de DP v1.1 al libro de DP inventaba nacimiento, EPS, municipio, fechas y talla (desactivada hasta la fase D). Ahora se muestra «sin registro» y se avisa qué falta.
+- **Pruebas**: `test/transversal-v32.test.ts` (9); API 111/111, reglas 164/164, build; verificado en el navegador (preconsulta → valoración de HD, persistencia tras recargar, sin `localStorage`).
+- **Queda para las fases D y E**: Diálisis peritoneal v1.1; Contratos y tecnologías; Talento humano y Bienestar (aún en memoria); metas de producción y ruta del proceso siguen en la configuración (solo administrador).

@@ -10347,8 +10347,8 @@ function v13PreconsultaView(prog){
         '<label class="f">TA Diastólica (mmHg) *<input type="number" id="v13_pre_pad" value="'+esc(pr.pad||"")+'" placeholder="78"></label>'+
         '<label class="f">FC (lpm) *<input type="number" id="v13_pre_fc" value="'+esc(pr.fc||"")+'" placeholder="74"></label>'+
         '<label class="f">FR (rpm) *<input type="number" id="v13_pre_fr" value="'+esc(pr.fr||"")+'" placeholder="16"></label>'+
-        '<label class="f">Temperatura (°C)<input type="number" step="0.1" id="v13_pre_temp" value="'+esc(pr.temp||"36.5")+'"></label>'+
-        '<label class="f">Saturación O2 (%) *<input type="number" id="v13_pre_sat" value="'+esc(pr.sat||"96")+'"></label>'+
+        '<label class="f">Temperatura (°C)<input type="number" step="0.1" id="v13_pre_temp" value="'+esc(pr.temp||"")+'"></label>'+
+        '<label class="f">Saturación O2 (%) *<input type="number" id="v13_pre_sat" value="'+esc(pr.sat||"")+'"></label>'+
         '<label class="f">Peso actual (kg) *<input type="number" step="0.1" id="v13_pre_peso" value="'+esc(pr.peso||"")+'"></label>'+
         '<label class="f">Talla (cm)<input type="number" id="v13_pre_talla" value="'+esc(pr.talla||"")+'"></label>'+
         '<label class="f">Perímetro abdominal (cm)<input type="number" id="v13_pre_cint" value="'+esc(pr.cint||"")+'"></label>'+
@@ -11035,8 +11035,7 @@ document.addEventListener("click",e=>{
         fecha:pxToday(),
         listo:true
       };
-      V13.precon[prog+"|"+pid]=obj;
-      v13Save();
+      v32Preconsulta(prog,pid,obj); /* hoja Preconsulta del libro institucional */
       if(prog==="hd")render();else if(prog==="nefro")v12RenderNefroNav();else pxRender();
       toast("Preconsulta guardada: el paciente "+pid+" ahora figura «LISTO PARA ATENCIÓN» y sus signos vitales caerán automáticamente a la HC.");
       break;
@@ -11093,7 +11092,7 @@ document.addEventListener("click",e=>{
       const disc=($("v13_att_disc")||{}).value||"Psicología";
       const mes=($("v13_att_mes")||{}).value||ym(TODAY());
       if(!pid){toast("Seleccione un paciente.");break;}
-      V13.precon[prog+"|"+pid+"|"+disc+"|"+mes]=res;
+      v32Asistencia(prog,pid,disc,mes,res); /* hoja AsistenciaActividades */
       if(prog==="hd"&&hdOn()&&res==="ASISTIO"){
         addRec("ate","A-",{Paciente:pid,Fecha:TODAY(),Disciplina:disc,Nota:"Asistencia verificada en el módulo operativo"});
         reindex();
@@ -11114,7 +11113,7 @@ document.addEventListener("click",e=>{
       const key=prog+"|"+pid+"|"+disc+"|"+mStr;
       const cur=V13.precon[key];
       const next=cur==="ASISTIO"?"INASISTIO":cur==="INASISTIO"?"":"ASISTIO";
-      if(next)V13.precon[key]=next;else delete V13.precon[key];
+      v32Asistencia(prog,pid,disc,mStr,next||"");
       if(prog==="hd"&&hdOn()&&next==="ASISTIO"){
         addRec("ate","A-",{Paciente:pid,Fecha:pdate(mStr+"-15")||TODAY(),Disciplina:disc,Nota:"Cumplimiento registrado desde el Calendario 12M"});
         reindex();
@@ -11126,16 +11125,16 @@ document.addEventListener("click",e=>{
     }
     case"lab_tpl":v13DownloadLabTemplate(x);break;
     case"nv_save":{
-      const pid=($("v13_nv_p")||{}).value||"NP-0001";
-      V13.nefroVac[pid]={
+      const pid=($("v13_nv_p")||{}).value;
+      if(!pid){toast("Seleccione el paciente de Nefroprotección.");break;}
+      v32VacunaRenal(pid,{
         vhb:($("v13_nv_vhb")||{}).value,
         ahbs:($("v13_nv_ahbs")||{}).value,
         inf:($("v13_nv_inf")||{}).value,
         neuc:($("v13_nv_neuc")||{}).value,
         neup:($("v13_nv_neup")||{}).value,
         cov:($("v13_nv_cov")||{}).value
-      };
-      v13Save();
+      }); /* hoja VacunacionRenal del libro institucional */
       try{
         const w=pxNefroWin();
         if(w&&w.document){
@@ -11216,8 +11215,7 @@ document.addEventListener("click",e=>{
       if(prog==="dp"&&dpOn()&&/Tenckhoff/i.test(proc)){
         dpAdd("cat","CT-",{Paciente:pid,Tipo:"Implante",Fecha:TODAY(),TipoCateter:"Tenckhoff · "+lote,Responsable:med,Obs:sitio});
       }
-      V13.qxList.push({fecha:pxToday(),prog,pid,nom:pacObj.nom,proc,sitio,lote,med,ambId});
-      v13Save();
+      v32Procedimiento({fecha:pxToday(),prog,pid,proc,sitio,lote,med,ambId}); /* hoja Procedimientos */
       if(prog==="hd")render();else pxRender();
       toast("Procedimiento registrado, dispositivo actualizado y solicitud de desinfección enviada automáticamente al área Ambiental ("+ambId+").");
       break;
@@ -11348,7 +11346,9 @@ function v13CeHcView(){
   const selPid=V13.calPacSel.ce||(P[0]&&P[0].id)||"";
   const pacObj=P.find(x=>x.id===selPid)||{id:selPid,nom:"Paciente",eps:"",raw:{}};
   const pr=V13.precon["ce|"+selPid]||{};
-  const pas=num(pr.pas)||126,pad=num(pr.pad)||78,peso=num(pr.peso)||68,talla=num(pr.talla)||165;
+  /* Solo lo registrado en la preconsulta: lo que falta se muestra «sin registro», nunca un valor típico. */
+  const peso=num(pr.peso),talla=num(pr.talla);
+  const sr=(v,u)=>v!=null&&String(v).trim()!==""?v+(u?" "+u:""):"sin registro";
   const imc=peso&&talla?Math.round((peso/Math.pow(talla/100,2))*10)/10:null;
   const items=[
     [!!(pacObj.raw.Documento&&pacObj.eps),"Identificación, aseguramiento y autorización EPS verificados","Res. 1995 de 1999 · Res. 1552"],
@@ -11363,7 +11363,7 @@ function v13CeHcView(){
     "HISTORIA CLÍNICA DE CONSULTA EXTERNA ESPECIALIZADA · POSMÉDICA IPS",
     "Fecha: "+pxToday()+" | Paciente: "+pacObj.nom+" ("+pacObj.id+") | EPS: "+(pacObj.eps||"—"),
     "SIGNOS VITALES ARRASTRADOS AUTOMÁTICAMENTE DESDE PRECONSULTA DE ENFERMERÍA:",
-    "TA: "+(pr.pas||126)+"/"+(pr.pad||78)+" mmHg | FC: "+(pr.fc||74)+" lpm | FR: "+(pr.fr||16)+" rpm | Temp: "+(pr.temp||36.5)+" °C | SatO2: "+(pr.sat||96)+" % | Peso: "+(pr.peso||68)+" kg | Talla: "+(pr.talla||165)+" cm | IMC: "+(imc||25.0)+" kg/m²"+(pr.glu?" | Glucometría: "+pr.glu+" mg/dL":""),
+    "TA: "+(pr.pas&&pr.pad?pr.pas+"/"+pr.pad+" mmHg":"sin registro")+" | FC: "+sr(pr.fc,"lpm")+" | FR: "+sr(pr.fr,"rpm")+" | Temp: "+sr(pr.temp,"°C")+" | SatO2: "+sr(pr.sat,"%")+" | Peso: "+sr(pr.peso,"kg")+" | Talla: "+sr(pr.talla,"cm")+" | IMC: "+(imc!=null?imc+" kg/m²":"sin registro")+(pr.glu?" | Glucometría: "+pr.glu+" mg/dL":""),
     "ANÁLISIS Y CONDUCTA AJUSTADA A GPC:",
     "Paciente valorado en consulta especializada con signos vitales de preconsulta e historial paraclínico integrados. Se realiza conciliación farmacológica, educación en signos de alarma y se define plan de manejo y próximo control."
   ].join("\n");
@@ -11372,14 +11372,14 @@ function v13CeHcView(){
     '<div class="panel" style="border-left:4px solid var(--ok)"><div class="mhead"><div><p class="eyebrow">Punto 3 y 10 · Consulta Externa Conectada con Preconsulta y Laboratorio</p><h3 style="margin:0">Historia Clínica GPC con Signos Vitales de Preconsulta · '+esc(pacObj.nom)+'</h3></div>'+
     '<label class="f" style="min-width:250px">Paciente:<select data-v13="calpac|ce">'+opt(P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]),selPid)+'</select></label></div>'+
     '<div class="form" style="margin-top:10px">'+
-      '<label class="f">TA Preconsulta (mmHg)<input type="text" value="'+esc((pr.pas||126)+"/"+(pr.pad||78))+'"></label>'+
-      '<label class="f">FC (lpm)<input type="number" value="'+esc(pr.fc||74)+'"></label>'+
-      '<label class="f">FR (rpm)<input type="number" value="'+esc(pr.fr||16)+'"></label>'+
-      '<label class="f">SatO2 (%)<input type="number" value="'+esc(pr.sat||96)+'"></label>'+
-      '<label class="f">Peso (kg)<input type="number" step="0.1" value="'+esc(pr.peso||68)+'"></label>'+
-      '<label class="f">Talla (cm)<input type="number" value="'+esc(pr.talla||165)+'"></label>'+
-      '<label class="f">Glucometría (mg/dL)<input type="number" value="'+esc(pr.glu||98)+'"></label>'+
-      '<label class="f">IMC calculado<input type="text" readonly value="'+(imc||25.0)+' kg/m²"></label>'+
+      '<label class="f">TA Preconsulta (mmHg)<input type="text" value="'+esc(pr.pas&&pr.pad?pr.pas+"/"+pr.pad:"")+'"></label>'+
+      '<label class="f">FC (lpm)<input type="number" value="'+esc(pr.fc||"")+'"></label>'+
+      '<label class="f">FR (rpm)<input type="number" value="'+esc(pr.fr||"")+'"></label>'+
+      '<label class="f">SatO2 (%)<input type="number" value="'+esc(pr.sat||"")+'"></label>'+
+      '<label class="f">Peso (kg)<input type="number" step="0.1" value="'+esc(pr.peso||"")+'"></label>'+
+      '<label class="f">Talla (cm)<input type="number" value="'+esc(pr.talla||"")+'"></label>'+
+      '<label class="f">Glucometría (mg/dL)<input type="number" value="'+esc(pr.glu||"")+'"></label>'+
+      '<label class="f">IMC calculado<input type="text" readonly value="'+(imc!=null?imc+' kg/m²':'sin registro')+'"></label>'+
       '<label class="f wide">Nota clínica generada para SIIS (con signos vitales precargados)<textarea id="v13_ce_hc_txt" rows="8" style="font-family:var(--f-mono);font-size:12px">'+esc(notaCe)+'</textarea></label>'+
     '</div><div class="copyrow" style="margin-top:8px"><button type="button" class="btn primary" data-copiar="v13_ce_hc_txt" data-copiar-aviso="HC de Consulta Externa copiada.">Copiar HC para SIIS</button></div></div></div>'+
     '<div class="panel vxaud"><div class="mhead"><h3 style="margin:0">Auditoría Concurrente GPC en Tiempo Real · CE</h3><span class="vxaudchip '+(pct>=85?"ok":"warn")+'"><b>'+pct+' %</b></span></div>'+

@@ -1907,6 +1907,209 @@ model PortalIndicadorHistorico {
   @@map("portal_indicador_historico")
 }
 
+/// Hoja «QuimioterapiaSesiones» del libro institucional del prototipo.
+model PortalQuimioterapiaSesion {
+  ID             String   @id @map("id")
+  Fecha          String?  @map("fecha")
+  Paciente       String?  @map("paciente")
+  Nombre         String?  @map("nombre")
+  EPS            String?  @map("eps")
+  Esquema        String?  @map("esquema")
+  Ciclo          String?  @map("ciclo")
+  Medicamentos   String?  @map("medicamentos")
+  DobleVerif     String?  @map("doble_verif")
+  Extravasacion  String?  @map("extravasacion")
+  Reaccion       String?  @map("reaccion")
+  Conducta       String?  @map("conducta")
+  Estado         String?  @map("estado")
+  Profesional    String?  @map("profesional")
+  Usuario        String?  @map("usuario")
+  Registrado     String?  @map("registrado")
+  creadoPor      String?  @map("creado_por") @db.Uuid
+  creadoEn       DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn  DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("portal_quimioterapia_sesion")
+}
+
+/// Hoja «Capacitaciones» del libro institucional del prototipo.
+model PortalCapacitacion {
+  ID                String   @id @map("id")
+  Fecha             String?  @map("fecha")
+  Hora              String?  @map("hora")
+  Programa          String?  @map("programa")
+  Proceso           String?  @map("proceso")
+  Tema              String?  @map("tema")
+  Modalidad         String?  @map("modalidad")
+  Facilitador       String?  @map("facilitador")
+  Objetivo          String?  @map("objetivo")
+  Asistentes        String?  @map("asistentes")
+  TotalAsistentes   String?  @map("total_asistentes")
+  EvaluacionPrePost String?  @map("evaluacion_pre_post")
+  Evidencia         String?  @map("evidencia")
+  Estado            String?  @map("estado")
+  Origen            String?  @map("origen")
+  Usuario           String?  @map("usuario")
+  Registrado        String?  @map("registrado")
+  creadoPor         String?  @map("creado_por") @db.Uuid
+  creadoEn          DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor    String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn     DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Fecha])
+  @@map("portal_capacitacion")
+}
+
+/// Hoja «LiberacionReportes» del libro institucional del prototipo.
+model PortalLiberacionReporte {
+  ID                  String   @id @map("id")
+  Fecha               String?  @map("fecha")
+  Programa            String?  @map("programa")
+  Reporte             String?  @map("reporte")
+  Periodo             String?  @map("periodo")
+  EPS                 String?  @map("eps")
+  Registros           String?  @map("registros")
+  Bloqueantes         String?  @map("bloqueantes")
+  Advertencias        String?  @map("advertencias")
+  SoportesVerificados String?  @map("soportes_verificados")
+  Dictamen            String?  @map("dictamen")
+  Auditor             String?  @map("auditor")
+  Observacion         String?  @map("observacion")
+  Registrado          String?  @map("registrado")
+  creadoPor           String?  @map("creado_por") @db.Uuid
+  creadoEn            DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor      String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn       DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Fecha])
+  @@map("portal_liberacion_reporte")
+}
+
+/// Hoja «Preconsulta» del libro institucional del prototipo.
+model PortalPreconsulta {
+  ID              String   @id @map("id")
+  Fecha           String?  @map("fecha")
+  Programa        String?  @map("programa")
+  Paciente        String?  @map("paciente")
+  PAS             String?  @map("pas")
+  PAD             String?  @map("pad")
+  FC              String?  @map("fc")
+  FR              String?  @map("fr")
+  Temp            String?  @map("temp")
+  SatO2           String?  @map("sat_o2")
+  Peso            String?  @map("peso")
+  Talla           String?  @map("talla")
+  Cintura         String?  @map("cintura")
+  Glucometria     String?  @map("glucometria")
+  Auxiliar        String?  @map("auxiliar")
+  Listo           String?  @map("listo")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("portal_preconsulta")
+}
+
+/// Hoja «AsistenciaActividades» del libro institucional del prototipo.
+model PortalAsistenciaActividad {
+  ID              String   @id @map("id")
+  Programa        String?  @map("programa")
+  Paciente        String?  @map("paciente")
+  Disciplina      String?  @map("disciplina")
+  Mes             String?  @map("mes")
+  Resultado       String?  @map("resultado")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Mes])
+  @@map("portal_asistencia_actividad")
+}
+
+/// Hoja «Procedimientos» del libro institucional del prototipo.
+model PortalProcedimiento {
+  ID                    String   @id @map("id")
+  Fecha                 String?  @map("fecha")
+  Programa              String?  @map("programa")
+  Paciente              String?  @map("paciente")
+  Procedimiento         String?  @map("procedimiento")
+  Sitio                 String?  @map("sitio")
+  Lote                  String?  @map("lote")
+  Responsable           String?  @map("responsable")
+  SolicitudDesinfeccion String?  @map("solicitud_desinfeccion")
+  Usuario               String?  @map("usuario")
+  Registrado            String?  @map("registrado")
+  Anulado               String?  @map("anulado")
+  MotivoAnulacion       String?  @map("motivo_anulacion")
+  creadoPor             String?  @map("creado_por") @db.Uuid
+  creadoEn              DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor        String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn         DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@index([Fecha])
+  @@map("portal_procedimiento")
+}
+
+/// Hoja «VacunacionRenal» del libro institucional del prototipo.
+model PortalVacunacionRenal {
+  ID                    String   @id @map("id")
+  Programa              String?  @map("programa")
+  Paciente              String?  @map("paciente")
+  VHB                   String?  @map("vhb")
+  AntiHBs               String?  @map("anti_h_bs")
+  Influenza             String?  @map("influenza")
+  NeumococoConjugada    String?  @map("neumococo_conjugada")
+  NeumococoPolisacarida String?  @map("neumococo_polisacarida")
+  Covid                 String?  @map("covid")
+  Usuario               String?  @map("usuario")
+  Registrado            String?  @map("registrado")
+  Anulado               String?  @map("anulado")
+  MotivoAnulacion       String?  @map("motivo_anulacion")
+  creadoPor             String?  @map("creado_por") @db.Uuid
+  creadoEn              DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor        String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn         DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@map("portal_vacunacion_renal")
+}
+
+/// Hoja «SoportesSISCAC» del libro institucional del prototipo.
+model PortalSoporteSiscac {
+  ID              String   @id @map("id")
+  Programa        String?  @map("programa")
+  Paciente        String?  @map("paciente")
+  Soportes        String?  @map("soportes")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Paciente])
+  @@map("portal_soporte_siscac")
+}
+
 // >>> PORTAL
 
 // ============================================================================
