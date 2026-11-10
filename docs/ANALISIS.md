@@ -485,7 +485,7 @@ El coordinador entregó el prototipo v3.2. **Es la referencia de a dónde debe l
 - **B. Interfaz v3.2 y Hemodiálisis**: ✅ hecha (ver «Fase B» abajo).
 - **C. Transversales**: ✅ hecha (ver «Fase C» abajo).
 - **D. Diálisis peritoneal v1.1**: ✅ hecha (ver «Fase D» abajo).
-- **E. Contratos y tecnologías, Talento humano y Producción.**
+- **E. Contratos y tecnologías y Talento humano**: ✅ hecha (ver «Fase E» abajo).
 - **F. Pruebas de la API completas, pruebas de aceptación y guía de despliegue.**
 
 ### Fase B (hecha, 10 de noviembre de 2026)
@@ -514,3 +514,9 @@ El coordinador entregó el prototipo v3.2. **Es la referencia de a dónde debe l
 - **Pruebas**: `test/dp11.test.ts` (8); API 119/119, reglas 164/164, build (3 páginas con huella); verificado en el navegador (alta de paciente y laboratorio, persistencia tras recargar, sin `localStorage`).
 - **Decisión pendiente**: el contenido de los contratos por EPS (`CONTRATOS`, sin precios ni pacientes) sigue en el código del módulo, como en la referencia. Si debe ser solo del servidor, se mueve a la API.
 - **Pendiente**: IAAS-09, PROA-DP y la solicitud de laboratorio de DP leen todavía el libro DP v0.8; falta un puente de lectura desde la v1.1 (sin completar datos).
+
+### Fase E (hecha, 10 de noviembre de 2026)
+- **Contratos y tecnologías v1.1**: página propia (`apps/web/public/modulos/ct11/`) sin su matriz contractual. El adaptador verifica que el usuario sea administrador, pide la matriz a `/api/v1/contratos/matriz` (solo administrador; se guarda como parámetro del programa «ct», cada carga queda en la auditoría) y solo entonces carga el código del módulo. Sin matriz, el administrador la carga una vez desde un .json o desde el archivo .html del prototipo (se extrae en su navegador y solo se envía la matriz).
+- **Talento humano y bienestar**: empleados del mes, cuadro de turnos, formatos y clima laboral pasan del navegador a 4 hojas del libro institucional que solo el administrador lee y registra (`talento-humano.js`, migración `20261110210000_v32_talento_humano`). Se retiró el personal ficticio con el que arrancaba la v3.2 y el puntaje 94 que traía por defecto la medición de clima.
+- **Catálogo**: «ct» y «th» son programas solo de administrador, como el Tablero gerencial.
+- **Pruebas**: `test/gestion-v32.test.ts` (6); API 125/125, reglas 164/164, build (4 páginas con huella); verificado en el navegador.

@@ -33,4 +33,9 @@ export const HOJAS_PORTAL = {
   qx: { modelo: "PortalProcedimiento", tabla: "portal_procedimiento", nombre: "Procedimientos", columnas: ["ID","Fecha","Programa","Paciente","Procedimiento","Sitio","Lote","Responsable","SolicitudDesinfeccion","Usuario","Registrado","Anulado","MotivoAnulacion"] },
   vre: { modelo: "PortalVacunacionRenal", tabla: "portal_vacunacion_renal", nombre: "VacunacionRenal", columnas: ["ID","Programa","Paciente","VHB","AntiHBs","Influenza","NeumococoConjugada","NeumococoPolisacarida","Covid","Usuario","Registrado","Anulado","MotivoAnulacion"] },
   sis: { modelo: "PortalSoporteSiscac", tabla: "portal_soporte_siscac", nombre: "SoportesSISCAC", columnas: ["ID","Programa","Paciente","Soportes","Usuario","Registrado","Anulado","MotivoAnulacion"] },
+  // Fase E (talento-humano.js): Talento humano y bienestar, solo el administrador (decisión del 10 nov 2026).
+  the: { modelo: "PortalThEmpleadoMes", tabla: "portal_th_empleado_mes", nombre: "THEmpleadosMes", columnas: ["ID","Mes","Nombre","Cargo","Area","Valor","Motivo","Votos","Usuario","Registrado","Anulado","MotivoAnulacion"] },
+  tht: { modelo: "PortalThTurno", tabla: "portal_th_turno", nombre: "THCuadroTurnos", columnas: ["ID","Colaborador","Cargo","Servicio","Lun","Mar","Mie","Jue","Vie","Sab","Obs","Usuario","Registrado","Anulado","MotivoAnulacion"] },
+  thf: { modelo: "PortalThFormato", tabla: "portal_th_formato", nombre: "THFormatos", columnas: ["ID","Codigo","Tipo","Colaborador","Area","Fecha","Detalle","Estado","AprobadoPor","Usuario","Registrado","Anulado","MotivoAnulacion"] },
+  thc: { modelo: "PortalThClima", tabla: "portal_th_clima", nombre: "THClimaLaboral", columnas: ["ID","Fecha","Area","Dimension","Puntaje","Riesgo","Accion","Estado","Usuario","Registrado","Anulado","MotivoAnulacion"] },
 } as const;

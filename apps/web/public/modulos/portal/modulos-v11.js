@@ -12,7 +12,8 @@
    ===================================================================================================== */
 const V22={ver:"2.2",fecha:"2026-10-26",
   apps:{
-    dp:{t:"Diálisis peritoneal · v1.1"} /* página propia: /modulos/dp11/ (fase D). Contratos y tecnologías: fase E */
+    dp:{t:"Diálisis peritoneal · v1.1"}, /* página propia: /modulos/dp11/ (fase D) */
+    ct:{t:"Contratos y tecnologías · v1.1"} /* página propia: /modulos/ct11/ (fase E); matriz solo para el administrador */
   }
 };
 
@@ -21,9 +22,23 @@ if(PROG.dp){
   PROG.dp.d="v1.1: censo, habilitación, contratación, gestión clínica, Kt/V, laboratorios, farmacia simplificada, peritonitis y eventos, indicadores CAC 2026 con filtro por EPS y nota técnica.";
   delete PROG.dp.nx;
 }
+/* Contratos y tecnologías (fase E): solo el administrador (decisión del 10 nov 2026). */
+if(!PROGS.some(p=>p.k==="ct")){
+  const at=PROGS.findIndex(p=>p.k==="prod");
+  PROGS.splice(at>=0?at+1:PROGS.length,0,{k:"ct",n:"Contratos y tecnologías",g:"ges",
+    d:"Buscador: ¿está contratada esta tecnología, insumo o medicamento para este programa y esta EPS? Con CUPS cuando el contrato lo trae."});
+  PROG.ct=PROGS.find(p=>p.k==="ct");
+}
+PIC.ct='<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/><circle cx="11" cy="14" r="2.6"/><path d="M13 16l2.5 2.5"/>';
+const pxCan22=pxCan;
+pxCan=function(k){if(k==="ct")return !!PX.user&&pxAdmin();return pxCan22(k);};
+const pxCard22=pxCard;
+pxCard=function(p){const h=pxCard22(p);return p.k==="ct"?h.replace('<span class="tag">en desarrollo</span>',''):h;};
+
 const pxKPI22=pxKPI;
 pxKPI=function(k){
   if(k==="dp")return'<span>v1.1</span><span class="sd">registros en el servidor</span>';
+  if(k==="ct")return'<span>Matriz contractual</span><span class="sd">solo administrador</span>';
   return pxKPI22(k);
 };
 

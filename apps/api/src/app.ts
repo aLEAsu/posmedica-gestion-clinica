@@ -19,6 +19,7 @@ import { CONFIG_PORTAL } from "./modulos/portal/config.js";
 import { nefroPg } from "./modulos/nefro/fachada.js";
 import { nefroAgenda } from "./modulos/nefro/agenda.js";
 import { dp11 } from "./modulos/dp11/rutas.js";
+import { contratos } from "./modulos/contratos/rutas.js";
 import { CONFIG_DP } from "./modulos/dp/config.js";
 import { dpBitacora } from "./modulos/dp/bitacora.js";
 import { CONFIG_CE } from "./modulos/ce/config.js";
@@ -36,7 +37,7 @@ export function crearApp() {
   const jsonMedio = express.json({ limit: "10mb" });
   const jsonNormal = express.json({ limit: "2mb" });
   app.use((req, res, next) =>
-    (req.path.endsWith("/importar") ? jsonGrande : req.path.endsWith("/sincronizar") ? jsonMedio : jsonNormal)(req, res, next),
+    (req.path.endsWith("/importar") ? jsonGrande : req.path.endsWith("/sincronizar") || req.path.endsWith("/matriz") ? jsonMedio : jsonNormal)(req, res, next),
   );
   app.use(cookieParser());
   // Respuestas comprimidas (gzip): el libro de un programa es JSON de varios MB y se reduce unas 8 a 10 veces.
@@ -74,6 +75,7 @@ export function crearApp() {
   app.use("/api/v1/nefro/pg", nefroPg);
   app.use("/api/v1/nefro", nefroAgenda);
   app.use("/api/v1/dp11", dp11); // Diálisis peritoneal v1.1 (fase D)
+  app.use("/api/v1/contratos", contratos); // Contratos y tecnologías v1.1, solo administrador (fase E)
 
   app.use("/api", (_req, _res, next) => next(noEncontrado("Ruta no encontrada.")));
   app.use(manejadorErrores);

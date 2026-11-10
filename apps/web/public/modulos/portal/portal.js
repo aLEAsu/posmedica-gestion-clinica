@@ -9966,7 +9966,7 @@ if(!PROGS.some(p=>p.k==="th")){
 }
 const pxCan0=pxCan;
 pxCan=function(k){
-  if(k==="th"&&PX.user)return true;
+  if(k==="th")return !!PX.user&&pxAdmin(); /* decisión del 10 nov 2026: Talento humano solo para el administrador */
   return pxCan0(k);
 };
 
@@ -10960,7 +10960,7 @@ document.addEventListener("click",e=>{
     case"th_tab":V13.th.tab=x;pxRender();break;
     case"th_vote":{
       const emp=V13.th.emp.find(r=>r.id===x);
-      if(emp){emp.votos=(emp.votos||1)+1;v13Save();pxRender();toast("¡Reconocimiento sumado a "+emp.nombre+"!");}
+      if(emp){v32THVoto(emp.id);pxRender();toast("¡Reconocimiento sumado a "+emp.nombre+"!");}
       break;
     }
     case"th_emp_new":{
@@ -10969,8 +10969,8 @@ document.addEventListener("click",e=>{
         "Publicar en el Cuadro de Honor",()=>{
           const n=$("the_n").value.trim(),mo=$("the_mo").value.trim();
           if(n.length<3||mo.length<6)return"Escriba el nombre y el logro del colaborador.";
-          V13.th.emp.unshift({id:"EM-0"+(V13.th.emp.length+1),mes:$("the_m").value,nombre:n,cargo:$("the_c").value.trim(),area:$("the_a").value.trim(),valor:$("the_v").value,motivo:mo,votos:1});
-          v13Save();pxRender();toast(n+" agregado(a) al Cuadro de Honor del Mes.");
+          v32TH("emp",{mes:$("the_m").value,nombre:n,cargo:$("the_c").value.trim(),area:$("the_a").value.trim(),valor:$("the_v").value,motivo:mo,votos:1});
+          pxRender();toast(n+" agregado(a) al Cuadro de Honor del Mes.");
         });
       break;
     }
@@ -10979,8 +10979,8 @@ document.addEventListener("click",e=>{
         '<div class="form"><label class="f">Colaborador *<input type="text" id="tht_n"></label><label class="f">Cargo *<input type="text" id="tht_c"></label><label class="f wide">Servicio *<input type="text" id="tht_s" value="Hemodiálisis"></label><label class="f">Lunes<input type="text" id="tht_1" value="Mañana (07:00-14:00)"></label><label class="f">Martes<input type="text" id="tht_2" value="Mañana (07:00-14:00)"></label><label class="f">Miércoles<input type="text" id="tht_3" value="Mañana (07:00-14:00)"></label><label class="f">Jueves<input type="text" id="tht_4" value="Mañana (07:00-14:00)"></label><label class="f">Viernes<input type="text" id="tht_5" value="Mañana (07:00-14:00)"></label><label class="f">Sábado / Disp.<input type="text" id="tht_6" value="Libre"></label><label class="f wide">Observación / Función crítica<input type="text" id="tht_o"></label></div>',
         "Guardar turno",()=>{
           const n=$("tht_n").value.trim();if(n.length<3)return"Escriba el nombre del colaborador.";
-          V13.th.turnos.push({id:"TU-0"+(V13.th.turnos.length+1),colaborador:n,cargo:$("tht_c").value.trim(),servicio:$("tht_s").value.trim(),lun:$("tht_1").value,mar:$("tht_2").value,mie:$("tht_3").value,jue:$("tht_4").value,vie:$("tht_5").value,sab:$("tht_6").value,obs:$("tht_o").value.trim()});
-          v13Save();pxRender();toast("Turno agregado al cuadro institucional.");
+          v32TH("turnos",{colaborador:n,cargo:$("tht_c").value.trim(),servicio:$("tht_s").value.trim(),lun:$("tht_1").value,mar:$("tht_2").value,mie:$("tht_3").value,jue:$("tht_4").value,vie:$("tht_5").value,sab:$("tht_6").value,obs:$("tht_o").value.trim()});
+          pxRender();toast("Turno agregado al cuadro institucional.");
         });
       break;
     }
@@ -10990,18 +10990,19 @@ document.addEventListener("click",e=>{
         "Registrar formato",()=>{
           const n=$("thf_n").value.trim(),d=$("thf_d").value.trim();if(n.length<3||d.length<5)return"Complete colaborador y detalle.";
           const tp=$("thf_t").value.split(" · ");
-          V13.th.formatos.unshift({id:"TH-F0"+(V13.th.formatos.length+1),codigo:tp[0],tipo:tp[1]||tp[0],colaborador:n,area:$("thf_a").value.trim(),fecha:$("thf_f").value,detalle:d,estado:$("thf_e").value,aprobadoPor:PX.user?PX.user.Nombre:"Coordinación"});
-          v13Save();pxRender();toast("Formato registrado en Talento Humano.");
+          v32TH("formatos",{codigo:tp[0],tipo:tp[1]||tp[0],colaborador:n,area:$("thf_a").value.trim(),fecha:$("thf_f").value,detalle:d,estado:$("thf_e").value,aprobadoPor:PX.user?PX.user.Nombre:""});
+          pxRender();toast("Formato registrado en Talento Humano.");
         });
       break;
     }
     case"th_cli_new":{
       openDlg("Registrar Medición de Clima Laboral / Intervención de Riesgo Psicosocial",
-        '<div class="form"><label class="f">Fecha<input type="date" id="thc_f" value="'+pxToday()+'"></label><label class="f">Área evaluada *<input type="text" id="thc_a" value="Unidad Renal y Consulta Externa"></label><label class="f wide">Dimensión (Res. 2764 de 2022) *<select id="thc_d">'+opt(["Carga laboral y organización de turnos","Liderazgo, apoyo social y comunicación","Reconocimiento, motivación y bienestar","Prevención de desgaste emocional / burnout"],"Carga laboral y organización de turnos")+'</select></label><label class="f">Índice de clima favorable (%)<input type="number" min="0" max="100" id="thc_p" value="94"></label><label class="f">Nivel de riesgo psicosocial<select id="thc_r">'+opt(["Bajo","Medio","Alto"],"Bajo")+'</select></label><label class="f wide">Acción preventiva / actividad de bienestar ejecutada *<textarea id="thc_ac" rows="2"></textarea></label></div>',
+        '<div class="form"><label class="f">Fecha<input type="date" id="thc_f" value="'+pxToday()+'"></label><label class="f">Área evaluada *<input type="text" id="thc_a" value="Unidad Renal y Consulta Externa"></label><label class="f wide">Dimensión (Res. 2764 de 2022) *<select id="thc_d">'+opt(["Carga laboral y organización de turnos","Liderazgo, apoyo social y comunicación","Reconocimiento, motivación y bienestar","Prevención de desgaste emocional / burnout"],"Carga laboral y organización de turnos")+'</select></label><label class="f">Índice de clima favorable (%)<input type="number" min="0" max="100" id="thc_p" value="" placeholder="0-100"></label><label class="f">Nivel de riesgo psicosocial<select id="thc_r">'+opt(["Bajo","Medio","Alto"],"Bajo")+'</select></label><label class="f wide">Acción preventiva / actividad de bienestar ejecutada *<textarea id="thc_ac" rows="2"></textarea></label></div>',
         "Guardar",()=>{
           const ac=$("thc_ac").value.trim();if(ac.length<5)return"Describa la acción de bienestar.";
-          V13.th.clima.unshift({id:"CL-0"+(V13.th.clima.length+1),fecha:$("thc_f").value,area:$("thc_a").value.trim(),dimension:$("thc_d").value,puntaje:num($("thc_p").value)||94,riesgo:$("thc_r").value,accion:ac,estado:"Vigente"});
-          v13Save();pxRender();toast("Medición de clima laboral y riesgo psicosocial registrada.");
+          const pje=num($("thc_p").value);if(pje==null)return"Registre el puntaje obtenido en la medición.";
+          v32TH("clima",{fecha:$("thc_f").value,area:$("thc_a").value.trim(),dimension:$("thc_d").value,puntaje:pje,riesgo:$("thc_r").value,accion:ac,estado:"Vigente"});
+          pxRender();toast("Medición de clima laboral y riesgo psicosocial registrada.");
         });
       break;
     }

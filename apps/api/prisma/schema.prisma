@@ -2111,6 +2111,101 @@ model PortalSoporteSiscac {
   @@map("portal_soporte_siscac")
 }
 
+/// Hoja «THEmpleadosMes» del libro institucional del prototipo.
+model PortalThEmpleadoMes {
+  ID              String   @id @map("id")
+  Mes             String?  @map("mes")
+  Nombre          String?  @map("nombre")
+  Cargo           String?  @map("cargo")
+  Area            String?  @map("area")
+  Valor           String?  @map("valor")
+  Motivo          String?  @map("motivo")
+  Votos           String?  @map("votos")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Mes])
+  @@map("portal_th_empleado_mes")
+}
+
+/// Hoja «THCuadroTurnos» del libro institucional del prototipo.
+model PortalThTurno {
+  ID              String   @id @map("id")
+  Colaborador     String?  @map("colaborador")
+  Cargo           String?  @map("cargo")
+  Servicio        String?  @map("servicio")
+  Lun             String?  @map("lun")
+  Mar             String?  @map("mar")
+  Mie             String?  @map("mie")
+  Jue             String?  @map("jue")
+  Vie             String?  @map("vie")
+  Sab             String?  @map("sab")
+  Obs             String?  @map("obs")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@map("portal_th_turno")
+}
+
+/// Hoja «THFormatos» del libro institucional del prototipo.
+model PortalThFormato {
+  ID              String   @id @map("id")
+  Codigo          String?  @map("codigo")
+  Tipo            String?  @map("tipo")
+  Colaborador     String?  @map("colaborador")
+  Area            String?  @map("area")
+  Fecha           String?  @map("fecha")
+  Detalle         String?  @map("detalle")
+  Estado          String?  @map("estado")
+  AprobadoPor     String?  @map("aprobado_por")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Fecha])
+  @@map("portal_th_formato")
+}
+
+/// Hoja «THClimaLaboral» del libro institucional del prototipo.
+model PortalThClima {
+  ID              String   @id @map("id")
+  Fecha           String?  @map("fecha")
+  Area            String?  @map("area")
+  Dimension       String?  @map("dimension")
+  Puntaje         String?  @map("puntaje")
+  Riesgo          String?  @map("riesgo")
+  Accion          String?  @map("accion")
+  Estado          String?  @map("estado")
+  Usuario         String?  @map("usuario")
+  Registrado      String?  @map("registrado")
+  Anulado         String?  @map("anulado")
+  MotivoAnulacion String?  @map("motivo_anulacion")
+  creadoPor       String?  @map("creado_por") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?  @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@index([Fecha])
+  @@map("portal_th_clima")
+}
+
 // >>> PORTAL
 
 // ============================================================================

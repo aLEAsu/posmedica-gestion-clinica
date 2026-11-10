@@ -27,6 +27,8 @@ const LECTURA: Record<string, string[]> = {
 /* Hojas cuyas filas pertenecen a un programa (columna «Programa»): las lee quien ve ese programa y las registra quien
    registra en él (preconsulta, asistencia, procedimientos, vacunación renal, soportes SISCAC, liberación de reportes).
    El programa y el paciente de una fila no cambian después de creada. */
+/** Talento humano y bienestar: datos del personal, solo el administrador los lee y los registra (decisión del 10 nov 2026). */
+const SOLO_ADMIN_HOJAS = new Set(["the", "tht", "thf", "thc"]);
 const POR_PROGRAMA = new Set(["pre", "asi", "qx", "vre", "sis", "lib"]);
 const delPrograma = (u: UsuarioSesion, f: Fila, a: "ver" | "registrar") => admin(u) || (!!f.Programa && puede(u, String(f.Programa), a));
 /** Hojas que registra solo una parte de quienes las leen (el propietario del dato). */
@@ -43,7 +45,7 @@ export const CONFIG_PORTAL: ConfigLibro = {
   cfgPrivada: new Set(["prod_fin"]),
   puedeLeer: () => true,
   puedeEscribir: () => true,
-  leeHoja: (h, u) => !LECTURA[h] || algun(u, LECTURA[h], "ver"),
+  leeHoja: (h, u) => (SOLO_ADMIN_HOJAS.has(h) ? admin(u) : !LECTURA[h] || algun(u, LECTURA[h], "ver")),
   leeFila: (h: string, f: Fila, u: UsuarioSesion) => {
     if (h === "msg") return f.De === u.id || f.Para === `u:${u.id}` || (!!u.area && f.Para === `a:${u.area}`);
     if (h === "rsp") return algun(u, ["sp"], "ver") || f.Usuario === u.usuario;
@@ -51,6 +53,7 @@ export const CONFIG_PORTAL: ConfigLibro = {
     return true;
   },
   escribe: (h, u, tipo, f) => {
+    if (SOLO_ADMIN_HOJAS.has(h)) return admin(u);
     switch (h) {
       case "msg":
       case "cal":

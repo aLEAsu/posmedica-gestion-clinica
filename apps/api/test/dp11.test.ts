@@ -61,7 +61,7 @@ describe("registro y lectura", () => {
     expect((await sync(u["enf.dp"], { labs: { modificados: [{ clave: "L1", datos: { id: "L1", pac: PAC.id, fecha: "2026-10-01", ex: "Hb", v: 11.2 }, _ts: sello }] } })).status).toBe(200);
     const r = await sync(u["med.dp"], { labs: { modificados: [{ clave: "L1", datos: { id: "L1", pac: PAC.id, fecha: "2026-10-01", ex: "Hb", v: 9 }, _ts: sello }] } });
     expect(r.status).toBe(409);
-    expect((await libro(admin)).estado.labs[0]).toMatchObject({ v: 11.2 });
+    expect(((await libro(admin)).estado.labs as Datos[])[0]).toMatchObject({ v: 11.2 });
   });
 
   it("retirar un laboratorio lo anula (exige «anular») y queda en la base", async () => {
