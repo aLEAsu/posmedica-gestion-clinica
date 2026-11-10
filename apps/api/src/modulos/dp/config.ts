@@ -7,7 +7,7 @@
 import { puede, ROLES_DP, type UsuarioSesion } from "@posmedica/shared";
 import type { ConfigLibro, Fila, HojaDef } from "../libro/servicio.js";
 import { sexoEtiqueta } from "../libro/persona.js";
-import { leeHojaProgramaOTransversal, leeProgramaOTransversal } from "../libro/transversal.js";
+import { columnasProgramaOTransversal, leeHojaProgramaOTransversal, leeProgramaOTransversal } from "../libro/transversal.js";
 import { CAMPOS_PERSONA_DP, FECHAS_DP, HOJAS_DP, NUMEROS_DP } from "./hojas.js";
 
 /** Roles y acciones del módulo (DP_ROLES y DP_PERM del prototipo; la prueba verifica que sean idénticos). */
@@ -49,6 +49,7 @@ export const CONFIG_DP: ConfigLibro = {
   // RolesDP usa el nombre de usuario como clave, igual que RolesCE (ver ce/config.ts): se normaliza a minúsculas.
   normalizarClave: (h, v) => (h === "rol" ? v.toLowerCase() : v),
   puedeLeer: leeProgramaOTransversal("dp"),
+  columnasHoja: columnasProgramaOTransversal("dp"), // y de algunas hojas, solo las columnas que usan
   leeHoja: leeHojaProgramaOTransversal("dp"), // los módulos transversales reciben solo las hojas que usan
   // Rol del usuario en RolesDP (el administrador es Dirección Médica).
   contexto: async (db, u: UsuarioSesion) => {

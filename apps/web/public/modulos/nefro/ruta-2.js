@@ -1,4 +1,4 @@
-// Código propio del proyecto (punto de partida: prototipo v0.8 de la coordinación médica). Se edita aquí.
+// Código propio del proyecto. Ruta de Nefroprotección (punto de partida: prototipo v3.2).
 
 /* ===================== MOTOR CLÍNICO (sin DOM) ===================== */
 const NP=(function(){
@@ -428,7 +428,7 @@ function note(d,c,P){
 return{ckd,kfre,gStage,aCat,classify,plan,note,goals,addMonths,addDays,fd,days,GRUPO,MEDST,CAUSA};
 })();
 /* Modelo de atención por EPS (confirmado 6 oct 2026; en la versión con base de datos se lee de eps_modelo_atencion) */
-const EPSMODEL_DEF={"EPS Familiar de Colombia":{inter:"MEDICO EXPERTO",interMeses:1,ajustePor:"MEDICO EXPERTO",multi:"PROGRAMA",meds:true},"Nueva EPS":{inter:"NINGUNO",interMeses:1,ajustePor:"NEFROLOGIA",multi:"PAQUETE",meds:false},"Mallamas EPS":{inter:"NINGUNO",interMeses:1,ajustePor:"MEDICO DEL PROGRAMA",multi:"PROGRAMA",meds:false}};
+const EPSMODEL_DEF={"EPS Familiar de Colombia":{inter:"MEDICO EXPERTO",interMeses:1,ajustePor:"MEDICO EXPERTO",multi:"PROGRAMA",meds:true},"Nueva EPS":{inter:"NINGUNO",interMeses:1,ajustePor:"NEFROLOGIA",multi:"PROGRAMA",meds:false},"Mallamas EPS":{inter:"NINGUNO",interMeses:1,ajustePor:"MEDICO DEL PROGRAMA",multi:"PROGRAMA",meds:false}};
 window.EPSMODEL=JSON.parse(JSON.stringify(EPSMODEL_DEF));
 try{const sv=JSON.parse(localStorage.getItem("nefro_epsmodel")||"null");if(sv)Object.keys(sv).forEach(k=>{if(window.EPSMODEL[k])Object.assign(window.EPSMODEL[k],sv[k]);});}catch(e){}
 

@@ -21,6 +21,7 @@ Frontend React, backend Node.js y base de datos PostgreSQL, desplegados en Rende
 | 8 | Diálisis peritoneal: 24 tablas `dp_*`, roles del módulo en dos capas, importación del archivo de control, reporte CAC, bitácora desde la auditoría | ✅ Lista para pruebas |
 | 9 | Consulta externa: 13 tablas `ce_*`, roles del módulo, especialidades reservadas ocultas desde el servidor, un cupo nunca se asigna dos veces | ✅ Lista para pruebas |
 | 10 | Tablero gerencial (solo administradores), con Nefroprotección calculada en segundo plano | ✅ Lista para pruebas |
+| B (v3.2) | Interfaz v3.2 (barra lateral, tema, 8 ejes) y Hemodiálisis: 17 indicadores CAC v3.1, SIIS, oxígeno medicinal, chequeo pre-turno y FC/FR/SatO2 guardados en el servidor (`hd_actividad_siis`, `hd_oxigeno`, `hd_chequeo_turno`); sin signos vitales ni pesos supuestos; sin copias de datos en el navegador | ✅ Lista para pruebas |
 | — | Optimización: respuestas comprimidas, lecturas en paralelo, carga paralela de libros (DP y CE solo a quien los usa), guardado de seguridad solo tras interacción, código de los módulos con huella para caché larga | ✅ |
 
 Quimioterapia y Servicio farmacéutico siguen «en desarrollo», igual que en el prototipo.

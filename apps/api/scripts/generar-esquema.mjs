@@ -18,6 +18,12 @@ const snake = (s) => s.replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/([A-Z])([
 
 function modelos({ hojas, modelosPorHoja, camposPersona, tipo, relacionPersona, etiquetaLibro }) {
   const bloques = [];
+  /* Llave foránea real hacia el paciente (auditoría A6, migración 20261019130000_fk_paciente_hd_vih_dp_ce): en los
+     libros con hoja «pac», toda hoja con columna «Paciente» apunta al paciente del programa, con ON DELETE RESTRICT
+     (no se borra un paciente con historia clínica asociada). Las hojas nuevas la reciben solas. */
+  const modeloPac = modelosPorHoja.pac?.modelo;
+  const hijas = modeloPac ? Object.entries(modelosPorHoja).filter(([h]) => h !== "pac" && hojas[h][1].includes("Paciente")).map(([, m]) => m.modelo) : [];
+  const campo = (m) => m[0].toLowerCase() + m.slice(1);
   for (const [hoja, { modelo, tabla, clave = "ID", compuesta }] of Object.entries(modelosPorHoja)) {
     const [nombreHoja, columnas] = hojas[hoja];
     const L = [`/// Hoja «${nombreHoja}» del ${etiquetaLibro} del prototipo.`, `model ${modelo} {`];
@@ -35,8 +41,11 @@ function modelos({ hojas, modelosPorHoja, camposPersona, tipo, relacionPersona, 
       `  creadoEn           DateTime   @default(now()) @map("creado_en") @db.Timestamptz(3)`,
       `  actualizadoPor     String?    @map("actualizado_por") @db.Uuid`,
       `  actualizadoEn      DateTime   @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)`,
-      "",
     );
+    if (hoja === "pac") for (const h of hijas) L.push(`  ${campo(h)} ${h}[]`);
+    else if (modeloPac && columnas.includes("Paciente"))
+      L.push(`  paciente ${modeloPac}${clave === "Paciente" ? "" : "?"} @relation(fields: [Paciente], references: [ID], onDelete: Restrict)`);
+    L.push("");
     if (columnas.includes("Paciente") && clave !== "Paciente") L.push(`  @@index([Paciente])`);
     for (const f of ["Fecha", "FechaToma", "Mes", "Inicio", "Solicitud", "Jornada", "Cupo"]) if (columnas.includes(f)) L.push(`  @@index([${f}])`);
     L.push(`  @@map("${tabla}")`, "}");

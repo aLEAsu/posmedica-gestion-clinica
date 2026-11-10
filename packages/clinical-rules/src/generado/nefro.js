@@ -486,7 +486,7 @@ function note(d,c,P){
 return{ckd,kfre,gStage,aCat,classify,plan,note,goals,addMonths,addDays,fd,days,GRUPO,MEDST,CAUSA};
 })();
 /* nefro/ruta-2.js:431 */
-const EPSMODEL_DEF={"EPS Familiar de Colombia":{inter:"MEDICO EXPERTO",interMeses:1,ajustePor:"MEDICO EXPERTO",multi:"PROGRAMA",meds:true},"Nueva EPS":{inter:"NINGUNO",interMeses:1,ajustePor:"NEFROLOGIA",multi:"PAQUETE",meds:false},"Mallamas EPS":{inter:"NINGUNO",interMeses:1,ajustePor:"MEDICO DEL PROGRAMA",multi:"PROGRAMA",meds:false}};
+const EPSMODEL_DEF={"EPS Familiar de Colombia":{inter:"MEDICO EXPERTO",interMeses:1,ajustePor:"MEDICO EXPERTO",multi:"PROGRAMA",meds:true},"Nueva EPS":{inter:"NINGUNO",interMeses:1,ajustePor:"NEFROLOGIA",multi:"PROGRAMA",meds:false},"Mallamas EPS":{inter:"NINGUNO",interMeses:1,ajustePor:"MEDICO DEL PROGRAMA",multi:"PROGRAMA",meds:false}};
 /* nefro/ruta-4.js:4 */
 const COH=(function(){
 "use strict";
@@ -798,5 +798,6 @@ const SECS=["Control de PA y metabólico","Función renal y albuminuria","Anemia
 const ORDER=FX.map(x=>x[0]).concat(["KFRE_DOC"]);
 return{parse,parseRows,sheetsFromWb,fromApi,snapshot,activeAt,EPS,EXNAME,toDate,toNum,norm,age,FICHAS,ORDER,SECS,POPL,POPK,matchEps,reindexCitas,key,idxBy,TEXTEX:["po","qo"]};
 })();
+
 return { RCV, NP, COH, EPSMODEL_DEF, window };
 }

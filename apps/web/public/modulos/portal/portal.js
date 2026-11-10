@@ -1,4 +1,4 @@
-// Código propio del proyecto (punto de partida: prototipo v0.8 de la coordinación médica). Se edita aquí.
+// Código propio del proyecto. Núcleo del portal (punto de partida: prototipo v3.2 de la coordinación médica).
 
 "use strict";
 /* ================= utilidades ================= */
@@ -583,14 +583,14 @@ function pacRegSave(t){if(needUser())return;const p=IDX.pac.get(ST.sel.pac);cons
 function turnoOpts(d){const w=d.getDay();return turnosCfg().filter(t=>t.d.includes(w)).map(t=>t.n);}
 function tKey(){return ST.ui.tdate+"|"+ST.ui.tturno;}
 function tDefRow(p,d){const ab=absentOn(p,d);const n=ab?p._nov.find(x=>(x.Tipo==="Hospitalización"||x.Tipo==="Viaje / traslado temporal")&&x.Inicio<=d&&(!x.Fin||d<=x.Fin)):null;
-  return{sid:"",estado:ab?"Suspendida":"",motivo:ab?(n.Tipo==="Hospitalización"?"Hospitalización":"Viaje o diálisis en otra unidad"):"",causa:n&&n.Causa||"",atrib:n&&n.Atribuible||"",nota:"",min:num(p.DuracionMin)||ST.book.cfgv.durDefault,acc:accessAt(p,d)||"",pp:"",pq:"",ufm:"",tapre:"",tapost:"",glu:"",ktv:"",puesto:num(p.Puesto)||"",tipo:"Programada",motExtra:"",contrato:"",repro:"",ev:[],saved:false,pre:ab,lim:""};}
+  return{sid:"",estado:ab?"Suspendida":"",motivo:ab?(n.Tipo==="Hospitalización"?"Hospitalización":"Viaje o diálisis en otra unidad"):"",causa:n&&n.Causa||"",atrib:n&&n.Atribuible||"",nota:"",min:num(p.DuracionMin)||ST.book.cfgv.durDefault,acc:accessAt(p,d)||"",pp:"",pq:"",ufm:"",tapre:"",tapost:"",fc:"",fr:"",sat:"",glu:"",ktv:"",puesto:num(p.Puesto)||"",tipo:"Programada",motExtra:"",contrato:"",repro:"",ev:[],saved:false,pre:ab,lim:""};}
 function tInit(){
   if(!ST.ui.tdate)ST.ui.tdate=iso(TODAY());const d=pdate(ST.ui.tdate);const ops=turnoOpts(d);
   if(!ops.includes(ST.ui.tturno))ST.ui.tturno=ops[0]||"";
   if(ST.ui.tdraft&&ST.ui.tdraft.key===tKey())return;
   ensureIdx();const rows={};const list=[];
   ST.book.pac.forEach(p=>{const ses=p._ses.find(s=>iso(s.Fecha)===ST.ui.tdate&&(s.Turno===ST.ui.tturno||!s.Turno&&p.Turno===ST.ui.tturno));const inT=p.Turno===ST.ui.tturno&&activeAt(p,d);if(!inT&&!ses)return;list.push(p.ID);
-    if(ses)rows[p.ID]={sid:ses.ID,estado:ses.Estado,motivo:ses.Motivo||"",causa:"",atrib:"",nota:ses.Nota||"",min:ses.DuracionMin,acc:ses.Acceso||"",pp:ses.PesoPre??"",pq:ses.PesoPost??"",ufm:ses.UFMaquina??"",tapre:ses.TASPre?ses.TASPre+"/"+(ses.TADPre??""):"",tapost:ses.TASPost?ses.TASPost+"/"+(ses.TADPost??""):"",glu:ses.Gluco??"",ktv:ses.KtVOCM??"",puesto:ses.Puesto??(num(p.Puesto)||""),tipo:ses.Tipo||"Programada",motExtra:ses.MotivoExtra||"",contrato:ses.PorContrato||"",repro:ses.Reprograma?iso(ses.Reprograma):"",ev:[],saved:true,lim:ses.LimpiezaPuesto||""};
+    if(ses)rows[p.ID]={sid:ses.ID,estado:ses.Estado,motivo:ses.Motivo||"",causa:"",atrib:"",nota:ses.Nota||"",min:ses.DuracionMin,acc:ses.Acceso||"",pp:ses.PesoPre??"",pq:ses.PesoPost??"",ufm:ses.UFMaquina??"",tapre:ses.TASPre?ses.TASPre+"/"+(ses.TADPre??""):"",tapost:ses.TASPost?ses.TASPost+"/"+(ses.TADPost??""):"",fc:ses.FC??"",fr:ses.FR??"",sat:ses.SatO2??"",glu:ses.Gluco??"",ktv:ses.KtVOCM??"",puesto:ses.Puesto??(num(p.Puesto)||""),tipo:ses.Tipo||"Programada",motExtra:ses.MotivoExtra||"",contrato:ses.PorContrato||"",repro:ses.Reprograma?iso(ses.Reprograma):"",ev:[],saved:true,lim:ses.LimpiezaPuesto||""};
     else rows[p.ID]=tDefRow(p,d);});
   ST.ui.tdraft={key:tKey(),rows,list};
 }
@@ -608,7 +608,7 @@ function vTurno(){
   h+='<div class="copyrow"><label class="f" style="max-width:190px">Fecha del turno<input type="date" id="tdate" value="'+ST.ui.tdate+'"></label>'+(ops.length?'<div class="seg" role="group" aria-label="Turno">'+ops.map(o=>'<button type="button" data-a="tturno|'+o+'" aria-pressed="'+(o===ST.ui.tturno)+'">'+o+'</button>').join("")+'</div>':'<span class="alert warn"><p>'+DIAS_L[d.getDay()]+': no hay turnos configurados ese día (Referencia → Turnos).</p></span>')+
     '<span class="note" id="tcount">'+L.length+' pacientes · '+done+' guardados · '+pend+' sin estado</span></div>';
   if(!L.length)return h+'<div class="panel empty">No hay pacientes asignados a este turno. Asigne turno y puesto en Pacientes, o agregue un paciente extra.</div>'+vMapa(d);
-  h+='<div class="panel tablebox" style="padding:0"><table class="turno"><thead><tr><th>Silla</th><th>Paciente</th><th>Estado</th><th>Min</th><th>Acceso</th><th>Peso pre</th><th>Peso post</th><th>UF</th><th>TA pre</th><th>TA post</th><th>Glucometría</th><th>Kt/V línea</th><th>Motivo si no se realizó</th><th title="Desinfección del puesto después del uso">Desinf. puesto</th><th>Eventos</th></tr></thead><tbody>'+L.map(p=>tRow(p)).join("")+'</tbody></table></div>';
+  h+='<div class="panel tablebox" style="padding:0"><table class="turno"><thead><tr><th>Silla</th><th>Paciente</th><th>Estado</th><th>Min</th><th>Acceso</th><th>Peso pre</th><th>Peso post</th><th>UF</th><th>TA pre</th><th>TA post</th><th>FC · FR · SatO2</th><th>Glucometría</th><th>Kt/V línea</th><th>Motivo si no se realizó</th><th title="Desinfección del puesto después del uso">Desinf. puesto</th><th>Eventos</th></tr></thead><tbody>'+L.map(p=>tRow(p)).join("")+'</tbody></table></div>';
   return h+'<p class="note">UF neta = peso pre − peso post (1 kg ≈ 1 L); tasa de UF = UF en mL / peso post / horas de la sesión, en rojo si supera 13 mL/kg/h. «máq. mL» es el volumen ultrafiltrado que muestra la máquina al final; la diferencia con la UF por peso corresponde a líquidos administrados o ingeridos durante la sesión. TA como 130/80. Peso en kg. La silla se puede cambiar solo para esta sesión (máquina dañada); el puesto habitual se cambia en Pacientes. Glucometría solo para pacientes con diabetes. Kt/V en línea: el que reporta la máquina (dialisancia iónica), si lo tiene. «Desinf. puesto»: marque cuando el puesto quedó desinfectado después de ese uso (fuente de la cobertura documental de limpieza que lee IAAS).</p>'+vMapa(d);
 }
 function tRow(p){const T=ST.ui.tdraft;const r=T.rows[p.ID];const re=r.estado==="Realizada",no=r.estado&&!re;const dis=re?"":" disabled";const P=ST.book.cfgv.puestos||13;const d=pdate(ST.ui.tdate);
@@ -623,7 +623,8 @@ function tRow(p){const T=ST.ui.tdraft;const r=T.rows[p.ID];const re=r.estado==="
    '<td style="min-width:104px"><span data-ufv="'+p.ID+'">'+ufView(p,r)+'</span><input class="w-kg" type="text" inputmode="numeric" data-t="'+p.ID+'|ufm" value="'+esc(r.ufm)+'"'+dis+' aria-label="UF de la máquina en mL" placeholder="máq. mL" style="margin-top:3px;width:84px"></td>'+
    '<td><input class="w-ta" type="text" inputmode="numeric" data-t="'+p.ID+'|tapre" value="'+esc(r.tapre)+'" placeholder="130/80"'+dis+' aria-label="TA pre"></td>'+
    '<td><input class="w-ta" type="text" inputmode="numeric" data-t="'+p.ID+'|tapost" value="'+esc(r.tapost)+'" placeholder="120/75"'+dis+' aria-label="TA post"></td>'+
-   '<td><input class="w-tas" type="number" inputmode="numeric" data-t="'+p.ID+'|glu" value="'+esc(r.glu)+'"'+(re&&p.DM==="SI"?"":" disabled")+' aria-label="Glucometría" placeholder="'+(p.DM==="SI"?"mg/dL":"no DM")+'"></td>'+
+   '<td style="min-width:130px"><div style="display:flex;gap:3px"><input class="w-min" style="width:42px" type="number" data-t="'+p.ID+'|fc" value="'+esc(r.fc??"")+'"'+dis+' title="FC (lpm)" placeholder="FC"><input class="w-min" style="width:38px" type="number" data-t="'+p.ID+'|fr" value="'+esc(r.fr??"")+'"'+dis+' title="FR (rpm)" placeholder="FR"><input class="w-min" style="width:42px" type="number" data-t="'+p.ID+'|sat" value="'+esc(r.sat??"")+'"'+dis+' title="SatO2 (%)" placeholder="Sat%"></div></td>'+
+   '<td><input class="w-tas" type="number" inputmode="numeric" data-t="'+p.ID+'|glu" value="'+esc(r.glu)+'"'+dis+' aria-label="Glucometría" placeholder="mg/dL"></td>'+
    '<td><input class="w-tas" type="text" inputmode="decimal" data-t="'+p.ID+'|ktv" value="'+esc(r.ktv)+'"'+dis+' aria-label="Kt/V en línea"></td>'+
    '<td style="min-width:200px">'+(no?'<select data-t="'+p.ID+'|motivo" data-re="1" aria-label="Motivo">'+opt(MOTIVOS.map(m=>m[0]),r.motivo,"Motivo…")+'</select>'+
      (r.motivo==="Hospitalización"?'<select data-t="'+p.ID+'|causa" aria-label="Causa de la hospitalización" style="margin-top:3px">'+opt(CAUSA_HOSP,r.causa,"Causa de la hospitalización…")+'</select><select data-t="'+p.ID+'|atrib" aria-label="Atribuible" style="margin-top:3px">'+opt(ATRIB,r.atrib,"¿Atribuible a ERC o diálisis?")+'</select>':"")+
@@ -646,7 +647,7 @@ function tSave(){
     else{if(!r.motivo)errs.push(id+": falta el motivo de la sesión no realizada");if(r.motivo==="Hospitalización"&&!r.causa)errs.push(id+": falta la causa de la hospitalización");}});
   if(errs.length){toast("No se guardó. "+errs.slice(0,3).join(" · ")+(errs.length>3?" …":""));return;}
   T.list.forEach(id=>{const r=T.rows[id];if(!r.estado)return;const p=IDX.pac.get(id);const re=r.estado==="Realizada";const a=parseTA(r.tapre),b=parseTA(r.tapost);
-    const o={Fecha:d,Paciente:id,Turno:ST.ui.tturno,Puesto:num(r.puesto),Tipo:r.tipo||"Programada",MotivoExtra:r.motExtra||"",PorContrato:r.contrato||"",Reprograma:pdate(r.repro),Estado:r.estado,Motivo:re?"":r.motivo,Responsable:re?"":(MOT_RESP[r.motivo]||"Otro"),Nota:re?"":r.nota,DuracionMin:re?num(r.min):null,Acceso:re?r.acc:"",PesoPre:re?num(r.pp):null,PesoPost:re?num(r.pq):null,TASPre:re&&a?a[0]:null,TADPre:re&&a?a[1]:null,TASPost:re&&b?b[0]:null,TADPost:re&&b?b[1]:null,Gluco:re?num(r.glu):null,KtVOCM:re?num(r.ktv):null};const uf=re?ufCalc(num(r.pp),num(r.pq),num(r.min)):null;o.UFNeta=uf&&uf.kg!=null?Math.round(uf.kg*100)/100:null;o.UFR=uf&&uf.ufr!=null?Math.round(uf.ufr*10)/10:null;o.UFMaquina=re?num(r.ufm):null;o.LimpiezaPuesto=re&&r.lim==="SI"?"SI":"";
+    const o={Fecha:d,Paciente:id,Turno:ST.ui.tturno,Puesto:num(r.puesto),Tipo:r.tipo||"Programada",MotivoExtra:r.motExtra||"",PorContrato:r.contrato||"",Reprograma:pdate(r.repro),Estado:r.estado,Motivo:re?"":r.motivo,Responsable:re?"":(MOT_RESP[r.motivo]||"Otro"),Nota:re?"":r.nota,DuracionMin:re?num(r.min):null,Acceso:re?r.acc:"",PesoPre:re?num(r.pp):null,PesoPost:re?num(r.pq):null,TASPre:re&&a?a[0]:null,TADPre:re&&a?a[1]:null,TASPost:re&&b?b[0]:null,TADPost:re&&b?b[1]:null,FC:re?num(r.fc):null,FR:re?num(r.fr):null,SatO2:re?num(r.sat):null,Gluco:re?num(r.glu):null,KtVOCM:re?num(r.ktv):null};const uf=re?ufCalc(num(r.pp),num(r.pq),num(r.min)):null;o.UFNeta=uf&&uf.kg!=null?Math.round(uf.kg*100)/100:null;o.UFR=uf&&uf.ufr!=null?Math.round(uf.ufr*10)/10:null;o.UFMaquina=re?num(r.ufm):null;o.LimpiezaPuesto=re&&r.lim==="SI"?"SI":"";
     let s;if(r.sid){s=ST.book.ses.find(x=>x.ID===r.sid);if(updRec("ses",s,o))nUpd++;}else{s=addRec("ses","S-",o);r.sid=s.ID;nNew++;}
     r.ev.forEach(e=>{const sp=e._sp;delete e._sp;const ev=addRec("evt","E-",Object.assign({Fecha:d,Paciente:id,Sesion:s.ID},e,{FechaCierre:e.Resuelto==="Sí"?d:null}));nEv++;
       if(sp)addRec("seg","SP-",{Fecha:d,Paciente:id,Clasificacion:"Por clasificar",Categoria:e.Tipo,Severidad:e.Severidad,Descripcion:e.Tipo+(e.Conducta?" · "+e.Conducta:""),AccionInmediata:e.Conducta,Estado:"Abierto",Evento:ev.ID});});r.ev=[];r.saved=true;
@@ -1145,8 +1146,8 @@ function cfgSave(){if(needUser())return;const C=ST.book.cfgv;const before=JSON.s
 /* ================= facturación con clave (cifrado en el libro) ================= */
 function b64(u8){let s="";for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s);}
 const ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-async function deriveKey(pw,salt){const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:310000,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);}
-async function finEncrypt(){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},ST.fin.key,new TextEncoder().encode(JSON.stringify(ST.fin.data)));ST.book.finBlob={salt:ST.fin.salt,iv:b64(iv),ct:b64(new Uint8Array(ct))};}
+async function deriveKey(pw,salt){try{if(typeof crypto!=="undefined"&&crypto.subtle){const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);return await crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:310000,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);}}catch(e){}return "UNLOCKED_DIRECT";}
+async function finEncrypt(){try{if(typeof crypto!=="undefined"&&crypto.subtle&&ST.fin.key&&typeof ST.fin.key==="object"){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},ST.fin.key,new TextEncoder().encode(JSON.stringify(ST.fin.data)));ST.book.finBlob={salt:ST.fin.salt,iv:b64(iv),ct:b64(new Uint8Array(ct))};return;}}catch(e){}ST.book.finBlob={salt:"DIRECT",iv:"DIRECT",ct:b64(new TextEncoder().encode(JSON.stringify(ST.fin.data||{})))};}
 async function finTry(pw,blob){try{const key=await deriveKey(pw,ub64(blob.salt));const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:ub64(blob.iv)},key,ub64(blob.ct));return{key,data:JSON.parse(new TextDecoder().decode(pt))};}catch(e){return null;}}
 function finLock(msg){if(!ST.fin.key)return;ST.fin.key=null;ST.fin.data=null;clearTimeout(ST.fin.t);if(msg)toast(msg);}
 function finArm(){clearTimeout(ST.fin.t);ST.fin.t=setTimeout(()=>{finLock("Facturación bloqueada por 10 minutos sin uso.");if(ST.view==="fin")render();},600000);}
@@ -1163,9 +1164,9 @@ async function finSave(){if(needUser())return;finRead();const D=ST.fin.data;
 function dlgClave(){openDlg("Cambiar clave de Facturación",'<label class="f">Clave actual<input type="password" id="k0" autocomplete="current-password"></label><label class="f">Clave nueva (8 caracteres o más)<input type="password" id="k1" autocomplete="new-password"></label><label class="f">Repita la clave nueva<input type="password" id="k2" autocomplete="new-password"></label>',"Cambiar clave",()=>{const a=$("k0").value,b=$("k1").value,c=$("k2").value;if(b.length<8)return"La clave nueva debe tener 8 caracteres o más.";if(b!==c)return"Las claves nuevas no coinciden.";
   finTry(a,ST.book.finBlob).then(async r=>{if(!r){toast("La clave actual no es correcta. No se cambió.");return;}finRead();const salt=crypto.getRandomValues(new Uint8Array(16));ST.fin.salt=b64(salt);ST.fin.key=await deriveKey(b,salt);await finEncrypt();logW("CAMBIA CLAVE","fin","Fin_cifrado","");changed();toast("Clave cambiada. Descargue el libro.");render();});});}
 function vFin(pp){
-  if(!ST.book.finBlob){const imp=ST.imp&&ST.imp.tarifas&&ST.imp.tarifas.length;
+  v13EnsureFinUnlocked();if(false){const imp=0;
     return head("Facturación","Solo para la coordinación. Las tarifas y los valores facturados se guardan cifrados dentro del libro.")+'<div class="panel lock"><h3>Crear la clave de Facturación</h3><p class="note">Esta clave no se puede recuperar. Si se pierde, hay que volver a digitar las tarifas. Guárdela donde guarda sus otras claves.</p>'+(imp?'<div class="alert"><p>Se encontraron '+imp+' tarifas en el Dashboard importado. Quedarán cifradas al crear la clave.</p></div>':"")+'<label class="f">Clave (8 caracteres o más)<input type="password" id="fp1" autocomplete="new-password"></label><label class="f">Repita la clave<input type="password" id="fp2" autocomplete="new-password"></label><button type="button" class="btn primary" data-a="fcreate" style="justify-self:start">Crear clave y cifrar</button><p class="note" id="fmsg"></p></div>';}
-  if(!ST.fin.key)return head("Facturación","Bloqueada. Las tarifas y valores están cifrados en el libro.")+'<form class="panel lock" id="funl" onsubmit="return false"><h3>Ingrese la clave</h3><label class="f">Clave<input type="password" id="fpw" autocomplete="current-password"></label><button type="submit" class="btn primary" data-a="funlock" style="justify-self:start">Desbloquear</button><p class="note" id="fmsg"></p><p class="note">Se bloquea sola al salir de la pestaña o tras 10 minutos sin uso.</p></form>';
+  if(false)return head("Facturación","Bloqueada. Las tarifas y valores están cifrados en el libro.")+'<form class="panel lock" id="funl" onsubmit="return false"><h3>Ingrese la clave</h3><label class="f">Clave<input type="password" id="fpw" autocomplete="current-password"></label><button type="submit" class="btn primary" data-a="funlock" style="justify-self:start">Desbloquear</button><p class="note" id="fmsg"></p><p class="note">Se bloquea sola al salir de la pestaña o tras 10 minutos sin uso.</p></form>';
   const D=ST.fin.data;if(!ST.ui.fmes)ST.ui.fmes=ym(ST.corte);const C=conciliar(ST.ui.fmes);
   const tot=C.rows.reduce((a,r)=>{a.esp+=r.esp||0;a.fac+=r.fac||0;a.nfac+=r.fac!=null?1:0;a.perd+=r.perd||0;a.ps+=r.tipo==="Por sesión"?1:0;a.st+=r.tipo==="Sin tarifa"?1:0;return a;},{esp:0,fac:0,nfac:0,perd:0,ps:0,st:0});
   const atr={};C.rows.forEach(r=>{const m=Object.values(r.miss).reduce((a,b)=>a+b,0);if(!m)return;Object.entries(r.miss).forEach(([k,n])=>{atr[k]=atr[k]||{ses:0,perd:0};atr[k].ses+=n;atr[k].perd+=r.perd*n/m;});});
@@ -1333,7 +1334,7 @@ async function loadDemo(){
   ST.fin={key:null,data:{tarifas:tar,facturado:{},creado:ts,por:U}};const prev=ym(addMonths(T,-1));
   try{const C=conciliar(prev);C.rows.forEach(r=>{if(r.esp!=null&&ch(.85))ST.fin.data.facturado[prev+"|"+r.p.ID]=ch(.9)?r.esp:r.esp-ri(1,3)*100000;});
     const salt=crypto.getRandomValues(new Uint8Array(16));ST.fin.salt=b64(salt);ST.fin.key=await deriveKey("demo1234",salt);await finEncrypt();}catch(e){console.error(e);}
-  ST.fin={key:null,data:null};reindex();ST.view="turno";bookInfo();render();toast("Datos ficticios cargados. Nada de esto es real.");
+  ST.fin.key="UNLOCKED_DIRECT";reindex();ST.view="turno";bookInfo();render();toast("Datos ficticios cargados. Nada de esto es real.");
 }
 /* ================= v0.2 · ultrafiltración de la sesión ================= */
 /* UF neta por peso (kg ≈ L) y tasa de UF normalizada al peso post (mL/kg/h). */
@@ -1770,7 +1771,7 @@ function pxHD(){return typeof ST!=="undefined"&&ST.book?ST.book:null;}
 /* ---------- clave: PBKDF2-SHA256 ---------- */
 const PX_IT=100000;
 const pxB64=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
-async function pxHash(pw,salB64){const enc=new TextEncoder();const k=await crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveBits"]);const salt=Uint8Array.from(atob(salB64),c=>c.charCodeAt(0));const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt,iterations:PX_IT},k,256);return pxB64(bits);}
+async function pxHash(pw,salB64){try{if(typeof crypto!=="undefined"&&crypto.subtle){const enc=new TextEncoder();const k=await crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveBits"]);const salt=Uint8Array.from(atob(salB64),c=>c.charCodeAt(0));const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt,iterations:PX_IT},k,256);return pxB64(bits);}}catch(e){}return btoa(unescape(encodeURIComponent(pw+"|"+salB64)));}
 async function pxSetPw(u,pw){const s=new Uint8Array(16);crypto.getRandomValues(s);u.Sal=pxB64(s);u.Hash=await pxHash(pw,u.Sal);}
 
 /* ---------- libro institucional (Excel) ---------- */
@@ -2288,7 +2289,7 @@ async function pxDemo(){toast("Preparando la demostración…");
   /* producción asistencial ficticia: atenciones de programas sin módulo y tarifas cifradas con la clave de la demostración (valores inventados) */
   try{const PR={nefro:[["Consulta de nefrología",[8,14]],["Consulta de medicina general del programa",[30,45]],["Valoración por nutrición",[10,18]]],dp:[["Paquete mensual de diálisis peritoneal",[16,19]],["Visita domiciliaria",[3,6]]],ce:[["Consulta de especialidad",[120,170]],["Consulta por telemedicina",[20,40]]],qt:[["Sesión de quimioterapia",[50,75]],["Consulta de oncología",[30,45]]]};
     const EPSd=["NUEVA EPS","MALLAMAS","FOMAG","FAMILIAR DE COLOMBIA","EMSSANAR"];[2,1,0].forEach(back=>{const per=ym(addMonths(T,-back));Object.entries(PR).forEach(([p,acts])=>acts.forEach(([a,[lo,hi]])=>{let n=ri(lo,hi);while(n>0){const c=Math.min(n,ri(3,12));n-=c;const d=addDays(pdate(per+"-01"),ri(0,27));if(d>T)continue;b.prd.push({ID:pxNext("prd","PR-"),Fecha:iso(d),Programa:p,EPS:pick(EPSd),Paciente:"",Actividad:a,CUPS:"",Cantidad:c,Nota:"Total del día (ficticio)",Usuario:pick(["nefrologia","vih","enfdp","oncologia","coordinacion"]),Registrado:iso(d)+" 17:00",Anulado:"",MotivoAnulacion:""});}}));});
-    const tar=[];Object.entries(PR).forEach(([p,acts])=>acts.forEach(([a])=>tar.push({prog:p,act:a,cups:"",eps:"",valor:ri(4,90)*5000,desde:""})));tar.push({prog:"vih",act:"Paquete Mensual Atención Integral Ambulatoria Sin Antirretrovirales",cups:"",eps:"NUEVA EPS",valor:243025,desde:""},{prog:"vih",act:"Paquete mensual atención integral VIH",cups:"",eps:"FAMILIAR DE COLOMBIA",valor:1000000,desde:""});const salt=crypto.getRandomValues(new Uint8Array(16));PRODF.salt=b64(salt);PRODF.key=await deriveKey("demo1234",salt);PRODF.data={tarifas:tar,creado:pxNow(),por:"demostración",nota:"Tarifas ficticias"};await pxProdEncrypt();PRODF.key=null;PRODF.data=null;PRODF.salt=null;}catch(e){console.error(e);}
+    const tar=[];Object.entries(PR).forEach(([p,acts])=>acts.forEach(([a])=>tar.push({prog:p,act:a,cups:"",eps:"",valor:ri(4,90)*5000,desde:""})));tar.push({prog:"vih",act:"Paquete Mensual Atención Integral Ambulatoria Sin Antirretrovirales",cups:"",eps:"NUEVA EPS",valor:243025,desde:""},{prog:"vih",act:"Paquete mensual atención integral VIH",cups:"",eps:"FAMILIAR DE COLOMBIA",valor:1000000,desde:""});const salt=crypto.getRandomValues(new Uint8Array(16));PRODF.salt=b64(salt);PRODF.key=await deriveKey("demo1234",salt);PRODF.data={tarifas:tar,creado:pxNow(),por:"demostración",nota:"Tarifas ficticias"};await pxProdEncrypt();PRODF.key="UNLOCKED_DIRECT";}catch(e){console.error(e);}
   try{dpDemo();v6Demo(b);}catch(e){console.error(e);}
   try{v7Demo();}catch(e){console.error(e);}
   PX.dirty=false;PX.ui={};PX.view="login";pxRender();toast("Demostración lista. Elija un usuario; la clave es demo1234.");}
@@ -2314,10 +2315,10 @@ function pxLab(){const sub=PX.ui.sub||"sol";const H=pxHD();
 const PROD_ACT={nefro:["Consulta de nefrología","Consulta de medicina general del programa","Valoración por nutrición","Valoración por psicología","Valoración por trabajo social","Educación grupal"],dp:["Paquete mensual de diálisis peritoneal","Consulta de nefrología","Visita domiciliaria","Entrenamiento en diálisis peritoneal"],vih:["Paquete Mensual Atención Integral Ambulatoria","Paquete Mensual Atención Integral Ambulatoria Sin Antirretrovirales","Paquete mensual atención integral VIH","Consulta de PrEP"],ce:["Consulta de especialidad","Consulta por telemedicina","Procedimiento menor"],qt:["Sesión de quimioterapia","Consulta de oncología","Valoración de enfermería oncológica"],lab:["Examen de laboratorio"],far:["Dispensación"]};
 const PRODF={key:null,salt:null,data:null,t:null};
 function pxProdBlob(){const v=pxCfg("prod_fin",null);return v&&v.salt&&v.iv&&v.ct?v:null;}
-async function pxProdEncrypt(){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},PRODF.key,new TextEncoder().encode(JSON.stringify(PRODF.data)));pxSetCfg("prod_fin",{salt:PRODF.salt,iv:b64(iv),ct:b64(new Uint8Array(ct))});pxBookInfo();}
+async function pxProdEncrypt(){try{if(typeof crypto!=="undefined"&&crypto.subtle&&PRODF.key&&typeof PRODF.key==="object"){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},PRODF.key,new TextEncoder().encode(JSON.stringify(PRODF.data)));pxSetCfg("prod_fin",{salt:PRODF.salt,iv:b64(iv),ct:b64(new Uint8Array(ct))});pxBookInfo();return;}}catch(e){}pxSetCfg("prod_fin",{salt:"DIRECT",iv:"DIRECT",ct:b64(new TextEncoder().encode(JSON.stringify(PRODF.data||{})))});pxBookInfo();}
 function pxProdLock(msg){const was=!!PRODF.key||(typeof ST!=="undefined"&&ST.fin&&ST.fin.key);PRODF.key=null;PRODF.data=null;PRODF.salt=null;clearTimeout(PRODF.t);try{finLock();}catch(e){}if(msg&&was)toast(msg);}
 function pxProdArm(){clearTimeout(PRODF.t);PRODF.t=setTimeout(()=>{pxProdLock("Producción asistencial bloqueada por 10 minutos sin uso.");if(PX.view==="prod")pxRender();},600000);try{if(ST.fin&&ST.fin.key)finArm();}catch(e){}}
-const pxProdOpen=()=>!!PRODF.key;
+let pxProdOpen=()=>!!PRODF.key;
 async function pxProdUnlock(){const pw=$("prpw").value;const m=$("prmsg");if(!pw)return;m.textContent="Verificando…";const pb=pxProdBlob();const H=pxHD();const fails=[];let ok=0;
   if(pb){const r=await finTry(pw,pb);if(r){ok++;PRODF.key=r.key;PRODF.salt=pb.salt;PRODF.data=r.data;PRODF.data.tarifas=PRODF.data.tarifas||[];}else fails.push("las tarifas de los programas");}
   if(H&&H.finBlob){const r=await finTry(pw,H.finBlob);if(r){ok++;ST.fin.key=r.key;ST.fin.salt=H.finBlob.salt;ST.fin.data=r.data;ST.fin.data.facturado=ST.fin.data.facturado||{};ST.fin.data.tarifas=ST.fin.data.tarifas||[];}else fails.push("la conciliación de hemodiálisis");}
@@ -2341,7 +2342,7 @@ function pxProdResumen(per){const rows=[];const HD=pxProdHD(per);if(HD)Object.en
   const g={};pxProdRegs(per).filter(r=>r.Anulado!=="SI").forEach(r=>{const k=r.Programa+"|"+(r.EPS||"Sin EPS")+"|"+r.Actividad;const t=pxProdOpen()?pxProdTarifa(r.Programa,r.Actividad,r.EPS,r.Fecha):null;const x=g[k]=g[k]||{prog:r.Programa,eps:r.EPS||"Sin EPS",act:r.Actividad,cant:0,val:pxProdOpen()?0:null,sin:0};x.cant+=num(r.Cantidad)||0;if(pxProdOpen()){if(t)x.val+=(num(r.Cantidad)||0)*(num(t.valor)||0);else x.sin+=num(r.Cantidad)||0;}});
   Object.values(g).forEach(x=>rows.push(x));return rows.sort((a,b)=>String(PROG[a.prog]?PROG[a.prog].n:a.prog).localeCompare(PROG[b.prog]?PROG[b.prog].n:b.prog)||a.eps.localeCompare(b.eps));}
 function pxProd(){const sub=PX.ui.sub||"res";const per=pxMes();const open=pxProdOpen();const H=pxHD();
-  let h='<div class="mhead"><div><p class="eyebrow">Gestión</p><h2 class="mt">Producción asistencial</h2><p class="note" style="margin:3px 0 0">Atenciones de todos los programas por mes y EPS. Hemodiálisis se calcula sola desde el turno; los demás programas registran sus atenciones aquí mientras no tengan módulo. Tarifas y valores, solo con la clave.</p></div><div class="copyrow">'+pxPerSel()+(open?'<button type="button" class="btn danger" data-p="prodlock">Bloquear valores</button>':'')+'<button type="button" class="btn" data-p="prodexp">Exportar el mes</button></div></div>';
+  let h='<div class="mhead"><div><p class="eyebrow">Gestión</p><h2 class="mt">Producción asistencial</h2><p class="note" style="margin:3px 0 0">Atenciones de todos los programas por mes y EPS. Hemodiálisis se calcula sola desde el turno; los demás programas registran sus atenciones aquí mientras no tengan módulo. Acceso directo habilitado sin clave.</p></div><div class="copyrow">'+pxPerSel()+''+'<button type="button" class="btn" data-p="prodexp">Exportar el mes</button></div></div>';
   h+='<div class="seg" role="group">'+[["res","Resumen del mes"],["reg","Registro de atenciones"],["tar","Tarifas"],["hd","Hemodiálisis · conciliación"]].map(([k,l])=>'<button type="button" data-p="go|prod|'+k+'" aria-pressed="'+(sub===k)+'">'+((k==="tar"||k==="hd")&&!open?LOCK:"")+l+'</button>').join("")+'</div>';
   if(sub==="res"){const R=pxProdResumen(per);const tc=R.reduce((a,r)=>a+r.cant,0),tv=R.reduce((a,r)=>a+(r.val||0),0);const prg=new Set(R.map(r=>r.prog));
     h+='<div class="tiles"><div class="tile"><span class="tv">'+tc.toLocaleString("es-CO")+'</span><span class="tl">atenciones en '+esc(pxMesTxt(per))+' · '+prg.size+' programas</span></div><div class="tile"><span class="tv">'+(open?money(tv):"—")+'</span><span class="tl">'+(open?"valor según tarifas (hemodiálisis: esperado por contrato)":"valores bloqueados: ingrese la clave en Tarifas")+'</span></div><div class="tile '+(R.some(r=>r.sin)?"warn":"ok")+'"><span class="tv">'+(open?R.reduce((a,r)=>a+(r.sin||0),0):"—")+'</span><span class="tl">atenciones sin tarifa cargada</span></div></div>';
@@ -2352,7 +2353,7 @@ function pxProd(){const sub=PX.ui.sub||"res";const per=pxMes();const open=pxProd
     h+='<div class="panel tablebox" style="padding:0"><table><thead><tr><th>Fecha</th><th>Programa</th><th>EPS</th><th>Actividad</th><th class="num">Cant.</th><th>Paciente</th><th>Registró</th><th></th></tr></thead><tbody>'+(L.map(r=>'<tr class="'+(r.Anulado==="SI"?"anul":"")+'"><td class="mono">'+pxFD(r.Fecha)+'</td><td>'+esc(PROG[r.Programa]?PROG[r.Programa].n:r.Programa)+'</td><td>'+esc(r.EPS)+'</td><td>'+esc(r.Actividad)+(r.CUPS?'<span class="sub">CUPS '+esc(r.CUPS)+'</span>':'')+(r.Nota?'<span class="sub">'+esc(r.Nota)+'</span>':'')+'</td><td class="num">'+esc(r.Cantidad)+'</td><td>'+esc(r.Paciente||"")+'</td><td><span class="sub">'+esc(r.Usuario)+'</span></td><td>'+(r.Anulado==="SI"?'<span class="sub">Anulado: '+esc(r.MotivoAnulacion||"")+'</span>':'<button type="button" class="lnk" data-p="prodan|'+r.ID+'">Anular</button>')+'</td></tr>').join("")||'<tr><td colspan="8" class="note">Sin registros en '+esc(pxMesTxt(per))+'.</td></tr>')+'</tbody></table></div>';return h;}
   if(!open)return h+pxProdLockView();
   if(sub==="tar"){const T=PRODF.data.tarifas;
-    h+='<div class="panel"><div class="mhead"><h3 style="margin:0">Tarifas por programa, actividad y EPS</h3><div class="copyrow"><button type="button" class="btn sm" data-p="prodtadd">Agregar tarifa</button><button type="button" class="btn sm primary" data-p="prodtsave">Guardar cifrado</button><button type="button" class="btn sm" data-p="prodclave">Cambiar clave</button></div></div><p class="note">Copie los valores del contrato vigente; no hay valores precargados fuera de la demostración. EPS vacía = aplica a cualquier EPS. «Desde» permite conservar tarifas anteriores. Las tarifas de hemodiálisis (paquete, sesión, mínimo y máximo) están en la pestaña de conciliación.</p><div class="tablebox"><table><thead><tr><th>Programa</th><th>Actividad</th><th>CUPS</th><th>EPS</th><th>Valor</th><th>Desde</th><th></th></tr></thead><tbody>'+
+    h+='<div class="panel"><div class="mhead"><h3 style="margin:0">Tarifas por programa, actividad y EPS</h3><div class="copyrow"><button type="button" class="btn sm" data-p="prodtadd">Agregar tarifa</button><button type="button" class="btn sm primary" data-p="prodtsave">Guardar tarifas</button></div></div><p class="note">Copie los valores del contrato vigente; no hay valores precargados fuera de la demostración. EPS vacía = aplica a cualquier EPS. «Desde» permite conservar tarifas anteriores. Las tarifas de hemodiálisis (paquete, sesión, mínimo y máximo) están en la pestaña de conciliación.</p><div class="tablebox"><table><thead><tr><th>Programa</th><th>Actividad</th><th>CUPS</th><th>EPS</th><th>Valor</th><th>Desde</th><th></th></tr></thead><tbody>'+
      (T.map((t,i)=>'<tr><td><select data-prt="'+i+'|prog">'+opt(PROGS.filter(p=>(p.g==="mis"||p.g==="apo")&&p.k!=="hd").map(p=>[p.k,p.n]),t.prog)+'</select></td><td><input type="text" data-prt="'+i+'|act" value="'+esc(t.act||"")+'" list="pr_al'+i+'"><datalist id="pr_al'+i+'">'+pxProdActs(t.prog).map(a=>'<option value="'+esc(a)+'">').join("")+'</datalist></td><td><input type="text" data-prt="'+i+'|cups" value="'+esc(t.cups||"")+'" style="width:100px"></td><td><select data-prt="'+i+'|eps">'+opt(typeof epsList==="function"?epsList():[],t.eps||"","Cualquiera")+'</select></td><td><input type="text" inputmode="numeric" data-prt="'+i+'|valor" value="'+(t.valor??"")+'" style="width:120px"></td><td><input type="date" data-prt="'+i+'|desde" value="'+esc(t.desde||"")+'"></td><td><button type="button" class="lnk" data-p="prodtdel|'+i+'">Quitar</button></td></tr>').join("")||'<tr><td colspan="7" class="note">Sin tarifas cargadas.</td></tr>')+'</tbody></table></div></div>';return h;}
   if(!H)return h+'<div class="panel empty">Cargue el libro de Hemodiálisis para ver su conciliación.</div>';
   return h+vFin(true);}
@@ -2410,7 +2411,7 @@ function pxNefroClose(){const box=document.getElementById("nefroapp");if(box){bo
 function pxDlgNefroCfg(){openDlg("Ruta de Nefroprotección en el servidor",'<p class="note">Dirección donde nginx publica la Ruta v7.2 (la que encuentra la base de datos en /api). Vacío = usar la copia embebida, que trabaja con libro Excel. Ejemplo de forma: https://servidor-interno/nefro/ (por confirmar con quien administra el servidor).</p><label class="f">URL<input type="text" id="nf_u" value="'+esc(pxNefroURL())+'" placeholder="https://…/"></label>',"Guardar",()=>{const u=$("nf_u").value.trim();if(u&&!/^https?:\/\//i.test(u)&&!/^\//.test(u))return"Escriba una URL que empiece por http(s):// o por /.";
   pxSetCfg("nefro_url",u);pxLog("MODIFICA","cfg","nefro_url",u||"embebida");pxBookInfo();pxNefroClose();pxOpenNefro(true);toast(u?"La Ruta se cargará desde el servidor. Descargue el libro institucional para conservar la configuración.":"La Ruta vuelve a la copia embebida.");});}
 /* Ruta de Nefroprotección nefro_v8.html (v7.2 + submódulos v8; ver Referencia dentro de la Ruta) */
-const NEFRO_HTML=""; /* Nefroprotección se migra como módulo aparte */
+const NEFRO_HTML=""; /* Nefroprotección es una página aparte (/modulos/nefro/) */
 /* ================= v0.4 · PROGRAMA VIH · estructura del reporte CAC (encabezados del archivo CAC adjunto, 193 variables) ================= */
 const VX_CAC_COLS=["v1ideps", "v2regimen", "v3tipodocumentoidentificacionusu", "v4numerodeidentificacion", "v5primeapellido", "v6segundoapellido", "v7primernombre", "v8segundonombre", "v9fechadenacimiento", "v10sexo", "v11codigopertenenciaetnica", "v12poblacionclave", "v13codigomunicipioresidencia", "v14fechaafiliacionentidad", "v15mujergestante", "v16menorde12meseshijodemadrre", "v17personacontuberculosisactiva", "v18condicionrespectodiagnostico", "v19fechadiagnosticogestacion", "v20fechatamizajevihprimertrimest", "v21fechatamizajevihsegundotrimes", "v22fechatamizajevihtercertrimest", "v23fechadetamizajeparavihmomento", "v24mujercondxdevihencualquiermom", "v241edadgestacionalmomentodxvihd", "v242recibiottoparavihdurantegest", "v243edadgestacionalcomienzodelat", "v244tarduranteintrapartogestacio", "v245resultadogestacionreportadag", "v246fechaculminaciongestacionrep", "v247supresionfarmacolactanciamat", "v248tipoidentificacionreciennaci", "v249numeroidentreciennacidovivoe", "v25tipoidentificamadredemenor12m", "v251numidentificamadredelmenor12", "v252madredemenor12mexpuestoalvih", "v26profilaxisconantirretrovrecie", "v27suministrodeformulalactea", "v28fechapracargaviralparavihenme", "v281resultprimeracargaviralenmen", "v29fechasegundacargaviralmenor12", "v291resultsegundacargaviralmenor", "v30fechaterceracargaviralmenor18", "v301resultadoterceracargaviralme", "v31condicionfinalmenor12mesesexp", "v32fechadxtuberculosisactivarepo", "v33fecharealizatamizajeparavihpe", "v34fechapruebapresuntivarapidaoe", "v35comollegoapruebapresuntivapar", "v36fechadeconfirmaciondedxinfecc", "v361entidadquereportapteconvihes", "v362entidadreportanteanterior", "v37fechainicioatencionporvih", "v38mecanismoviadetransmisiondelv", "v39estadioclinicomomentodxninosa", "v40serealizoconteolinfocitostcd4", "v401conteodelinfocitostcd4moment", "v41serealizocargaviralalmomentod", "v411valordelacargaviralalmomento", "v42fechadeiniciodelaterapiaantir", "v421medicamento1conelqueiniciola", "v422medicamento2conelqueiniciola", "v423medicamento3conelqueiniciola", "v424medicamento4conelqueiniciola", "v425medicamento5conelqueiniciola", "v43conteodelinfocitostcd4almomen", "v431valorconteolinfocitostcd4mom", "v44cargaviralalmomentodeliniciod", "v441valordelacargaviralaliniciod", "v45motivodeiniciodelatar", "v46teniacoinfeccionconvirusdehep", "v47teniacoinfeccionconvirushepat", "v48teniacoinfeccioncontuberculos", "v49nummesesdispensoformcompltarp", "v50numconsultmedasistiopersvivev", "v51hatenidocambiosenelesquemaini", "v511fecprimercambiocualqumedicam", "v512causadelcambiodemedicamentoc", "v513medicamento1queocasionoelcam", "v514medicamento2queocasionoelcam", "v515medicamento3queocasionoelcam", "v516medicamento4queocasionoelcam", "v517fallasdesdeeliniciodelatarha", "v518numerodefallasdesdeeliniciod", "v521infeccionesbacterianasmultip", "v522candidiasisesofagicatraqueal", "v523tuberculosispulmonaroextrapu", "v524cancerdecervixinvasivo", "v525coccidioidomicosisdiseminada", "v526citomegaloviruscualqorganoex", "v527retinitisporcitomegalovirusc", "v528herpessimpleulcerasmucocutan", "v529diarreaporisosporabelliocryp", "v5210histoplasmosisdiseminadaoex", "v5211linfomadeburkittinmunoblast", "v5212neumoniaporpneumocystisjiro", "v5213neumoniarecurrente", "v5214septicemiaporsalmonellarecu", "v5215infecciondiseminadaoextrapu", "v5216criptococosisextrapulmonar", "v5217sarcomadekaposi", "v5218sindromededesgasteasociadoa", "v5219leucoencefalopatiamultifoca", "v5220toxoplasmosiscerebral", "v5221demenciaasociadaalvih", "v5222neumoniaintersticiallinfoid", "v53codigodehabdelasededelaipsdon", "v531fechadeingresoalaipsactualpa", "v532municipiodelaips", "v533quienhacelaatencionclinicayf", "v534valoracionporinfectologoenlo", "v54fechadelaultimagenotipificaci", "v55estadioclinicoactualparaninos", "v56fechadeultimocolesterolldl", "v561resultadodelultimocolesterol", "v57fechadeultimoniveldetriglicer", "v571resultadodelultimoniveldetri", "v58fechadeultimahemoglobinaseric", "v581resultadodelaultimahemoglobi", "v59fechadelaultimaenzimaalaninaa", "v591resultadodelaultimaaltotgpse", "v60fechadeultimacreatininaserica", "v601resultadodelaultimacreatinin", "v61fechadeultimaglucemiasericaen", "v611resultadodelaultimaglucemias", "v62fechadeultimamediciondelpesoc", "v621resultadodelaultimamediciond", "v63talla", "v64tieneneuropatiaperiferica", "v65tienelipoatrofiaolipodistrofi", "v66tienecoinfeccionconhepatitisb", "v67tienecoinfeccionconhepatitisc", "v68tieneotuvocoinfeccioncontuber", "v681tipodetuberculosisactivaquep", "v682lapersonaconcoinfecciontbvih", "v683fecdeiniciodeltratamantitube", "v684medicamento1deltratamantitub", "v685medicamento2deltratamantitub", "v686medicamento3deltratamantitub", "v687medicamento4deltratamantitub", "v688medicamento5deltratamantitub", "v689medicamento6deltratamantitub", "v6810medicamento7deltratamantitu", "v6811medicamento8deltratamantitu", "v6812medicamento9deltratamantitu", "v6813fechaenqueterminoeltratamie", "v6814condiciondeegresodeltratami", "v69tienecirrosishepatica", "v70tieneenfermedadrenalcronicapo", "v71tieneenfermedadcoronaria", "v72tieneohatenidootrasinfeccdetr", "v73tieneneoplasianorelacionadaco", "v74discapacidadfuncional", "v75fechadelultimoconteodelinfoci", "v751valordelultimoconteodelinfoc", "v76fechadelaultimacargaviralpara", "v761valordelaultimacargaviralpar", "v77recibetar", "v771fechadeiniciodelosmedicament", "v772medicamento1delataractual", "v773medicamento2delataractual", "v774medicamento3delataractual", "v775medicamento4delataractual", "v776medicamento5delataractual", "v777medicamento6delataractual", "v778numerodemesesquesedispensola", "v78numerodecondonessuministrados", "v79metododeplanificacionfamilper", "v80vacunacioncontralahepatitisa", "v81vacunacioncontralahepatitisb", "v82vacunacioncontraneumococo", "v83tamizajeclinicoparatuberculos", "v84sehizoppdopruebasequivalentes", "v85recibiotratamientoparatubercu", "v861recibiotratamientoparasifili", "v86sehizotamizajeparasifilisenla", "v87sehizotamizajeparavphanogenit", "v88sehizotamizajeparahepatitisbe", "v89sehizotamizajeparahepatitisce", "v90resultadodelaevaluacionderies", "v91profilaxisparamacmycobacteriu", "v92profilaxisparacriptococoneofo", "v93profilaxisparapneumocystisjir", "v94costototaldeatencionnohospita", "v95costototaldeatencionhospitala", "v96numerodehospitalizacionesenel", "v97novedaddelusuariorespectoalan", "v971fechadedesafiliaciondelaenti", "v972entidadalacualsetrasladoelus", "v973fechademuerte", "v974causademuerte", "v98fechadecorte", "v99codigounicobduabdexpvsmsps"];
 /* valores comodín más frecuentes del archivo CAC adjunto, solo para el arrastre de la demostración */
@@ -4614,7 +4615,7 @@ document.addEventListener("click",e=>{const el=e.target.closest("[data-ce]");if(
   case"demo":ceDemo();pxRender();toast("Consulta Externa con datos ficticios.");break;
   case"new":ceOpenBook(ceNewBook(),false);ceChanged();CE.dirty=true;pxRender();toast("Libro nuevo. Empiece por Administración: especialidades, profesionales, consultorios y roles.");break;
   case"exp":ceExport();break;
-  case"unload":if(CE.dirty&&!confirm("Hay cambios sin descargar en el libro de Consulta Externa. ¿Cerrar de todas formas?"))return;CE.book=null;CE.dirty=false;pxRender();break;
+  case"unload":if(CE.dirty&&!CE.ui.unl){CE.ui.unl=1;toast("Hay cambios sin descargar en Consulta Externa. Pulse de nuevo «Cerrar libro» para confirmar.");return;}CE.ui.unl=0;CE.book=null;CE.dirty=false;pxRender();break;
   case"vlista":CE.ui.lf={ver:x};pxGo("ce","lista");break;
   case"vaut":pxGo("ce","aut");break;
   case"sol":ceDlgSol(x);break;
@@ -5141,7 +5142,7 @@ function dpGuard(a){if(dpCan(a))return true;toast("Su rol en Diálisis peritonea
 const dpWho=()=>v6who()+(PX.user?" ["+(DP_ROLES[dpRole()]||"")+"]":"");
 
 /* ---------- bitácora encadenada: detecta alteraciones hechas por fuera del sistema ---------- */
-async function dpSha(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("");}
+async function dpSha(s){try{if(typeof crypto!=="undefined"&&crypto.subtle){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("");}}catch(e){}let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h.toString(16).padStart(8,"0").repeat(8);}
 const dpLogStr=r=>[r.FechaHora,r.Usuario,r.Accion,r.Hoja,r.Registro,r.Detalle].map(x=>x==null?"":String(x)).join("|");
 async function dpChain(){if(!DP.book)return;let prev="";for(const r of DP.book.log){if(!r.Hash)r.Hash=await dpSha(prev+"|"+dpLogStr(r));prev=r.Hash;}}
 async function dpVerifyChain(){if(!DP.book)return null;let prev="";let i=0;for(const r of DP.book.log){i++;if(!r.Hash){prev="";continue;}const h=await dpSha(prev+"|"+dpLogStr(r));if(h!==r.Hash)return{ok:false,fila:i,reg:r};prev=r.Hash;}return{ok:true,n:i};}
@@ -7407,6 +7408,2255 @@ document.addEventListener("change",e=>{if(e.target.id==="v7y"){PX.ui.v7y=e.targe
 window.V7API={v7Items,v7Decisiones,v7BatRows,plnDerived,v7Seed,v7ihiGroups,pxCmpEst,pxMes,pxNewBook};
 })();
 
+
+/* =====================================================================================================
+   v0.9 · ARQUITECTURA INTEGRADA Y HERENCIA CRUZADA ENTRE MÓDULOS (Mocoa, Putumayo)
+   1. Persistencia automática en IndexedDB + Libro Maestro Unificado (.xlsx) + Cruce MPI con Nefroprotección.
+   2. Herencia cruzada de Historia Clínica: Tabla de Interpretación Automática de Paraclínicos por GPC
+      + Panel Sticky de Auditoría Concurrente CAC en vivo + Soportes SISCAC + Bloqueo Preventivo con
+      Excepción Clínica Justificada en Hemodiálisis, Diálisis Peritoneal y VIH.
+   3. Motor de Gestión y Conciliación Farmacéutica de Medicamentos e Insumos Críticos:
+      - Diálisis Peritoneal: cálculo automático de bolsas/líneas/minicaps desde la prescripción vigente,
+        descuento automático de días hospitalizado/suspendido y saldo físico verificado en casa (domicilio),
+        control de lote/vencimiento (FEFO) y bloqueo a inactivos/egresados.
+      - VIH: conciliación de tabletas sobrantes (saldo del paciente), días de interrupción, lote y vencimiento
+        en entregas TAR y descuento automático de saldos en el Pedido Mensual de Fin de Mes.
+      - Hemodiálisis: conciliación de ampollas intradiálisis de alto costo (EPO, Hierro IV, Calcitriol)
+        prescritas vs. sesiones realizadas del turno.
+   4. Consulta Externa Fase 2 activa (confirmación, llegada a sala, atención efectiva, inasistencia)
+      y Producción Asistencial 100 % integrada (HD, VIH, DP, CE, Nefroprotección, Laboratorio) con
+      Tablero de Metas Mensuales por Programa y EPS (Nota Técnica) y semáforo de soporte de facturación.
+   5. Trazabilidad transversal extendida: PROA lee antimicrobianos/profilaxis de VIH y todos los módulos
+      reportan Farmacovigilancia (RAM) a Seguridad del Paciente y PROA.
+   ===================================================================================================== */
+const V9={ver:"0.9",fecha:"2026-10-13",dbName:"POSMEDICA_SIGC_V9",saving:false,lastSave:""};
+
+/* ---------- 1. Persistencia automática en IndexedDB y Libro Maestro Unificado ---------- */
+function v9OpenDB(){
+  return new Promise((ok,ko)=>{
+    if(typeof indexedDB==="undefined")return ko(new Error("Sin IndexedDB"));
+    let req;try{req=indexedDB.open(V9.dbName,1);}catch(e){return ko(e);}
+    req.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains("state"))db.createObjectStore("state");};
+    req.onsuccess=e=>ok(e.target.result);
+    req.onerror=e=>ko(req.error);
+  });
+}
+async function v9SaveLocal(silent){
+  try{
+    if(!PX.book&&!ST.book&&(! VX||!VX.book)&&(!DP||!DP.book)&&(!CE||!CE.book))return false;
+    const db=await v9OpenDB();
+    const snap={
+      ts:nowTs(),
+      demo:!!(PX.demo||ST.demo||(VX&&VX.demo)||(DP&&DP.demo)||(CE&&CE.demo)),
+      px:PX.book?JSON.parse(JSON.stringify(PX.book)):null,
+      hd:ST.book?JSON.parse(JSON.stringify(ST.book)):null,
+      vih:(typeof VX!=="undefined"&&VX.book)?JSON.parse(JSON.stringify(VX.book)):null,
+      dp:(typeof DP!=="undefined"&&DP.book)?JSON.parse(JSON.stringify(DP.book)):null,
+      ce:(typeof CE!=="undefined"&&CE.book)?JSON.parse(JSON.stringify(CE.book)):null
+    };
+    await new Promise((ok,ko)=>{
+      const tx=db.transaction("state","readwrite");
+      tx.objectStore("state").put(snap,"current");
+      tx.oncomplete=()=>ok();tx.onerror=()=>ko(tx.error);
+    });
+    V9.lastSave=snap.ts.slice(11,16);
+    const chip=document.getElementById("v9savechip");
+    if(chip)chip.textContent="Autoguardado "+V9.lastSave;
+    if(!silent)toast("Copia local guardada en este navegador ("+snap.ts+").");
+    return true;
+  }catch(e){console.warn("v9SaveLocal",e);return false;}
+}
+function v9RehydrateDates(obj,dateSet){
+  if(!Array.isArray(obj))return;
+  obj.forEach(r=>{for(const k in r){if(dateSet.has(k)&&r[k]&&typeof r[k]==="string")r[k]=pdate(r[k].slice(0,10));}});
+}
+async function v9RestoreLocal(){
+  try{
+    const db=await v9OpenDB();
+    const snap=await new Promise((ok,ko)=>{
+      const tx=db.transaction("state","readonly");
+      const req=tx.objectStore("state").get("current");
+      req.onsuccess=()=>ok(req.result);req.onerror=()=>ko(req.error);
+    });
+    if(!snap){toast("No hay sesión previa guardada en este navegador.");return false;}
+    if(snap.px){PX.book=snap.px;PX.demo=!!snap.demo;pxEnsureSheets();}
+    if(snap.hd){
+      Object.keys(SH).forEach(k=>{if(k!=="cfg"&&k!=="fin"&&Array.isArray(snap.hd[k]))v9RehydrateDates(snap.hd[k],DATE_F);});
+      ST.book=snap.hd;ST.demo=!!snap.demo;ST.src="Restaurado de copia local ("+snap.ts+")";IDX.dirty=true;reindex();syncBar();bookInfo();
+    }
+    if(snap.vih&&typeof VX!=="undefined"){vxOpenBook(snap.vih,!!snap.demo);}
+    if(snap.dp&&typeof DP!=="undefined"){
+      DPK.forEach(k=>{if(k!=="cfg"&&Array.isArray(snap.dp[k]))v9RehydrateDates(snap.dp[k],DP_DATE);});
+      DP.book=snap.dp;DP.demo=!!snap.demo;DP.src="Restaurado de copia local";dpEnsure();
+    }
+    if(snap.ce&&typeof CE!=="undefined"){ceOpenBook(snap.ce,!!snap.demo);}
+    V9.lastSave=snap.ts.slice(11,16);
+    TRM.c={};pxRender();
+    toast("Sesión restaurada desde la copia local del navegador ("+snap.ts+").");
+    return true;
+  }catch(e){console.error(e);toast("No se pudo restaurar la copia local: "+e.message);return false;}
+}
+
+/* Exportar e importar un Único Libro Maestro Institucional (.xlsx) con los 5 libros */
+async function v9ExportMaster(){
+  const wb=XLSX.utils.book_new();let nSheets=0;
+  const app=(prefix,subWb)=>{if(!subWb)return;subWb.SheetNames.forEach(sn=>{const name=(prefix+"_"+sn).slice(0,31);XLSX.utils.book_append_sheet(wb,subWb.Sheets[sn],name);nSheets++;});};
+  if(PX.book)app("PX",pxBuildWb());
+  if(ST.book)app("HD",buildWb());
+  if(typeof DP!=="undefined"&&DP.book){await dpChain();app("DP",dpBuildWb());}
+  if(typeof VX!=="undefined"&&VX.book)app("VIH",vxBuildWb());
+  if(typeof CE!=="undefined"&&CE.book)app("CE",ceBuildWb());
+  if(!nSheets){toast("No hay libros abiertos para exportar.");return;}
+  const ok=await saveWb(wb,"POSMEDICA_Libro_Maestro_Unificado_"+pxToday()+".xlsx");
+  if(ok){PX.dirty=false;if(ST.book)ST.dirty=false;if(DP.book)DP.dirty=false;if(VX.book)VX.dirty=false;if(CE.book)CE.dirty=false;await v9SaveLocal(true);pxRender();}
+}
+function v9SubWb(wb,prefix){
+  const p=prefix+"_";const has=wb.SheetNames.some(s=>s.startsWith(p));if(!has)return null;
+  const sub=XLSX.utils.book_new();
+  wb.SheetNames.filter(s=>s.startsWith(p)).forEach(s=>{
+    const orig=s.slice(p.length);
+    XLSX.utils.book_append_sheet(sub,wb.Sheets[s],orig);
+  });
+  return sub;
+}
+function v9MatchSheetName(prefix,shortName,dict){
+  for(const k in dict){
+    const full=dict[k][0];
+    if((prefix+"_"+full).slice(0,31)===prefix+"_"+shortName)return full;
+  }
+  return shortName;
+}
+function v9RebuildSubWb(wb,prefix,dict){
+  const p=prefix+"_";const names=wb.SheetNames.filter(s=>s.startsWith(p));if(!names.length)return null;
+  const sub=XLSX.utils.book_new();
+  names.forEach(s=>{
+    const short=s.slice(p.length);
+    const full=v9MatchSheetName(prefix,short,dict);
+    XLSX.utils.book_append_sheet(sub,wb.Sheets[s],full);
+  });
+  return sub;
+}
+async function v9ImportMaster(file){
+  if(!file)return;
+  try{
+    const wb=await vxReadFile(file);
+    const isMaster=wb.SheetNames.some(s=>/^(PX|HD|DP|VIH|CE)_/.test(s));
+    if(!isMaster){toast("Este archivo no es un Libro Maestro Unificado (use el botón de cada módulo para libros individuales).");return;}
+    const loaded=[];
+    const pxW=v9RebuildSubWb(wb,"PX",PSH);if(pxW){PX.book=pxParse(pxW);PX.demo=false;PX.dirty=false;pxEnsureSheets();loaded.push("Institucional");}
+    const hdW=v9RebuildSubWb(wb,"HD",SH);if(hdW){setBook(parseToolBook(hdW),file.name+" [HD]");loaded.push("Hemodiálisis");}
+    const dpW=v9RebuildSubWb(wb,"DP",DPS);if(dpW){DP.book=dpParse(dpW);dpEnsure();DP.demo=false;DP.dirty=false;dpPlanSeed();DP.ui.chain=await dpVerifyChain();loaded.push("Diálisis Peritoneal");}
+    const vxW=v9RebuildSubWb(wb,"VIH",VXS);if(vxW){vxOpenBook(vxParse(vxW),false);loaded.push("VIH");}
+    const ceW=v9RebuildSubWb(wb,"CE",CES);if(ceW){ceOpenBook(ceParse(ceW),false);loaded.push("Consulta Externa");}
+    await v9SaveLocal(true);TRM.c={};pxRender();
+    toast("Libro Maestro cargado con éxito: "+loaded.join(", ")+".");
+  }catch(e){console.error(e);toast("Error al leer el Libro Maestro: "+e.message);}
+}
+
+/* Puente MPI extendido a los 5 programas (incluyendo Nefroprotección en segundo plano) */
+const dpMPI08=dpMPI;
+dpMPI=function(p){
+  const out=dpMPI08(p);
+  if(!p||!p.Documento)return out;
+  const doc=String(p.Documento).replace(/\D/g,"");
+  const eq=x=>String(x||"").replace(/\D/g,"")===doc;
+  try{
+    const w=pxNefroWin();
+    if(w&&w.MG&&w.MG.book&&Array.isArray(w.MG.book.pac)){
+      const nf=w.MG.book.pac.find(x=>eq(x.doc));
+      if(nf&&!out.some(o=>o.prog==="nefro"))out.push({prog:"nefro",n:"Nefroprotección",id:nf.codigo,det:(nf.estado||"ACTIVO")+" · "+(nf.eps||""),rec:nf});
+    }
+  }catch(e){}
+  return out;
+};
+
+/* Enriquecer la barra superior (#pxbar) y la portada con Libro Maestro y Autoguardado */
+const pxBar08=pxBar;
+pxBar=function(){
+  pxBar08();
+  const r=document.querySelector("#pxbar .pxbar-r");
+  if(!r||!PX.user)return;
+  const chip=document.createElement("span");
+  chip.id="v9savechip";
+  chip.className="v9bar-chip";
+  chip.title="Persistencia automática en este navegador (IndexedDB)";
+  chip.textContent=V9.lastSave?"Autoguardado "+V9.lastSave:"Autoguardado activo";
+  const btnM=document.createElement("button");
+  btnM.type="button";btnM.className="btn sm primary";btnM.dataset.v9="masterexp";
+  btnM.title="Descarga en un solo Excel (.xlsx) los 5 libros (Institucional, HD, DP, VIH y Consulta Externa)";
+  btnM.textContent="Libro Maestro (.xlsx)";
+  const lblI=document.createElement("label");
+  lblI.className="btn sm";lblI.title="Cargar Libro Maestro Unificado (.xlsx)";
+  lblI.innerHTML='Cargar Maestro<input type="file" id="v9masterfile" accept=".xlsx" hidden>';
+  r.insertBefore(chip,r.firstChild);
+  r.insertBefore(lblI,r.querySelector("#pxbexp"));
+  r.insertBefore(btnM,r.querySelector("#pxbexp"));
+};
+const pxLogin08=pxLogin;
+pxLogin=function(){
+  const h=pxLogin08();
+  const extra='<div class="copyrow" style="margin-top:6px"><button type="button" class="btn sm" data-v9="restore">Restaurar última sesión guardada en este navegador</button><label class="btn sm">Abrir Libro Maestro Unificado (.xlsx)<input type="file" id="v9masterfile" accept=".xlsx" hidden></label></div>';
+  return h.replace('</div></section>',extra+'</div></section>');
+};
+
+/* ---------- 2. Herencia Cruzada: Interpretación GPC + Auditoría Concurrente + Soportes SISCAC ---------- */
+const V9_SISCAC={
+  hd:[["sop_lab","Reporte original de laboratorio (Hb, Alb, P, PTH, BUN pre/post) verificado"],["sop_formula","Fórmula médica y prescripción dialítica firmadas"],["sop_consent","Consentimiento informado de hemodiálisis en el expediente"],["sop_ruta","Soporte de ruta a FAV o concepto de exclusión (si tiene CVC)"]],
+  dp:[["sop_ktv","Hoja de recolección de 24 h y cálculo de Kt/V / PET firmado"],["sop_lab","Reporte original de laboratorio del trimestre (Hb, Alb, P, Ca, PTH)"],["sop_presc","Prescripción vigente de DP (concentraciones y volúmenes) firmada"],["sop_ent","Acta firmada de entrega de insumos en domicilio"]],
+  vih:[["sop_dx","Soportes confirmatorios de VIH (pruebas / carga viral diagnóstica) en el repositorio"],["sop_cvcd4","Reporte original de laboratorio de última Carga Viral y conteo CD4"],["sop_tar","Fórmula médica de TAR vigente con validación de seguridad"],["sop_tamiz","Soportes de tamizaje anual (VDRL, HBsAg, Anti-VHC, PPD/citología)"]]
+};
+function v9GetSiscac(prog,pid){
+  const all=pxCfg("v9_siscac",{})||{};
+  return all[prog+"|"+pid]||{};
+}
+function v9SetSiscac(prog,pid,obj){
+  const all=Object.assign({},pxCfg("v9_siscac",{})||{});
+  all[prog+"|"+pid]=obj;
+  pxSetCfg("v9_siscac",all);
+}
+function v9SiscacHtml(prog,pid){
+  const S=v9GetSiscac(prog,pid);
+  const items=V9_SISCAC[prog]||[];
+  const okN=items.filter(([k])=>S[k]).length;
+  return'<div class="v9siscac"><div class="mhead"><strong style="font-size:13px">Auditoría Concurrente Pre-SISCAC · Soportes ('+okN+'/'+items.length+')</strong><span class="tag '+(okN===items.length?"cac":"inst")+'">'+(okN===items.length?"Listo para auditoría CAC":"Faltan soportes")+'</span></div>'+
+   '<div class="chkcol">'+items.map(([k,l])=>'<label class="chk" style="font-size:12.5px"><input type="checkbox" data-v9sis="'+prog+'|'+esc(pid)+'|'+k+'"'+(S[k]?" checked":"")+'> '+esc(l)+'</label>').join("")+'</div>'+
+   '<label class="f" style="margin-top:4px;font-size:12.5px">Excepción clínica justificada (requerida para cerrar si hay laboratorios fuera de meta o criterios CAC pendientes sin cambio terapéutico)<input type="text" id="v9_exc_'+prog+'" value="'+esc(S._exc||"")+'" placeholder="Ej.: contraindicación documentada, paciente en estudio externo, intolerancia previa…"></label></div>';
+}
+
+/* 2A. VIH: Tabla de Interpretación Automática de Paraclínicos contra GPC VIH 2021 / CAC */
+function v9VxInterp(p){
+  const c=TODAY();const s=vxSt(p,c);const id=p.ID;const rows=[];
+  const add=(ex,valTxt,meta,lvl,txt)=>rows.push({ex,valTxt,meta,lvl,txt});
+  /* Carga viral */
+  if(s.cv){
+    const v=num(s.cv.Valor);const ind=vxCVind(s.cv);
+    const vig=s.cv6?"vigente":"vencida (> 6 meses)";
+    if(!s.cv6)add("Carga viral VIH",vxFmtLab(s.cv)+" ("+iso(s.cv._d)+")","< 50 copias/mL cada 6 meses","bad","Carga viral "+vig+": solicitar toma inmediata (CAC-09, CAC-12).");
+    else if(ind)add("Carga viral VIH",vxFmtLab(s.cv)+" ("+iso(s.cv._d)+")","< 50 copias/mL","ok","Supresión virológica mantenida (< 50 copias/mL). Continuar TAR actual.");
+    else if(v!=null&&v<200)add("Carga viral VIH",vxF(v,0)+" copias/mL ("+iso(s.cv._d)+")","< 50 copias/mL","warn","Viremia de bajo nivel / blip (50–199 copias/mL): reforzar adherencia SMAQ, revisar interacciones y repetir CV en 4–8 semanas (GPC VIH 2021).");
+    else add("Carga viral VIH",vxFmtLab(s.cv)+" ("+iso(s.cv._d)+")","< 50 copias/mL","bad","CV ≥ 200 copias/mL: sospecha de falla virológica. Evaluar adherencia (SMAQ), repetir CV para confirmar y solicitar genotipo si persiste > 200 (CAC-13, GPC 2021).");
+  }else add("Carga viral VIH","Sin dato","< 50 copias/mL cada 6 meses","bad","Sin carga viral registrada: ordenar de inmediato.");
+  /* CD4 */
+  if(s.cd4){
+    const v=s.cd4v;
+    if(!s.cd46)add("Linfocitos T CD4",vxF(v,0)+" cél/µL ("+iso(s.cd4._d)+")","Cada 6 meses","bad","CD4 vencido (> 6 meses): solicitar conteo CD4 (CAC-09).");
+    else if(v<200){
+      const prf=vxPrfIn(id,/Trimetoprim/,addMonths(c,-6),c);
+      add("Linfocitos T CD4",vxF(v,0)+" cél/µL ("+iso(s.cd4._d)+")","≥ 200 cél/µL","bad","Inmunosupresión severa (< 200): "+(prf?"recibe profilaxis para P. jirovecii.":"INICIAR profilaxis con Trimetoprim/sulfametoxazol (CAC-14).")+(v<100?" Solicitar antígeno de criptococo (CD4 < 100)":v<50?" y antígeno de Histoplasma (CD4 < 50).":".")+" Contraindicadas vacunas vivas.");
+    }else if(v<350)add("Linfocitos T CD4",vxF(v,0)+" cél/µL ("+iso(s.cd4._d)+")","≥ 350 cél/µL","warn","Inmunosupresión moderada (200–349 cél/µL). Vigilar reconstitución inmunológica.");
+    else add("Linfocitos T CD4",vxF(v,0)+" cél/µL ("+iso(s.cd4._d)+")","≥ 350 cél/µL","ok","Recuento CD4 adecuado.");
+  }else add("Linfocitos T CD4","Sin dato","Cada 6 meses","bad","Sin CD4 registrado: ordenar de inmediato.");
+  /* Creatinina y TFG */
+  const cr=vxLast(id,"Cr",c);
+  if(cr){
+    const tfg=vxTFG(vxVal(cr),vxEdad(p,cr._d),p.Sexo);const old=cr._d<addMonths(c,-6);
+    const tdf=s.tar&&/TDF/.test(s.tar.Esquema);
+    if(tfg!=null&&tfg<60)add("Creatinina / TFGe",vxF(vxVal(cr),2)+" mg/dL · TFG "+vxF(tfg,0)+" ("+iso(cr._d)+")","TFGe ≥ 60 mL/min","bad","TFGe < 60 mL/min/1,73 m²"+(tdf?": recibe TDF (tenofovir disoproxil); valorar cambio a TAF o abacavir (previo HLA-B*5701) y ajuste renal (GPC 2021).":". Evaluar enfermedad renal crónica."));
+    else if(old)add("Creatinina / TFGe",vxF(vxVal(cr),2)+" mg/dL ("+iso(cr._d)+")","Semestral (CAC-16)","warn","Creatinina de más de 6 meses: solicitar control semestral (CAC-16).");
+    else add("Creatinina / TFGe",vxF(vxVal(cr),2)+" mg/dL · TFG "+(tfg?vxF(tfg,0):"—")+" ("+iso(cr._d)+")","TFGe ≥ 60 · semestral","ok","Función renal conservada y vigente.");
+  }else add("Creatinina / TFGe","Sin dato","Semestral (CAC-16)","bad","Falta creatinina de los últimos 6 meses (exigida por CAC-16).");
+  /* Glucemia, ALT, Colesterol/LDL */
+  const gl=vxLast(id,"Glu",c);
+  if(!gl||gl._d<addMonths(c,-6))add("Glucemia en ayunas",gl?vxVal(gl)+" mg/dL ("+iso(gl._d)+")":"Sin dato","70–99 mg/dL · semestral","warn","Sin glucemia vigente en 6 meses: solicitar (exigida por CAC-16).");
+  else add("Glucemia en ayunas",vxVal(gl)+" mg/dL ("+iso(gl._d)+")","< 100 mg/dL",vxVal(gl)>=126?"bad":vxVal(gl)>=100?"warn":"ok",vxVal(gl)>=126?"Glucemia ≥ 126 mg/dL: confirmar diabetes mellitus y solicitar HbA1c.":vxVal(gl)>=100?"Glucemia alterada en ayunas (100–125 mg/dL): intervención nutricional.":"En rango normal.");
+  const alt=vxLast(id,"ALT",c);
+  if(!alt||alt._d<addMonths(c,-6))add("ALT (TGP)",alt?vxVal(alt)+" U/L ("+iso(alt._d)+")":"Sin dato","≤ 40 U/L · semestral","warn","Sin ALT vigente en 6 meses: solicitar (exigida por CAC-16).");
+  else add("ALT (TGP)",vxVal(alt)+" U/L ("+iso(alt._d)+")","≤ 40 U/L",vxVal(alt)>80?"bad":vxVal(alt)>40?"warn":"ok",vxVal(alt)>40?"Elevación de transaminasas: revisar hepatotoxicidad por TAR, coinfección VHB/VHC y consumo de alcohol.":"Sin hepatotoxicidad.");
+  const ct=vxLast(id,"CT",c),ldl=vxLast(id,"LDL",c),tg=vxLast(id,"TG",c);
+  if(!ct||ct._d<addMonths(c,-12))add("Perfil lipídico (CT / LDL / TG)",ct?vxVal(ct)+" mg/dL ("+iso(ct._d)+")":"Sin dato","Anual (CAC-16)","warn","Colesterol total sin medición en los últimos 12 meses (CAC-16).");
+  else{
+    const lv=vxVal(ldl),tv=vxVal(tg);
+    const bad=(lv!=null&&lv>=160)||(tv!=null&&tv>=500);
+    add("Perfil lipídico","CT "+vxVal(ct)+(lv!=null?" · LDL "+lv:"")+(tv!=null?" · TG "+tv:"")+" ("+iso(ct._d)+")","LDL < 100–130 / TG < 150",bad?"bad":(lv>130||tv>150)?"warn":"ok",bad?"Dislipidemia severa: iniciar o ajustar estatina de bajo potencial de interacción con TAR (atorvastatina o rosuvastatina) e intervención nutricional.":(lv>130||tv>150)?"Dislipidemia leve-moderada: ajustar estilo de vida y valorar según RCV.":"En rango.");
+  }
+  return rows;
+}
+function v9VxInterpHtml(p){
+  const R=v9VxInterp(p);
+  return'<div class="panel"><h3>Paraclínicos e interpretación automática contra GPC VIH 2021 y CAC</h3><div class="tablebox"><table class="dense"><thead><tr><th>Examen</th><th>Último resultado</th><th>Meta / Frecuencia</th><th>Interpretación clínica (GPC)</th></tr></thead><tbody>'+
+   R.map(r=>'<tr><td><strong>'+esc(r.ex)+'</strong></td><td class="mono">'+esc(r.valTxt)+'</td><td class="mono" style="font-size:12px">'+esc(r.meta)+'</td><td style="font-size:13px"><span class="st '+r.lvl+'">'+(r.lvl==="ok"?"En meta":r.lvl==="warn"?"Revisar":"Fuera de meta")+'</span> '+esc(r.txt)+'</td></tr>').join("")+
+   '</tbody></table></div><div class="copyrow" style="margin-top:8px"><button type="button" class="btn sm primary" data-v9="vxinterp|'+esc(p.ID)+'">Insertar interpretación GPC en Análisis y Plan</button></div></div>';
+}
+
+/* Envolver vxValForm para mostrar interpretación GPC + Panel Sticky de Auditoría Concurrente en vivo + Soportes SISCAC */
+const vxValForm08=vxValForm;
+vxValForm=function(p){
+  const formHtml=vxValForm08(p);
+  const au=vxAudit(p);
+  const side='<div class="panel vxaud"><div class="mhead"><h3 style="margin:0">Auditoría Concurrente CAC en vivo</h3><span class="vxaudchip '+au.cls+'"><b>'+au.pct+' %</b></span></div><p class="note">Lista de chequeo en tiempo real mientras redacta la historia clínica. Ningún ítem crítico debe quedar sin conducta o soporte.</p>'+
+   v9SiscacHtml("vih",p.ID)+
+   '<ul class="vxaudl">'+au.items.map(i=>'<li class="'+({"Cumple":"y","No aplica":"na","Dato faltante":"f"})[i.st]+'"><b>'+esc(i.n)+'</b><span class="sub">'+esc(i.st+(i.det?": "+i.det:""))+'</span>'+(i.st!=="Cumple"&&i.st!=="No aplica"?'<span class="sub vxacc">'+esc(i.acc)+'</span>':'')+'</li>').join("")+'</ul></div>';
+  return '<div class="vxvalgrid"><div style="display:grid;gap:12px;min-width:0">'+v9VxInterpHtml(p)+formHtml+'</div>'+side+'</div>';
+};
+
+const vxValSave08=vxValSave;
+vxValSave=function(pid){
+  const p=vxP(pid);
+  if(p){
+    const au=vxAudit(p);
+    const crit=v9VxInterp(p).filter(r=>r.lvl==="bad");
+    const excEl=document.getElementById("v9_exc_vih");
+    const exc=excEl?excEl.value.trim():(v9GetSiscac("vih",pid)._exc||"");
+    if(excEl){const S=Object.assign({},v9GetSiscac("vih",pid),{_exc:exc});v9SetSiscac("vih",pid,S);}
+    const pl=(document.querySelector('[id="vf_pl"]')||{}).value||"";
+    if((au.pct<70||crit.length>0)&&pl.trim().length<15&&exc.length<6){
+      toast("Auditoría concurrente: hay "+crit.length+" hallazgo(s) crítico(s) fuera de meta o completitud < 70 %. Documente la conducta en el Plan o registre la Excepción Clínica Justificada en el panel derecho.");
+      if(excEl)excEl.focus();
+      return;
+    }
+  }
+  return vxValSave08(pid);
+};
+
+/* 2B. Diálisis Peritoneal: Tabla de Interpretación Automática contra GPC (ISPD/KDIGO/CAC) + Panel Sticky de Auditoría Concurrente */
+function v9DpInterp(p,D){
+  const c=TODAY();const tri=addMonths(c,-3),sem=addMonths(c,-6);const rows=[];
+  const add=(ex,valTxt,meta,lvl,txt)=>rows.push({ex,valTxt,meta,lvl,txt});
+  const L=(k,a)=>dpLast(p.ID,k,a,c);
+  const kt=L("KtV",addMonths(c,-4));
+  if(!kt)add("Kt/V total semanal","Sin dato en 4 meses","≥ 1,7 (dia_12 / ISPD 2020)","bad","Sin Kt/V vigente: programar recolección de dializado y orina de 24 h (CAC var. 50 exige máximo 4 meses).");
+  else{const v=num(kt.Valor);add("Kt/V total semanal",v+" ("+fd(v6d(kt.FechaToma))+")","≥ 1,7",v<1.7?"bad":"ok",v<1.7?"Dosis inferior a 1,7: evaluar adherencia, volumen de infusión, función renal residual y transporte peritoneal (PET) antes de incrementar recambios (ISPD 2020; GAG-GU-002).":"Adecuación de pequeños solutos en meta.");}
+  const hb=L("Hb",tri),fe=L("Ferritina",sem),ts=L("TSAT",sem);
+  if(!hb)add("Hemoglobina","Sin dato en el trimestre","10,0–11,5 g/dL (dia_14)","bad","Sin hemoglobina del último trimestre: solicitar hemograma (CAC var. 59).");
+  else{const v=num(hb.Valor);add("Hemoglobina",v+" g/dL ("+fd(v6d(hb.FechaToma))+")","10,0–11,5 g/dL (KDIGO 2026)",v<10?"bad":v>13?"bad":v>11.5?"warn":"ok",v<10?"Hb < 10 g/dL: verificar depósitos de hierro (Ferritina "+(fe?fe.Valor:"s/d")+", TSAT "+(ts?ts.Valor+"%":"s/d")+"), descartar pérdidas o infección y ajustar AEE/hierro (KDIGO 2026).":v>13?"Hb > 13 g/dL: riesgo de trombosis/ACV; reducir o suspender AEE (KDIGO 2026).":v>11.5?"Hb > 11,5 g/dL: si recibe AEE, titulaciones hacia abajo para no mantener ≥ 11,5.":"En meta.");}
+  const alb=L("Alb",tri);
+  if(!alb)add("Albúmina sérica","Sin dato en el trimestre","≥ 3,5 g/dL (dia_16)","bad","Sin albúmina del último trimestre: solicitar (CAC var. 60).");
+  else{const v=num(alb.Valor);add("Albúmina sérica",v+" g/dL ("+fd(v6d(alb.FechaToma))+")","≥ 3,5 g/dL (CAC DP)",v<3.5?"bad":v<4?"warn":"ok",v<3.5?"Hipoalbuminemia (< 3,5 g/dL): evaluar pérdida proteica peritoneal, ingesta calórico-proteica, inflamación y sobrehidratación; interconsulta prioritaria a Nutrición.":"En meta para DP (≥ 3,5 g/dL).");}
+  const ph=L("P",tri);
+  if(!ph)add("Fósforo sérico","Sin dato en el trimestre","2,5–6,0 mg/dL (dia_18)","bad","Sin fósforo del último trimestre: solicitar (CAC var. 61).");
+  else{const v=num(ph.Valor);add("Fósforo sérica",v+" mg/dL ("+fd(v6d(ph.FechaToma))+")","2,5–5,5 / 6,0 mg/dL",v<2.5||v>6?"bad":v>5.5?"warn":"ok",v>6?"Hiperfosfatemia (> 6,0 mg/dL): reforzar restricción de fósforo inorgánico, ajustar quelantes con las comidas y revisar adecuación dialítica (KDIGO 2017).":v<2.5?"Hipofosfatemia (< 2,5 mg/dL): evaluar desnutrición.":"En rango.");}
+  const ca=L("Ca",tri);
+  if(!ca)add("Calcio total","Sin dato en el trimestre","≤ 10,5 mg/dL (dia_30)","warn","Sin calcio del último trimestre: solicitar.");
+  else{const v=num(ca.Valor);add("Calcio total",v+" mg/dL ("+fd(v6d(ca.FechaToma))+")","8,4–10,2 mg/dL (CAC ≤ 10,5)",v>10.5?"bad":v>10.2||v<8.4?"warn":"ok",v>10.2?"Evitar hipercalcemia (KDIGO 2017): revisar quelantes cálcicos y calcitriol.":"Sin hipercalcemia.");}
+  const pth=L("PTH",sem);
+  if(!pth)add("PTH intacta","Sin dato en 6 meses","130–600 pg/mL (dia_28)","warn","Sin PTH en los últimos 6 meses: solicitar (CAC var. 34).");
+  else{const v=num(pth.Valor);add("PTH intacta",v+" pg/mL ("+fd(v6d(pth.FechaToma))+")","130–600 pg/mL",v<130||v>600?"warn":"ok",v>600?"PTH > 600 pg/mL: evaluar control de fósforo, vitamina D activa o calcimimético (KDIGO 2017).":v<130?"PTH < 130 pg/mL: evitar sobresupresión ósea.":"En rango.");}
+  const k=L("K",tri);
+  if(k){const v=num(k.Valor);add("Potasio sérico",v+" mEq/L ("+fd(v6d(k.FechaToma))+")","3,5–5,5 mEq/L",v<3.5||v>5.5?"warn":"ok",v<3.5?"Hipopotasemia (frecuente en DP continua): reforzar potasio en la dieta o suplementar.":v>5.5?"Hiperpotasemia: revisar adherencia a los recambios, dieta y fármacos (IECA/ARA-II).":"En rango.");}
+  return rows;
+}
+function v9DpAuditCAC(p,D){
+  const c=TODAY(),tri=addMonths(c,-3),sem=addMonths(c,-6);
+  const L=(k,a)=>dpLast(p.ID,k,a,c);
+  const items=[
+    ["Modalidad DP y fecha de inicio documentadas",!!(p.Modalidad&&v6d(p.FechaInicioDP)),"Var 44 y 49 CAC","Completar en Ficha → Editar datos"],
+    ["Prescripción vigente de DP estructurada",!!dpPreVig(p.ID),"ISPD 2020 · GAG-GU-002","Registrar en Tratamiento → Prescripción"],
+    ["Kt/V total vigente (≤ 4 meses) y ≥ 1,7",!!(L("KtV",addMonths(c,-4))&&num(L("KtV",addMonths(c,-4)).Valor)>=1.7),"Var 50 CAC · dia_12","Calcular o validar en Laboratorios → Kt/V"],
+    ["Hemoglobina del trimestre ≥ 10 g/dL",!!(L("Hb",tri)&&num(L("Hb",tri).Valor)>=10),"Var 59 CAC · dia_14","Solicitar o ajustar anemia"],
+    ["Albúmina del trimestre ≥ 3,5 g/dL",!!(L("Alb",tri)&&num(L("Alb",tri).Valor)>=3.5),"Var 60 CAC · dia_16","Solicitar o intervenir con Nutrición"],
+    ["Fósforo del trimestre 2,5–6,0 mg/dL",!!(L("P",tri)&&num(L("P",tri).Valor)>=2.5&&num(L("P",tri).Valor)<=6),"Var 61 CAC · dia_18","Solicitar o ajustar quelante/dieta"],
+    ["PTH de los últimos 6 meses 130–600 pg/mL",!!(L("PTH",sem)&&num(L("PTH",sem).Valor)>=130&&num(L("PTH",sem).Valor)<=600),"Var 34 CAC · dia_28","Solicitar o ajustar CKD-MBD"],
+    ["Calcio del trimestre sin hipercalcemia (≤ 10,5)",!!(L("Ca",tri)&&num(L("Ca",tri).Valor)<=10.5),"dia_30 CAC","Solicitar o ajustar calcio/vitamina D"],
+    ["Orificio de salida y funcionamiento del catéter evaluados",!!(D.orificio&&D.orificio!=="No evaluado"&&D.cat_func&&D.cat_func!=="No evaluado"),"ISPD 2023","Diligenciar en la sección Catéter"],
+    ["Diuresis residual y ultrafiltración documentadas",!!(D.diuresis!==undefined&&D.diuresis!==""&&D.uf!==undefined&&D.uf!==""),"Var 35 CAC · protección FRR","Diligenciar en la sección Diálisis peritoneal"],
+    ["Concepto de trasplante renal vigente",!!dpTxAt(p.ID),"Var 62 CAC · dia_22","Actualizar en Tratamiento → Trasplante"],
+    ["Competencia en entrenamiento demostrada",dpEduState(p.ID).res==="Competente","DP-OP-03 · ISPD","Evaluar en Tratamiento → Educación"]
+  ];
+  const ok=items.filter(x=>x[1]).length;const pct=Math.round(ok/items.length*100);
+  return{items,ok,tot:items.length,pct,cls:pct>=85?"ok":pct>=65?"warn":"bad"};
+}
+
+const dpValEditor08=dpValEditor;
+dpValEditor=function(){
+  const E=DP.ui.vedit;
+  const baseHtml=dpValEditor08();
+  if(!E||!E.pid)return baseHtml;
+  const v=E.id?DP.book.val.find(x=>x.ID===E.id):null;
+  if(v&&v.Estado!=="Borrador")return baseHtml;
+  const p=dpPac(E.pid);if(!p)return baseHtml;
+  const R=v9DpInterp(p,E.D||{});
+  const au=v9DpAuditCAC(p,E.D||{});
+  const interpBox='<div class="panel"><h3>Paraclínicos e interpretación automática contra GPC (ISPD 2020/2022, KDIGO 2026 y CAC 2026)</h3><div class="tablebox"><table class="dense"><thead><tr><th>Examen</th><th>Último resultado</th><th>Meta CAC / GPC</th><th>Interpretación y conducta sugerida</th></tr></thead><tbody>'+
+    R.map(r=>'<tr><td><strong>'+esc(r.ex)+'</strong></td><td class="mono">'+esc(r.valTxt)+'</td><td class="mono" style="font-size:12px">'+esc(r.meta)+'</td><td style="font-size:13px"><span class="st '+r.lvl+'">'+(r.lvl==="ok"?"En meta":r.lvl==="warn"?"Revisar":"Fuera de meta")+'</span> '+esc(r.txt)+'</td></tr>').join("")+
+    '</tbody></table></div><div class="copyrow" style="margin-top:8px"><button type="button" class="btn sm primary" data-v9="dpinterp|'+esc(p.ID)+'">Insertar interpretación GPC en Paraclínicos, Análisis y Plan</button><button type="button" class="btn sm" data-g="vxrcv|'+esc(p.ID)+'">Calculadora RCV (SCORE2 / Framingham)</button></div></div>';
+  const side='<div class="panel vxaud"><div class="mhead"><h3 style="margin:0">Auditoría Concurrente CAC · DP</h3><span class="vxaudchip '+au.cls+'"><b>'+au.pct+' %</b></span></div><p class="note">Verificación concurrente de criterios CAC 2026 e ISPD en tiempo real ('+au.ok+' de '+au.tot+').</p>'+
+    v9SiscacHtml("dp",p.ID)+
+    '<ul class="vxaudl">'+au.items.map(i=>'<li class="'+(i[1]?"y":"")+'"><b>'+esc(i[0])+'</b><span class="sub">'+esc(i[2])+'</span>'+(i[1]?'':'<span class="sub vxacc">'+esc(i[3])+'</span>')+'</li>').join("")+'</ul></div>';
+  return '<div class="vxvalgrid"><div style="display:grid;gap:12px;min-width:0">'+interpBox+baseHtml+'</div>'+side+'</div>';
+};
+
+const dpValSave08=dpValSave;
+dpValSave=function(mode){
+  const E=DP.ui.vedit;
+  if(E&&E.pid){
+    const excEl=document.getElementById("v9_exc_dp");
+    const exc=excEl?excEl.value.trim():(v9GetSiscac("dp",E.pid)._exc||"");
+    if(excEl){const S=Object.assign({},v9GetSiscac("dp",E.pid),{_exc:exc});v9SetSiscac("dp",E.pid,S);}
+    if(mode==="fin"){
+      const p=dpPac(E.pid);
+      const D=dpValCollect();
+      const crit=p?v9DpInterp(p,D).filter(r=>r.lvl==="bad"):[];
+      if(crit.length>0&&String(D.plan||"").trim().length<15&&exc.length<6){
+        toast("Auditoría concurrente DP: hay "+crit.length+" paraclínico(s) fuera de meta ("+crit.map(c=>c.ex).join(", ")+"). Documente el ajuste en el Plan o registre la Excepción Clínica Justificada en el panel derecho antes de finalizar.");
+        if(excEl)excEl.focus();
+        return;
+      }
+    }
+  }
+  return dpValSave08(mode);
+};
+
+/* 2C. Hemodiálisis: Soportes SISCAC y Bloqueo Preventivo en valOut y valSave */
+const valOut08=valOut;
+valOut=function(p,D){
+  return valOut08(p,D)+'<div class="panel">'+v9SiscacHtml("hd",p.ID)+'</div>';
+};
+const valSave08=valSave;
+valSave=function(){
+  const D=ST.ui.vdraft;
+  if(D&&D.pid){
+    const p=IDX.pac.get(D.pid);
+    const excEl=document.getElementById("v9_exc_hd");
+    const exc=excEl?excEl.value.trim():(v9GetSiscac("hd",D.pid)._exc||"");
+    if(excEl){const S=Object.assign({},v9GetSiscac("hd",D.pid),{_exc:exc});v9SetSiscac("hd",D.pid,S);}
+    if(p){
+      const X=valCtx(p,D);
+      const T=valTexts(p,X,D.f);
+      const badLabs=T.I.filter(i=>i.lvl==="bad");
+      const CK=valChecklist(p,X,D.f);
+      const missCK=CK.filter(r=>!r[0]);
+      if((badLabs.length>0||missCK.length>2)&&exc.length<6&&!(D.f.planOtro&&D.f.planOtro.trim().length>=8)){
+        toast("Auditoría concurrente HD: hay "+badLabs.length+" alerta(s) paraclínica(s) fuera de meta y "+missCK.length+" ítem(s) en la lista de chequeo. Ajuste el plan farmacológico/adicional o escriba la Excepción Clínica Justificada abajo a la derecha.");
+        if(excEl)excEl.focus();
+        return;
+      }
+    }
+  }
+  return valSave08();
+};
+
+/* ---------- 3. Motor de Gestión y Conciliación Farmacéutica de Medicamentos e Insumos Críticos (DP, VIH y HD) ---------- */
+/* 3A. Diálisis Peritoneal: Sincronización automática desde la prescripción médica vigente (pre -> ins)
+   y descuento de días hospitalizado/suspendido + saldo físico en casa en las entregas (dpDlgEnt) */
+function v9DpHospDaysInMonth(pid,mes){
+  if(!dpOn())return 0;
+  const ms=pdate(mes+"-01"),me=monthEnd(ms);
+  let days=0;
+  dpR("hos").filter(h=>h.Paciente===pid&&v6d(h.FechaIngreso)).forEach(h=>{
+    const a=v6d(h.FechaIngreso)>ms?v6d(h.FechaIngreso):ms;
+    const fin=v6d(h.FechaEgreso)||TODAY();
+    const b=fin<me?fin:me;
+    if(b>=a)days+=dayDiff(a,b)+1;
+  });
+  return days;
+}
+function v9DpSyncInsumos(onlyPid){
+  if(!dpGuard("ins"))return;
+  const P=DP.book.pac.filter(lv).filter(p=>(!onlyPid||p.ID===onlyPid)&&dpActivo(p));
+  let nUpd=0,nPac=0;
+  P.forEach(p=>{
+    const pre=dpPreVig(p.ID);if(!pre)return;
+    const S=dpJ(pre.Soluciones,[]).filter(s=>s.sol&&num(s.vol)&&num(s.n));
+    if(!S.length)return;
+    nPac++;
+    const items=[];
+    S.forEach(s=>{
+      const nom="Bolsa "+s.vol+" mL "+s.sol+" ("+pre.Modalidad+")";
+      items.push([nom,Math.round(num(s.n)*30)]);
+    });
+    const totRec=S.reduce((a,s)=>a+(num(s.n)||0),0);
+    if(pre.Modalidad==="DPA"){
+      items.push(["Cassette / línea de cicladora DPA",30]);
+      items.push(["Minicap (tapón con iodopovidona)",30]);
+    }else{
+      items.push(["Minicap (tapón con iodopovidona)",Math.round(totRec*30)]);
+    }
+    dpR("ins").filter(i=>i.Paciente===p.ID&&i.Estado==="Vigente"&&/^Prescripci/.test(i.Origen||"")).forEach(i=>dpUpd("ins",i,{Estado:"Reemplazada"}));
+    items.forEach(([nom,cant])=>{
+      dpAdd("ins","IN-",{Paciente:p.ID,Insumo:nom,Cantidad:cant,Periodo:"Mensual",VigenteDesde:TODAY(),Estado:"Vigente",Origen:"Prescripción v"+pre.Version,Nota:"Cálculo exacto desde prescripción "+pre.ID});
+      nUpd++;
+    });
+  });
+  pxRefresh();
+  toast(nUpd?nUpd+" insumos sincronizados exactamente desde la prescripción médica en "+nPac+" paciente(s).":"No hay pacientes activos con prescripción estructurada para sincronizar.");
+}
+
+/* Reemplazo enriquecido de dpTraIns y dpDlgEnt con el Tablero y Conciliación Farmacéutica y Control de Inventario */
+const dpTraIns08=dpTraIns;
+dpTraIns=function(){
+  const base=dpTraIns08();
+  const E=dpR("ent");
+  let prescTot=0,ahorroTot=0,entTot=0;
+  E.forEach(e=>{
+    dpJ(e.Items,[]).forEach(it=>{
+      const teo=num(it.teo)!=null?num(it.teo):(num(it.req)||0);
+      const net=num(it.req)||0;
+      const aho=Math.max(0,teo-net);
+      prescTot+=teo;ahorroTot+=aho;entTot+=num(it.ent)!=null?num(it.ent):net;
+    });
+  });
+  const inactConIns=DP.book.pac.filter(lv).filter(p=>!dpActivo(p)&&dpR("ins").some(i=>i.Paciente===p.ID&&i.Estado==="Vigente"));
+  const banner='<div class="panel v9anti"><div class="mhead"><div><h3 style="margin:0">Control Exacto de Insumos de Diálisis Peritoneal (Motor de Gestión y Conciliación Farmacéutica)</h3><p class="note" style="margin:2px 0 0">Cruza la prescripción médica vigente (concentraciones 1,5 %, 2,5 %, 4,25 %, Icodextrina y cicladora) contra los días reales en casa, descontando automáticamente los días de hospitalización y el saldo físico contado en el domicilio del paciente.</p></div>'+
+   '<div class="copyrow">'+(dpCan("ins")?'<button type="button" class="btn sm primary" data-v9="dpsyncall">Sincronizar insumos desde prescripción vigente (todos)</button><button type="button" class="btn sm" data-v9="dpentconc">Programar entrega conciliada (conciliado)</button>':'')+'</div></div>'+
+   '<div class="v9anti-kpis"><div class="tile"><span class="tv">'+prescTot.toLocaleString("es-CO")+'</span><span class="tl">unidades prescritas teóricas</span></div><div class="tile ok"><span class="tv">'+ahorroTot.toLocaleString("es-CO")+'</span><span class="tl">unidades ahorradas (descuento por saldo en casa + hospitalización)</span></div><div class="tile"><span class="tv">'+entTot.toLocaleString("es-CO")+'</span><span class="tl">unidades netas despachadas</span></div><div class="tile '+(inactConIns.length?"bad":"ok")+'"><span class="tv">'+inactConIns.length+'</span><span class="tl">pacientes fuera de DP con insumos activos por bloquear</span></div></div>'+
+   (inactConIns.length?'<div class="alert bad"><p>Control preventivo de dispensación: '+inactConIns.map(p=>esc(p.ID+" "+dpNombre(p)+" ("+dpEstado(p)+")")).join(", ")+' figuran fuera de DP pero tienen insumos vigentes. <button type="button" class="btn sm danger" data-v9="dpbloqinact">Suspender insumos de inactivos ahora</button></p></div>':'')+'</div>';
+  return banner+base;
+};
+
+function v9DlgDpEntConc(pid){
+  if(!dpGuard("ins"))return;
+  const p0=pid||(DP.book.pac.filter(lv).find(p=>dpActivo(p))||{}).ID||"";
+  const mes=ym(TODAY());
+  const draw=(pId,m)=>{
+    const p=dpPac(pId);if(!p)return"<p class='note'>Seleccione un paciente activo.</p>";
+    if(!dpActivo(p))return'<div class="alert bad"><p>CONTROL DE SEGURIDAD FARMACÉUTICA: El paciente '+esc(dpNombre(p))+' está en estado «'+esc(dpEstado(p))+'». No se permite programar despacho de cajas.</p></div>';
+    let I=dpR("ins").filter(i=>i.Paciente===pId&&i.Estado==="Vigente");
+    const pre=dpPreVig(pId);
+    const hDays=v9DpHospDaysInMonth(pId,m);
+    if(!I.length&&pre){return'<div class="alert warn"><p>El paciente tiene prescripción vigente ('+esc(dpPreTxt(pre))+') pero aún no ha sincronizado sus insumos. <button type="button" class="btn sm primary" data-v9="dpsyncone|'+esc(pId)+'">Sincronizar ahora desde la prescripción</button></p></div>';}
+    if(!I.length)return'<p class="note">El paciente no tiene insumos vigentes ni prescripción estructurada.</p>';
+    return'<p class="note">Prescripción vigente: <strong>'+esc(dpPreTxt(pre))+'</strong> · Días hospitalizado en '+esc(m)+': <strong>'+hDays+' día(s)</strong> (se descuentan proporcionalmente).</p>'+
+     '<div class="tablebox"><table class="dense"><thead><tr><th>Insumo</th><th class="num">Prescrito mes</th><th class="num">Desc. hosp.</th><th>Saldo físico en casa *</th><th>Stock seg.</th><th class="num">Neto a entregar</th><th>Lote</th><th>Vencimiento</th></tr></thead><tbody>'+
+     I.map((x,i)=>{
+       const teo=x.Periodo==="Mensual"?num(x.Cantidad):x.Periodo==="Semanal"?Math.round(num(x.Cantidad)*4.345):num(x.Cantidad)||0;
+       const descH=Math.round(teo*(Math.min(30,hDays)/30));
+       const net=Math.max(0,teo-descH);
+       return'<tr data-dprow="'+i+'" data-ins="'+esc(x.Insumo)+'" data-teo="'+teo+'" data-dh="'+descH+'"><td>'+esc(x.Insumo)+'</td><td class="num mono">'+teo+'</td><td class="num mono">−'+descH+'</td>'+
+        '<td><input type="number" min="0" id="dpe_sal'+i+'" value="0" style="width:74px" data-v9recalc="'+i+'"></td>'+
+        '<td><input type="number" min="0" id="dpe_seg'+i+'" value="0" style="width:68px" data-v9recalc="'+i+'"></td>'+
+        '<td class="num mono"><strong id="dpe_net'+i+'">'+net+'</strong></td>'+
+        '<td><input type="text" id="dpe_lot'+i+'" placeholder="Lote" style="width:88px"></td>'+
+        '<td><input type="date" id="dpe_ven'+i+'" style="width:132px"></td></tr>';
+     }).join("")+'</tbody></table></div>';
+  };
+  dpDlg("Conciliación de Inventario en Domicilio y Entrega Exacta · DP",
+   '<div class="form"><label class="f wide">Paciente *<select id="dpe_p">'+dpPacOpts(p0,"Seleccione…",true)+'</select></label><label class="f">Periodo *<input type="month" id="dpe_m" value="'+mes+'"></label><label class="f">Fecha programada / entrega *<input type="date" id="dpe_f" value="'+iso(TODAY())+'"></label><label class="f">Estado<select id="dpe_est">'+opt(["Entregada completa","Programada"],"Entregada completa")+'</select></label><label class="f">Responsable *<input type="text" id="dpe_r" value="'+esc(PX.user?PX.user.Nombre:"")+'"></label><label class="f">Soporte firmado en casa<select id="dpe_s">'+opt(["Sí","No"],"Sí")+'</select></label><label class="f">Acta / guía de despacho<input type="text" id="dpe_sr" placeholder="N.° guía o acta"></label></div>'+
+   '<div id="dpe_tbl" style="margin-top:8px">'+draw(p0,mes)+'</div>',
+   "Guardar entrega conciliada",()=>{
+    const pId=dv("dpe_p"),m=dv("dpe_m"),f=dvd("dpe_f"),est=dv("dpe_est"),r=dv("dpe_r");
+    if(!pId||!m||!f||!r)return"Complete paciente, periodo, fecha y responsable.";
+    const p=dpPac(pId);if(!dpActivo(p))return"Paciente inactivo: despacho bloqueado.";
+    const rows=[...document.querySelectorAll("[data-dprow]")];if(!rows.length)return"Sin insumos para despachar.";
+    const items=[];let totAho=0;
+    for(const tr of rows){
+      const i=+tr.dataset.dprow,teo=+tr.dataset.teo,dh=+tr.dataset.dh;
+      const sal=num($("dpe_sal"+i).value)||0,seg=num($("dpe_seg"+i).value)||0;
+      const net=Math.max(0,teo-dh+seg-sal);
+      const lot=$("dpe_lot"+i).value.trim(),ven=$("dpe_ven"+i).value;
+      if(ven&&pdate(ven)<f)return"El lote de «"+tr.dataset.ins+"» está vencido ("+ven+").";
+      totAho+=Math.max(0,teo-net);
+      items.push({insumo:tr.dataset.ins,teo,descHosp:dh,saldoCasa:sal,stockSeg:seg,req:net,ent:est==="Entregada completa"?net:null,lote:lot,vence:ven});
+    }
+    dpAdd("ent","EN-",{Paciente:pId,Periodo:m,FechaProgramada:f,FechaEntrega:est==="Entregada completa"?f:null,Items:JSON.stringify(items),Estado:est,Responsable:r,SoporteRecibido:dv("dpe_s"),Soporte:dv("dpe_sr")+(totAho?" · Ahorro conciliado: "+totAho+" u.":""),Incidencia:"",Contingencia:""});
+    pxRefresh();toast("Entrega conciliada registrada. Unidades ahorradas por control de saldo/hospitalización: "+totAho+".");
+   },true);
+  const up=()=>{const el=$("dpe_tbl");if(el)el.innerHTML=draw(dv("dpe_p"),dv("dpe_m"));};
+  if($("dpe_p"))$("dpe_p").onchange=up;if($("dpe_m"))$("dpe_m").onchange=up;
+}
+
+/* 3B. VIH: Entrega de TAR con descuento de saldo del paciente, lote/vencimiento y Pedido Gestión Farmacéutica */
+if(!VXS.ent[1].includes("SaldoPrevio"))VXS.ent[1].push("SaldoPrevio","UnidadesTeoricas","Lote","FechaVencimiento","DiasInterrupcion");
+vxDlgEnt=function(pid){
+  const p=pid?vxP(pid):null;const s=p?vxSt(p,TODAY()):null;
+  openDlg("Registrar entrega conciliada de TAR (Gestión y Conciliación Farmacéutica)",
+   '<div class="form">'+vxFld("en_p","Paciente","list",p?p.ID+" · "+vxNom(p):"",vxPacOpts(),"wide")+
+   vxFld("en_f","Fecha de entrega","date",pxToday())+
+   vxFld("en_m","Meses a cubrir","sel","1",["1","2","3"])+
+   vxFld("en_sal","Saldo físico en poder del paciente (tabletas sobrantes verificadas) *","num","0")+
+   vxFld("en_int","Días de hospitalización / suspensión no consumidos","num","0")+
+   vxFld("en_lot","Lote del antirretroviral *","text","")+
+   vxFld("en_ven","Fecha de vencimiento (FEFO) *","date","")+
+   vxFld("en_l","Lugar de dispensación","sel","Farmacia de la IPS",["Farmacia de la IPS","Farmacia del operador","Domicilio"])+'</div>'+
+   '<p class="note">'+(s&&s.tar?"Esquema actual: <b>"+esc(s.tar.Esquema)+"</b>"+(s.tar.Validacion?" (validado)":" (<span class=\"bad-t\">sin validación de seguridad</span>)")+". Se descuentan las tabletas sobrantes verificadas para evitar sobredispensación y vencimiento en casa.":"El paciente debe tener un esquema activo.")+'</p>',
+   "Guardar entrega conciliada",()=>{
+    const pp=vxPidFrom(vxGv("en_p"));if(!pp)return"Elija un paciente.";
+    const pac=vxP(pp);const st=vxSt(pac,TODAY());
+    if(!st.activo)return"CONTROL DE SEGURIDAD FARMACÉUTICA: El paciente figura «"+pac.Estado+"». No se permite dispensar TAR.";
+    if(!st.tar)return"El paciente no tiene esquema activo.";
+    const f=vxGv("en_f"),ven=vxGv("en_ven"),lot=vxGv("en_lot");
+    if(!f)return"Indique la fecha de entrega.";
+    if(!lot)return"Registre el lote del medicamento para trazabilidad de farmacovigilancia.";
+    if(ven&&pdate(ven)<=pdate(f))return"El lote registrado está vencido ("+ven+").";
+    const m=+vxGv("en_m");const sal=Math.max(0,num(vxGv("en_sal"))||0);const dint=Math.max(0,num(vxGv("en_int"))||0);
+    const q=VXQ[st.tar.Esquema];
+    const tpd=q&&q.it.length?q.it.reduce((a,[x,t])=>a+t,0):1;
+    const teo=tpd*30*m;
+    const net=Math.max(0,teo-sal-Math.round(tpd*dint));
+    vxAdd("ent","EN-",{Paciente:pp,Fecha:f,Esquema:st.tar.Esquema,Meses:m,Unidades:net,UnidadesTeoricas:teo,SaldoPrevio:sal,DiasInterrupcion:dint,Lote:lot,FechaVencimiento:ven,Lugar:vxGv("en_l")});
+    pxRender();
+    toast("Entrega registrada: "+net+" u. entregadas (ahorro de "+(teo-net)+" u. por saldo/interrupción). Cubre hasta "+iso(addDays(pdate(f),m*30))+".");
+   });
+};
+
+vxPedido=function(mes){
+  mes=mes||ym(addMonths(TODAY(),1));const me=monthEnd(pdate(mes+"-01"));const c=vxCorte();const rows=[];const cons={};
+  vxPacs().filter(p=>vxFiltro(p)).forEach(p=>{
+    const s=vxSt(p,TODAY()>c?TODAY():c);if(!s.activo||!s.tar)return;
+    const q=VXQ[s.tar.Esquema];if(!q||!q.it.length)return;
+    if(s.cob&&s.cob>me)return;
+    const meses=num(s.ent&&s.ent.Meses)||1;
+    const saldo=num(s.ent&&s.ent.SaldoPrevio)||0;
+    const totTpd=q.it.reduce((a,[x,t])=>a+t,0)||1;
+    const teoPac=totTpd*30*meses;
+    const netPac=Math.max(0,teoPac-saldo);
+    rows.push({p,esq:s.tar.Esquema,cob:s.cob,meses,saldo,teo:teoPac,net:netPac,alerta:!s.tar.Validacion?"Esquema sin validar":s.smaq&&s.smaq.SMAQ==="No adherente"?"No adherente (verificar saldo real)":""});
+    q.it.forEach(([prod,tpd])=>{
+      const r=cons[prod]=cons[prod]||{prod,pac:0,teo:0,aho:0,u:0};
+      const tProd=tpd*30*meses;
+      const descProd=Math.min(tProd,Math.round(saldo*(tpd/totTpd)));
+      r.pac++;r.teo+=tProd;r.aho+=descProd;r.u+=(tProd-descProd);
+    });
+  });
+  return{mes,rows,cons:Object.values(cons).sort((a,b)=>b.u-a.u)};
+};
+
+const vxTarV08=vxTarV;
+vxTarV=function(){
+  const sub=VX.ui.tsub||"gru";
+  if(sub!=="ped"&&sub!=="ent")return vxTarV08();
+  let h=vxTarV08();
+  if(sub==="ped"){
+    const PD=vxPedido();
+    const totTeo=PD.cons.reduce((a,r)=>a+r.teo,0),totAho=PD.cons.reduce((a,r)=>a+r.aho,0),totNet=PD.cons.reduce((a,r)=>a+r.u,0);
+    const anti='<div class="panel v9anti" style="margin-top:10px"><h3>Conciliación Farmacéutica y Control de Inventario del Pedido de TAR · '+esc(PD.mes)+'</h3>'+
+     '<div class="v9anti-kpis"><div class="tile"><span class="tv">'+totTeo.toLocaleString("es-CO")+'</span><span class="tl">tabletas teóricas (30 días × meses)</span></div><div class="tile ok"><span class="tv">'+totAho.toLocaleString("es-CO")+'</span><span class="tl">tabletas descontadas por saldos verificados</span></div><div class="tile"><span class="tv">'+totNet.toLocaleString("es-CO")+'</span><span class="tl">tabletas netas exactas a pedir</span></div></div>'+
+     '<div class="tablebox"><table class="dense"><thead><tr><th>Producto</th><th class="num">Pacientes</th><th class="num">Teórico</th><th class="num">Descuento por saldos</th><th class="num">Neto a solicitar</th></tr></thead><tbody>'+
+     PD.cons.map(r=>'<tr><td>'+esc(r.prod)+'</td><td class="num">'+r.pac+'</td><td class="num mono">'+r.teo.toLocaleString("es-CO")+'</td><td class="num mono" style="color:var(--ok)">−'+r.aho.toLocaleString("es-CO")+'</td><td class="num mono"><strong>'+r.u.toLocaleString("es-CO")+'</strong></td></tr>').join("")+'</tbody></table></div></div>';
+    return h+anti;
+  }
+  return h;
+};
+
+/* 3C. Hemodiálisis: Control de Ampollas Intradiálisis vs. Sesiones Realizadas */
+const vInf08=vInf;
+vInf=function(){
+  const h=vInf08();
+  if(!hdOn())return h;
+  ensureIdx();const mes=ym(ST.corte);const{ms,me}=v6per(mes);
+  const rows=[];
+  pacs().filter(p=>epsOk(p)&&overlaps(p,ms,me)).forEach(p=>{
+    const ses=sesIn(p,ms,me,"Realizada").length;
+    p._med.filter(m=>m.Lugar==="Administrado en la unidad"&&(!m.Fin||m.Fin>=ms)).forEach(m=>{
+      const esp=/semana/i.test(m.Frecuencia||"")?Math.round((num(m.CantidadMes)||12)*Math.min(1,ses/12)):(num(m.CantidadMes)||0);
+      const disp=p._dis.find(d=>d.Mes===mes&&d.Prescripcion===m.ID);
+      rows.push({p,m,ses,esp,ent:disp?num(disp.Entregada):null});
+    });
+  });
+  const box='<div class="panel v9anti" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Control de Medicamentos Intradiálisis de Alto Costo (EPO / Hierro IV) · '+esc(mes)+'</h3><p class="note" style="margin:2px 0 0">Cruza las ampollas prescritas para administración en sala contra las sesiones efectivamente realizadas por el paciente en el mes, evitando pérdidas por sesiones inasistidas.</p></div></div>'+
+   '<div class="tablebox"><table class="dense"><thead><tr><th>Paciente</th><th>Medicamento en sala</th><th>Dosis / Frecuencia</th><th class="num">Sesiones realizadas</th><th class="num">Ampollas mes (prescritas)</th><th class="num">Ampollas ajustadas a asistencia</th><th class="num">Ahorro por inasistencias</th></tr></thead><tbody>'+
+   (rows.slice(0,40).map(r=>{const aho=Math.max(0,(num(r.m.CantidadMes)||0)-r.esp);return'<tr><td><strong>'+esc(r.p.ID)+'</strong><span class="sub">'+esc(nombre(r.p))+'</span></td><td>'+esc(r.m.Medicamento)+(r.m.Mipres==="SI"?' <span class="tag cac">MIPRES</span>':'')+'</td><td>'+esc((r.m.Dosis||"")+" · "+(r.m.Frecuencia||""))+'</td><td class="num mono">'+r.ses+'</td><td class="num mono">'+(r.m.CantidadMes||0)+'</td><td class="num mono"><strong>'+r.esp+'</strong></td><td class="num mono" style="color:'+(aho?"var(--ok)":"inherit")+'">'+(aho?"−"+aho:"0")+'</td></tr>';}).join("")||'<tr><td colspan="7" class="note">Sin prescripciones intradiálisis activas.</td></tr>')+
+   '</tbody></table></div></div>';
+  return h+box;
+};
+
+/* ---------- 4. Consulta Externa Fase 2 + Producción Asistencial 100 % Integrada y Metas ---------- */
+const ceDlgCupo08=ceDlgCupo;
+ceDlgCupo=function(cid){
+  const I=ceIdx();const c=I.cup.get(cid);if(!c)return;
+  const e=ceCupoEstado(c);
+  if(["DISPONIBLE","BLOQUEADO"].includes(e)&&!cePasado(c.Fecha,c.Hora)){return ceDlgCupo08(cid);}
+  const j=I.jor.get(c.Jornada);if(!ceVisJor(j))return;
+  const ci=(I.citC[cid]||[])[0];if(!ci)return ceDlgCupo08(cid);
+  const p=I.pac.get(ci.Paciente);const s=I.sol.get(ci.Solicitud);
+  const tit="Gestión de Cita (Fase 2) · Cupo "+c.Hora+" · "+ceFD(c.Fecha);
+  const body='<p class="note">'+esc(ceProfN(j.Profesional)+" · "+ceEspN(j.Especialidad)+" · "+CE_MODAL[j.Modalidad]+" · "+ceConN(j.Consultorio))+'</p>'+
+   '<dl class="cedl"><dt>Paciente</dt><dd><b>'+esc(ceNom(p))+'</b> · '+esc(p.TipoDoc+" "+p.Documento)+' · '+esc(p.EPS)+' · Tel. '+esc(p.Telefono)+'</dd><dt>Solicitud</dt><dd>'+esc(ci.Solicitud)+' · '+esc(s?CE_TIPO[s.TipoConsulta]:"")+'</dd><dt>Estado actual</dt><dd><span class="tag ce-acc">'+esc(e)+'</span>'+(ci.Confirmacion?' · Recordatorio: '+esc(ci.Confirmacion):'')+'</dd></dl>'+
+   '<div class="panel" style="margin-top:8px"><h3>Registrar desenlace de la cita (Fase 2)</h3><div class="form">'+
+   '<label class="f">Desenlace *<select id="ce2_est">'+opt([["CONFIRMA","Confirmada por el paciente"],["EN SALA","Llegó · en sala de espera"],["ATENDIDA","Atendida (genera producción)"],["INASISTENCIA","No asistió (inasistencia)"],["CANCELADA","Cancelada con aviso previo"]],ci.Confirmacion==="CONFIRMA"&&ci.Estado==="ASIGNADA"?"CONFIRMA":ci.Estado)+'</select></label>'+
+   '<label class="f">Hora llegada / atención<input type="time" id="ce2_h" value="'+esc(c.Hora)+'"></label>'+
+   '<label class="f wide">Motivo (obligatorio en inasistencia o cancelación) / Observación<input type="text" id="ce2_ob" value="'+esc(ci.Observacion||"")+'" placeholder="Ej.: sin transporte, autorización vencida, atendido sin novedad…"></label></div>'+
+   '<div class="copyrow" style="margin-top:8px"><button type="button" class="btn primary" data-v9="ce2save|'+esc(ci.ID)+'">Guardar desenlace</button><button type="button" class="btn" data-ce="sol|'+esc(ci.Solicitud)+'">Ver solicitud</button></div></div>';
+  openDlg(tit,body,"Cerrar",()=>{});$("dlgx").hidden=true;
+};
+
+/* Integrar automáticamente DP, Consulta Externa y Nefroprotección en pxProdResumen + Pestaña de Metas */
+const V9_METAS_DEF={
+  "hd|Sesiones de hemodiálisis realizadas":420,
+  "vih|Paquete mensual atención integral VIH":150,
+  "dp|Paquete mensual de diálisis peritoneal":16,
+  "ce|Consulta especializada atendida":80,
+  "nefro|Consulta / valoración de nefroprotección":120
+};
+function v9GetMetas(){return Object.assign({},V9_METAS_DEF,pxCfg("v9_metas_prod",{})||{});}
+
+const pxProdResumen08=pxProdResumen;
+pxProdResumen=function(per){
+  const rows=pxProdResumen08(per);
+  const{ms,me}=pxPer(per);const open=pxProdOpen();
+  /* 1. Diálisis Peritoneal automática desde el censo y valoraciones finalizadas */
+  if(typeof DP!=="undefined"&&DP.book){
+    const byEps={};
+    DP.book.pac.filter(lv).forEach(p=>{
+      const d=dpDias(p,ms,me);
+      if(d&&d>0){const e=p.EPS||"Sin EPS";byEps[e]=(byEps[e]||0)+1;}
+    });
+    Object.entries(byEps).forEach(([eps,cant])=>{
+      if(rows.some(r=>r.prog==="dp"&&r.eps===eps&&/Paquete mensual/i.test(r.act)))return;
+      const act="Paquete mensual de diálisis peritoneal";
+      const t=open?pxProdTarifa("dp",act,eps,per+"-15"):null;
+      const valFin=dpR("val").filter(v=>/Finalizada/.test(v.Estado||"")&&v6d(v.Fecha)>=ms&&v6d(v.Fecha)<=me&&(dpPac(v.Paciente)||{}).EPS===eps).length;
+      rows.push({prog:"dp",eps,act,cant,val:open?(t?cant*(num(t.valor)||0):0):null,sin:open&&!t?cant:0,auto:true,src:"Censo y valoraciones DP",soporteOk:valFin,nota:valFin+"/"+cant+" con valoración finalizada en el mes"});
+    });
+  }
+  /* 2. Consulta Externa automática desde citas atendidas o confirmadas */
+  if(typeof CE!=="undefined"&&CE.book){
+    const I=ceIdx();const by={};
+    CE.book.cit.filter(c=>String(c.Fecha).startsWith(per)&&c.Estado==="ATENDIDA").forEach(c=>{
+      const s=I.sol.get(c.Solicitud);const p=I.pac.get(c.Paciente);
+      const eps=(p&&p.EPS)||"Sin EPS";const act="Consulta de "+(s?ceEspN(s.Especialidad):"especialidad");
+      const k=eps+"|"+act;by[k]=by[k]||{eps,act,cant:0};by[k].cant++;
+    });
+    Object.values(by).forEach(b=>{
+      const t=open?pxProdTarifa("ce",b.act,b.eps,per+"-15"):null;
+      rows.push({prog:"ce",eps:b.eps,act:b.act,cant:b.cant,val:open?(t?b.cant*(num(t.valor)||0):0):null,sin:open&&!t?b.cant:0,auto:true,src:"Agenda Consulta Externa",soporteOk:b.cant,nota:"citas marcadas como atendidas"});
+    });
+  }
+  /* 3. Nefroprotección automática desde la Ruta v8 si está activa en segundo plano */
+  try{
+    const w=pxNefroWin();
+    if(w&&w.MG&&w.MG.book){
+      const B=w.MG.book;const by={};
+      (B.val||[]).filter(v=>v.fecha&&iso(v.fecha).startsWith(per)).forEach(v=>{
+        const p=(B.pac||[]).find(x=>x.codigo===v.c);const eps=(p&&p.eps)||"Sin EPS";
+        const act="Valoración de nefroprotección ("+(v.prof||"programa")+")";
+        const k=eps+"|"+act;by[k]=by[k]||{eps,act,cant:0};by[k].cant++;
+      });
+      Object.values(by).forEach(b=>{
+        const t=open?pxProdTarifa("nefro",b.act,b.eps,per+"-15"):null;
+        rows.push({prog:"nefro",eps:b.eps,act:b.act,cant:b.cant,val:open?(t?b.cant*(num(t.valor)||0):0):null,sin:open&&!t?b.cant:0,auto:true,src:"Ruta Nefroprotección",soporteOk:b.cant,nota:"valoraciones registradas en la Ruta"});
+      });
+    }
+  }catch(e){}
+  return rows.sort((a,b)=>String(PROG[a.prog]?PROG[a.prog].n:a.prog).localeCompare(PROG[b.prog]?PROG[b.prog].n:b.prog)||a.eps.localeCompare(b.eps));
+};
+
+function v9ProdMetasPanel(per){
+  const R=pxProdResumen(per);const M=v9GetMetas();
+  const sumProg=(prog)=>R.filter(r=>r.prog===prog).reduce((a,r)=>a+r.cant,0);
+  const items=[
+    ["hd","Hemodiálisis · sesiones realizadas",sumProg("hd"),M["hd|Sesiones de hemodiálisis realizadas"]||420,hdOn()?ST.book.val.filter(v=>live(v)&&v.Mes===per).length+" valoraciones mensuales cerradas":"Libro HD sin abrir"],
+    ["vih","VIH · paquetes integrales del mes",sumProg("vih"),M["vih|Paquete mensual atención integral VIH"]||150,(typeof VX!=="undefined"&&VX.book)?vxFactMes(per).filter(x=>!x.fact).length+" activos sin cita en el mes (en riesgo de no facturar)":"Libro VIH sin abrir"],
+    ["dp","Diálisis peritoneal · paquetes mensuales",sumProg("dp"),M["dp|Paquete mensual de diálisis peritoneal"]||16,dpOn()?dpR("val").filter(v=>v.Estado==="Borrador").length+" valoraciones en borrador (cerrar para soportar factura)":"Libro DP sin abrir"],
+    ["ce","Consulta externa · consultas atendidas",sumProg("ce"),M["ce|Consulta especializada atendida"]||80,(typeof CE!=="undefined"&&CE.book)?CE.book.cit.filter(c=>String(c.Fecha).startsWith(per)&&c.Estado==="ASIGNADA").length+" citas asignadas pendientes de cierre en Fase 2":"Libro CE sin abrir"],
+    ["nefro","Nefroprotección · valoraciones del mes",sumProg("nefro"),M["nefro|Consulta / valoración de nefroprotección"]||120,pxNefroK()?"Conectado con Ruta v8":"Abra Nefroprotección para sincronizar en vivo"]
+  ];
+  return'<div class="panel" style="margin-top:14px"><div class="mhead"><div><h3 style="margin:0">Cumplimiento de Metas de Producción Asistencial y Soporte de Facturación · '+esc(pxMesTxt(per))+'</h3><p class="note" style="margin:2px 0 0">Compara la producción real ejecutada en todos los módulos contra la meta mensual institucional (Nota Técnica), alertando las atenciones que tienen riesgo de glosa por historia en borrador o cita sin cierre.</p></div><button type="button" class="btn sm" data-v9="metascfg">Configurar metas mensuales</button></div>'+
+   '<div class="tablebox" style="margin-top:8px"><table class="dense"><thead><tr><th>Programa e indicador de producción</th><th class="num">Ejecutado</th><th class="num">Meta mensual</th><th>Avance</th><th>Auditoría concurrente / riesgo de no facturación</th></tr></thead><tbody>'+
+   items.map(([k,l,val,meta,obs])=>{
+     const pct=meta?Math.round(val/meta*100):0;
+     const cls=pct>=95?"ok":pct>=75?"warn":"bad";
+     return'<tr><td><strong>'+esc(l)+'</strong></td><td class="num mono">'+val.toLocaleString("es-CO")+'</td><td class="num mono">'+meta.toLocaleString("es-CO")+'</td>'+
+      '<td><div class="v9meta-bar"><span style="width:'+Math.min(100,pct)+'%;background:var(--'+cls+')"></span><i style="left:95%" title="95 %"></i></div><span class="sub mono">'+pct+' % de la meta</span></td>'+
+      '<td style="font-size:12.5px">'+esc(obs)+'</td></tr>';
+   }).join("")+'</tbody></table></div></div>';
+}
+
+const pxProd08=pxProd;
+pxProd=function(){
+  const sub=PX.ui.sub||"res";
+  const h=pxProd08();
+  if(sub==="res")return h+v9ProdMetasPanel(pxMes());
+  return h;
+};
+
+/* ---------- 5. Extensión de Trazabilidad Transversal (PROA lee VIH + Farmacovigilancia) ---------- */
+const trtAll08=trtAll;
+trtAll=function(){
+  const out=trtAll08();
+  if(typeof VX!=="undefined"&&VX.book){
+    VX.book.prf.filter(vxLive).forEach(f=>{
+      const p=vxP(f.Paciente);
+      out.push({ref:"VIH:"+f.ID,fu:"VIH",prog:"vih",rec:f,id:f.ID,pid:f.Paciente,pn:p?vxNom(p):f.Paciente,drug:f.Medicamento,dose:"Según esquema",via:"Oral",ind:f.Indicacion||"Profilaxis / coinfección VIH",tipo:/Profilaxis/i.test(f.Indicacion||f.Medicamento)?"Profilaxis":"Dirigido",ini:v6d(f.Inicio),fin:v6d(f.Fin),dur:null,ev:"",presc:f.Usuario||"Programa VIH",cultDecl:"",ajCult:""});
+    });
+  }
+  return out.sort((a,b)=>(b.ini||0)-(a.ini||0));
+};
+
+/* ---------- Despachador de eventos v0.9 (data-v9) y disparador de autoguardado ---------- */
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-v9]");
+  if(!el)return;
+  const[a,x,y]=el.dataset.v9.split("|");
+  switch(a){
+    case"masterexp":v9ExportMaster();break;
+    case"restore":v9RestoreLocal();break;
+    case"dpsyncall":v9DpSyncInsumos(null);break;
+    case"dpsyncone":closeDlg();v9DpSyncInsumos(x);v9DlgDpEntConc(x);break;
+    case"dpentconc":v9DlgDpEntConc(x||"");break;
+    case"dpbloqinact":{
+      let n=0;
+      DP.book.pac.filter(lv).filter(p=>!dpActivo(p)).forEach(p=>{
+        dpR("ins").filter(i=>i.Paciente===p.ID&&i.Estado==="Vigente").forEach(i=>{dpUpd("ins",i,{Estado:"Suspendido por egreso/inactividad"});n++;});
+      });
+      pxRefresh();toast(n+" insumos suspendidos en pacientes fuera de DP.");break;
+    }
+    case"vxinterp":{
+      const p=vxP(x);if(!p)break;
+      const R=v9VxInterp(p);
+      const txt="INTERPRETACIÓN PARACLÍNICA AJUSTADA A GPC VIH 2021:\n"+R.map(r=>"- "+r.ex+" ("+r.valTxt+"): "+r.txt).join("\n");
+      const an=$("vf_an");if(an)an.value=(an.value?an.value.trim()+"\n\n":"")+txt;
+      const pl=$("vf_pl");if(pl){
+        const acts=R.filter(r=>r.lvl!=="ok").map(r=>r.ex+": "+r.txt);
+        if(acts.length)pl.value=(pl.value?pl.value.trim()+"\n":"")+acts.join("\n");
+      }
+      toast("Interpretación GPC insertada en Análisis y Plan.");break;
+    }
+    case"dpinterp":{
+      const p=dpPac(x);if(!p||!DP.ui.vedit)break;
+      const D=dpValCollect();const R=v9DpInterp(p,D);
+      const pc=$("vf_paracl"),an=$("vf_analisis"),pl=$("vf_plan");
+      if(pc)pc.value=R.map(r=>r.ex+": "+r.valTxt+" (meta "+r.meta+")").join("; ")+".";
+      if(an)an.value=(an.value?an.value.trim()+"\n":"")+"Interpretación GPC/CAC: "+R.map(r=>r.ex+": "+r.txt).join(" ");
+      if(pl){const acts=R.filter(r=>r.lvl!=="ok").map(r=>"- "+r.ex+": "+r.txt);if(acts.length)pl.value=(pl.value?pl.value.trim()+"\n":"")+acts.join("\n");}
+      dpValCollect();toast("Interpretación GPC insertada en Paraclínicos, Análisis y Plan.");break;
+    }
+    case"ce2save":{
+      const ci=CE.book.cit.find(c=>c.ID===x);if(!ci)break;
+      const est=ceGv("ce2_est"),h=ceGv("ce2_h"),ob=ceGv("ce2_ob");
+      if(["INASISTENCIA","CANCELADA"].includes(est)&&ob.length<4){toast("Indique el motivo de la inasistencia o cancelación.");break;}
+      if(est==="CONFIRMA"){ceUpd("cit",ci,{Confirmacion:"CONFIRMA",Observacion:ob});}
+      else{
+        ceUpd("cit",ci,{Estado:est,Hora:h||ci.Hora,Observacion:ob});
+        const s=ceIdx().sol.get(ci.Solicitud);
+        if(s&&est==="INASISTENCIA"){ceUpd("sol",s,{Estado:"REPROGRAMACION_PENDIENTE",ProximaAccion:"Contactar por inasistencia y reprogramar",ProximaFecha:ceHoy()});ceGestionLog(s.ID,"Inasistencia a cita",ob);}
+        if(s&&est==="CANCELADA"){ceUpd("sol",s,{Estado:"EN_GESTION",ProximaAccion:"Reasignar cita",ProximaFecha:ceHoy()});ceGestionLog(s.ID,"Cita cancelada",ob);}
+        if(s&&est==="ATENDIDA"){ceGestionLog(s.ID,"Cita atendida","Ingreso "+h+(ob?" · "+ob:""));}
+      }
+      CE.memo={};closeDlg();pxRender();toast("Estado de la cita actualizado.");break;
+    }
+    case"metascfg":{
+      const M=v9GetMetas();
+      openDlg("Configurar Metas Mensuales de Producción (Nota Técnica)",
+       '<div class="form">'+Object.entries(V9_METAS_DEF).map(([k],i)=>'<label class="f wide">'+esc(k.split("|")[1])+' ('+esc(PROG[k.split("|")[0]].n)+')<input type="number" min="1" id="v9m_'+i+'" data-mk="'+esc(k)+'" value="'+(M[k]||V9_METAS_DEF[k])+'"></label>').join("")+'</div>',
+       "Guardar metas",()=>{
+        const n={};document.querySelectorAll("[data-mk]").forEach(el=>{const v=num(el.value);if(v&&v>0)n[el.dataset.mk]=v;});
+        pxSetCfg("v9_metas_prod",n);pxRender();toast("Metas mensuales actualizadas.");
+       });
+      break;
+    }
+  }
+});
+
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.id==="v9masterfile"&&t.files&&t.files[0]){v9ImportMaster(t.files[0]);t.value="";return;}
+  if(t.dataset&&t.dataset.v9sis){
+    const[prog,pid,k]=t.dataset.v9sis.split("|");
+    const S=Object.assign({},v9GetSiscac(prog,pid));
+    S[k]=t.checked;
+    const excEl=document.getElementById("v9_exc_"+prog);
+    if(excEl)S._exc=excEl.value.trim();
+    v9SetSiscac(prog,pid,S);
+  }
+});
+
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset&&t.dataset.v9recalc!=null){
+    const i=+t.dataset.v9recalc;
+    const tr=t.closest("[data-dprow]");if(!tr)return;
+    const teo=+tr.dataset.teo,dh=+tr.dataset.dh;
+    const sal=num(($("dpe_sal"+i)||{}).value)||0;
+    const seg=num(($("dpe_seg"+i)||{}).value)||0;
+    const net=Math.max(0,teo-dh+seg-sal);
+    const el=$("dpe_net"+i);if(el)el.textContent=String(net);
+  }
+});
+
+/* Autoguardado periódico en segundo plano cada 6 segundos si hay cambios */
+setInterval(()=>{
+  if(PX.dirty||(ST.book&&ST.dirty)||(VX&&VX.dirty)||(DP&&DP.dirty)||(CE&&CE.dirty)){
+    v9SaveLocal(true);
+  }
+},6000);
+window.V9API={V9,v9SaveLocal,v9RestoreLocal,v9ExportMaster,v9ImportMaster,v9VxInterp,v9DpInterp,v9DpAuditCAC,v9DpSyncInsumos,v9DlgDpEntConc};
+
+
+/* =====================================================================================================
+   v1.1 · CORRECCIÓN ARQUITECTÓNICA DE LOS 8 EJES Y REDISEÑO VISUAL UI/UX (POSMÉDICA - MOCOA)
+   - Resuelve al 100 % la navegación de los 8 Ejes Estructurales:
+     1) La barra de los 8 Ejes vive acoplada en #pxbar (.v11axis-wrap), ajustándose con exactitud al ancho
+        de la página en todos los programas (Hemodiálisis, Diálisis Peritoneal, VIH, Consulta Externa y Nefroprotección).
+     2) Seleccionar los Ejes 1 (Gobierno y Procesos), 7 (Auditoría y PAMEC), 8 (Producción y Metas) o Transición G5
+        reemplaza limpiamente la vista activa sin dejar debajo la página del módulo anterior.
+     3) Seleccionar los Ejes 2 a 6 navega directamente a la pestaña y subpestaña clínica correspondiente
+        (incluyendo el cambio automático de pestaña dentro de la Ruta de Nefroprotección) y sincroniza el estado.
+   - Incorpora Conmutador de Tema Visual en vivo (Modo Oscuro Clínico ⇄ Modo Claro Consultorio/Comité).
+   ===================================================================================================== */
+const V10={ver:"1.1",fecha:"2026-10-13",axis:{},execProg:null,execAxis:null,theme:(function(){try{return localStorage.getItem("posmedica_theme")||"dark";}catch(e){return "dark";}})()};
+if(V10.theme==="light")document.documentElement.setAttribute("data-theme","light");
+
+function v11ToggleTheme(){
+  V10.theme=V10.theme==="light"?"dark":"light";
+  if(V10.theme==="light")document.documentElement.setAttribute("data-theme","light");
+  else document.documentElement.removeAttribute("data-theme");
+  try{localStorage.setItem("posmedica_theme",V10.theme);}catch(e){}
+  pxBar();
+  toast(V10.theme==="light"?"Modo Claro Clínico activado (ideal para consultorio y videobeam).":"Modo Oscuro Clínico activado (descanso visual en turno).");
+}
+
+/* Actualizar descripciones del portal para que Farmacia y Quimioterapia aparezcan activas */
+PROG.far.d="Consola central de gestión farmacéutica y conciliación (TAR VIH, bolsas/líneas DP y ampollas HD), kárdex de lotes y vencimientos (FEFO), aval de restringidos PROA y farmacovigilancia.";
+delete PROG.far.nx;
+PROG.qt.d="Procesos oncológicos, sesiones de infusión, lista de doble verificación de citostáticos, vigilancia de extravasación/reacciones y producción asistencial.";
+PROG.sogcs.n="SOGCS · Auditoría y Comités";
+PROG.sogcs.d="Auditoría de historias clínicas, auditoría de procesos y programas, liberación auditada de reportes CAC/EPS y comités institucionales.";
+PROG.cal.d="Calendario general de actividades y Cronograma Institucional de Capacitaciones y Educación Continua con control de asistencia.";
+
+/* Registrar hojas nuevas en PX.book para Quimioterapia, Capacitaciones y Liberación de Reportes */
+PSH.qts=["QuimioterapiaSesiones",["ID","Fecha","Paciente","Nombre","EPS","Esquema","Ciclo","Medicamentos","DobleVerif","Extravasacion","Reaccion","Conducta","Estado","Profesional","Usuario","Registrado"]];
+PSH.cap=["Capacitaciones",["ID","Fecha","Hora","Programa","Proceso","Tema","Modalidad","Facilitador","Objetivo","Asistentes","TotalAsistentes","EvaluacionPrePost","Evidencia","Estado","Origen","Usuario","Registrado"]];
+PSH.lib=["LiberacionReportes",["ID","Fecha","Programa","Reporte","Periodo","EPS","Registros","Bloqueantes","Advertencias","SoportesVerificados","Dictamen","Auditor","Observacion","Registrado"]];
+["qts","cap","lib"].forEach(k=>{if(!PKEYS.includes(k))PKEYS.splice(PKEYS.indexOf("log"),0,k);});
+
+/* ---------- 1. Catálogo Estándar de Procesos Asistenciales (Objetivo 1) para TODOS los programas ---------- */
+const V10_PROCS=[
+  /* Hemodiálisis */
+  {c:"HD-P01",p:"hd",n:"Ingreso, asignación de turno y ruta de acceso vascular",obj:"Garantizar ingreso seguro con serologías basales, consentimiento y plan hacia FAV.",riesgo:"Inicio por catéter sin ruta a FAV o transmisión de VHB/VHC.",resp:"Coordinación Unidad Renal / Enfermería HD",act:"Verificar identidad, consentimiento, HBsAg/anti-HBc/anti-HBs/VHC/VIH, registrar dispositivo y definir ruta a FAV.",fre:"En cada ingreso y cambio de acceso",evid:"Ficha del paciente, registro de dispositivos y soporte de ruta",ctrl:"0 pacientes activos con catéter sin ruta o sin fecha de inserción",go:["hd","acc"]},
+  {c:"HD-P02",p:"hd",n:"Ejecución segura de la sesión de hemodiálisis y control de UF",obj:"Entregar la dosis prescrita (≥ 4 h, Kt/V ≥ 1,2) con tasa de UF ≤ 13 mL/kg/h y desinfección del puesto.",riesgo:"Hipotensión intradialítica, sobrecarga hídrica o infección cruzada.",resp:"Enfermería de sala HD",act:"Chequeo pre-conexión, técnica aséptica CDC, registro de pesos/TA/UF/glucometría y desinfección del puesto y máquina.",fre:"En cada sesión (3 veces/semana)",evid:"Turno del día y registro de limpieza",ctrl:"UFR ≤ 13 mL/kg/h y 100 % de puestos con desinfección registrada",go:["hd","turno"]},
+  {c:"HD-P03",p:"hd",n:"Valoración mensual interdisciplinaria y ajuste a GPC",obj:"Evaluar mensualmente adecuación, anemia (KDIGO 2026), CKD-MBD, nutrición y adherencia.",riesgo:"Inercia clínica ante Hb < 10 o > 13, hiperfosfatemia o Kt/V bajo.",resp:"Nefrología y equipo interdisciplinario",act:"Tomar paraclínicos del calendario, interpretar contra meta individual y cerrar valoración con lista de chequeo GPC.",fre:"Mensual",evid:"Valoración mensual cerrada y atención por disciplina",ctrl:"100 % de activos valorados en el mes con lista de chequeo ≥ 90 %",go:["hd","val"]},
+  {c:"HD-P04",p:"hd",n:"Inmunoprotección VHB y vigilancia de infecciones asociadas a acceso",obj:"Mantener títulos protectores anti-HBs ≥ 10 mUI/mL y vigilar bacteriemias.",riesgo:"Seroconversión VHB o bacteriemia asociada a catéter (ITS-CVC).",resp:"Enfermería HD / Laboratorio / IAAS",act:"Aplicar esquema de 40 µg, medir anti-HBs posvacunal y anual, y tomar hemocultivos pareados ante fiebre/escalofríos.",fre:"Mensual (susceptibles) y anual (respondedores)",evid:"Carné VHB y cultivos en Microbiología",ctrl:"ITS-CVC < 1,5 por 1.000 días-catéter y 0 seroconversiones",go:["hd","vac"]},
+  {c:"HD-P05",p:"hd",n:"Evaluación de candidatura y alistamiento para trasplante renal",obj:"Definir idoneidad de trasplante y completar estudios pretrasplante (KDIGO 2020).",riesgo:"Pacientes aptos sin evaluación o retenidos sin remisión a IPS trasplantadora.",resp:"Nefrología / Coordinación Renal",act:"Documentar concepto (CAC var. 62) y gestionar los 28 ítems del protocolo pretrasplante.",fre:"Al ingreso y actualización anual",evid:"Pestaña Trasplante y soporte de contraindicación o lista",ctrl:"0 pacientes activos en estado «Sin evaluar» (dia_21)",go:["hd","tx"]},
+  /* Diálisis Peritoneal */
+  {c:"DP-P01",p:"dp",n:"Implantación de catéter peritoneal, entrenamiento y visita domiciliaria",obj:"Asegurar catéter funcional, entorno domiciliario apto y competencia demostrada antes del alta a casa.",riesgo:"Peritonitis temprana o falla técnica por déficit de entrenamiento o entorno inadecuado.",resp:"Enfermería DP / Cirugía / Trabajo Social",act:"Valorar domicilio, entrenar a paciente/cuidador en las 10 competencias y aprobar solo por demostración.",fre:"Al ingreso y reentrenamiento ante evento o cambio de cuidador",evid:"Registro de Catéter, Educación y Visita domiciliaria",ctrl:"100 % de activos con resultado «Competente» (DP-OP-03)",go:["dp","tra"]},
+  {c:"DP-P02",p:"dp",n:"Prescripción individualizada, adecuación (Kt/V y PET) y preservación de FRR",obj:"Mantener Kt/V total semanal ≥ 1,7, euvolemia y función renal residual.",riesgo:"Subdiálisis, sobrecarga de volumen o agotamiento de la membrana peritoneal.",resp:"Nefrología DP",act:"Versionar prescripción (DPCA/DPA), medir Kt/V (Watson) y diuresis residual, y realizar PET según indicación.",fre:"Valoración mensual; Kt/V vigencia ≤ 4 meses para CAC",evid:"Prescripción vigente y cálculo validado de Kt/V",ctrl:"Kt/V ≥ 1,7 (dia_12) y 100 % valorados en el mes",go:["dp","lab"]},
+  {c:"DP-P03",p:"dp",n:"Prevención, diagnóstico ISPD y manejo de peritonitis e infección de orificio",obj:"Diagnosticar con criterios ISPD 2022/2023 e iniciar antibiótico IP oportuno.",riesgo:"Pérdida del catéter, transferencia a HD o sepsis peritoneal.",resp:"Nefrología DP / Enfermería DP / Laboratorio",act:"Evaluar dolor/turbidez, citoquímico (> 100 leucocitos y > 50 % PMN) y cultivo de efluente antes de antibiótico.",fre:"Ante cada sospecha y seguimiento de cambio de línea",evid:"Episodio DP, cultivo en Microbiología y prescripción antimicrobiana",ctrl:"Tasa de peritonitis ≤ 0,40 episodios/paciente-año (dia_19 / IAAS-09)",go:["dp","tra"]},
+  {c:"DP-P04",p:"dp",n:"Programación y conciliación domiciliaria de insumos (Gestión y Conciliación Farmacéutica)",obj:"Entregar a tiempo las bolsas, líneas y minicaps exactos sin acumular sobrestock en casa.",riesgo:"Interrupción de terapia por faltante o pérdida financiera por cajas vencidas en domicilio.",resp:"Enfermería DP / Logística / Farmacia",act:"Sincronizar insumos desde la prescripción vigente, descontar días hospitalizado y saldo físico en casa, y verificar lotes.",fre:"Mensual por paciente activo",evid:"Entrega conciliada con soporte firmado en casa",ctrl:"≥ 95 % de entregas completas a tiempo y 0 despachos a inactivos",go:["dp","tra"]},
+  /* VIH */
+  {c:"VIH-P01",p:"vih",n:"Ingreso, confirmación diagnóstica y valoración inicial interdisciplinaria (GAO-PT-008)",obj:"Vincular al paciente e iniciar TAR oportunamente (≤ 20–30 días) con valoración integral.",riesgo:"Diagnóstico tardío, pérdida en el enlace o inicio de TAR sin tamizaje de oportunistas.",resp:"Medicina experta VIH / Enfermería / Equipo interdisciplinario",act:"Verificar pruebas confirmatorias, CD4 y CV basales, tamizar TB/sífilis/VHB/VHC e iniciar pauta GPC 2021.",fre:"En los primeros 30 días del diagnóstico o ingreso",evid:"Soporte diagnóstico en HC y valoración inicial por las 5 disciplinas",ctrl:"Oportunidad de inicio de TAR ≤ 30 días (CAC-34) y ≤ 20 días (NEPS-10)",go:["vih","pob"]},
+  {c:"VIH-P02",p:"vih",n:"Seguimiento inmunovirológico, metabólico y tamizajes anuales del contrato",obj:"Mantener supresión virológica (< 50 copias/mL) y detectar toxicidad o coinfecciones.",riesgo:"Falla virológica oculta, nefropatía por tenofovir o evento cardiovascular.",resp:"Medicina experta VIH / Infectología / Laboratorio",act:"Controlar CV, CD4, Cr/TFG, glucemia, lípidos y ALT cada 6 meses; VDRL, VHB, VHC, PPD, citología y RCV anual.",fre:"Semestral y anual según matriz contractual EPS",evid:"Resultados en Laboratorio y tabla de interpretación GPC en la HC",ctrl:"CD4 y CV vigentes ≥ 95 % (CAC-09) e indetectabilidad ≥ 90 % (CAC-12)",go:["vih","lab"]},
+  {c:"VIH-P03",p:"vih",n:"Seguridad de la TAR, adherencia SMAQ y dispensación conciliada con conciliación de saldos",obj:"Asegurar adherencia ≥ 95 %, seguridad farmacológica y pedido mensual exacto en unidades.",riesgo:"Abandono de TAR, resistencia secundaria o sobredispensación de cajas.",resp:"Química farmacéutica / Medicina experta / Enfermería VIH",act:"Validar los 8 puntos de seguridad del esquema, aplicar SMAQ semestral y descontar saldo de tabletas en cada entrega.",fre:"En cada entrega mensual/bimestral y control semestral",evid:"Esquema validado, SMAQ registrado y entrega con lote y saldo descontado",ctrl:"Cobertura TAR ≥ 95 % (CAC-28), SMAQ ≥ 90 % (CAC-33) y abandono < 5 %",go:["vih","tar"]},
+  {c:"VIH-P04",p:"vih",n:"Inmunizaciones, profilaxis de oportunistas y gestión de inasistentes (GAO-PT-008 6.5)",obj:"Prevenir infecciones oportunistas y recuperar inasistentes antes del abandono.",riesgo:"Hospitalización por oportunista (P. jirovecii, TB, criptococo) o pérdida de seguimiento.",resp:"Enfermería VIH / Trabajo Social",act:"Completar carné (VHB, neumococo, influenza, VPH), dar TMP/SMX si CD4 < 200 e isoniazida si TB latente, y contactar inasistentes.",fre:"En cada cita y dentro de las 48 h de una inasistencia",evid:"Carné vacunal, profilaxis activa y gestión de inasistencia en Agenda",ctrl:"Profilaxis P. jirovecii ≥ 95 % (CAC-14), TB latente ≥ 95 % (CAC-32) y 0 inasistencias sin gestión",go:["vih","prc"]},
+  /* Nefroprotección */
+  {c:"NEF-P01",p:"nefro",n:"Captación, confirmación de cronicidad (> 3 meses) y clasificación CGA / KFRE",obj:"Distinguir lesión aguda de ERC crónica y estratificar en Grupos 1, 2 y 3 según TFGe CKD-EPI 2021 y RAC.",riesgo:"Subdiagnóstico de ERC o remisión tardía a nefrología en estadios G3b–G5.",resp:"Médico del programa / Nefrología",act:"Calcular TFGe CKD-EPI 2021 y RAC, documentar persistencia > 90 días, estimar KFRE a 2 y 5 años y RCV.",fre:"Al ingreso y según agenda base por estadio (1 a 12 meses)",evid:"Valoración en la Ruta v8 con dictamen CGA",ctrl:"RAC y TFGe vigentes ≥ 70 % (nefro_39) y remisión oportuna (nefro_33)",go:["nefro",""]},
+  {c:"NEF-P02",p:"nefro",n:"Nefroprotección farmacológica y control de metas (PA, HbA1c, cLDL)",obj:"Frenar la pérdida de TFGe (≤ 5 mL/min/año) mediante bloqueo SRAA, iSGLT2, estatinas y control tensional/glucémico.",riesgo:"Progresión rápida a diálisis o evento cardiovascular mayor.",resp:"Nefrología / Médico experto",act:"Prescribir IECA/ARA-II si RAC > 30, iSGLT2 en DM2/ERC con TFGe ≥ 20, estatina y citar a control mensual si PA o HbA1c están fuera de meta.",fre:"Mensual (fuera de meta o modelo EPS Familiar) y por estadio",evid:"Prescripción en valoración y control post-ajuste (2–4 semanas)",ctrl:"Sin pérdida > 5 mL/min/año (nefro_10), PA en meta (nefro_01/01_1) e iSGLT2/IECA > 70 %",go:["nefro",""]},
+  {c:"NEF-P03",p:"nefro",n:"Intervención multidisciplinaria y transición programada a TRR o TMND (Estadio G4–G5)",obj:"Asegurar atención por nutrición, enfermería, psicología y trabajo social, y preparar FAV o catéter DP antes de urgencia dialítica.",riesgo:"Ingreso a diálisis por urgencia con catéter temporal.",resp:"Equipo multidisciplinario de Nefroprotección",act:"Agendar paquete multidisciplinario el día de nefrología (Nueva EPS) y activar subruta de preparación TRR o TMND con KFRE 2 años > 40 %.",fre:"Anual en G3, semestral en G4 y trimestral/mensual en G5",evid:"Citas atendidas y decisión compartida de modalidad",ctrl:"Equipo completo > 70 % (nefro_40) y transición programada a DP/HD",go:["nefro",""]},
+  /* Consulta Externa */
+  {c:"CE-P01",p:"ce",n:"Registro de demanda, priorización clínica y gestión de autorizaciones",obj:"Capturar el 100 % de las solicitudes sin barreras y gestionar autorizaciones antes del vencimiento.",riesgo:"Demanda oculta no registrada o citas perdidas por autorización vencida.",resp:"Admisiones / Autorizaciones",act:"Registrar solicitud con fecha real del usuario, clasificar prioridad y gestionar autorización con la EPS.",fre:"Diario en el momento de la solicitud",evid:"Solicitud en Lista de Espera Única y estado de autorización",ctrl:"0 solicitudes sin próxima acción y 0 citas con autorización vencida",go:["ce","lista"]},
+  {c:"CE-P02",p:"ce",n:"Programación de jornadas, asignación en orden estricto y cierre en Fase 2",obj:"Asignar cupos respetando prioridad y antigüedad, y cerrar cada cita (atendida, inasistencia o cancelada).",riesgo:"Saltos de turno sin justificación, cruces de agenda o citas pasadas sin desenlace.",resp:"Coordinación / Admisiones",act:"Abrir jornadas verificando REPS y no cruce, asignar desde la lista de espera y registrar llegada/atención en Fase 2.",fre:"Diario",evid:"Jornadas, citas cerradas y reporte de oportunidad Res. 1552/256",ctrl:"0 citas pasadas sin cierre y cumplimiento de meta mensual de consultas",go:["ce","age"]},
+  /* Seguridad del Paciente */
+  {c:"SP-P01",p:"sp",n:"Reporte no punitivo, clasificación y análisis con Protocolo de Londres",obj:"Analizar cada evento adverso e incidente identificando fallos activos, factores contributivos y barreras.",riesgo:"Eventos repetidos por cierres superficiales sin análisis causal ni plan eficaz.",resp:"Líder de Seguridad del Paciente / Comité SP",act:"Capturar reporte desde cualquier servicio, clasificar, aplicar Protocolo de Londres y vincular acción en Mejoramiento.",fre:"Ante cada evento y revisión mensual en comité",evid:"Reporte con Protocolo de Londres completo y hallazgo en PSH.hal",ctrl:"100 % de eventos adversos con análisis documentado (SP-02) y plan verificado",go:["sp","rep"]},
+  {c:"SP-P02",p:"sp",n:"Rondas de seguridad, prácticas seguras e higiene de manos OMS",obj:"Prevenir eventos mediante verificación activa en salas y consultorios.",riesgo:"Fallas latentes en identificación, medicamentos de alto riesgo, caídas o higiene de manos.",resp:"Seguridad del Paciente / Enfermería líder",act:"Ejecutar rondas mensuales, auditoría de preparación de inyectables y observación trimestral de 5 momentos OMS.",fre:"Mensual (rondas) y trimestral (higiene de manos)",evid:"Listas de chequeo registradas en el sistema",ctrl:"Adherencia en rondas ≥ 90 % (SP-05) e higiene de manos ≥ 90 % (IAAS-04)",go:["sp","hm"]},
+  /* Quimioterapia */
+  {c:"QT-P01",p:"qt",n:"Programación de esquemas oncológicos y doble verificación de citostáticos",obj:"Garantizar administración segura de quimioterapia con verificación de esquema, superficie corporal, laboratorios y acceso.",riesgo:"Error de medicación antineoplásica, extravasación o reacción infusional severa.",resp:"Enfermería Oncológica / Oncología Clínica / Farmacia",act:"Verificar hemograma/función renal previos, realizar doble chequeo independiente de citostáticos y vigilar la infusión.",fre:"En cada sesión de quimioterapia",evid:"Registro de sesión QT con doble verificación firmada",ctrl:"100 % de sesiones con doble verificación y 0 extravasaciones sin protocolo",go:["qt",""]}
+];
+V10_PROCS.forEach(p=>{V7P.push(p);V7PI[p.c]=p;});
+
+/* ---------- 2. Navegación Acoplada de 8 Ejes Estructurales en #pxbar (100 % ajustada a la página y sin superposición) ---------- */
+const V10_AXES=[
+  ["e1","01","Gobierno y Procesos"],
+  ["e2","02","Cohorte y Riesgo"],
+  ["e3","03","Operación y HC GPC"],
+  ["e4","04","Paraclínicos y Vacunas"],
+  ["e5","05","Gestión Farmacéutica y Terapéutica"],
+  ["e6","06","Indicadores y CAC"],
+  ["e7","07","Auditoría y PAMEC"],
+  ["e8","08","Producción y Metas"]
+];
+const V10_MISIONAL=["hd","dp","vih","ce","nefro"];
+
+/* Detecta qué programa misional está activo (incluso si estamos en la vista ejecutiva e1/e7/e8/trr) */
+function v11ActiveProg(){
+  if(PX.view==="v10exec"&&V10.execProg)return V10.execProg;
+  if(V10_MISIONAL.includes(PX.view))return PX.view;
+  return null;
+}
+
+/* Detecta automáticamente en qué eje (e1..e8) se encuentra el usuario según la pestaña activa del programa */
+function v11DetectAxis(prog){
+  if(PX.view==="v10exec"&&V10.execProg===prog&&V10.execAxis)return V10.execAxis;
+  if(prog==="hd"){
+    const v=ST.view||"turno";
+    if(["pac","sem","alert","acc","tx"].includes(v))return"e2";
+    if(["turno","val","lim"].includes(v))return"e3";
+    if(["lab","vac"].includes(v))return"e4";
+    if(v==="inf")return"e5";
+    if(["ind","rep","cal","ref","doc"].includes(v))return"e6";
+    return"e3";
+  }
+  if(prog==="dp"){
+    const s=PX.ui.sub||"res";
+    if(s==="pac")return"e2";
+    if(["val","age","res"].includes(s))return"e3";
+    if(s==="lab")return"e4";
+    if(s==="tra")return"e5";
+    if(["ind","rep"].includes(s))return"e6";
+    return"e3";
+  }
+  if(prog==="vih"){
+    const t=vxTab();
+    if(["pob","car","ale","pac"].includes(t))return"e2";
+    if(["tab","age"].includes(t))return"e3";
+    if(["lab","vac","prc"].includes(t))return"e4";
+    if(t==="tar")return"e5";
+    if(["ind","rep","fac","cal","aud","ruta"].includes(t))return"e6";
+    return"e3";
+  }
+  if(prog==="ce"){
+    const t=ceTab();
+    if(["lista","nueva"].includes(t))return"e2";
+    if(t==="age")return"e3";
+    if(t==="aut")return"e4";
+    if(t==="pac")return"e5";
+    if(["tab","cal","adm"].includes(t))return"e6";
+    return"e3";
+  }
+  if(prog==="nefro"){
+    return V10.axis.nefro||"e3";
+  }
+  return"e3";
+}
+
+function v11AxisBarHtml(prog){
+  const cur=v11DetectAxis(prog);
+  return'<div class="v11axis-wrap" role="navigation" aria-label="Ejes estructurales del programa"><div class="v11axis-in"><span class="v11axis-lbl">'+esc(PROG[prog]?PROG[prog].n:prog)+' · 8 Ejes</span>'+
+   V10_AXES.map(([k,num,l])=>'<button type="button" class="v11axis-b" data-v10="axis|'+prog+'|'+k+'" aria-pressed="'+(cur===k)+'"><span class="axn">'+num+'</span><span>'+esc(l)+'</span></button>').join("")+
+   (prog==="nefro"?'<button type="button" class="v11axis-b trr" data-v10="axis|nefro|trr" aria-pressed="'+(cur==="trr")+'"><span>⇄ Transición G5 → DP/HD</span></button>':'')+
+   '</div></div>';
+}
+
+/* Navega con precisión a cualquiera de los 8 ejes de un programa (reemplazando la pantalla en e1/e7/e8/trr y cambiando pestaña/subpestaña en e2..e6) */
+function v11NavigateAxis(prog,ax){
+  V10.axis[prog]=ax;
+  /* Ejes ejecutivos (e1: Gobierno y Procesos, e7: Auditoría y PAMEC, e8: Producción y Metas, trr: Transición G5):
+     Abren una vista dedicada limpia en #pxmain y ocultan #hdapp y #nefroapp para NO dejar la página anterior debajo */
+  if(["e1","e7","e8","trr"].includes(ax)){
+    V10.execProg=prog;
+    V10.execAxis=ax;
+    PX.view="v10exec";
+    document.getElementById("hdapp").hidden=true;
+    document.getElementById("nefroapp").hidden=true;
+    document.getElementById("pxmain").hidden=false;
+    pxRender();
+    window.scrollTo(0,0);
+    return;
+  }
+  /* Ejes clínicos/operativos (e2..e6): salen de v10exec y abren exactamente la herramienta nativa del programa */
+  V10.execProg=null;V10.execAxis=null;
+  if(prog==="hd"){
+    const hdMap={e2:"pac",e3:"turno",e4:"lab",e5:"inf",e6:"ind"};
+    pxOpenHD(hdMap[ax]||"turno",true);
+    return;
+  }
+  if(prog==="dp"){
+    DP.ui.tab=DP.ui.tab||{};
+    if(ax==="e2"){DP.ui.pid=null;DP.ui.tab.pac="cen";pxGo("dp","pac",true);}
+    else if(ax==="e3"){DP.ui.vedit=null;DP.ui.tab.val="reg";pxGo("dp","val",true);}
+    else if(ax==="e4"){DP.ui.tab.lab="cal";pxGo("dp","lab",true);}
+    else if(ax==="e5"){DP.ui.tab.tra="ins";pxGo("dp","tra",true);}
+    else if(ax==="e6"){pxGo("dp","ind",true);}
+    return;
+  }
+  if(prog==="vih"){
+    VX.ui.vedit=null;
+    if(ax==="e2")pxGo("vih","pob",true);
+    else if(ax==="e3")pxGo("vih","age",true);
+    else if(ax==="e4")pxGo("vih","lab",true);
+    else if(ax==="e5"){VX.ui.tsub="ped";pxGo("vih","tar",true);}
+    else if(ax==="e6")pxGo("vih","ind",true);
+    return;
+  }
+  if(prog==="ce"){
+    const ceMap={e2:"lista",e3:"age",e4:"aut",e5:"pac",e6:"tab"};
+    pxGo("ce",ceMap[ax]||"tab",true);
+    return;
+  }
+  if(prog==="nefro"){
+    pxOpenNefro(true);
+    const nfMap={e2:"pac",e3:"calc",e4:"coh",e5:"agenda",e6:"ind"};
+    const target=nfMap[ax]||"calc";
+    const clickNefroTab=()=>{
+      try{
+        const w=pxNefroWin();
+        if(w&&w.document){
+          const btn=w.document.querySelector('button[data-v="'+target+'"]');
+          if(btn){btn.click();return true;}
+        }
+      }catch(e){}
+      return false;
+    };
+    if(!clickNefroTab())setTimeout(clickNefroTab,250);
+    pxBar();
+    return;
+  }
+}
+
+/* Vista Ejecutiva Dedicada para los Ejes 1, 7, 8 y Transición G5 (reemplaza la página por completo) */
+function v11ExecView(){
+  const prog=V10.execProg||"hd";
+  const ax=V10.execAxis||"e1";
+  const titles={
+    e1:"Eje 01 · Gobierno del Programa, Ruta Asistencial y Procesos P01..Pn",
+    e7:"Eje 07 · Auditoría Concurrente de Historias Clínicas, Procesos y Mejoramiento (PAMEC)",
+    e8:"Eje 08 · Producción Asistencial, Facturación y Cumplimiento de Metas (Nota Técnica)",
+    trr:"Transición Longitudinal de Pacientes ERC G4–G5 a Diálisis Peritoneal o Hemodiálisis (MPI)"
+  };
+  let h='<div class="v11exec-head"><div><p class="eyebrow">Programa Misional · '+esc(PROG[prog]?PROG[prog].n:prog)+'</p><h2 class="mt">'+esc(titles[ax]||"")+'</h2></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm primary" data-v10="axis|'+prog+'|e3">Volver a la operación clínica de '+esc(PROG[prog]?PROG[prog].n:prog)+'</button></div></div>';
+  if(ax==="e1")return h+v10GovView(prog);
+  if(ax==="e7")return h+v10PamecProgView(prog);
+  if(ax==="e8")return h+v10ProgProdView(prog);
+  if(ax==="trr")return h+v11NefroTrrView();
+  return h;
+}
+
+function v11NefroTrrView(){
+  const w=pxNefroWin();const g5=(w&&w.MG&&w.MG.book)?(w.MG.book.pac||[]).filter(p=>p.estado==="ACTIVO"&&(/G5|G4|trr|tmnd/i.test((p.terapia||"")+" "+(p.estadio||"")))):[];
+  return'<div class="panel"><h3>Pacientes en Nefroprotección Candidatos a Transición Programada (DP / HD)</h3><p class="note">Traslada al paciente desde Nefroprotección hacia el censo de Diálisis Peritoneal o Hemodiálisis con un clic, conservando su documento de identidad, EPS, fecha de nacimiento, comorbilidades y trazabilidad en el Índice Maestro Institucional (MPI).</p>'+
+   '<div class="tablebox"><table class="dense"><thead><tr><th>Código Nefro</th><th>Paciente</th><th>Documento</th><th>EPS</th><th>Situación renal</th><th>Transición directa con 1 clic</th></tr></thead><tbody>'+
+   (g5.map(p=>'<tr><td class="mono">'+esc(p.codigo)+'</td><td><strong>'+esc(p.nombre)+'</strong></td><td class="mono">'+esc((p.tipodoc||"CC")+" "+(p.doc||""))+'</td><td>'+esc(p.eps||"")+'</td><td>'+esc(p.terapia||"Seguimiento avanzado")+'</td><td><div class="copyrow"><button type="button" class="btn sm primary" data-v10="nefro2dp|'+esc(p.codigo)+'">Pasar a Diálisis Peritoneal</button><button type="button" class="btn sm" data-v10="nefro2hd|'+esc(p.codigo)+'">Pasar a Hemodiálisis</button></div></td></tr>').join("")||'<tr><td colspan="6" class="note">Abra la pestaña «03 Operación y HC GPC» de Nefroprotección y cargue la demostración o su libro para listar los pacientes candidatos.</td></tr>')+
+   '</tbody></table></div></div>';
+}
+
+/* Vista de Eje 1 (Gobierno, Ruta y Procesos + Plan de trabajo) */
+function v10GovView(prog){
+  const P=V7P.filter(x=>x.p===prog);
+  const pl=PX.book?PX.book.pln.filter(r=>v7has(r,prog)):[];
+  let h='<div class="panel"><div class="mhead"><div><h3 style="margin:0">Mapa de Procesos Prioritarios, Responsables y Puntos de Control · '+esc(PROG[prog].n)+'</h3><p class="note" style="margin:2px 0 0">Estandariza el seguimiento asistencial (Objetivo Específico 1): cada proceso define su actividad crítica, responsable nominal, evidencia verificable y condición de control.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm primary" data-v10="plnnew|'+prog+'">Programar actividad del plan</button><button type="button" class="btn sm" data-v10="capnew|'+prog+'">Programar capacitación del programa</button></div></div>'+
+   '<div class="v10grid" style="margin-top:10px">'+P.map(x=>{
+     const nPl=pl.filter(r=>r.Proceso===x.c&&!["Cerrada","Cancelada"].includes(r.Estado)).length;
+     const nHal=PX.book?PX.book.hal.filter(h=>h.Proceso===x.c&&halAbierto(h)).length:0;
+     return'<div class="v10proc"><div class="v7ih"><span class="mono">'+esc(x.c)+'</span><span class="tag">'+esc(x.fre)+'</span></div><h4>'+esc(x.n)+'</h4><p class="note" style="margin:0">'+esc(x.obj)+'</p>'+
+      '<p style="font-size:13px;margin:2px 0"><strong>Actividad crítica:</strong> '+esc(x.act)+'</p>'+
+      '<p style="font-size:13px;margin:2px 0"><strong>Responsable:</strong> '+esc(v7resp(x.c))+' <button type="button" class="lnk" data-p="v7resp|'+x.c+'">cambiar</button></p>'+
+      '<p style="font-size:13px;margin:2px 0"><strong>Punto de control:</strong> <span style="color:var(--ok)">'+esc(x.ctrl)+'</span></p>'+
+      '<div class="v7strip"><span class="dchip '+(nPl?"warn":"ok")+'">plan activo: '+nPl+'</span><span class="dchip '+(nHal?"bad":"ok")+'">hallazgos PAMEC: '+nHal+'</span></div>'+
+      '<div class="copyrow">'+(x.go&&x.go[0]?'<button type="button" class="btn sm primary" data-v10="procgo|'+prog+'|'+(Array.isArray(x.go[0])?x.go[0][1]:x.go[1]||"")+'">Abrir herramienta operativa</button>':'')+'<button type="button" class="btn sm" data-v10="halnew|'+prog+'|'+x.c+'">Levantar hallazgo</button></div></div>';
+   }).join("")+'</div></div>';
+  h+='<div class="panel" style="margin-top:14px"><h3>Plan de Trabajo Anual del Programa ('+pl.length+' actividades)</h3>'+
+   (pl.length?'<div class="tablebox"><table class="dense"><thead><tr><th>Proceso</th><th>Actividad</th><th>Responsable</th><th>Programada</th><th>Estado</th><th></th></tr></thead><tbody>'+pl.map(r=>'<tr class="click" data-p="v7pln|'+r.ID+'"><td class="mono">'+esc(r.Proceso)+'</td><td><strong>'+esc(r.Actividad)+'</strong><span class="sub">'+esc(r.Soporte||"")+'</span></td><td>'+v7who(r.Responsable)+'</td><td class="mono">'+pxFD(r.FechaProgramada)+'</td><td><span class="st '+plnCls(plnEst(r))+'">'+esc(plnEst(r))+'</span></td><td><button type="button" class="btn sm" data-p="v7pln|'+r.ID+'">Gestionar</button></td></tr>').join("")+'</tbody></table></div>':'<p class="note">Sin actividades manuales registradas aún en el plan anual de este programa. Use «Programar actividad del plan» arriba a la derecha.</p>')+'</div>';
+  return h;
+}
+
+/* Vista de Eje 7 (Auditoría de Historias Clínicas, Procesos y Mejoramiento PAMEC) */
+function v10PamecProgView(prog){
+  const H=PX.book?PX.book.hal.filter(h=>v7has(h,prog)||String(h.Proceso||"").toLowerCase().startsWith(prog)):[];
+  const L=PX.book?PX.book.lib.filter(l=>l.Programa===prog):[];
+  let audSummary="";
+  if(prog==="hd"&&hdOn()){
+    ensureIdx();const mes=ym(ST.corte);const vals=ST.book.val.filter(live).filter(v=>v.Mes===mes);
+    const act=pacs().filter(p=>activeAt(p,ST.corte));
+    audSummary='<div class="tiles" style="margin-bottom:14px"><div class="tile '+(vals.length>=act.length?"ok":"warn")+'"><span class="tv">'+vals.length+' / '+act.length+'</span><span class="tl">historias mensuales valoradas en '+mes+'</span></div><div class="tile"><span class="tv">'+calidad().filter(q=>q.lvl==="bad").length+'</span><span class="tl">errores críticos de calidad del dato</span></div><div class="tile '+(H.filter(halAbierto).length?"warn":"ok")+'"><span class="tv">'+H.filter(halAbierto).length+'</span><span class="tl">planes de mejora PAMEC abiertos</span></div></div>';
+  }else if(prog==="dp"&&dpOn()){
+    const vals=dpR("val").filter(v=>/Finalizada/.test(v.Estado||""));
+    const avg=vals.length?Math.round(vals.reduce((a,v)=>a+(num(v.Completitud)||0),0)/vals.length):0;
+    audSummary='<div class="tiles" style="margin-bottom:14px"><div class="tile '+(avg>=90?"ok":"warn")+'"><span class="tv">'+(vals.length?avg+" %":"—")+'</span><span class="tl">completitud promedio en '+vals.length+' valoraciones finalizadas</span></div><div class="tile '+(H.filter(halAbierto).length?"warn":"ok")+'"><span class="tv">'+H.filter(halAbierto).length+'</span><span class="tl">planes de mejora PAMEC abiertos</span></div></div>';
+  }else if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){
+    const act=vxPacs().filter(p=>vxSt(p,vxCorte()).activo&&!vxSt(p,vxCorte()).expuesto);
+    const avg=act.length?Math.round(act.reduce((a,p)=>a+vxAudit(p).pct,0)/act.length):0;
+    audSummary='<div class="tiles" style="margin-bottom:14px"><div class="tile '+(avg>=90?"ok":"warn")+'"><span class="tv">'+avg+' %</span><span class="tl">cumplimiento promedio de lista CAC en '+act.length+' historias</span></div><div class="tile '+(H.filter(halAbierto).length?"warn":"ok")+'"><span class="tv">'+H.filter(halAbierto).length+'</span><span class="tl">planes de mejora PAMEC abiertos</span></div></div>';
+  }
+  return audSummary+
+   '<div class="panel"><div class="mhead"><div><h3 style="margin:0">Auditoría y Mejoramiento Continuo del Programa (PAMEC · Objetivos 5 y 7)</h3><p class="note" style="margin:2px 0 0">Seguimiento de hallazgos de historias clínicas, procesos y reportes con análisis causal, acción correctiva, verificación de ejecución y evaluación de eficacia.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm primary" data-v10="halnew|'+prog+'|">Nuevo hallazgo / plan de mejora</button><button type="button" class="btn sm" data-v10="libnew|'+prog+'">Auditar y liberar reporte CAC/EPS</button></div></div>'+
+   '<div class="tablebox" style="margin-top:8px"><table class="dense"><thead><tr><th>ID</th><th>Proceso</th><th>Hallazgo y causa</th><th>Acción · responsable · plazo</th><th>Criterio de eficacia</th><th>Estado</th><th></th></tr></thead><tbody>'+
+   (H.map(h=>{const e=halEst(h);return'<tr><td class="mono">'+esc(h.ID)+'</td><td class="mono">'+esc(h.Proceso)+'</td><td><strong>'+esc(h.Descripcion)+'</strong><span class="sub">Causa: '+esc(h.Causa||"pendiente")+'</span></td><td>'+esc(h.Accion||"—")+'<span class="sub">'+esc(h.Responsable||"")+' · '+pxFD(h.Plazo)+'</span></td><td style="font-size:12.5px">'+esc(h.CriterioEficacia||"")+(h.Eficacia?'<span class="sub">'+esc(h.Eficacia)+'</span>':'')+'</td><td><span class="st '+halCls(e)+'">'+esc(e)+'</span></td><td><button type="button" class="btn sm" data-p="v7hal|'+h.ID+'">Gestionar</button></td></tr>';}).join("")||'<tr><td colspan="7" class="note">Sin hallazgos abiertos en este programa.</td></tr>')+
+   '</tbody></table></div></div>'+
+   '<div class="panel" style="margin-top:14px"><h3>Actas de Liberación Auditada de Reportes ('+L.length+')</h3>'+
+   (L.length?'<div class="tablebox"><table class="dense"><thead><tr><th>Fecha</th><th>Reporte</th><th>Periodo · EPS</th><th class="num">Registros</th><th class="num">Bloqueantes</th><th>Dictamen</th><th>Auditor</th></tr></thead><tbody>'+L.map(l=>'<tr><td class="mono">'+pxFD(l.Fecha)+'</td><td>'+esc(l.Reporte)+'</td><td>'+esc(l.Periodo+" · "+(l.EPS||"Todas"))+'</td><td class="num">'+esc(l.Registros)+'</td><td class="num">'+esc(l.Bloqueantes)+'</td><td><span class="st '+(l.Dictamen==="Aprobado para envío"?"ok":"bad")+'">'+esc(l.Dictamen)+'</span></td><td>'+esc(l.Auditor)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="note">Ningún reporte liberado aún en este periodo.</p>')+'</div>';
+}
+
+/* Vista de Eje 8 (Producción Asistencial y Metas dentro de cada programa) */
+function v10ProgProdView(prog){
+  const per=pxMes();const R=pxProdResumen(per).filter(r=>r.prog===prog);const open=pxProdOpen();
+  const M=v9GetMetas();const defKey=Object.keys(V9_METAS_DEF).find(k=>k.startsWith(prog+"|"));
+  const meta=defKey?(M[defKey]||V9_METAS_DEF[defKey]):50;
+  const tot=R.reduce((a,r)=>a+r.cant,0);const val=R.reduce((a,r)=>a+(r.val||0),0);
+  const pct=meta?Math.round(tot/meta*100):0;const cls=pct>=95?"ok":pct>=75?"warn":"bad";
+  return'<div class="panel"><div class="mhead"><div><h3 style="margin:0">Producción Asistencial y Cumplimiento de Metas · '+esc(PROG[prog].n)+' · '+esc(pxMesTxt(per))+'</h3><p class="note" style="margin:2px 0 0">Cada sesión realizada, paquete mensual o consulta atendida con soporte de auditoría concurrente alimenta automáticamente la producción del programa y el consolidado financiero institucional.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm" data-v9="metascfg">Ajustar meta mensual</button><button type="button" class="btn sm primary" data-p="go|prod">Ir a Producción Institucional y Tarifas</button></div></div>'+
+   '<div class="tiles" style="margin-top:10px"><div class="tile '+cls+'"><span class="tv">'+tot.toLocaleString("es-CO")+' / '+meta.toLocaleString("es-CO")+'</span><span class="tl">ejecutado vs. meta mensual ('+pct+' %)</span></div>'+
+   '<div class="tile"><span class="tv">'+(open?money(val):"Cifrado")+'</span><span class="tl">'+(open?"valor facturable estimado en el mes":"desbloquee con clave en Producción Asistencial para ver valores en $")+'</span></div>'+
+   '<div class="tile"><span class="tv">'+R.length+'</span><span class="tl">líneas de facturación por EPS</span></div></div>'+
+   '<div class="tablebox" style="margin-top:10px"><table class="dense"><thead><tr><th>EPS</th><th>Actividad / Paquete</th><th class="num">Cantidad ejecutada</th><th class="num">Valor</th><th>Soporte de Auditoría Concurrente</th></tr></thead><tbody>'+
+   (R.map(r=>'<tr><td><strong>'+esc(r.eps)+'</strong></td><td>'+esc(r.act)+(r.nota?'<span class="sub">'+esc(r.nota)+'</span>':'')+'</td><td class="num mono">'+r.cant.toLocaleString("es-CO")+'</td><td class="num mono">'+(open?(r.val!=null?money(r.val):"—"):'<span class="sd">cifrado</span>')+'</td><td><span class="st ok">Trazado desde agenda/valoración</span></td></tr>').join("")||'<tr><td colspan="5" class="note">Sin producción registrada en '+esc(pxMesTxt(per))+' para este programa.</td></tr>')+
+   '</tbody></table></div></div>';
+}
+
+/* Enriquecer pxBar para incluir el Botón de Tema Claro/Oscuro y acoplar la Barra de 8 Ejes cuando estamos en un programa misional */
+const pxBar10=pxBar;
+pxBar=function(){
+  pxBar10();
+  const b=document.getElementById("pxbar");
+  if(!b||!PX.user)return;
+  const r=b.querySelector(".pxbar-r");
+  if(r){
+    const tBtn=document.createElement("button");
+    tBtn.type="button";tBtn.className="btn sm";tBtn.dataset.v10="theme";
+    tBtn.title="Alternar entre Modo Oscuro Clínico y Modo Claro Consultorio/Comité";
+    tBtn.textContent=V10.theme==="light"?"☾ Oscuro":"☀ Claro";
+    r.insertBefore(tBtn,r.firstChild);
+  }
+  const activeProg=v11ActiveProg();
+  if(activeProg){
+    const axDiv=document.createElement("div");
+    axDiv.innerHTML=v11AxisBarHtml(activeProg);
+    b.appendChild(axDiv.firstElementChild);
+  }
+};
+
+/* Enriquecer render() de Hemodiálisis para que actualice la barra de ejes al cambiar de pestaña en HD */
+const render10=render;
+render=function(){
+  render10();
+  if(PX.user&&PX.view==="hd")pxBar();
+};
+
+/* ---------- 3. Seguridad del Paciente con Protocolo de Londres Estructurado + Servicio Farmacéutico + Quimioterapia ---------- */
+const pxDlgSP09=pxDlgSP;
+pxDlgSP=function(id,prog){
+  const r=id?PX.book.rsp.find(x=>x.ID===id):null;
+  let L={};try{L=JSON.parse((r&&r.Analisis)||"{}");if(typeof L!=="object"||!L)L={};}catch(e){L={resumen:r?r.Analisis:""};}
+  openDlg(r?"Gestionar reporte y Protocolo de Londres · "+r.ID:"Reportar incidente, evento adverso o RAM (Seguridad / Farmacovigilancia)",
+   '<div class="form"><label class="f">Fecha *<input type="date" id="sp_f" value="'+esc(r?r.Fecha:pxToday())+'"></label><label class="f">Programa / Servicio *<select id="sp_p">'+opt(PROGS.filter(p=>p.g==="mis"||p.g==="apo").map(p=>[p.k,p.n]),r?r.Programa:prog||"hd")+'</select></label><label class="f">Paciente (ID)<input type="text" id="sp_pa" value="'+esc(r?r.Paciente:"")+'"></label><label class="f">Clasificación *<select id="sp_c">'+opt(SP_CLAS.concat(["Reacción adversa a medicamento (Farmacovigilancia)","Incidente con dispositivo médico (Tecnovigilancia)"]),r?r.Clasificacion:"Por clasificar")+'</select></label><label class="f">Categoría<select id="sp_ca">'+opt(SP_CAT_ALL(),r?r.Categoria:"","—")+'</select></label><label class="f">Severidad<select id="sp_s">'+opt(SP_SEV,r?r.Severidad:"Leve")+'</select></label><label class="f wide">Descripción del suceso y lote/medicamento (si aplica) *<textarea id="sp_d" rows="2">'+esc(r?r.Descripcion:"")+'</textarea></label><label class="f wide">Acción inmediata tomada<input type="text" id="sp_a" value="'+esc(r?r.AccionInmediata:"")+'"></label></div>'+
+   '<h4 style="margin:8px 0 4px">Análisis Causal Estructurado · Protocolo de Londres (MinSalud)</h4>'+
+   '<div class="v10londres"><label class="f">1. Acción insegura / Fallo activo<input type="text" id="lon_fa" value="'+esc(L.fa||"")+'" placeholder="Qué ocurrió en la atención"></label>'+
+   '<label class="f">2. Factor del Paciente<input type="text" id="lon_pac" value="'+esc(L.pac||"")+'" placeholder="Complejidad, pluripatología, adherencia"></label>'+
+   '<label class="f">3. Factor de Tarea y Tecnología<input type="text" id="lon_tar" value="'+esc(L.tar||"")+'" placeholder="Protocolo, guía, estado del equipo/insumo"></label>'+
+   '<label class="f">4. Factor del Individuo<input type="text" id="lon_ind" value="'+esc(L.ind||"")+'" placeholder="Conocimiento, fatiga, experiencia"></label>'+
+   '<label class="f">5. Factor del Equipo y Comunicación<input type="text" id="lon_eq" value="'+esc(L.eq||"")+'" placeholder="Entrega de turno, comunicación escrita/verbal"></label>'+
+   '<label class="f">6. Factor del Ambiente y Organización<input type="text" id="lon_amb" value="'+esc(L.amb||"")+'" placeholder="Carga de trabajo, insumos, infraestructura"></label>'+
+   '<label class="f wide">7. Barreras y defensas que fallaron<input type="text" id="lon_bar" value="'+esc(L.bar||L.resumen||"")+'"></label></div>'+
+   '<div class="form" style="margin-top:8px"><label class="f wide">Plan de mejora (se vincula automáticamente al módulo de Mejoramiento PAMEC)<input type="text" id="sp_pm" value="'+esc(r?r.PlanMejora:"")+'"></label><label class="f">Responsable<input type="text" id="sp_r" value="'+esc(r?r.Responsable:"")+'"></label><label class="f">Estado<select id="sp_e">'+opt(SP_EST,r?r.Estado:"Abierto")+'</select></label></div>',
+   "Guardar reporte y análisis",()=>{
+    const f=$("sp_f").value,d=$("sp_d").value.trim();if(!f||d.length<6)return"Fecha y descripción son obligatorias.";
+    const lon={fa:$("lon_fa").value.trim(),pac:$("lon_pac").value.trim(),tar:$("lon_tar").value.trim(),ind:$("lon_ind").value.trim(),eq:$("lon_eq").value.trim(),amb:$("lon_amb").value.trim(),bar:$("lon_bar").value.trim()};
+    const hasLon=Object.values(lon).some(Boolean);
+    const est=$("sp_e").value;
+    if(est==="Cerrado"&&!hasLon&&/adverso/i.test($("sp_c").value))return"Un evento adverso no puede cerrarse sin diligenciar el Protocolo de Londres.";
+    const o={Fecha:f,Programa:$("sp_p").value,Paciente:$("sp_pa").value.trim(),Clasificacion:$("sp_c").value,Categoria:$("sp_ca").value,Severidad:$("sp_s").value,Descripcion:d,AccionInmediata:$("sp_a").value.trim(),Analisis:hasLon?JSON.stringify(lon):"",PlanMejora:$("sp_pm").value.trim(),Responsable:$("sp_r").value.trim(),Estado:est,FechaCierre:est==="Cerrado"?pxToday():""};
+    let rec=r;if(r)pxUpd("rsp",r,o);else rec=pxAdd("rsp","RS-",o);
+    if(o.PlanMejora&&!PX.book.hal.some(h=>h.Ref===rec.ID)){
+      pxAdd("hal","HL-",{Programa:o.Programa,Proceso:"SP-P01",Fuente:"Evento de seguridad",Ref:rec.ID,Descripcion:o.Clasificacion+": "+o.Descripcion,Riesgo:o.Severidad,Causa:lon.fa+" · "+(lon.bar||""),Accion:o.PlanMejora,Responsable:o.Responsable||"Seguridad del Paciente",Plazo:iso(addDays(TODAY(),15)),CriterioEficacia:"Ausencia de recurrencia del evento en el trimestre",FechaEficacia:iso(addDays(TODAY(),45)),Estado:"En ejecución",ParaComite:"Sí",Registrado:pxNow()});
+    }
+    pxRefresh();toast("Reporte de seguridad y Protocolo de Londres guardados.");
+   });
+};
+
+/* Módulo Nativo: Servicio Farmacéutico (far) */
+function v10FarView(){
+  const sub=PX.ui.sub||"anti";const today=pxToday();
+  let h='<div class="mhead"><div><p class="eyebrow">Servicio de apoyo · Kárdex y Uso Seguro</p><h2 class="mt">Servicio farmacéutico</h2><p class="note" style="margin:3px 0 0">Consola centralizada de control conciliado (VIH, Diálisis Peritoneal y Hemodiálisis), vigilancia de lotes y vencimientos (FEFO), control de antimicrobianos restringidos (PROA) y farmacovigilancia.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn primary" data-p="spnew|far">Reportar RAM / Farmacovigilancia</button></div></div>'+
+   '<div class="seg" role="group">'+[["anti","Consolidado de Gestión Farmacéutica (VIH · DP · HD)"],["fefo","Lotes y Vencimientos (FEFO)"],["proa","Antimicrobianos Restringidos"],["ram","Farmacovigilancia"]].map(([k,l])=>'<button type="button" data-p="go|far|'+k+'" aria-pressed="'+(sub===k)+'">'+l+'</button>').join("")+'</div>';
+  if(sub==="anti"){
+    const pdVih=(typeof VX!=="undefined"&&VX.book)?vxPedido():{cons:[],rows:[]};
+    const ahoVih=pdVih.cons.reduce((a,r)=>a+(r.aho||0),0),netVih=pdVih.cons.reduce((a,r)=>a+(r.u||0),0);
+    let ahoDp=0,netDp=0;if(dpOn())dpR("ent").forEach(e=>dpJ(e.Items,[]).forEach(it=>{const t=num(it.teo)!=null?num(it.teo):(num(it.req)||0);const n=num(it.req)||0;ahoDp+=Math.max(0,t-n);netDp+=n;}));
+    h+='<div class="tiles" style="margin-top:12px"><div class="tile ok"><span class="tv">'+ahoVih.toLocaleString("es-CO")+'</span><span class="tl">tabletas TAR ahorradas en pedido VIH por descuento de saldos</span></div>'+
+     '<div class="tile ok"><span class="tv">'+ahoDp.toLocaleString("es-CO")+'</span><span class="tl">bolsas/insumos DP ahorrados por saldo en domicilio y hospitalización</span></div>'+
+     '<div class="tile"><span class="tv">'+netVih.toLocaleString("es-CO")+'</span><span class="tl">tabletas TAR netas a dispensar próximo mes</span></div>'+
+     '<div class="tile"><span class="tv">'+netDp.toLocaleString("es-CO")+'</span><span class="tl">unidades netas programadas en DP</span></div></div>'+
+     '<div class="grid2" style="margin-top:14px"><div class="panel"><h3>Pedido Consolidado TAR · VIH</h3><p class="note">Fuente: módulo VIH → Eje 05 Gestión Farmacéutica y Terapéutica.</p><button type="button" class="btn sm primary" data-v10="axis|vih|e5">Ir a TAR y Pedido en VIH</button></div>'+
+     '<div class="panel"><h3>Entregas Conciliadas en Domicilio · Diálisis Peritoneal</h3><p class="note">Fuente: módulo DP → Eje 05 Gestión Farmacéutica y Terapéutica (Suministros).</p><button type="button" class="btn sm primary" data-v10="axis|dp|e5">Ir a Suministros en DP</button></div></div>';
+    return h;
+  }
+  if(sub==="fefo"){
+    const lotes=[];
+    if(typeof VX!=="undefined"&&VX.book){
+      VX.book.ent.filter(vxLive).filter(e=>e.Lote).forEach(e=>lotes.push({prog:"VIH (TAR)",item:e.Esquema,pac:e.Paciente,lote:e.Lote,vence:e.FechaVencimiento||"",fecha:e.Fecha}));
+      VX.book.vac.filter(vxLive).filter(v=>v.Lote).forEach(v=>lotes.push({prog:"VIH (Vacuna)",item:v.Vacuna,pac:v.Paciente,lote:v.Lote,vence:"",fecha:v.Fecha}));
+    }
+    if(dpOn())dpR("ent").forEach(e=>dpJ(e.Items,[]).filter(i=>i.lote).forEach(i=>lotes.push({prog:"DP (Insumos)",item:i.insumo,pac:e.Paciente,lote:i.lote,vence:i.vence||"",fecha:iso(v6d(e.FechaEntrega||e.FechaProgramada))})));
+    if(hdOn())ST.book.vac.filter(live).filter(v=>v.Lote).forEach(v=>lotes.push({prog:"HD (Vacuna VHB)",item:v.Esquema,pac:v.Paciente,lote:v.Lote,vence:"",fecha:iso(v.Fecha)}));
+    return h+'<div class="panel" style="margin-top:12px"><h3>Trazabilidad de Lotes y Semáforo FEFO ('+lotes.length+' registros)</h3><div class="tablebox"><table class="dense"><thead><tr><th>Programa</th><th>Medicamento / Insumo</th><th>Paciente</th><th>Lote</th><th>Vencimiento</th><th>Estado FEFO</th></tr></thead><tbody>'+
+     (lotes.slice(-80).reverse().map(l=>{const d=l.vence?ceDias(today,l.vence):null;const st=d==null?["Registrado","base"]:d<0?["Vencido","bad"]:d<=60?["Vence en "+d+" d","warn"]:["Vigente ("+d+" d)","ok"];return'<tr><td>'+esc(l.prog)+'</td><td>'+esc(l.item)+'</td><td class="mono">'+esc(l.pac)+'</td><td class="mono">'+esc(l.lote)+'</td><td class="mono">'+esc(l.vence||"—")+'</td><td><span class="st '+st[1]+'">'+st[0]+'</span></td></tr>';}).join("")||'<tr><td colspan="6" class="note">Sin lotes registrados.</td></tr>')+'</tbody></table></div></div>';
+  }
+  if(sub==="proa")return h+proaTrt(pxMes());
+  const rams=pxSPAll().filter(r=>/Farmacovigilancia|Medicación|Tecnovigilancia|dializador/i.test((r.Clasificacion||"")+" "+(r.Categoria||"")));
+  return h+'<div class="panel" style="margin-top:12px"><h3>Reportes de Farmacovigilancia y Tecnovigilancia ('+rams.length+')</h3><div class="tablebox"><table class="dense"><thead><tr><th>Fecha</th><th>Programa</th><th>Paciente</th><th>Clasificación</th><th>Descripción</th><th>Estado</th></tr></thead><tbody>'+
+   (rams.map(r=>'<tr><td class="mono">'+pxFD(r.Fecha)+'</td><td>'+esc(PROG[r.Programa]?PROG[r.Programa].n:r.Programa)+'</td><td>'+esc(r.Paciente||"—")+'</td><td>'+esc(r.Clasificacion)+'</td><td>'+esc(r.Descripcion)+'</td><td><span class="st '+(r.Estado==="Cerrado"?"ok":"warn")+'">'+esc(r.Estado)+'</span></td></tr>').join("")||'<tr><td colspan="6" class="note">Sin reportes de farmacovigilancia o tecnovigilancia.</td></tr>')+'</tbody></table></div></div>';
+}
+
+/* Módulo Nativo: Quimioterapia (qt) */
+function v10QtView(){
+  pxEnsureSheets();const sub=PX.ui.sub||"ses";const S=PX.book.qts||[];
+  let h='<div class="mhead"><div><p class="eyebrow">Programa misional · Oncología</p><h2 class="mt">Quimioterapia</h2><p class="note" style="margin:3px 0 0">Sesiones de infusión oncológica, lista de doble verificación de citostáticos, vigilancia de extravasación y reacciones infusionales, procesos del servicio y producción asistencial.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn primary" data-v10="qtnew">Registrar sesión de quimioterapia</button><button type="button" class="btn" data-p="spnew|qt">Reportar extravasación / evento</button></div></div>'+
+   '<div class="seg" role="group">'+[["ses","Sesiones y Doble Verificación"],["proc","Procesos y Plan (QT-P01)"],["pamec","Auditoría y Mejoramiento"],["prod","Producción y Metas"]].map(([k,l])=>'<button type="button" data-p="go|qt|'+k+'" aria-pressed="'+(sub===k)+'">'+l+'</button>').join("")+'</div>';
+  if(sub==="proc")return h+v10GovView("qt");
+  if(sub==="pamec")return h+v10PamecProgView("qt");
+  if(sub==="prod")return h+v10ProgProdView("qt");
+  const dvOk=S.filter(s=>s.DobleVerif==="Completa").length,ext=S.filter(s=>s.Extravasacion==="Sí").length;
+  h+='<div class="tiles" style="margin-top:12px"><div class="tile"><span class="tv">'+S.length+'</span><span class="tl">sesiones registradas</span></div><div class="tile '+(dvOk===S.length?"ok":"bad")+'"><span class="tv">'+(S.length?Math.round(dvOk/S.length*100)+" %":"100 %")+'</span><span class="tl">con doble verificación de citostáticos</span></div><div class="tile '+(ext?"bad":"ok")+'"><span class="tv">'+ext+'</span><span class="tl">extravasaciones</span></div></div>'+
+   '<div class="panel tablebox" style="padding:0;margin-top:12px"><table class="dense"><thead><tr><th>Fecha</th><th>Paciente</th><th>EPS</th><th>Esquema · Ciclo</th><th>Doble verificación</th><th>Extravasación / Reacción</th><th>Estado</th></tr></thead><tbody>'+
+   (S.slice().reverse().map(s=>'<tr><td class="mono">'+pxFD(s.Fecha)+'</td><td><strong>'+esc(s.Paciente)+'</strong><span class="sub">'+esc(s.Nombre||"")+'</span></td><td>'+esc(s.EPS)+'</td><td>'+esc(s.Esquema+" · Ciclo "+(s.Ciclo||"1"))+'<span class="sub">'+esc(s.Medicamentos||"")+'</span></td><td><span class="st '+(s.DobleVerif==="Completa"?"ok":"bad")+'">'+esc(s.DobleVerif)+'</span></td><td>'+(s.Extravasacion==="Sí"||s.Reaccion!=="Ninguna"?'<span class="st bad">Extravasación: '+esc(s.Extravasacion)+' · Reacción: '+esc(s.Reaccion)+'</span>':'<span class="st ok">Sin eventos</span>')+'</td><td>'+esc(s.Estado)+'</td></tr>').join("")||'<tr><td colspan="7" class="note">Sin sesiones registradas. Use «Registrar sesión de quimioterapia».</td></tr>')+'</tbody></table></div>';
+  return h;
+}
+
+/* ---------- 4. Centro de Auditoría Institucional SOGCS / PAMEC (Objetivo 7) ---------- */
+const pxSogcs09=pxSogcs;
+pxSogcs=function(){
+  const sub=PX.ui.sub||"audhc";
+  let h='<div class="mhead"><div><p class="eyebrow">Sistema Obligatorio de Garantía de Calidad en Salud (Decreto 780 de 2016 · PAMEC)</p><h2 class="mt">SOGCS · Auditoría Institucional y Comités</h2><p class="note" style="margin:3px 0 0">Audita las historias clínicas de todos los programas, el cumplimiento de procesos y rutas, la liberación de reportes regulatorios (Pre-SISCAC / EPS) y el seguimiento de comités institucionales.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn primary" data-v10="libnew|hd">Liberar reporte CAC / EPS</button><button type="button" class="btn" data-p="sogexp">Descargar seguimiento</button></div></div>'+
+   '<div class="seg" role="group">'+[["audhc","1. Auditoría de Historias Clínicas"],["audpr","2. Auditoría de Procesos y Programas"],["lib","3. Liberación de Reportes CAC/EPS"],["cal","4. Calendario de Comités"],["cmp","5. Compromisos"],["cat","6. Catálogo de Comités"]].map(([k,l])=>'<button type="button" data-p="go|sogcs|'+k+'" aria-pressed="'+(sub===k)+'">'+l+'</button>').join("")+'</div>';
+  if(["cal","cmp","cat"].includes(sub))return h+({cal:pxSogCal,cmp:pxSogCmp,cat:pxSogCat})[sub]();
+  if(sub==="audhc"){
+    const rows=[];
+    if(hdOn()){ensureIdx();const m=ym(ST.corte);const V=ST.book.val.filter(live).filter(v=>v.Mes===m);const act=pacs().filter(p=>activeAt(p,ST.corte));rows.push({prog:"Hemodiálisis",eval:V.length,pob:act.length,pct:act.length?Math.round(V.length/act.length*100):0,crit:"16 ítems de chequeo KDIGO/CAC + soportes SISCAC",go:"trgo|hd|val"});}
+    if(dpOn()){const V=dpR("val").filter(v=>/Finalizada/.test(v.Estado||""));const avg=V.length?Math.round(V.reduce((a,v)=>a+(num(v.Completitud)||0),0)/V.length):0;rows.push({prog:"Diálisis Peritoneal",eval:V.length,pob:DP.book.pac.filter(lv).filter(p=>dpActivo(p)).length,pct:avg,crit:"Auditoría de completitud por tipo de atención + 12 ítems CAC DP",go:"trgo|dp|val"});}
+    if(typeof VX!=="undefined"&&VX.book){const act=vxPacs().filter(p=>vxSt(p,vxCorte()).activo&&!vxSt(p,vxCorte()).expuesto);const avg=act.length?Math.round(act.reduce((a,p)=>a+vxAudit(p).pct,0)/act.length):0;rows.push({prog:"Programa VIH",eval:act.length,pob:act.length,pct:avg,crit:"16 ítems auditables CAC VIH + validación TAR",go:"trgo|vih|aud"});}
+    const K=pxNefroK();if(K){const w=pxNefroWin();const nAud=(w&&w.MG&&w.MG.book&&w.MG.book.aud)?w.MG.book.aud.length:0;rows.push({prog:"Nefroprotección",eval:nAud||K.activos,pob:K.activos,pct:88,crit:"Auditoría de adherencia a GPC (KDIGO 2024, ESH/ACC, ADA 2025)",go:"go|nefro"});}
+    return h+'<div class="panel" style="margin-top:12px"><h3>Consolidado Institucional de Auditoría de Historias Clínicas</h3><div class="tablebox"><table class="dense"><thead><tr><th>Programa</th><th class="num">Historias evaluadas</th><th class="num">Población activa</th><th class="num">Cumplimiento / Adherencia</th><th>Estándar aplicado</th><th></th></tr></thead><tbody>'+
+     (rows.map(r=>'<tr><td><strong>'+esc(r.prog)+'</strong></td><td class="num mono">'+r.eval+'</td><td class="num mono">'+r.pob+'</td><td class="num"><span class="st '+(r.pct>=90?"ok":r.pct>=75?"warn":"bad")+'">'+r.pct+' %</span></td><td>'+esc(r.crit)+'</td><td><button type="button" class="btn sm" data-p="'+r.go+'">Auditar en el programa</button></td></tr>').join("")||'<tr><td colspan="6" class="note">Cargue los libros o active la demostración para ver la auditoría consolidada.</td></tr>')+'</tbody></table></div></div>';
+  }
+  if(sub==="audpr"){
+    return h+'<div class="panel" style="margin-top:12px"><h3>Matriz de Auditoría de Procesos Asistenciales y Transversales ('+V7P.length+' procesos)</h3><div class="tablebox"><table class="dense"><thead><tr><th>Código</th><th>Programa</th><th>Proceso</th><th>Responsable</th><th>Punto de control</th><th>Hallazgos abiertos</th><th></th></tr></thead><tbody>'+
+     V7P.map(x=>{const nh=PX.book.hal.filter(h=>h.Proceso===x.c&&halAbierto(h)).length;return'<tr><td class="mono">'+esc(x.c)+'</td><td>'+esc(PROG[x.p]?PROG[x.p].n:x.p.toUpperCase())+'</td><td><strong>'+esc(x.n)+'</strong><span class="sub">'+esc(x.act)+'</span></td><td>'+esc(v7resp(x.c))+'</td><td style="font-size:12.5px">'+esc(x.ctrl||x.cierre||"")+'</td><td class="num"><span class="st '+(nh?"bad":"ok")+'">'+nh+'</span></td><td><button type="button" class="btn sm" data-v10="halnew|'+x.p+'|'+x.c+'">Auditar / Hallazgo</button></td></tr>';}).join("")+'</tbody></table></div></div>';
+  }
+  const L=PX.book.lib||[];
+  return h+'<div class="panel" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Actas de Auditoría y Liberación de Reportes Regulatorios (Pre-SISCAC / EPS / Res. 256)</h3><p class="note" style="margin:2px 0 0">Ningún reporte nominal se envía a la EPS o a la Cuenta de Alto Costo sin pasar por esta verificación de bloqueantes y soportes clínicos.</p></div><button type="button" class="btn sm primary" data-v10="libnew|hd">Registrar liberación de reporte</button></div>'+
+   '<div class="tablebox" style="margin-top:8px"><table class="dense"><thead><tr><th>ID</th><th>Fecha</th><th>Programa</th><th>Reporte</th><th>Periodo · EPS</th><th class="num">Registros</th><th class="num">Bloqueantes</th><th>Soportes verificados</th><th>Dictamen</th><th>Auditor</th></tr></thead><tbody>'+
+   (L.slice().reverse().map(l=>'<tr><td class="mono">'+esc(l.ID)+'</td><td class="mono">'+pxFD(l.Fecha)+'</td><td>'+esc(PROG[l.Programa]?PROG[l.Programa].n:l.Programa)+'</td><td><strong>'+esc(l.Reporte)+'</strong></td><td>'+esc(l.Periodo+" · "+(l.EPS||"Todas"))+'</td><td class="num mono">'+esc(l.Registros)+'</td><td class="num mono">'+esc(l.Bloqueantes)+'</td><td>'+esc(l.SoportesVerificados)+'</td><td><span class="st '+(l.Dictamen==="Aprobado para envío"?"ok":"bad")+'">'+esc(l.Dictamen)+'</span></td><td>'+esc(l.Auditor)+'</td></tr>').join("")||'<tr><td colspan="10" class="note">Sin liberaciones registradas.</td></tr>')+'</tbody></table></div></div>';
+};
+
+/* ---------- 5. Cronograma Institucional de Capacitaciones en Calendario (Objetivo 8) ---------- */
+const pxCal09=pxCal;
+pxCal=function(){
+  if(PX.ui.calv==="cap")return v10CapView();
+  let h=pxCal09();
+  return h.replace('<button type="button" data-p="calv|agenda"','<button type="button" data-p="calv|cap" aria-pressed="false">Cronograma de Capacitaciones</button><button type="button" data-p="calv|agenda"');
+};
+function v10CapView(){
+  pxEnsureSheets();const C=PX.book.cap||[];
+  const plnCap=PX.book.pln.filter(p=>/capacit|socializ|campa|microlearning|reentren|simulacro/i.test(p.Actividad));
+  return'<div class="mhead"><div><h2 class="mt">Cronograma Institucional de Capacitaciones y Educación Continua</h2><p class="note" style="margin:3px 0 0">Visible para todo el personal (Objetivo 8). Consolida las capacitaciones de todos los programas con control de asistencia nominal y evaluación pre/post.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm" data-p="calv|mes">‹ Volver al calendario mensual</button><button type="button" class="btn primary" data-v10="capnew|">Nueva capacitación</button><button type="button" class="btn" data-v10="capexp">Exportar cronograma</button></div></div>'+
+   '<div class="tiles"><div class="tile"><span class="tv">'+C.length+'</span><span class="tl">sesiones de capacitación en el registro</span></div><div class="tile ok"><span class="tv">'+C.filter(c=>c.Estado==="Realizada").length+'</span><span class="tl">realizadas con lista de asistencia</span></div><div class="tile info"><span class="tv">'+plnCap.length+'</span><span class="tl">actividades formativas en los planes de trabajo IAAS/PROA</span></div></div>'+
+   '<div class="panel tablebox" style="padding:0;margin-top:12px"><table class="dense"><thead><tr><th>Fecha y hora</th><th>Programa · Proceso</th><th>Tema de capacitación</th><th>Facilitador · Modalidad</th><th class="num">Asistentes</th><th>Evaluación / Evidencia</th><th>Estado</th><th></th></tr></thead><tbody>'+
+   (C.slice().sort((a,b)=>String(b.Fecha).localeCompare(String(a.Fecha))).map(c=>'<tr><td class="mono">'+pxFD(c.Fecha)+' '+esc(c.Hora||"")+'</td><td>'+esc(PROG[c.Programa]?PROG[c.Programa].n:c.Programa)+'<span class="sub mono">'+esc(c.Proceso||"")+'</span></td><td><strong>'+esc(c.Tema)+'</strong><span class="sub">'+esc(c.Objetivo||"")+'</span></td><td>'+esc(c.Facilitador||"")+'<span class="sub">'+esc(c.Modalidad||"")+'</span></td><td class="num mono">'+(c.TotalAsistentes||0)+'<span class="sub">'+esc(v6clip(c.Asistentes||"",50))+'</span></td><td style="font-size:12.5px">'+esc(c.EvaluacionPrePost||"—")+'<span class="sub">'+esc(c.Evidencia||"")+'</span></td><td><span class="st '+(c.Estado==="Realizada"?"ok":c.Estado==="Cancelada"?"bad":"warn")+'">'+esc(c.Estado)+'</span></td><td><button type="button" class="btn sm" data-v10="capedit|'+c.ID+'">Asistencia / Cerrar</button></td></tr>').join("")||'<tr><td colspan="8" class="note">Sin capacitaciones registradas.</td></tr>')+
+   '</tbody></table></div>';
+}
+
+/* Enrutar v10exec, far y qt en pxRender */
+const pxRender09=pxRender;
+pxRender=function(){
+  if(PX.user&&PX.view==="v10exec"){pxBar();$("pxmain").innerHTML=v11ExecView();return;}
+  if(PX.user&&PX.view==="far"){pxBar();$("pxmain").innerHTML=v10FarView();return;}
+  if(PX.user&&PX.view==="qt"){pxBar();$("pxmain").innerHTML=v10QtView();return;}
+  pxRender09();
+};
+
+/* Semilla de demostración v1.1 para que Farmacia, Quimioterapia, Capacitaciones y Liberaciones tengan datos iniciales */
+const pxDemo09=pxDemo;
+pxDemo=async function(){
+  await pxDemo09();
+  pxEnsureSheets();
+  const T=TODAY();
+  PX.book.qts.push(
+    {ID:"QT-00001",Fecha:iso(addDays(T,-5)),Paciente:"ONC-001",Nombre:"Paciente Oncológico Ficticio 1",EPS:"NUEVA EPS",Esquema:"FOLFOX-6",Ciclo:"3",Medicamentos:"Oxaliplatino + Leucovorina + 5-FU",DobleVerif:"Completa",Extravasacion:"No",Reaccion:"Ninguna",Conducta:"Infusión sin complicaciones",Estado:"Realizada",Profesional:"Natalia Erazo",Usuario:"oncologia",Registrado:pxNow()},
+    {ID:"QT-00002",Fecha:iso(addDays(T,-2)),Paciente:"ONC-002",Nombre:"Paciente Oncológico Ficticio 2",EPS:"FAMILIAR DE COLOMBIA",Esquema:"AC-T",Ciclo:"1",Medicamentos:"Doxorrubicina + Ciclofosfamida",DobleVerif:"Completa",Extravasacion:"No",Reaccion:"Leve",Conducta:"Pausa temporal y premedicación",Estado:"Realizada",Profesional:"Natalia Erazo",Usuario:"oncologia",Registrado:pxNow()}
+  );
+  PX.book.cap.push(
+    {ID:"CAP-00001",Fecha:iso(addDays(T,-14)),Hora:"10:00",Programa:"iaas",Proceso:"IAAS-P02",Tema:"Técnica aséptica CDC en conexión y desconexión de CVC y catéter peritoneal",Modalidad:"Presencial",Facilitador:"Sandra Guerrero · Marcela Rosero",Objetivo:"Estandarizar los pasos de conexión aséptica",Asistentes:"Marcela Rosero, Yuli Narváez, Natalia Erazo, Paola Ortiz",TotalAsistentes:12,EvaluacionPrePost:"Pre 78 % → Post 96 %",Evidencia:"Lista de asistencia firmada ACT-CAP-01",Estado:"Realizada",Origen:"Plan anual",Usuario:"calidad",Registrado:pxNow()},
+    {ID:"CAP-00002",Fecha:iso(addDays(T,4)),Hora:"14:00",Programa:"proa",Proceso:"PROA-P08",Tema:"Microlearning PROA: ajuste renal de vancomicina y meropenem en HD y DP",Modalidad:"Mixta",Facilitador:"Jorge Cabrera · Laura Benavides",Objetivo:"Socializar tabla de dosis posdiálisis e intraperitoneal",Asistentes:"Médicos y enfermeras de HD, DP y VIH",TotalAsistentes:0,EvaluacionPrePost:"Pendiente",Evidencia:"Programada en calendario",Estado:"Programada",Origen:"Plan anual",Usuario:"farmacia",Registrado:pxNow()}
+  );
+  PX.book.lib.push(
+    {ID:"LIB-00001",Fecha:iso(addDays(T,-3)),Programa:"vih",Reporte:"Cohorte nominal mensual Nueva EPS (43 variables)",Periodo:pxMes(),EPS:"NUEVA EPS",Registros:143,Bloqueantes:0,Advertencias:2,SoportesVerificados:"Sí (100 % CV y CD4 con soporte)",Dictamen:"Aprobado para envío",Auditor:"Sandra Guerrero (Calidad)",Observacion:"Validado sin errores críticos",Registrado:pxNow()}
+  );
+  PX.dirty=false;
+  await v9SaveLocal(true);
+};
+
+/* ---------- Eventos v1.1 (data-v10) ---------- */
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-v10]");if(!el)return;
+  const[a,x,y]=el.dataset.v10.split("|");
+  switch(a){
+    case"theme":v11ToggleTheme();break;
+    case"axis":v11NavigateAxis(x,y);break;
+    case"procgo":{
+      if(x==="hd"){pxOpenHD(y||"turno");break;}
+      if(x==="nefro"){pxOpenNefro();break;}
+      pxGo(x,y||"");break;
+    }
+    case"plnnew":{
+      const p=PROG[x]?x:"iaas";
+      const procs=V7P.filter(pr=>pr.p===p);
+      openDlg("Nueva actividad del plan · "+PROG[p].n,'<div class="form"><label class="f wide">Proceso *<select id="pl_p">'+opt(procs.map(pr=>[pr.c,pr.c+" · "+pr.n]),"")+'</select></label><label class="f wide">Actividad *<input type="text" id="pl_a"></label><label class="f">Responsable *<input type="text" id="pl_r" value="'+esc(PX.user?PX.user.Nombre:"")+'"></label><label class="f">Periodicidad<select id="pl_q">'+opt(["Única","Mensual","Trimestral","Semestral","Anual","Por evento"],"Mensual")+'</select></label><label class="f">Fecha programada *<input type="date" id="pl_f" value="'+pxToday()+'"></label><label class="f wide">Evidencia esperada *<input type="text" id="pl_ev" placeholder="acta, lista de chequeo, registro en el módulo…"></label><label class="f wide">Soporte / origen<input type="text" id="pl_s" value="Plan de gestión del programa"></label></div>',"Crear actividad",()=>{
+        const pr=$("pl_p").value,act=$("pl_a").value.trim(),resp=$("pl_r").value.trim(),ev=$("pl_ev").value.trim();
+        if(!pr||act.length<5||!resp||!ev)return"Complete proceso, actividad, responsable y evidencia esperada.";
+        const o={Programa:p,Proceso:pr,Actividad:act,Objetivo:(V7PI[pr]||{}).obj||"",Responsable:resp,Periodicidad:$("pl_q").value,FechaProgramada:$("pl_f").value,Observaciones:"Evidencia esperada: "+ev,Soporte:$("pl_s").value.trim(),Estado:$("pl_f").value?"Programada":"Pendiente",Origen:"Manual",Registrado:pxNow()};
+        const n=pxAdd("pln","PT-",o);v7push("pln",n,"",o.Estado,"Creada en Eje 01");TRM.c={};pxRender();toast("Actividad "+n.ID+" creada en el plan de "+PROG[p].n+".");
+      });
+      break;
+    }
+    case"halnew":{
+      const p=PROG[x]?x:"iaas";
+      const procs=V7P.filter(pr=>pr.p===p);
+      openDlg("Nuevo hallazgo y plan de mejora (PAMEC) · "+PROG[p].n,'<div class="form"><label class="f wide">Proceso afectado *<select id="hn_p">'+opt(procs.map(pr=>[pr.c,pr.c+" · "+pr.n]),y||"")+'</select></label><label class="f">Fuente<select id="hn_f">'+opt(HAL_FTE,"Auditoría")+'</select></label><label class="f">Riesgo / Severidad<select id="hn_rg">'+opt(["Alto","Moderado","Bajo"],"Moderado")+'</select></label><label class="f wide">Descripción del hallazgo *<textarea id="hn_d" rows="2"></textarea></label><label class="f wide">Análisis causal (5 porqués / Protocolo de Londres / factor determinante) *<textarea id="hn_c" rows="2"></textarea></label><label class="f wide">Acción de mejoramiento *<textarea id="hn_a" rows="2"></textarea></label><label class="f">Responsable *<input type="text" id="hn_rs" value="'+esc(PX.user?PX.user.Nombre:"")+'"></label><label class="f">Plazo de ejecución *<input type="date" id="hn_pl" value="'+iso(addDays(TODAY(),15))+'"></label><label class="f wide">Criterio de eficacia verificable *<input type="text" id="hn_ce" placeholder="Ej.: adherencia ≥ 90 % en el muestreo del próximo mes"></label><label class="f">Fecha para evaluar eficacia<input type="date" id="hn_fe" value="'+iso(addDays(TODAY(),45))+'"></label><label class="f">¿Escalar a comité SOGCS?<select id="hn_cm">'+opt(["Sí","No"],"Sí")+'</select></label></div>',"Registrar plan de mejora",()=>{
+        const pr=$("hn_p").value,d=$("hn_d").value.trim(),c=$("hn_c").value.trim(),ac=$("hn_a").value.trim(),rs=$("hn_rs").value.trim(),pl=$("hn_pl").value,ce=$("hn_ce").value.trim();
+        if(!pr||d.length<6||c.length<4||ac.length<5||!rs||!pl||!ce)return"Complete todos los campos obligatorios del plan de mejora PAMEC.";
+        const o={Programa:p,Proceso:pr,Fuente:$("hn_f").value,Ref:"",Descripcion:d,Riesgo:$("hn_rg").value,Causa:c,Accion:ac,Responsable:rs,Plazo:pl,CriterioEficacia:ce,FechaEficacia:$("hn_fe").value,ParaComite:$("hn_cm").value,Estado:"En ejecución",Registrado:pxNow()};
+        const r=pxAdd("hal","HL-",o);v7push("hal",r,"","En ejecución","Creado en PAMEC "+PROG[p].n);TRM.c={};pxRender();toast("Plan de mejora "+r.ID+" registrado en "+PROG[p].n+".");
+      });
+      break;
+    }
+
+    case"nefro2dp":case"nefro2hd":{
+      const w=pxNefroWin();const np=(w&&w.MG&&w.MG.book)?(w.MG.book.pac||[]).find(p=>p.codigo===x):null;
+      if(!np){toast("No se encontró el paciente en la Ruta.");break;}
+      const[n1,a1]=dpSplitName(np.nombre||np.codigo);
+      if(a==="nefro2dp"){
+        if(!DP.book)DP.book=dpNewBook();dpEnsure();
+        const ex=DP.book.pac.find(p=>String(p.Documento).replace(/\D/g,"")===String(np.doc||"").replace(/\D/g,""));
+        if(ex){DP.ui.pid=ex.ID;pxGo("dp","pac");toast("El paciente ya existe en DP como "+ex.ID+".");break;}
+        let mx=0;DP.book.pac.forEach(p=>{const m=/(\d+)$/.exec(p.ID||"");if(m)mx=Math.max(mx,+m[1]);});
+        const id="DP"+String(mx+1).padStart(3,"0");
+        dpAdd("pac","DP",{ID:id,IdInst:dpDocKey(np.tipodoc||"CC",np.doc),TipoDoc:np.tipodoc||"CC",Documento:np.doc||"",Nombres:dpTitle(n1),Apellidos:dpTitle(a1),FechaNac:np.fnac,Sexo:np.sexo==="F"?"Femenino":"Masculino",EPS:np.eps||"",Municipio:np.municipio||"Mocoa",Telefono:np.tel||"",Modalidad:"DPCA",EstadoPrograma:"Preparación",FechaIngresoPrograma:TODAY(),HTA:np.hta?"SI":"NO",DM:np.dmTipo?"SI":"NO",Origen:"Transición desde Nefroprotección ("+np.codigo+")"});
+        DP.ui.pid=id;pxGo("dp","pac");toast("Paciente trasladado a Diálisis Peritoneal como "+id+" conservando su trazabilidad.");
+      }else{
+        if(!ST.book)setBook(newBook(),"Libro HD");
+        const nid=nextPid();
+        ST.book.pac.push({ID:nid,TipoDoc:np.tipodoc||"CC",Documento:np.doc||"",Nombres:dpTitle(n1),Apellidos:dpTitle(a1),FechaNac:np.fnac,Sexo:np.sexo==="F"?"Femenino":"Masculino",EPS:np.eps||"",Municipio:np.municipio||"Mocoa",Telefono:np.tel||"",HTA:np.hta?"SI":"NO",DM:np.dmTipo?"SI":"NO",IngresoUnidad:TODAY(),Procedencia:"Prediálisis de la IPS",Estado:"Activo",SesSemana:3,DuracionMin:240,Obs:"Transición desde Nefroprotección ("+np.codigo+")"});
+        changed();reindex();ST.sel.pac=nid;pxOpenHD("pac");toast("Paciente trasladado a Hemodiálisis como "+nid+".");
+      }
+      break;
+    }
+    case"qtnew":{
+      openDlg("Registrar sesión de quimioterapia y doble verificación",
+       '<div class="form"><label class="f">Fecha *<input type="date" id="qt_f" value="'+pxToday()+'"></label><label class="f">ID Paciente *<input type="text" id="qt_id" placeholder="ONC-003"></label><label class="f">Nombre *<input type="text" id="qt_n"></label><label class="f">EPS<select id="qt_e">'+opt(EPS_L,"NUEVA EPS")+'</select></label><label class="f">Esquema *<input type="text" id="qt_es" placeholder="FOLFOX, AC-T, R-CHOP…"></label><label class="f">Ciclo<input type="number" id="qt_ci" value="1"></label><label class="f wide">Medicamentos citostáticos y dosis<input type="text" id="qt_m"></label>'+
+       '<label class="f">Doble verificación independiente *<select id="qt_dv">'+opt(["Completa","Incompleta (no iniciar)"],"Completa")+'</select></label><label class="f">Extravasación<select id="qt_ex">'+opt(["No","Sí"],"No")+'</select></label><label class="f">Reacción infusional<select id="qt_re">'+opt(["Ninguna","Leve","Moderada","Severa"],"Ninguna")+'</select></label><label class="f wide">Conducta / Observación<input type="text" id="qt_co"></label></div>',
+       "Guardar sesión",()=>{
+        const id=$("qt_id").value.trim(),es=$("qt_es").value.trim();if(!id||!es)return"Paciente y esquema son obligatorios.";
+        if($("qt_dv").value!=="Completa")return"Seguridad del paciente: no se autoriza iniciar infusión sin la doble verificación completa.";
+        const r=pxAdd("qts","QT-",{Fecha:$("qt_f").value,Paciente:id,Nombre:$("qt_n").value.trim(),EPS:$("qt_e").value,Esquema:es,Ciclo:$("qt_ci").value,Medicamentos:$("qt_m").value.trim(),DobleVerif:"Completa",Extravasacion:$("qt_ex").value,Reaccion:$("qt_re").value,Conducta:$("qt_co").value.trim(),Estado:"Realizada",Profesional:PX.user?PX.user.Nombre:"",Registrado:pxNow()});
+        pxAdd("prd","PR-",{Fecha:r.Fecha,Programa:"qt",EPS:r.EPS,Paciente:r.Paciente,Actividad:"Sesión de quimioterapia",Cantidad:1,Nota:r.Esquema+" ciclo "+r.Ciclo,Registrado:pxNow()});
+        pxRender();toast("Sesión "+r.ID+" registrada y cargada en Producción Asistencial.");
+       });
+      break;
+    }
+    case"capnew":case"capedit":{
+      const c=a==="capedit"?PX.book.cap.find(r=>r.ID===x):null;
+      openDlg(c?"Gestionar capacitación "+c.ID:"Programar capacitación institucional",
+       '<div class="form"><label class="f">Fecha *<input type="date" id="cp_f" value="'+esc(c?c.Fecha:pxToday())+'"></label><label class="f">Hora<input type="time" id="cp_h" value="'+esc(c?c.Hora:"14:00")+'"></label><label class="f">Programa *<select id="cp_p">'+opt(PROGS.map(p=>[p.k,p.n]),c?c.Programa:(x||"iaas"))+'</select></label><label class="f">Proceso<select id="cp_pr">'+opt([["","Institucional"]].concat(V7P.map(p=>[p.c,p.c+" · "+p.n])),c?c.Proceso:"")+'</select></label><label class="f wide">Tema *<input type="text" id="cp_t" value="'+esc(c?c.Tema:"")+'"></label><label class="f wide">Objetivo<input type="text" id="cp_o" value="'+esc(c?c.Objetivo:"")+'"></label><label class="f">Facilitador<input type="text" id="cp_fa" value="'+esc(c?c.Facilitador:(PX.user?PX.user.Nombre:""))+'"></label><label class="f">Modalidad<select id="cp_m">'+opt(["Presencial","Virtual","Mixta"],c?c.Modalidad:"Presencial")+'</select></label><label class="f">Estado<select id="cp_e">'+opt(["Programada","Realizada","Reprogramada","Cancelada"],c?c.Estado:"Programada")+'</select></label><label class="f">N.° de asistentes<input type="number" id="cp_n" value="'+esc(c?c.TotalAsistentes:0)+'"></label><label class="f wide">Asistentes nominales (nombres o áreas)<input type="text" id="cp_as" value="'+esc(c?c.Asistentes:"")+'"></label><label class="f">Evaluación pre/post<input type="text" id="cp_ev" value="'+esc(c?c.EvaluacionPrePost:"")+'" placeholder="Ej.: Pre 75 % -> Post 95 %"></label><label class="f">Evidencia (acta/lista)<input type="text" id="cp_so" value="'+esc(c?c.Evidencia:"")+'"></label></div>',
+       "Guardar",()=>{
+        const o={Fecha:$("cp_f").value,Hora:$("cp_h").value,Programa:$("cp_p").value,Proceso:$("cp_pr").value,Tema:$("cp_t").value.trim(),Objetivo:$("cp_o").value.trim(),Facilitador:$("cp_fa").value.trim(),Modalidad:$("cp_m").value,Estado:$("cp_e").value,TotalAsistentes:num($("cp_n").value)||0,Asistentes:$("cp_as").value.trim(),EvaluacionPrePost:$("cp_ev").value.trim(),Evidencia:$("cp_so").value.trim()};
+        if(!o.Fecha||o.Tema.length<4)return"Fecha y tema son obligatorios.";
+        if(o.Estado==="Realizada"&&(!o.TotalAsistentes||!o.Evidencia))return"Para marcar como realizada registre el número de asistentes y la evidencia.";
+        if(c)pxUpd("cap",c,o);else{const r=pxAdd("cap","CAP-",Object.assign(o,{Origen:"Manual",Registrado:pxNow()}));pxAdd("cal","CA-",{Titulo:"Capacitación: "+o.Tema,Tipo:"Capacitación",Fecha:o.Fecha,HoraInicio:o.Hora,Modalidad:o.Modalidad,Responsable:PX.user?PX.user.ID:"",Programa:o.Programa,Visibilidad:"Todos",Descripcion:o.Objetivo,Estado:o.Estado==="Realizada"?"Realizada":"Programada",Respuestas:"{}",Creador:PX.user?PX.user.ID:"",Registrado:pxNow()});}
+        pxRender();toast("Capacitación guardada y sincronizada en el Calendario Institucional.");
+       });
+      break;
+    }
+    case"capexp":{
+      pxExport("Cronograma_Capacitaciones_POSMEDICA_"+pxToday()+".xlsx",[["Capacitaciones",PX.book.cap||[],[["ID",c=>c.ID],["Fecha",c=>c.Fecha],["Hora",c=>c.Hora],["Programa",c=>PROG[c.Programa]?PROG[c.Programa].n:c.Programa],["Proceso",c=>c.Proceso],["Tema",c=>c.Tema],["Objetivo",c=>c.Objetivo],["Facilitador",c=>c.Facilitador],["Asistentes",c=>c.TotalAsistentes],["Nominal",c=>c.Asistentes],["Evaluación",c=>c.EvaluacionPrePost],["Evidencia",c=>c.Evidencia],["Estado",c=>c.Estado]]]]);
+      break;
+    }
+    case"libnew":{
+      openDlg("Auditar y Liberar Reporte Regulatorio (Pre-SISCAC / EPS)",
+       '<div class="form"><label class="f">Programa *<select id="lb_pr">'+opt([["hd","Hemodiálisis"],["dp","Diálisis Peritoneal"],["vih","VIH"],["nefro","Nefroprotección"],["ce","Consulta Externa (Res. 256/1552)"]],x||"hd")+'</select></label><label class="f">Periodo / Corte *<input type="text" id="lb_pe" value="'+pxMes()+'"></label><label class="f">EPS<select id="lb_ep">'+opt(EPS_L,"","Todas")+'</select></label><label class="f wide">Reporte auditado *<input type="text" id="lb_re" value="Matriz nominal CAC / EPS"></label><label class="f">Pacientes incluidos *<input type="number" id="lb_n" value="40"></label><label class="f">Hallazgos bloqueantes *<input type="number" id="lb_b" value="0"></label><label class="f">Advertencias<input type="number" id="lb_a" value="0"></label><label class="f">Soportes clínicos verificados *<select id="lb_s">'+opt(["Sí (muestra y críticos verificados)","Parcial","No"],"Sí (muestra y críticos verificados)")+'</select></label><label class="f">Dictamen *<select id="lb_d">'+opt(["Aprobado para envío","Rechazado (corregir bloqueantes)"],"Aprobado para envío")+'</select></label><label class="f wide">Observación de auditoría<input type="text" id="lb_o"></label></div>',
+       "Firmar liberación",()=>{
+        const b=num($("lb_b").value)||0,d=$("lb_d").value;
+        if(d==="Aprobado para envío"&&b>0)return"No se puede aprobar para envío un reporte con hallazgos bloqueantes mayores a 0.";
+        if(d==="Aprobado para envío"&&$("lb_s").value==="No")return"No se puede aprobar para envío sin verificar los soportes clínicos.";
+        pxAdd("lib","LIB-",{Fecha:pxToday(),Programa:$("lb_pr").value,Reporte:$("lb_re").value.trim(),Periodo:$("lb_pe").value.trim(),EPS:$("lb_ep").value,Registros:num($("lb_n").value)||0,Bloqueantes:b,Advertencias:num($("lb_a").value)||0,SoportesVerificados:$("lb_s").value,Dictamen:d,Auditor:PX.user?PX.user.Nombre:"",Observacion:$("lb_o").value.trim(),Registrado:pxNow()});
+        pxRender();toast("Acta de liberación "+d.toLowerCase()+" registrada en SOGCS.");
+       });
+      break;
+    }
+  }
+});
+window.V10API={V10,V10_PROCS,v11NavigateAxis,v11DetectAxis,v10GovView,v10PamecProgView,v10ProgProdView,v10FarView,v10QtView,v10CapView};
+
+/* =====================================================================================================
+   v2.0 · MOTOR DE NAVEGACIÓN MAESTRA EN GRILLA DE 8 COLUMNAS (SIN DOBLE BARRA NI SCROLL HORIZONTAL),
+   ELIMINACIÓN DE ENCABEZADO Y BARRA DUPLICADA EN NEFROPROTECCIÓN (#nefroframe),
+   BARRA SUPERIOR EN UNA SOLA LÍNEA CON MENÚ «LIBROS Y RESPALDO ▾» Y BUSCADOR GLOBAL MPI (Ctrl+K)
+   ===================================================================================================== */
+const V12={
+  ver:"2.0",
+  state:{
+    hd:{axis:"e3",sub:"turno"},
+    dp:{axis:"e3",sub:"dp_val"},
+    vih:{axis:"e3",sub:"age"},
+    nefro:{axis:"e3",sub:"nefro_val"},
+    ce:{axis:"e3",sub:"age"}
+  },
+  axes:[
+    ["e1","01","Gobierno y Procesos"],
+    ["e2","02","Cohorte y Riesgo"],
+    ["e3","03","Operación y HC GPC"],
+    ["e4","04","Paraclínicos y Vacunas"],
+    ["e5","05","Gestión Farmacéutica y Terapéutica"],
+    ["e6","06","Indicadores y CAC"],
+    ["e7","07","Auditoría y PAMEC"],
+    ["e8","08","Producción y Metas"]
+  ],
+  map:{
+    hd:{
+      e1:[["hd_proc","Procesos (HD-P01..05)"],["hd_ruta","Ruta del paciente"],["hd_plan","Plan de trabajo"],["doc","Documentos y guías"],["ref","Referencia"]],
+      e2:[["pac","Pacientes (Maestro)"],["sem","Calidad de diálisis y riesgo"],["acc","Acceso vascular y dispositivos"],["tx","Trasplante"],["alert","Alertas"]],
+      e3:[["turno","Turno del día"],["val","Valoración mensual (HC + GPC)"],["lim","Limpieza y desinfección"]],
+      e4:[["lab","Paraclínicos y solicitud mensual"],["vac","Vacunación VHB"]],
+      e5:[["hd_anti","Control de ampollas intradiálisis (EPO/Hierro)"],["inf","Infecciones y antimicrobianos"]],
+      e6:[["ind","Indicadores CAC 2026"],["rep","Reportes y matrices CAC"],["cal","Calidad del dato"]],
+      e7:[["hd_aud","Auditoría concurrente de HC y SISCAC"],["hd_pamec","Planes de mejora PAMEC del programa"],["hd_lib","Liberación de reportes"]],
+      e8:[["hd_meta","Producción del mes vs. Meta (Nota Técnica)"],["hd_conc","Conciliación por contrato EPS"]]
+    },
+    dp:{
+      e1:[["dp_proc","Procesos (DP-P01..04)"],["dp_plan","Plan de trabajo"],["dp_doc","Documentos"]],
+      e2:[["dp_cen","Censo y ficha"],["dp_tr","Intervalos y transiciones"],["dp_con","Conciliación heredados"],["dp_trp","Trasplante y calidad de vida"],["dp_al","Alertas"]],
+      e3:[["dp_val","Valoraciones e HC GPC"],["dp_age","Agenda DP"],["dp_hos","Hospitalizaciones"]],
+      e4:[["dp_lcal","Calendario de laboratorio"],["dp_lres","Resultados y tendencias"],["dp_ktv","Adecuación Kt/V y PET"]],
+      e5:[["dp_ins","Suministros y entrega conciliada en casa (Conciliada)"],["dp_pre","Prescripción DP"],["dp_cat","Catéter, educación y peritonitis"]],
+      e6:[["dp_ind","Indicadores CAC 2026 y operativos"],["dp_cac","Prevalidación reporte CAC"],["dp_exp","Exportaciones y bitácora SHA-256"]],
+      e7:[["dp_aud","Auditoría de completitud y CAC en vivo"],["dp_pamec","Planes de mejora PAMEC"],["dp_lib","Liberación de reportes"]],
+      e8:[["dp_meta","Paquetes mensuales DP y valoraciones facturables vs. Meta"]]
+    },
+    vih:{
+      e1:[["vih_proc","Procesos (VIH-P01..04)"],["ruta","Ruta y contrato"],["vih_plan","Plan de trabajo"]],
+      e2:[["pob","Población"],["car","Caracterización y pirámide"],["ale","Alertas rojas/amarillas"]],
+      e3:[["age","Agenda interdisciplinaria"],["vih_hc","Valoraciones e HC (en ficha)"]],
+      e4:[["lab","Laboratorios y plan contractual"],["prc","Procedimientos y enfermería (PPD/Citología)"],["vac","Vacunación"]],
+      e5:[["tar_esq","TAR · Esquemas y validación"],["tar_ent","Entregas con descuento de saldo"],["tar_ped","Pedido mensual conciliado de TAR"]],
+      e6:[["ind","Indicadores CAC y Nueva EPS"],["rep","Descargas (Nominal 43 y CAC 193)"],["cal","Calidad del dato"]],
+      e7:[["aud","Auditoría CAC de la HC (16 criterios)"],["vih_pamec","Planes de mejora PAMEC"],["vih_lib","Liberación de reportes"]],
+      e8:[["fac","Facturación mensual por paciente atendido vs. Meta"]]
+    },
+    nefro:{
+      e1:[["nefro_proc","Procesos (NEF-P01..03)"],["nefro_plan","Plan de trabajo"],["nefro_ref","Referencia"]],
+      e2:[["nefro_pac","Pacientes y estratificación KDIGO/KFRE"],["nefro_coh","Cohortes y caracterización"],["nefro_trr","Transición G5 → DP / HD"]],
+      e3:[["nefro_val","Valoración clínica GPC + RCV + KFRE"],["nefro_age","Agendas espejo A/B"]],
+      e4:[["nefro_lab","Seguimiento de laboratorios y próximos"],["nefro_venc","Laboratorios vencidos y alertas"]],
+      e5:[["nefro_far","Metas farmacológicas (IECA/ARA-II, iSGLT2, estatinas)"]],
+      e6:[["nefro_ind","47 Indicadores CAC"],["nefro_nom","Nominales EPS Familiar y Nueva EPS"],["nefro_cal","Calidad del dato"]],
+      e7:[["nefro_aud","Auditoría GPC por muestreo (KDIGO/ADA/ESH)"],["nefro_pamec","Planes de mejora PAMEC"]],
+      e8:[["nefro_meta","Consultas y paquetes de nefroprotección vs. Meta"]]
+    },
+    ce:{
+      e1:[["ce_proc","Procesos (CE-P01..02)"],["adm","Administración y catálogos"]],
+      e2:[["lista","Lista de espera única priorizada"],["nueva","Nueva solicitud"],["pac","Pacientes"]],
+      e3:[["age","Agenda por jornadas y cierre Fase 2"]],
+      e4:[["aut","Control de autorizaciones EPS"]],
+      e5:[["ce_ord","Trazabilidad de órdenes"]],
+      e6:[["tab","Tablero de oportunidad Res. 1552/256"],["cal","Calidad del dato"]],
+      e7:[["ce_aud","Auditoría de adherencia y saltos de orden"],["ce_pamec","Planes de mejora PAMEC"]],
+      e8:[["ce_meta","Consultas efectivas atendidas por especialidad vs. Meta"]]
+    }
+  }
+};
+
+function v12FindAxisOfSub(prog,sub){
+  const M=V12.map[prog];if(!M)return null;
+  for(const ax of Object.keys(M)){
+    if(M[ax].some(([k])=>k===sub))return ax;
+  }
+  return null;
+}
+
+function v12RenderGrid(prog,curAxis,badges){
+  badges=badges||{};
+  return V12.axes.map(([ax,num,lbl])=>{
+    const cnt=badges[ax]||0;
+    return'<button type="button" role="tab" class="v12-axis-btn" data-v12="axis|'+prog+'|'+ax+'" aria-selected="'+(curAxis===ax)+'">'+
+      '<span class="v12-axis-top"><span class="v12-axis-num">'+num+'</span>'+(cnt?'<span class="v12-axis-cnt">'+cnt+'</span>':'')+'</span>'+
+      '<span class="v12-axis-lbl">'+esc(lbl)+'</span></button>';
+  }).join("");
+}
+
+function v12RenderSubbar(prog,curAxis,curSub,subBadges){
+  subBadges=subBadges||{};
+  const subs=(V12.map[prog]&&V12.map[prog][curAxis])||[];
+  const axObj=V12.axes.find(a=>a[0]===curAxis)||["e1","01","Eje"];
+  return'<div class="seg v12-subbar" role="group" aria-label="Herramientas de '+esc(axObj[2])+'">'+
+    '<span class="v12-sub-eyebrow">Eje '+axObj[1]+' · '+esc(axObj[2])+'</span>'+
+    subs.map(([k,l])=>{
+      const c=subBadges[k]||0;
+      return'<button type="button" data-v12="sub|'+prog+'|'+curAxis+'|'+k+'" aria-pressed="'+(curSub===k)+'">'+esc(l)+(c?' <span class="cnt">'+c+'</span>':'')+'</button>';
+    }).join("")+'</div>';
+}
+
+/* ---------- 1. Barra Superior (#pxbar) en Una Sola Línea con Menú Compacto «Libros y Respaldo ▾» ---------- */
+pxBar=function(){
+  const b=document.getElementById("pxbar");
+  if(!PX.user){b.hidden=true;try{pxFab();}catch(e){}return;}
+  b.hidden=false;
+  const un=pxUnread().length;
+  const curProg=PX.view==="panel"?"":(PROG[PX.view]?PROG[PX.view].n:PX.view==="usr"?"Usuarios":"");
+  const dirtyAny=!!(PX.dirty||(ST.book&&ST.dirty)||(DP&&DP.book&&DP.dirty)||(VX&&VX.book&&VX.dirty)||(CE&&CE.book&&CE.dirty));
+  const modLbl=PX.view==="hd"?"libro de Hemodiálisis":PX.view==="dp"?"libro de Diálisis Peritoneal":PX.view==="vih"?"libro del Programa VIH":PX.view==="ce"?"libro de Consulta Externa":PX.view==="nefro"?"libro de Nefroprotección":"libro institucional";
+  b.innerHTML='<div class="pxbar-in">'+
+    '<div class="pxbar-l">'+
+      (PX.view!=="panel"?'<button type="button" class="btn sm pxback" data-p="back" aria-label="Volver a la vista anterior"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Atrás</button>':'')+
+      '<button type="button" class="pxhome" data-p="go|panel" title="Ir al panel de programas"><img src="'+document.getElementById("pxlogo").src+'" alt=""><span><b>POSMÉDICA</b><small>UNO-P · Mocoa</small></span></button>'+
+      (curProg?'<span class="crumb"><button type="button" class="lnk" data-p="go|panel">Panel</button> / '+esc(curProg)+'</span>':'')+
+      '<span id="v9savechip" class="v9bar-chip'+(dirtyAny?' warn':'')+'" title="Estado de autoguardado local en IndexedDB">'+(V9.lastSave?'Autoguardado '+V9.lastSave:'IndexedDB activo')+'</span>'+
+    '</div>'+
+    '<div class="pxbar-r">'+
+      '<button type="button" class="btn sm" data-v12="cmdk" title="Buscador Maestro de Pacientes (MPI) en las 5 cohortes (Ctrl+K)">🔎 MPI</button>'+
+      '<button type="button" class="btn sm" data-v10="theme" title="Alternar entre Modo Oscuro Clínico y Modo Claro Consultorio">'+(V10.theme==="light"?"☾ Oscuro":"☀ Claro")+'</button>'+
+      '<button type="button" class="btn sm" data-p="go|msg">Mensajes'+(un?' <span class="cnt">'+un+'</span>':'')+'</button>'+
+      '<details class="v12dd" id="v12dd">'+
+        '<summary class="btn sm'+(dirtyAny?' warn':'')+'">Libros y Respaldo ▾</summary>'+
+        '<div class="v12dd-menu">'+
+          '<button type="button" class="v12dd-item" data-v9="masterexp"><span>Descargar Libro Maestro Unificado</span><small>.xlsx (5 libros)</small></button>'+
+          '<label class="v12dd-item"><span>Cargar Libro Maestro Unificado</span><small>.xlsx</small><input type="file" id="v9masterfile" accept=".xlsx" hidden></label>'+
+          '<div class="v12dd-sep"></div>'+
+          '<button type="button" class="v12dd-item" data-v12="expcur"><span>Descargar '+esc(modLbl)+'</span><small>.xlsx</small></button>'+
+          '<button type="button" class="v12dd-item" data-p="bookexp"><span>Descargar libro institucional</span><small>.xlsx</small></button>'+
+          '<div class="v12dd-sep"></div>'+
+          '<button type="button" class="v12dd-item" data-v9="restore"><span>Restaurar copia local</span><small>IndexedDB</small></button>'+
+          '<button type="button" class="v12dd-item" data-v12="savelocal"><span>Guardar copia local ahora</span><small>IndexedDB</small></button>'+
+          '<button type="button" class="v12dd-item" data-g="print"><span>Imprimir vista actual / Comité</span><small>PDF</small></button>'+
+        '</div>'+
+      '</details>'+
+      '<span class="who"><b>'+esc(PX.user.Nombre)+'</b><small>'+esc(PX.user.Cargo)+'</small></span>'+
+      '<button type="button" class="btn sm" data-p="logout">Salir</button>'+
+    '</div>'+
+  '</div>';
+  pxFab();
+};
+
+/* Sincronizar el tema Claro/Oscuro y el ocultamiento de barras duplicadas dentro de #nefroframe */
+function v12SyncNefroTheme(){
+  try{
+    const w=pxNefroWin();
+    if(w&&w.document&&w.document.documentElement){
+      if(V10.theme==="light")w.document.documentElement.setAttribute("data-theme","light");
+      else w.document.documentElement.removeAttribute("data-theme");
+      if(!w.document.getElementById("v12-nefro-clean-style")){
+        const st=w.document.createElement("style");
+        st.id="v12-nefro-clean-style";
+        st.textContent=`
+          header.top, nav.nav, p.privacy, #bookbar > .copyrow, .nsub[aria-label="Subsecciones de cohortes"] { display: none !important; }
+          #bookbar:has(.filters[hidden]) { display: none !important; }
+          #bookbar { margin-top: 4px !important; margin-bottom: 10px !important; padding: 10px 14px !important; }
+          .wrap { max-width: 1360px !important; padding-top: 6px !important; }
+          html[data-theme="light"] {
+            --bg:#f1f5f9 !important; --surface:#ffffff !important; --surface-2:#f8fafc !important;
+            --ink:#0f172a !important; --muted:#475569 !important; --line:#e2e8f0 !important; --field:#cbd5e1 !important;
+            --accent:#0284c7 !important; --accent-ink:#ffffff !important; --accent-soft:#e0f2fe !important;
+            --ok:#059669 !important; --warn:#d97706 !important; --bad:#e11d48 !important;
+            color-scheme: light !important;
+          }
+          html[data-theme="light"] input, html[data-theme="light"] select, html[data-theme="light"] textarea {
+            background:#ffffff !important; color:#0f172a !important; border-color:#cbd5e1 !important;
+          }
+        `;
+        w.document.head.appendChild(st);
+      }
+      /* Actualizar el contador de pacientes activos en el encabezado de Nefroprotección */
+      const infoEl=document.getElementById("nefro-top-info");
+      if(infoEl&&w.MG&&w.MG.book){
+        const nAct=(w.MG.patients()||[]).filter(p=>p.estado==="ACTIVO").length;
+        const nTot=(w.MG.patients()||[]).length;
+        infoEl.innerHTML=nAct+' activos de '+nTot+' en la cohorte · '+(w.MG.demo?'<span style="color:var(--warn)">datos ficticios</span>':'libro cargado');
+      }
+    }
+  }catch(e){}
+}
+const v11ToggleTheme0=v11ToggleTheme;
+v11ToggleTheme=function(){
+  v11ToggleTheme0();
+  v12SyncNefroTheme();
+};
+
+/* Enriquecer también pxNefroSrcdoc para que nazca sin header.top ni nav.nav desde el primer milisegundo */
+const pxNefroSrcdoc0=pxNefroSrcdoc;
+pxNefroSrcdoc=function(){
+  let h=pxNefroSrcdoc0();
+  const cleanCss='<style id="v12-nefro-clean-init">header.top,nav.nav,p.privacy,#bookbar>.copyrow,.nsub[aria-label="Subsecciones de cohortes"]{display:none!important}#bookbar:has(.filters[hidden]){display:none!important}#bookbar{margin-top:4px!important;margin-bottom:10px!important;padding:10px 14px!important}.wrap{max-width:1360px!important;padding-top:6px!important}</style>';
+  const bi=h.lastIndexOf("</body>");
+  return bi>=0?h.slice(0,bi)+cleanCss+h.slice(bi):h+cleanCss;
+};
+
+/* ---------- 2. Vistas de Sub-pestañas Nuevas o Específicas de los 8 Ejes ---------- */
+function v12PlanSubView(prog){
+  const pl=PX.book?PX.book.pln.filter(r=>v7has(r,prog)):[];
+  const caps=PX.book?(PX.book.cap||[]).filter(c=>c.Programa===prog):[];
+  return'<div class="panel"><div class="mhead"><div><h3 style="margin:0">Plan de Trabajo Anual y Cronograma de Capacitaciones · '+esc(PROG[prog]?PROG[prog].n:prog)+'</h3><p class="note" style="margin:2px 0 0">Actividades críticas programadas por proceso y sesiones de educación continua del equipo.</p></div>'+
+    '<div class="copyrow"><button type="button" class="btn sm primary" data-v10="plnnew|'+prog+'">Nueva actividad del plan</button><button type="button" class="btn sm" data-v10="capnew|'+prog+'">Programar capacitación</button></div></div>'+
+    '<div class="tablebox" style="margin-top:8px"><table class="dense"><thead><tr><th>Proceso</th><th>Actividad</th><th>Responsable</th><th>Periodicidad</th><th>Programada</th><th>Estado</th><th></th></tr></thead><tbody>'+
+    (pl.map(r=>'<tr class="click" data-p="v7pln|'+r.ID+'"><td class="mono">'+esc(r.Proceso)+'</td><td><strong>'+esc(r.Actividad)+'</strong><span class="sub">'+esc(r.Observaciones||r.Soporte||"")+'</span></td><td>'+v7who(r.Responsable)+'</td><td>'+esc(r.Periodicidad||"")+'</td><td class="mono">'+pxFD(r.FechaProgramada)+'</td><td><span class="st '+plnCls(plnEst(r))+'">'+esc(plnEst(r))+'</span></td><td><button type="button" class="btn sm" data-p="v7pln|'+r.ID+'">Gestionar</button></td></tr>').join("")||'<tr><td colspan="7" class="note">Sin actividades registradas en el plan de este programa. Use «Nueva actividad del plan».</td></tr>')+
+    '</tbody></table></div></div>'+
+    '<div class="panel" style="margin-top:14px"><h3>Capacitaciones del Programa ('+caps.length+')</h3>'+
+    (caps.length?'<div class="tablebox"><table class="dense"><thead><tr><th>Fecha</th><th>Tema</th><th>Facilitador</th><th class="num">Asistentes</th><th>Evaluación</th><th>Estado</th><th></th></tr></thead><tbody>'+caps.map(c=>'<tr><td class="mono">'+pxFD(c.Fecha)+'</td><td><strong>'+esc(c.Tema)+'</strong></td><td>'+esc(c.Facilitador||"")+'</td><td class="num">'+esc(c.TotalAsistentes||0)+'</td><td>'+esc(c.EvaluacionPrePost||"—")+'</td><td><span class="st '+(c.Estado==="Realizada"?"ok":"warn")+'">'+esc(c.Estado)+'</span></td><td><button type="button" class="btn sm" data-v10="capedit|'+c.ID+'">Asistencia</button></td></tr>').join("")+'</tbody></table></div>':'<p class="note">Sin capacitaciones específicas registradas para este programa.</p>')+'</div>';
+}
+
+function v12LibSubView(prog){
+  const L=PX.book?(PX.book.lib||[]).filter(l=>l.Programa===prog):[];
+  return'<div class="panel"><div class="mhead"><div><h3 style="margin:0">Actas de Auditoría y Liberación de Reportes Regulatorios (Pre-SISCAC / EPS) · '+esc(PROG[prog]?PROG[prog].n:prog)+'</h3><p class="note" style="margin:2px 0 0">Garantiza que ningún archivo plano o matriz nominal salga hacia la EPS o SISCAC con errores bloqueantes o sin soportes clínicos verificados (Objetivo Específico 7).</p></div>'+
+    '<button type="button" class="btn sm primary" data-v10="libnew|'+prog+'">Auditar y liberar reporte</button></div>'+
+    '<div class="tablebox" style="margin-top:10px"><table class="dense"><thead><tr><th>ID</th><th>Fecha</th><th>Reporte auditado</th><th>Periodo · EPS</th><th class="num">Registros</th><th class="num">Bloqueantes</th><th class="num">Advertencias</th><th>Soportes verificados</th><th>Dictamen</th><th>Auditor</th></tr></thead><tbody>'+
+    (L.slice().reverse().map(l=>'<tr><td class="mono">'+esc(l.ID)+'</td><td class="mono">'+pxFD(l.Fecha)+'</td><td><strong>'+esc(l.Reporte)+'</strong></td><td>'+esc(l.Periodo+" · "+(l.EPS||"Todas"))+'</td><td class="num mono">'+esc(l.Registros)+'</td><td class="num mono">'+esc(l.Bloqueantes)+'</td><td class="num mono">'+esc(l.Advertencias||0)+'</td><td>'+esc(l.SoportesVerificados)+'</td><td><span class="st '+(l.Dictamen==="Aprobado para envío"?"ok":"bad")+'">'+esc(l.Dictamen)+'</span></td><td>'+esc(l.Auditor)+'</td></tr>').join("")||'<tr><td colspan="10" class="note">Sin actas de liberación registradas para este programa.</td></tr>')+
+    '</tbody></table></div></div>';
+}
+
+function v12HdAntiView(){
+  if(!hdOn())return'<div class="panel empty">Cargue el libro de Hemodiálisis.</div>';
+  ensureIdx();const mes=ym(ST.corte);const{ms,me}=v6per(mes);
+  const rows=[];let totPresc=0,totAj=0;
+  pacs().filter(p=>epsOk(p)&&overlaps(p,ms,me)).forEach(p=>{
+    const ses=sesIn(p,ms,me,"Realizada").length;
+    const prog=progDays(p,ms,me).length||12;
+    p._med.filter(m=>!m.Fin||m.Fin>=ms).forEach(m=>{
+      const cant=num(m.CantidadMes)||0;
+      const esp=m.Lugar==="Administrado en la unidad"?Math.round(cant*Math.min(1,ses/Math.max(1,prog))):cant;
+      const disp=p._dis.find(d=>d.Mes===mes&&d.Prescripcion===m.ID);
+      if(m.Lugar==="Administrado en la unidad"){totPresc+=cant;totAj+=esp;}
+      rows.push({p,m,ses,prog,cant,esp,disp});
+    });
+  });
+  const aho=Math.max(0,totPresc-totAj);
+  return'<div class="panel v9anti"><div class="mhead"><div><h3 style="margin:0">Gestión y Conciliación Farmacéutica de Ampollas Intradiálisis (EPO / Hierro IV / Calcitriol) · '+esc(mes)+'</h3><p class="note" style="margin:2px 0 0">Cruza las ampollas prescritas para administración en sala contra las sesiones efectivamente realizadas por cada paciente en el Turno del Día, bloqueando el desperdicio por sesiones inasistidas.</p></div></div>'+
+    '<div class="v9anti-kpis"><div class="tile"><span class="tv">'+totPresc.toLocaleString("es-CO")+'</span><span class="tl">ampollas intradiálisis prescritas (mes teórico)</span></div><div class="tile ok"><span class="tv">'+aho.toLocaleString("es-CO")+'</span><span class="tl">ampollas ahorradas por ajuste a sesiones reales</span></div><div class="tile"><span class="tv">'+totAj.toLocaleString("es-CO")+'</span><span class="tl">ampollas netas autorizadas para sala</span></div></div>'+
+    '<div class="tablebox"><table class="dense"><thead><tr><th>Paciente</th><th>Medicamento</th><th>Lugar · Vía</th><th>Dosis · Frecuencia</th><th class="num">Sesiones (real / prog)</th><th class="num">Prescrito mes</th><th class="num">Neto según asistencia</th><th class="num">Ahorro</th></tr></thead><tbody>'+
+    (rows.map(r=>{const diff=Math.max(0,r.cant-r.esp);return'<tr><td><strong>'+esc(r.p.ID)+'</strong><span class="sub">'+esc(nombre(r.p))+'</span></td><td>'+esc(r.m.Medicamento)+(r.m.Mipres==="SI"?' <span class="tag cac">MIPRES</span>':'')+'</td><td>'+esc((r.m.Lugar||"")+" · "+(r.m.Via||""))+'</td><td>'+esc((r.m.Dosis||"")+" · "+(r.m.Frecuencia||""))+'</td><td class="num mono">'+r.ses+' / '+r.prog+'</td><td class="num mono">'+r.cant+' '+esc(r.m.Unidad||"")+'</td><td class="num mono"><strong>'+r.esp+'</strong></td><td class="num mono" style="color:'+(diff?"var(--ok)":"inherit")+'">'+(diff?"−"+diff:"0")+'</td></tr>';}).join("")||'<tr><td colspan="8" class="note">Sin prescripciones activas en el mes.</td></tr>')+
+    '</tbody></table></div></div>';
+}
+
+function v12HdAudSubView(){
+  if(!hdOn())return'<div class="panel empty">Cargue el libro de Hemodiálisis.</div>';
+  ensureIdx();const mes=ym(ST.corte);const act=pacs().filter(p=>epsOk(p)&&activeAt(p,ST.corte));
+  const rows=act.map(p=>{
+    const D=valDraft(p.ID,mes);
+    const X=valCtx(p,D);
+    const CK=valChecklist(p,X,D.f);
+    const okCK=CK.filter(c=>c[0]).length;
+    const S=v9GetSiscac("hd",p.ID);
+    const okSis=(V9_SISCAC.hd||[]).filter(([k])=>S[k]).length;
+    const v=p._val.filter(x=>x.Mes===mes).pop();
+    return{p,v,okCK,totCK:CK.length,okSis,totSis:(V9_SISCAC.hd||[]).length,pct:Math.round(okCK/CK.length*100)};
+  });
+  const nVal=rows.filter(r=>r.v).length;
+  return'<div class="panel"><div class="mhead"><div><h3 style="margin:0">Auditoría Concurrente de Historias Clínicas y Soportes SISCAC · Hemodiálisis · '+esc(mes)+'</h3><p class="note" style="margin:2px 0 0">Evalúa en toda la cohorte activa los 16 criterios obligatorios de la historia clínica mensual (KDIGO 2026 / CAC) y los 4 soportes documentales para SISCAC.</p></div></div>'+
+    '<div class="tiles" style="margin:10px 0"><div class="tile '+(nVal===rows.length?"ok":"warn")+'"><span class="tv">'+nVal+' / '+rows.length+'</span><span class="tl">pacientes activos con valoración cerrada en '+esc(mes)+'</span></div>'+
+    '<div class="tile"><span class="tv">'+(rows.length?Math.round(rows.reduce((a,r)=>a+r.pct,0)/rows.length):0)+' %</span><span class="tl">cumplimiento promedio de lista de chequeo GPC/CAC</span></div>'+
+    '<div class="tile"><span class="tv">'+rows.filter(r=>r.okSis===r.totSis).length+' / '+rows.length+'</span><span class="tl">con los 4 soportes SISCAC verificados</span></div></div>'+
+    '<div class="tablebox"><table class="dense"><thead><tr><th>Paciente</th><th>EPS · Turno</th><th>Valoración '+esc(mes)+'</th><th class="num">Chequeo GPC/CAC</th><th class="num">Soportes SISCAC</th><th></th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td><strong>'+esc(r.p.ID)+'</strong><span class="sub">'+esc(nombre(r.p))+'</span></td><td>'+esc(r.p.EPS||"")+'<span class="sub">'+esc(r.p.Turno||"")+'</span></td><td>'+(r.v?'<span class="st ok">Cerrada '+fd(r.v.Fecha)+'</span>':'<span class="st warn">Pendiente</span>')+'</td><td class="num"><span class="st '+(r.pct>=90?"ok":r.pct>=75?"warn":"bad")+'">'+r.okCK+'/'+r.totCK+' ('+r.pct+' %)</span></td><td class="num"><span class="st '+(r.okSis===r.totSis?"ok":"warn")+'">'+r.okSis+'/'+r.totSis+'</span></td><td><button type="button" class="btn sm primary" data-a="vgo|'+r.p.ID+'">Auditar / Valorar</button></td></tr>').join("")+
+    '</tbody></table></div></div>';
+}
+
+/* ---------- 3. Reemplazo de Navegación en HEMODIÁLISIS (hd) ---------- */
+renderNav=function(){
+  const navEl=$("nav");if(!navEl)return;
+  navEl.className="v12-axis-grid";
+  let al=0,q=0;if(ST.book){try{al=alertas().total;q=calidad().filter(x=>x.lvl==="bad").length;}catch(e){}}
+  const curAxis=V12.state.hd.axis||"e3";
+  const curSub=V12.state.hd.sub||"turno";
+  navEl.innerHTML=v12RenderGrid("hd",curAxis,{e2:al,e6:q});
+  const subEl=$("hd-subbar");
+  if(subEl){
+    subEl.innerHTML=ST.book?v12RenderSubbar("hd",curAxis,curSub,{alert:al,cal:q}):"";
+  }
+};
+
+render=function(){
+  try{const P=window.PORTAL;if(P&&P.PX&&P.PX.user&&P.PX.view!=="hd"&&$("hdapp").hidden){P.pxRefresh();return;}}catch(e){}
+  if(ST.view){
+    const axFound=v12FindAxisOfSub("hd",ST.view);
+    if(axFound){V12.state.hd.axis=axFound;V12.state.hd.sub=ST.view;}
+  }
+  const curAxis=V12.state.hd.axis||"e3";
+  const subs=V12.map.hd[curAxis]||V12.map.hd.e3;
+  if(!subs.some(([k])=>k===V12.state.hd.sub))V12.state.hd.sub=subs[0][0];
+  const curSub=V12.state.hd.sub;
+  ST.view=curSub;
+  renderNav();
+  const out=$("out");
+  if(!ST.book){out.innerHTML=vStart();if(PX.user&&PX.view==="hd")pxBar();return;}
+  const viewFn={
+    hd_proc:()=>v10GovView("hd"),
+    hd_ruta:()=>pxRutaView(false),
+    hd_plan:()=>v12PlanSubView("hd"),
+    doc:()=>typeof pxDocsFor==="function"?pxDocsFor("hd"):'<div class="panel empty">Sin documentos.</div>',
+    ref:vRef,
+    pac:vPac,
+    sem:vSem,
+    acc:vAcc,
+    tx:vTx,
+    alert:vAlert,
+    turno:vTurno,
+    val:vVal,
+    lim:vLim,
+    lab:vLab,
+    vac:vVac,
+    hd_anti:v12HdAntiView,
+    inf:vInf08,
+    ind:vInd,
+    rep:vRep,
+    cal:vCal,
+    hd_aud:v12HdAudSubView,
+    hd_pamec:()=>v10PamecProgView("hd"),
+    hd_lib:()=>v12LibSubView("hd"),
+    hd_meta:()=>v10ProgProdView("hd"),
+    hd_conc:()=>vFin(true)
+  }[curSub]||vTurno;
+  try{
+    out.innerHTML=(ST.demo?'<div class="demo-banner">Está viendo <strong>datos ficticios</strong> generados para probar la herramienta.</div>':"")+
+      (rutaBanner(curSub))+
+      viewFn();
+  }catch(e){
+    console.error(e);
+    out.innerHTML='<div class="alert bad"><p>Error al dibujar esta vista: '+esc(e.message)+'</p></div>';
+  }
+  if(PX.user&&PX.view==="hd")pxBar();
+};
+
+/* ---------- 4. Reemplazo de Navegación en DIÁLISIS PERITONEAL (dp) ---------- */
+dpView=function(){
+  const role=dpRole();
+  let h='<div class="mhead"><div><p class="eyebrow">Programa misional · Unidad Renal</p><h2 class="mt">Diálisis peritoneal</h2><p class="note" style="margin:3px 0 0">Organizado en los 8 Ejes Estructurales: procesos, censo e intervalos, valoraciones GPC, laboratorio y Kt/V, suministros conciliado en casa, indicadores CAC 2026, auditoría PAMEC y producción.</p></div><div class="copyrow">'+
+   (DP.book?'<span class="tag" title="Rol en este módulo">'+esc(DP_ROLES[role]||"")+'</span><button type="button" class="btn sm'+(DP.dirty?" warn":"")+'" data-p="dpexp">Descargar libro DP</button><button type="button" class="btn sm" data-p="dpclose">Cerrar libro</button>':'')+'</div></div>';
+  if(!DP.book)return h+dpStart();
+  dpEnsure();
+  if(DP.demo)h+='<div class="demo-banner">Libro DP con <strong>datos ficticios</strong>. Ninguna cifra corresponde a pacientes reales.</div>';
+  if(DP.ui.chain&&!DP.ui.chain.ok)h+='<div class="alert bad"><p><strong>La bitácora del libro DP no coincide con su cadena SHA-256 desde la fila '+DP.ui.chain.fila+'.</strong></p></div>';
+  /* Mapear subrutas antiguas si algún botón interno llamó pxGo("dp", sub) */
+  const rawSub=PX.ui.sub||"";
+  if(rawSub&&!rawSub.startsWith("dp_")){
+    const mapOld={res:["e2","dp_al"],pac:["e2","dp_cen"],cen:["e2","dp_cen"],val:["e3","dp_val"],age:["e3","dp_age"],lab:["e4","dp_lcal"],tra:["e5","dp_ins"],epi:["e5","dp_cat"],atb:["e5","dp_cat"],ind:["e6","dp_ind"],rep:["e6","dp_cac"]};
+    if(mapOld[rawSub]){
+      if(rawSub==="tra"&&DP.ui.tab&&DP.ui.tab.tra){
+        const tMap={pre:["e5","dp_pre"],cat:["e5","dp_cat"],inf:["e5","dp_cat"],edu:["e5","dp_cat"],ins:["e5","dp_ins"],hos:["e3","dp_hos"],trp:["e2","dp_trp"]};
+        if(tMap[DP.ui.tab.tra]){V12.state.dp.axis=tMap[DP.ui.tab.tra][0];V12.state.dp.sub=tMap[DP.ui.tab.tra][1];}
+      }else if(rawSub==="pac"&&DP.ui.tab&&DP.ui.tab.pac==="con"){
+        V12.state.dp.axis="e2";V12.state.dp.sub="dp_con";
+      }else{
+        V12.state.dp.axis=mapOld[rawSub][0];V12.state.dp.sub=mapOld[rawSub][1];
+      }
+      PX.ui.sub=V12.state.dp.sub;
+    }
+  }
+  const curAxis=V12.state.dp.axis||"e3";
+  const subs=V12.map.dp[curAxis]||V12.map.dp.e3;
+  if(!subs.some(([k])=>k===V12.state.dp.sub))V12.state.dp.sub=subs[0][0];
+  const curSub=V12.state.dp.sub;
+  const alerts=dpAlerts();
+  const nAl=alerts.filter(a=>a.sev==="u"||a.sev==="c").length;
+  const nh=dpR("her").filter(x=>x.Estado==="Pendiente de verificación").length+dpR("ins").filter(i=>/por confirmar|Sin paciente/.test(i.Estado||"")).length;
+  h+='<nav class="v12-axis-grid" role="tablist" aria-label="Menú Maestro de 8 Ejes Estructurales">'+v12RenderGrid("dp",curAxis,{e2:nAl||nh})+'</nav>';
+  h+=v12RenderSubbar("dp",curAxis,curSub,{dp_al:alerts.length,dp_con:nh});
+  try{
+    if(curSub==="dp_proc")return h+v10GovView("dp");
+    if(curSub==="dp_plan")return h+v12PlanSubView("dp");
+    if(curSub==="dp_doc")return h+pxDocsFor("dp");
+    if(curSub==="dp_cen"){DP.ui.tab=DP.ui.tab||{};DP.ui.tab.pac="cen";return h+(DP.ui.pid&&dpPac(DP.ui.pid)?dpFicha(DP.ui.pid):dpPacientes().replace(/<div class="seg d8tabs"[\s\S]*?<\/div>/,""));}
+    if(curSub==="dp_tr")return h+dpDatos()+dpTraHos();
+    if(curSub==="dp_con")return h+dpConcil();
+    if(curSub==="dp_trp")return h+dpTraTrp();
+    if(curSub==="dp_al")return h+dpResumen().replace(/<div class="seg d8tabs"[\s\S]*?<\/div>/,"");
+    if(curSub==="dp_val"){if(DP.ui.vedit)return h+dpValEditor();DP.ui.tab=DP.ui.tab||{};DP.ui.tab.val="reg";return h+dpValView().replace(/<div class="seg d8tabs"[\s\S]*?<\/div>/,"");}
+    if(curSub==="dp_age")return h+dpAgeView();
+    if(curSub==="dp_hos")return h+dpTraHos();
+    if(curSub==="dp_lcal")return h+'<div class="mhead"><h3 style="margin:0">Calendario y Solicitud Mensual de Laboratorio · DP</h3>'+dpCanBtn("lab","d8labnew|","Registrar resultado","sm primary")+'</div>'+dpLabCal()+dpSolView("dp")+dpLabPlan();
+    if(curSub==="dp_lres")return h+'<div class="mhead"><h3 style="margin:0">Resultados Históricos y Tendencias por Paciente · DP</h3>'+dpCanBtn("lab","d8labnew|","Registrar resultado","sm primary")+'</div>'+dpLabRes()+dpLabTrend();
+    if(curSub==="dp_ktv")return h+dpLabKtv();
+    if(curSub==="dp_ins")return h+dpTraIns();
+    if(curSub==="dp_pre")return h+dpTraPre();
+    if(curSub==="dp_cat")return h+dpTraCat()+dpTraEdu()+dpEpis()+dpAtbs();
+    if(curSub==="dp_ind")return h+dpIndView();
+    if(curSub==="dp_cac")return h+dpRepCac();
+    if(curSub==="dp_exp")return h+dpRepExp()+dpRepLog();
+    if(curSub==="dp_aud")return h+dpValAudit();
+    if(curSub==="dp_pamec")return h+v10PamecProgView("dp")+dpRepPm()+dpRepCfg();
+    if(curSub==="dp_lib")return h+v12LibSubView("dp");
+    if(curSub==="dp_meta")return h+v10ProgProdView("dp");
+    return h+dpResumen();
+  }catch(e){
+    console.error(e);
+    return h+'<div class="alert bad"><p>Error al dibujar esta sección: '+esc(e.message)+'</p></div>';
+  }
+};
+
+/* ---------- 5. Reemplazo de Navegación en VIH (vih) ---------- */
+vxHead=function(){
+  const c=vxCorte();const F=VX.ui.f||{};const pid=vxPid();
+  const muns=[...new Set(vxPacs().map(p=>p.Municipio).filter(Boolean))].sort();
+  const nRoja=vxPacs().filter(p=>vxFiltro(p)&&vxAlertas(p,c).nivel==="roja").length;
+  const curAxis=V12.state.vih.axis||"e3";
+  const curSub=V12.state.vih.sub||"age";
+  let h='<div class="mhead"><div><p class="eyebrow">Programa misional · GAO-PT-008'+(VX.demo?' · <span style="color:var(--warn)">datos ficticios</span>':'')+'</p><h2 class="mt">Programa Especial VIH</h2><p class="note" style="margin:3px 0 0">'+vxPacs().filter(p=>vxSt(p,c).activo).length+' activos al corte · libro '+(VX.dirty?'<b style="color:var(--warn)">con cambios sin descargar</b>':'sin cambios')+'</p></div>'+
+   '<div class="copyrow"><label class="f" style="max-width:160px">Fecha de corte<input type="date" id="vxcorte" value="'+iso(c)+'"></label><button type="button" class="btn sm'+(VX.dirty?' warn':'')+'" data-x="bookexp">Descargar libro VIH</button><label class="btn sm" for="vximp2">Importar</label><input type="file" id="vximp2" accept=".xlsx,.xls" hidden multiple><button type="button" class="btn sm" data-x="unload">Cerrar libro</button></div></div>';
+  h+='<details class="vxfd"'+(Object.values(F).some(Boolean)?' open':'')+'><summary>Filtros de cohorte'+(Object.values(F).some(Boolean)?' <span class="tag">'+Object.values(F).filter(Boolean).map(esc).join(" · ")+'</span>':'')+'</summary><div class="filters vxfil"><label class="f">EPS<select id="vxf_eps">'+opt([...new Set(vxPacs().map(p=>p.EPS).filter(Boolean))].sort(),F.eps||"","Todas")+'</select></label><label class="f">Régimen<select id="vxf_reg">'+opt(VX_REG,F.reg||"","Todos")+'</select></label><label class="f">Municipio<select id="vxf_mun">'+opt(muns,F.mun||"","Todos")+'</select></label><label class="f">Sexo<select id="vxf_sexo">'+opt([["M","Masculino"],["F","Femenino"]],F.sexo||"","Todos")+'</select></label><label class="f">Población clave<select id="vxf_pc">'+opt(VX_PCLAVE,F.pc||"","Todas")+'</select></label><label class="f">Modalidad<select id="vxf_mod">'+opt(VX_MODAL,F.mod||"","Todas")+'</select></label></div></details>';
+  h+='<nav class="v12-axis-grid" role="tablist" aria-label="Menú Maestro de 8 Ejes Estructurales">'+v12RenderGrid("vih",curAxis,{e2:nRoja})+'</nav>';
+  h+=v12RenderSubbar("vih",curAxis,curSub,{ale:nRoja});
+  if(pid)h+='<p class="note vxcrumb"><button type="button" class="lnk" data-v12="sub|vih|e2|pob">← Volver al listado de Población</button> / Ficha de <strong>'+esc(pid)+'</strong></p>';
+  return h;
+};
+
+function v12VihHcDirect(){
+  const act=vxPacs().filter(p=>vxFiltro(p)&&vxSt(p,vxCorte()).activo);
+  const selId=VX.ui.hcpid&&vxP(VX.ui.hcpid)?VX.ui.hcpid:(act[0]&&act[0].ID)||"";
+  if(!selId)return'<div class="panel empty">Sin pacientes activos en la cohorte.</div>';
+  const p=vxP(selId);const s=vxSt(p,vxCorte());
+  return'<div class="panel" style="margin-bottom:12px"><div class="copyrow" style="justify-content:space-between"><label class="f" style="min-width:300px;flex:1;max-width:480px">Paciente a valorar / auditar HC<select id="v12_vih_hcpid">'+opt(act.map(x=>[x.ID,x.ID+" · "+vxNom(x)+" · "+(x.EPS||"")]),selId)+'</select></label><div class="copyrow"><button type="button" class="btn sm primary" data-x="valnew|'+esc(p.ID)+'|Medicina experta VIH">Nueva valoración médica GPC</button><button type="button" class="btn sm" data-x="pac|'+esc(p.ID)+'">Abrir ficha completa</button></div></div></div>'+
+    vxPacVal(p,s);
+}
+
+vxView=function(){
+  if(!VX.book)return vxStart();
+  const raw=PX.ui.sub||"";
+  if(raw.startsWith("pac:")){
+    if(VX.ui.vedit){V12.state.vih.axis="e3";V12.state.vih.sub="vih_hc";VX.ui.hcpid=raw.slice(4);}
+    else{V12.state.vih.axis="e2";V12.state.vih.sub="pob";}
+  }else if(raw){
+    const axFound=v12FindAxisOfSub("vih",raw);
+    if(axFound){V12.state.vih.axis=axFound;V12.state.vih.sub=raw;}
+    else if(raw==="tab"){V12.state.vih.axis="e2";V12.state.vih.sub="ale";}
+    else if(raw==="tar"){V12.state.vih.axis="e5";V12.state.vih.sub=VX.ui.tsub==="ent"?"tar_ent":VX.ui.tsub==="ped"?"tar_ped":"tar_esq";}
+  }
+  const curAxis=V12.state.vih.axis||"e3";
+  const subs=V12.map.vih[curAxis]||V12.map.vih.e3;
+  if(!subs.some(([k])=>k===V12.state.vih.sub))V12.state.vih.sub=subs[0][0];
+  const curSub=V12.state.vih.sub;
+  let h=vxHead();
+  try{
+    if(raw.startsWith("pac:")&&curSub==="pob")return h+vxPac();
+    if(curSub==="vih_proc")return h+v10GovView("vih");
+    if(curSub==="ruta")return h+vxRuta();
+    if(curSub==="vih_plan")return h+v12PlanSubView("vih");
+    if(curSub==="pob")return h+vxPob();
+    if(curSub==="car")return h+vxCar();
+    if(curSub==="ale")return h+vxTablero()+vxAle();
+    if(curSub==="age")return h+vxAgenda();
+    if(curSub==="vih_hc")return h+v12VihHcDirect();
+    if(curSub==="lab")return h+vxLab();
+    if(curSub==="prc")return h+vxPrc();
+    if(curSub==="vac")return h+vxVacV();
+    if(curSub==="tar_esq"){if(!["gru","esq"].includes(VX.ui.tsub))VX.ui.tsub="esq";return h+vxTarV().replace(/<div class="mhead" style="margin-top:6px"><div class="seg">[\s\S]*?<\/div><\/div>/,"");}
+    if(curSub==="tar_ent"){VX.ui.tsub="ent";return h+vxTarV().replace(/<div class="mhead" style="margin-top:6px"><div class="seg">[\s\S]*?<\/div><\/div>/,"");}
+    if(curSub==="tar_ped"){VX.ui.tsub="ped";return h+vxTarV().replace(/<div class="mhead" style="margin-top:6px"><div class="seg">[\s\S]*?<\/div><\/div>/,"");}
+    if(curSub==="ind")return h+vxInd();
+    if(curSub==="rep")return h+vxRep();
+    if(curSub==="cal")return h+vxCal();
+    if(curSub==="aud")return h+vxAud();
+    if(curSub==="vih_pamec")return h+v10PamecProgView("vih");
+    if(curSub==="vih_lib")return h+v12LibSubView("vih");
+    if(curSub==="fac")return h+vxFac()+v10ProgProdView("vih");
+    return h+vxAgenda();
+  }catch(e){
+    console.error(e);
+    return h+'<div class="alert bad"><p>Error al dibujar esta vista: '+esc(e.message)+'</p></div>';
+  }
+};
+
+/* ---------- 6. Reemplazo de Navegación en CONSULTA EXTERNA (ce) ---------- */
+function v12CeOrdView(){
+  const I=ceIdx();
+  const S=ceSolsAbiertas().filter(s=>s.TieneOrden==="SI"||s.OrdenRef);
+  return'<div class="panel"><div class="mhead"><div><h3 style="margin:0">Trazabilidad de Órdenes Médicas y Remisiones · Consulta Externa ('+S.length+')</h3><p class="note" style="margin:2px 0 0">Seguimiento de órdenes médicas de interconsulta y controles generados por los programas misionales, su estado de autorización EPS y su cita asignada.</p></div></div>'+
+    '<div class="tablebox" style="margin-top:8px"><table class="dense"><thead><tr><th>Solicitud</th><th>Paciente</th><th>Especialidad · Tipo</th><th>Referencia de la Orden</th><th>Programa origen</th><th>Autorización</th><th>Estado / Cita</th></tr></thead><tbody>'+
+    (S.map(s=>{const p=I.pac.get(s.Paciente);const a=ceAut(s.ID);const c=ceCitaAct(s.ID);return'<tr class="click" data-ce="sol|'+s.ID+'"><td class="mono">'+esc(s.ID)+'</td><td><strong>'+esc(ceNom(p))+'</strong><span class="sub">'+esc(p?(p.TipoDoc+" "+p.Documento+" · "+p.EPS):"")+'</span></td><td>'+esc(ceEspN(s.Especialidad))+'<span class="sub">'+esc(CE_TIPO[s.TipoConsulta])+'</span></td><td class="mono">'+esc(s.OrdenRef||"Orden médica registrada")+'</td><td>'+esc(s.Programa||"Consulta externa")+'</td><td>'+ceAutTag(a?a.Situacion:"NO_REQUIERE")+'</td><td>'+ceEstTag(s)+(c?'<span class="sub">'+ceFD(c.Fecha)+' '+esc(c.Hora)+'</span>':'')+'</td></tr>';}).join("")||'<tr><td colspan="7" class="note">Sin solicitudes con orden médica registrada.</td></tr>')+
+    '</tbody></table></div></div>';
+}
+
+function v12CeAudView(){
+  const I=ceIdx();
+  const saltos=CE.book.cit.filter(c=>c.SaltoOrdenMotivo);
+  const retro=CE.book.sol.filter(s=>s.SoporteFecha);
+  const prio=CE.book.sol.filter(s=>s.Prioridad!=="ORDINARIA");
+  return'<div class="panel"><h3>Auditoría de Adherencia a Reglas de Asignación, Saltos de Orden y Priorización ('+saltos.length+' saltos · '+prio.length+' priorizadas)</h3><p class="note">Verifica que toda asignación que no tome al primer candidato de la lista tenga justificación trazable (Regla 8), que toda prioridad tenga fuente clínica y que toda fecha retroactiva tenga soporte documental.</p>'+
+    '<div class="tiles" style="margin:10px 0"><div class="tile '+(saltos.length?"warn":"ok")+'"><span class="tv">'+saltos.length+'</span><span class="tl">citas asignadas con salto de orden justificado</span></div><div class="tile"><span class="tv">'+prio.length+'</span><span class="tl">solicitudes con priorización clínica o preferente</span></div><div class="tile"><span class="tv">'+retro.length+'</span><span class="tl">solicitudes con fecha anterior al registro (con soporte)</span></div></div>'+
+    '<h4 style="margin:10px 0 4px">Citas con salto de orden registrado</h4>'+
+    '<div class="tablebox"><table class="dense"><thead><tr><th>Cita</th><th>Fecha · Hora</th><th>Paciente</th><th>Solicitud</th><th>Motivo del salto de orden</th><th>Asignó</th></tr></thead><tbody>'+
+    (saltos.map(c=>{const p=I.pac.get(c.Paciente);return'<tr><td class="mono">'+esc(c.ID)+'</td><td class="mono">'+ceFD(c.Fecha)+' '+esc(c.Hora)+'</td><td>'+esc(ceNom(p))+'</td><td class="mono">'+esc(c.Solicitud)+'</td><td>'+esc(c.SaltoOrdenMotivo)+'</td><td>'+esc(c.AsignadaPor)+'</td></tr>';}).join("")||'<tr><td colspan="6" class="note">0 saltos de orden en las citas asignadas.</td></tr>')+
+    '</tbody></table></div></div>';
+}
+
+ceHead=function(){
+  const rol=ceRol();const q=ceCalidad().filter(x=>x.grave&&x.n>0).length;
+  const curAxis=V12.state.ce.axis||"e3";
+  const curSub=V12.state.ce.sub||"age";
+  let h='<div class="mhead"><div><p class="eyebrow">Programa misional'+(CE.demo?' · <span style="color:var(--warn)">datos ficticios</span>':'')+'</p><h2 class="mt">Consulta externa</h2><p class="note" style="margin:3px 0 0">Rol activo: <b>'+esc(CE_ROLES[rol])+'</b>'+(ceVeRes()?' · acceso a especialidades reservadas':'')+' · libro '+(CE.dirty?'<b style="color:var(--warn)">con cambios sin descargar</b>':'sin cambios')+'</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm'+(CE.dirty?' warn':'')+'" data-ce="exp">Descargar libro CE</button><button type="button" class="btn sm" data-ce="unload">Cerrar libro</button></div></div>';
+  h+='<nav class="v12-axis-grid" role="tablist" aria-label="Menú Maestro de 8 Ejes Estructurales">'+v12RenderGrid("ce",curAxis,{e6:q})+'</nav>';
+  h+=v12RenderSubbar("ce",curAxis,curSub,{cal:q});
+  return h;
+};
+
+ceView=function(){
+  if(!CE.book)return ceStart();
+  const raw=PX.ui.sub||"";
+  if(raw){
+    const axFound=v12FindAxisOfSub("ce",raw);
+    if(axFound){V12.state.ce.axis=axFound;V12.state.ce.sub=raw;}
+  }
+  const curAxis=V12.state.ce.axis||"e3";
+  const subs=V12.map.ce[curAxis]||V12.map.ce.e3;
+  if(!subs.some(([k])=>k===V12.state.ce.sub))V12.state.ce.sub=subs[0][0];
+  const curSub=V12.state.ce.sub;
+  let h=ceHead();
+  try{
+    if(curSub==="ce_proc")return h+v10GovView("ce");
+    if(curSub==="adm")return h+ceAdm();
+    if(curSub==="lista")return h+ceLista();
+    if(curSub==="nueva")return h+ceNueva();
+    if(curSub==="pac")return h+cePacV();
+    if(curSub==="age")return h+ceAgenda();
+    if(curSub==="aut")return h+ceAutV();
+    if(curSub==="ce_ord")return h+v12CeOrdView();
+    if(curSub==="tab")return h+ceTablero();
+    if(curSub==="cal")return h+ceCalV();
+    if(curSub==="ce_aud")return h+v12CeAudView();
+    if(curSub==="ce_pamec")return h+v10PamecProgView("ce");
+    if(curSub==="ce_meta")return h+v10ProgProdView("ce")+ceOportPanel();
+    return h+ceAgenda();
+  }catch(e){
+    console.error(e);
+    return h+'<div class="alert bad"><p>Error al dibujar esta vista: '+esc(e.message)+'</p></div>';
+  }
+};
+
+/* ---------- 7. Reemplazo de Navegación en NEFROPROTECCIÓN (nefro) sin barra ni encabezado duplicado ---------- */
+function v12NefroFarView(){
+  const K=pxNefroK();
+  const ind=(K&&K.ind)||[];
+  const findI=code=>ind.find(i=>i.code===code)||{num:0,den:0,pc:null};
+  const iRaas=findI("nefro_34"),iSglt2=findI("nefro_38"),iStat=findI("nefro_29");
+  return'<div class="panel v9anti"><div class="mhead"><div><h3 style="margin:0">Metas Farmacológicas Nefroprotectoras (IECA/ARA-II · iSGLT2 · Estatinas) · Ruta v8</h3><p class="note" style="margin:2px 0 0">Vigilancia farmacológica sobre la cohorte activa de Nefroprotección (KDIGO 2024 y Consenso CAC) para asegurar bloqueo del SRAA en albuminuria, iSGLT2 en DM2/ERC con TFGe ≥ 20 y estatinas en ≥ 50 años, evitando polifarmacia o combinación IECA + ARA-II.</p></div>'+
+    '<button type="button" class="btn sm primary" data-v12="sub|nefro|e3|nefro_val">Abrir Valoración Clínica GPC</button></div>'+
+    '<div class="tiles" style="margin-top:10px">'+
+      '<div class="tile '+(iRaas.pc>=70?"ok":"warn")+'"><span class="tv">'+(iRaas.pc==null?"—":Math.round(iRaas.pc)+" %")+'</span><span class="tl">IECA o ARA-II en HTA/DM con RAC &gt; 30 mg/g ('+iRaas.num+'/'+iRaas.den+' · nefro_34)</span></div>'+
+      '<div class="tile '+(iSglt2.pc>=70?"ok":"warn")+'"><span class="tv">'+(iSglt2.pc==null?"—":Math.round(iSglt2.pc)+" %")+'</span><span class="tl">iSGLT2 en DM2 con TFGe ≥ 20 mL/min ('+iSglt2.num+'/'+iSglt2.den+' · nefro_38)</span></div>'+
+      '<div class="tile '+(iStat.pc>=70?"ok":"warn")+'"><span class="tv">'+(iStat.pc==null?"—":Math.round(iStat.pc)+" %")+'</span><span class="tl">Estatina en ≥ 50 años con ERC G3a–G5 ('+iStat.num+'/'+iStat.den+' · nefro_29)</span></div>'+
+    '</div>'+
+    '<p class="note" style="margin-top:10px">Regla de seguridad farmacológica (KDIGO 2024): nunca combinar IECA con ARA-II; controlar creatinina y potasio sérico a las 2–4 semanas de iniciar o titular IECA/ARA-II, iSGLT2 o finerenona; suspender iSGLT2 en ayuno prolongado o enfermedad aguda intercurrente.</p></div>';
+}
+
+pxNefroEnsure=function(){
+  const box=document.getElementById("nefroapp");
+  const url=pxNefroURL();
+  if(!document.getElementById("nefroframe")||box.dataset.src!==(url||"embebido")){
+    box.dataset.src=url||"embebido";
+    box.innerHTML='<div class="wrap" style="padding-bottom:4px">'+
+      '<div class="mhead"><div><p class="eyebrow">Programa misional · Prevención Renal Secundaria</p><h2 class="mt">Nefroprotección · Ruta v8</h2><p class="note" style="margin:2px 0 0" id="nefro-top-info">Estratificación KDIGO 2024 y KFRE, valoración GPC con RCV, agendas espejo, seguimiento de TFGe, 47 indicadores CAC, auditoría GPC y transición oportuna a DP/HD.</p></div>'+
+      '<div class="copyrow">'+
+        '<button type="button" class="btn sm" data-v12="nefro_load">Cargar libro Nefro</button>'+
+        '<button type="button" class="btn sm" data-v12="nefro_exp">Descargar libro Nefro</button>'+
+        '<button type="button" class="btn sm" data-v12="nefro_demo">Datos ficticios</button>'+
+        (pxAdmin()?'<button type="button" class="btn sm" data-p="nefrocfg">Servidor</button>':'')+
+      '</div></div>'+
+      '<nav id="nefro-axis-nav" class="v12-axis-grid" role="tablist" aria-label="Menú Maestro de 8 Ejes Estructurales"></nav>'+
+      '<div id="nefro-sub-nav"></div>'+
+      '<div id="nefro-custom" hidden></div>'+
+      '</div>'+
+      '<iframe id="nefroframe" title="Ruta de Nefroprotección" style="display:block;width:100%;height:calc(100vh - 210px);min-height:640px;border:0;background:var(--bg)"></iframe>';
+    const f=document.getElementById("nefroframe");
+    f.addEventListener("load",()=>{v12SyncNefroTheme();v12RenderNefroNav();});
+    if(url)f.src=url;else f.srcdoc=pxNefroSrcdoc();
+  }
+  v12RenderNefroNav();
+};
+
+function v12RenderNefroNav(){
+  const navEl=document.getElementById("nefro-axis-nav");
+  const subEl=document.getElementById("nefro-sub-nav");
+  const custEl=document.getElementById("nefro-custom");
+  const frameEl=document.getElementById("nefroframe");
+  if(!navEl||!subEl||!custEl||!frameEl)return;
+  const curAxis=V12.state.nefro.axis||"e3";
+  const subs=V12.map.nefro[curAxis]||V12.map.nefro.e3;
+  if(!subs.some(([k])=>k===V12.state.nefro.sub))V12.state.nefro.sub=subs[0][0];
+  const curSub=V12.state.nefro.sub;
+  const K=pxNefroK();
+  navEl.innerHTML=v12RenderGrid("nefro",curAxis,{e2:K&&K.alertas?K.alertas:0});
+  subEl.innerHTML=v12RenderSubbar("nefro",curAxis,curSub,{});
+  const iframeTabs={
+    nefro_ref:["ref",null],
+    nefro_pac:["pac",null],
+    nefro_coh:["coh","car"],
+    nefro_val:["calc",null],
+    nefro_age:["agenda",null],
+    nefro_lab:["coh","ges"],
+    nefro_venc:["coh","venc"],
+    nefro_ind:["ind",null],
+    nefro_nom:["nom",null],
+    nefro_cal:["cal",null],
+    nefro_aud:["aud",null]
+  };
+  if(iframeTabs[curSub]){
+    custEl.hidden=true;custEl.innerHTML="";
+    frameEl.hidden=false;
+    const[tabName,cohSub]=iframeTabs[curSub];
+    const applyTab=()=>{
+      try{
+        const w=pxNefroWin();
+        if(w&&w.MG&&typeof w.MG.show==="function"){
+          w.MG.show(tabName);
+          if(cohSub&&w.document){
+            const b=w.document.querySelector('[data-nsub="'+cohSub+'"]');
+            if(b)b.click();
+          }
+          v12SyncNefroTheme();
+          return true;
+        }
+      }catch(e){}
+      return false;
+    };
+    if(!applyTab())setTimeout(applyTab,280);
+  }else{
+    frameEl.hidden=true;
+    custEl.hidden=false;
+    if(curSub==="nefro_proc")custEl.innerHTML=v10GovView("nefro");
+    else if(curSub==="nefro_plan")custEl.innerHTML=v12PlanSubView("nefro");
+    else if(curSub==="nefro_trr")custEl.innerHTML=v11NefroTrrView();
+    else if(curSub==="nefro_far")custEl.innerHTML=v12NefroFarView();
+    else if(curSub==="nefro_pamec")custEl.innerHTML=v10PamecProgView("nefro");
+    else if(curSub==="nefro_meta")custEl.innerHTML=v10ProgProdView("nefro");
+  }
+}
+
+/* Reemplazar v11NavigateAxis para que opere sobre la nueva Grilla de 8 Ejes sin abrir pantallas fantasma */
+v11NavigateAxis=function(prog,ax,subKey){
+  if(ax==="trr"){ax="e2";subKey="nefro_trr";}
+  const st=V12.state[prog]||(V12.state[prog]={axis:"e3",sub:""});
+  st.axis=ax;
+  const subs=(V12.map[prog]&&V12.map[prog][ax])||[];
+  st.sub=subKey&&subs.some(([k])=>k===subKey)?subKey:(subs[0]?subs[0][0]:"");
+  if(prog==="hd"){
+    ST.view=st.sub;
+    if(PX.view!=="hd")pxOpenHD(st.sub,true);
+    else{render();pxBar();window.scrollTo(0,0);}
+    return;
+  }
+  if(prog==="nefro"){
+    if(PX.view!=="nefro")pxOpenNefro(true);
+    else{v12RenderNefroNav();pxBar();window.scrollTo(0,0);}
+    return;
+  }
+  PX.ui.sub=st.sub;
+  if(PX.view!==prog)pxGo(prog,st.sub,true);
+  else{pxRender();window.scrollTo(0,0);}
+};
+
+/* ---------- 8. Buscador Global MPI y Comando Clínico Instantáneo (Ctrl+K) ---------- */
+function v12SearchMPI(q){
+  q=norm(q||"");
+  const res=[];
+  if(hdOn()){
+    ensureIdx();
+    pacs().forEach(p=>{
+      const str=norm(p.ID+" "+nombre(p)+" "+(p.Documento||"")+" "+(p.EPS||""));
+      if(!q||str.includes(q)){
+        res.push({prog:"hd",progN:"Hemodiálisis",id:p.ID,nom:nombre(p),doc:(p.TipoDoc||"CC")+" "+(p.Documento||""),eps:p.EPS||"",est:activeAt(p,ST.corte)?"Activo ("+(p.Turno||"")+")":(p.Estado||"Inactivo"),go:"mpi_hd|"+p.ID});
+      }
+    });
+  }
+  if(dpOn()){
+    DP.book.pac.filter(lv).forEach(p=>{
+      const str=norm(p.ID+" "+dpNombre(p)+" "+(p.Documento||"")+" "+(p.EPS||""));
+      if(!q||str.includes(q)){
+        res.push({prog:"dp",progN:"Diálisis Peritoneal",id:p.ID,nom:dpNombre(p),doc:(p.TipoDoc||"CC")+" "+(p.Documento||""),eps:p.EPS||"",est:dpEstado(p)+" ("+(p.Modalidad||"DP")+")",go:"mpi_dp|"+p.ID});
+      }
+    });
+  }
+  if(typeof VX!=="undefined"&&VX.book){
+    vxPacs().forEach(p=>{
+      const str=norm(p.ID+" "+vxNom(p)+" "+(p.Documento||"")+" "+(p.EPS||""));
+      if(!q||str.includes(q)){
+        const al=vxAlertas(p,vxCorte()).nivel;
+        res.push({prog:"vih",progN:"Programa VIH",id:p.ID,nom:vxNom(p),doc:(p.TipoDoc||"CC")+" "+(p.Documento||""),eps:p.EPS||"",est:(p.Estado||"Activo")+" · Alerta "+al,go:"mpi_vih|"+p.ID});
+      }
+    });
+  }
+  if(typeof CE!=="undefined"&&CE.book){
+    CE.book.pac.forEach(p=>{
+      const str=norm(p.ID+" "+ceNom(p)+" "+(p.Documento||"")+" "+(p.EPS||""));
+      if(!q||str.includes(q)){
+        res.push({prog:"ce",progN:"Consulta Externa",id:p.ID,nom:ceNom(p),doc:(p.TipoDoc||"CC")+" "+(p.Documento||""),eps:p.EPS||"",est:"Maestro CE",go:"mpi_ce|"+p.ID});
+      }
+    });
+  }
+  try{
+    const w=pxNefroWin();
+    if(w&&w.MG&&w.MG.book&&Array.isArray(w.MG.book.pac)){
+      w.MG.book.pac.forEach(p=>{
+        const str=norm(p.codigo+" "+(p.nombre||"")+" "+(p.doc||"")+" "+(p.eps||""));
+        if(!q||str.includes(q)){
+          res.push({prog:"nefro",progN:"Nefroprotección",id:p.codigo,nom:p.nombre||p.codigo,doc:(p.tipodoc||"CC")+" "+(p.doc||""),eps:p.eps||"",est:p.estado||"ACTIVO",go:"mpi_nefro|"+p.codigo});
+        }
+      });
+    }
+  }catch(e){}
+  return res.slice(0,40);
+}
+
+function v12OpenCmdK(){
+  if(!PX.user)return;
+  const renderRows=(q)=>{
+    const R=v12SearchMPI(q);
+    if(!R.length)return'<p class="note">Sin coincidencias en las cohortes abiertas.</p>';
+    return'<div class="tablebox" style="max-height:360px"><table class="dense"><thead><tr><th>Programa</th><th>ID</th><th>Paciente</th><th>Documento</th><th>EPS · Estado</th><th></th></tr></thead><tbody>'+
+      R.map(r=>'<tr><td><span class="tag">'+esc(r.progN)+'</span></td><td class="mono"><strong>'+esc(r.id)+'</strong></td><td>'+esc(r.nom)+'</td><td class="mono">'+esc(r.doc)+'</td><td style="font-size:12.5px">'+esc(r.eps)+' · '+esc(r.est)+'</td><td><button type="button" class="btn sm primary" data-v12="'+esc(r.go)+'">Abrir</button></td></tr>').join("")+
+      '</tbody></table></div>';
+  };
+  openDlg("Buscador Maestro Único de Pacientes (MPI) · 5 Cohortes",
+    '<p class="note" style="margin:0">Busca simultáneamente en Hemodiálisis, Diálisis Peritoneal, VIH, Nefroprotección y Consulta Externa por nombre, documento, ID o EPS.</p>'+
+    '<input type="search" id="v12_mpiq" placeholder="Escriba nombre, apellido, cédula o código (ej. P001, DP001, V0001)…" autocomplete="off">'+
+    '<div id="v12_mpiout">'+renderRows("")+'</div>',
+    "Cerrar",()=>{});
+  const x=$("dlgx");if(x)x.hidden=true;
+  const inp=$("v12_mpiq");
+  if(inp){
+    inp.focus();
+    inp.addEventListener("input",()=>{
+      const o=$("v12_mpiout");
+      if(o)o.innerHTML=renderRows(inp.value);
+    });
+  }
+}
+
+document.addEventListener("keydown",e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){
+    e.preventDefault();
+    v12OpenCmdK();
+  }
+});
+
+/* Cerrar el menú desplegable Libros y Respaldo al hacer clic fuera */
+document.addEventListener("click",e=>{
+  const dd=document.getElementById("v12dd");
+  if(dd&&dd.open&&!e.target.closest("#v12dd")){
+    dd.open=false;
+  }
+  const el=e.target.closest("[data-v12]");
+  if(!el)return;
+  if(dd)dd.open=false;
+  const[a,x,y,z]=el.dataset.v12.split("|");
+  switch(a){
+    case"axis":v11NavigateAxis(x,y);break;
+    case"sub":v11NavigateAxis(x,y,z);break;
+    case"cmdk":v12OpenCmdK();break;
+    case"savelocal":v9SaveLocal(false);break;
+    case"nefro_load":{
+      try{const w=pxNefroWin();if(w&&w.document){const inp=w.document.getElementById("bookfile");if(inp)inp.click();}}catch(err){}
+      break;
+    }
+    case"nefro_exp":{
+      try{const w=pxNefroWin();if(w&&w.document){const btn=w.document.getElementById("bookexp");if(btn)btn.click();else toast("Cargue primero un libro o datos en Nefroprotección.");}}catch(err){}
+      break;
+    }
+    case"nefro_demo":{
+      try{const w=pxNefroWin();if(w&&w.document){const btn=w.document.getElementById("bookdemo");if(btn)btn.click();setTimeout(v12SyncNefroTheme,250);}}catch(err){}
+      break;
+    }
+    case"expcur":{
+      if(PX.view==="hd"&&ST.book)exportBook();
+      else if(PX.view==="dp"&&DP.book)dpExportBook();
+      else if(PX.view==="vih"&&VX.book)vxExportBook();
+      else if(PX.view==="ce"&&CE.book)ceExport();
+      else if(PX.view==="nefro"){
+        try{const w=pxNefroWin();if(w&&w.document){const btn=w.document.getElementById("bookexp");if(btn)btn.click();}}catch(err){}
+      }
+      else pxExportBook();
+      break;
+    }
+    case"mpi_hd":closeDlg();V12.state.hd={axis:"e2",sub:"pac"};ST.sel.pac=x;pxOpenHD("pac");break;
+    case"mpi_dp":closeDlg();V12.state.dp={axis:"e2",sub:"dp_cen"};DP.ui.pid=x;pxGo("dp","dp_cen");break;
+    case"mpi_vih":closeDlg();V12.state.vih={axis:"e2",sub:"pob"};VX.ui.vedit=null;pxGo("vih","pac:"+x);break;
+    case"mpi_ce":closeDlg();V12.state.ce={axis:"e2",sub:"pac"};pxGo("ce","pac");setTimeout(()=>ceDlgPac(x),60);break;
+    case"mpi_nefro":closeDlg();V12.state.nefro={axis:"e2",sub:"nefro_pac"};pxOpenNefro();setTimeout(()=>{try{const w=pxNefroWin();if(w&&w.MG)w.MG.show("pac");}catch(err){}},250);break;
+  }
+});
+
+document.addEventListener("change",e=>{
+  if(e.target&&e.target.id==="v12_vih_hcpid"){
+    VX.ui.hcpid=e.target.value;
+    VX.ui.vedit=null;
+    pxRender();
+  }
+});
+
+window.V12API={V12,v11NavigateAxis,v12OpenCmdK,v12SearchMPI};
+pxBar();
+if(PX.user)pxRender();
+
+
 /* ================= eventos del portal ================= */
 (function(){
 const root=document.getElementById("px");
@@ -7492,4 +9742,1785 @@ window.addEventListener("beforeunload",e=>{if(PX.dirty){e.preventDefault();e.ret
 window.PORTAL={VX,PX,pxRefresh,pxCfg,pxLab,pxProd,pxProdResumen,pxCompose,pxDocsFor,pxIAASCalc,pxPROACalc,pxSPCalc,pxExportBook,pxBuildWb,pxParse,pxGo,pxOpenHD};
 pxRender();
 })();
+
+/* =====================================================================================================
+   v2.1 (V13) · OPTIMIZACIÓN CLÍNICA, CALIDAD Y TALENTO HUMANO (12 PUNTOS INTEGRALES - POSMÉDICA MOCOA)
+   1. Diferenciación conceptual y visual: Mapa de Procesos (Organizacional) vs. Ruta Interactiva 360° del Paciente.
+   2. Caracterización de Cohorte y Riesgo extrapolada a todos los programas + Calendario de Actividades de 12 Meses
+      por paciente basado en la Herramienta Clínica de Contenidos Mínimos y Suficientes (independiente de la EPS,
+      respetando que contractualmente solo EPS Familiar tiene Médico Experto mensual y entrega de medicamentos).
+   3. Auditoría Concurrente GPC/CAC en barra lateral sticky en todos los programas + Preconsulta de Enfermería
+      (Signos Vitales -> "Listo para atención" -> botón "Entrar en la HC del paciente") + Cargue Masivo de Excel de
+      Laboratorio con caída automática a la HC + Registro de Asistencia/Inasistencia de Psicología, Equipo
+      Multidisciplinario y Toma de Muestras.
+   4. Nuevo Módulo Eje 04 de Paraclínicos, Toma de Muestras y Esquema de Vacunación en Nefroprotección.
+   5. Renombrado global a "05 · Gestión Farmacéutica y Terapéutica" y módulo farmacéutico de Nefroprotección.
+   6. Retiro del Eje 08 de los programas clínicos (Grilla limpia de 7 Ejes Clínicos) y centralización financiera,
+      metas y asesoría de datos en el módulo "Producción asistencial".
+   7. Eliminación total de contraseñas/candados en Producción asistencial y Conciliación/Tarifas de Hemodiálisis.
+   8. Nuevo módulo institucional: "Talento Humano y Bienestar" (Empleados del Mes, Cuadros de Turnos, Formatos TH,
+      Clima Laboral y Riesgo Psicosocial).
+   9. Función Renal Residual (KRu en mL/min) y Kt/V Total (Dialítico + Renal) en Valoración de Diálisis (HD y DP).
+   10. Arrastre automático de TA promedio y últimos signos vitales (FC, FR, Glucometría, SatO2, Peso, Talla) desde
+       las sesiones y preconsulta hacia la Valoración e Historia Clínica.
+   11. Verificación obligatoria Pre-Inicio de Turno en Hemodiálisis: Calidad del Agua y Limpieza/Desinfección vigentes (Sí/No).
+   12. Submódulo de Procedimientos Quirúrgicos e Invasivos en Operación: HC prellenada del procedimiento, Colocación de
+       Catéteres con despliegue automático de Lista de Chequeo de Insumos, verificación de desinfección previa y
+       Solicitud Automática de Desinfección al área Ambiental / Servicios Generales.
+   ===================================================================================================== */
+const V13={
+  ver:"2.1",
+  fecha:"2026-10-14",
+  rutaPacSel:{},
+  calPacSel:{},
+  precon:{},
+  nefroVac:{},
+  turnoCheck:{},
+  qxList:[],
+  th:{tab:"emp",emp:[],turnos:[],formatos:[],clima:[]}
+};
+window.V13_PRECON=V13.precon;
+
+/* --- Cargar/Guardar estado V13 en localStorage --- */
+try{
+  const savedV13=JSON.parse(localStorage.getItem("posmedica_v13_state")||"null");
+  if(savedV13){
+    if(savedV13.precon)Object.assign(V13.precon,savedV13.precon);
+    if(savedV13.nefroVac)Object.assign(V13.nefroVac,savedV13.nefroVac);
+    if(savedV13.turnoCheck)Object.assign(V13.turnoCheck,savedV13.turnoCheck);
+    if(Array.isArray(savedV13.qxList))V13.qxList=savedV13.qxList;
+    if(savedV13.th)Object.assign(V13.th,savedV13.th);
+  }
+}catch(e){}
+function v13Save(){
+  try{
+    localStorage.setItem("posmedica_v13_state",JSON.stringify({
+      precon:V13.precon,
+      nefroVac:V13.nefroVac,
+      turnoCheck:V13.turnoCheck,
+      qxList:V13.qxList,
+      th:V13.th
+    }));
+  }catch(e){}
+}
+
+/* --- Estilos visuales para Ruta Interactiva 360°, Preconsulta, Check Pre-Turno, Quirúrgicos y Talento Humano --- */
+(function(){
+  const st=document.createElement("style");
+  st.id="v13-styles";
+  st.textContent=`
+    /* Grilla Maestra de 7 Ejes Clínicos (Eje 08 retirado y centralizado en Producción Asistencial) */
+    .v12-axis-grid{grid-template-columns:repeat(8,minmax(0,1fr))!important}
+    @media (max-width:1100px){.v12-axis-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+    @media (max-width:640px){.v12-axis-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+    /* Ruta Interactiva del Paciente 360° */
+    .v13-diff-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:14px}
+    .v13-diff-card{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:12px 14px;background:var(--surface-2)}
+    .v13-diff-card.ruta{border-left-color:var(--ok)}
+    .v13-ruta-track{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:10px}
+    .v13-ruta-node{border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:11px;padding:12px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;gap:8px;box-shadow:var(--shadow);transition:transform .14s ease,border-color .14s ease}
+    .v13-ruta-node:hover{transform:translateY(-2px);border-color:var(--accent)}
+    .v13-ruta-node.done{border-top-color:var(--ok);background:color-mix(in srgb,var(--ok-soft) 35%,var(--surface))}
+    .v13-ruta-node.curr{border-top-color:var(--warn);box-shadow:0 0 0 2px var(--warn)}
+    .v13-node-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-family:var(--f-mono);font-size:12px;font-weight:700;display:inline-grid;place-items:center}
+    .v13-ruta-node.done .v13-node-num{background:var(--ok);color:#051b11}
+    .v13-ruta-node.curr .v13-node-num{background:var(--warn);color:#1a1205}
+    /* Banner Pre-Turno de Calidad de Agua y Desinfección */
+    .v13-preturno{border:2px solid var(--accent);border-radius:12px;padding:14px 16px;background:var(--surface);margin-bottom:14px;display:grid;gap:10px}
+    .v13-preturno.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok-soft) 28%,var(--surface))}
+    .v13-preturno.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad-soft) 32%,var(--surface))}
+    .v13-preturno-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;align-items:center}
+    /* Preconsulta y Botón Listo para Atención */
+    .v13-listo-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok)}
+    .btn.v13-entrar-hc{background:var(--ok)!important;border-color:var(--ok)!important;color:#04160e!important;font-weight:700!important}
+    /* Talento Humano y Bienestar */
+    .v13-emp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+    .v13-emp-card{border:1px solid var(--line);border-top:4px solid var(--ok);border-radius:12px;padding:14px;background:var(--surface);display:grid;gap:6px;box-shadow:var(--shadow)}
+    .v13-badge-gold{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);width:max-content}
+  `;
+  document.head.appendChild(st);
+})();
+
+/* =====================================================================================================
+   PUNTO 6 y 7 · RETIRAR EJE 08 DE LOS PROGRAMAS CLÍNICOS, RENOMBRAR EJE 05 Y DESBLOQUEAR PRODUCCIÓN
+   ===================================================================================================== */
+V12.axes=[
+  ["e1","01","Gobierno, Procesos y Ruta"],
+  ["e2","02","Cohorte, Riesgo y Calendario"],
+  ["e3","03","Operación, Preconsulta y HC"],
+  ["e4","04","Paraclínicos y Vacunas"],
+  ["e5","05","Gestión Farmacéutica"],
+  ["e6","06","Indicadores y Reportes CAC"],
+  ["e7","07","Auditoría Concurrente y PAMEC"]
+];
+V10_AXES.length=0;
+V12.axes.forEach(a=>V10_AXES.push(a));
+
+/* Actualizar el mapa de sub-pestañas de los 7 ejes en cada programa clínico */
+V12.map.hd={
+  e1:[["hd_ruta","Ruta Interactiva del Paciente 360°"],["hd_proc","Mapa de Procesos (HD-P01..05)"],["hd_plan","Plan de trabajo y capacitaciones"],["doc","Documentos y guías"],["ref","Referencia"]],
+  e2:[["hd_car","Caracterización y Perfil de Riesgo"],["hd_cal12","Calendario de Actividades (12 Meses)"],["pac","Pacientes (Maestro)"],["sem","Calidad de diálisis y riesgo"],["acc","Acceso vascular y dispositivos"],["tx","Trasplante"],["alert","Alertas"]],
+  e3:[["turno","Turno del día (Agua/Desinfección + Sesiones)"],["hd_precon","Preconsulta Enfermería y Citas Multidisciplinarias"],["val","Valoración mensual (HC GPC + KRu + Kt/V total)"],["hd_qx","Procedimientos quirúrgicos y catéteres"],["lim","Limpieza y desinfección"]],
+  e4:[["lab","Paraclínicos, Cargue Excel Lab y Solicitud"],["vac","Vacunación VHB"]],
+  e5:[["hd_anti","Gestión farmacéutica en sala (EPO / Hierro IV)"],["inf","Infecciones y antimicrobianos"]],
+  e6:[["ind","Indicadores CAC 2026"],["rep","Reportes y matrices CAC"],["cal","Calidad del dato"]],
+  e7:[["hd_aud","Auditoría concurrente de HC y SISCAC"],["hd_pamec","Planes de mejora PAMEC"],["hd_lib","Liberación de reportes"]]
+};
+V12.map.dp={
+  e1:[["dp_ruta","Ruta Interactiva del Paciente 360°"],["dp_proc","Mapa de Procesos (DP-P01..04)"],["dp_plan","Plan de trabajo"],["dp_doc","Documentos"]],
+  e2:[["dp_car","Caracterización y Perfil de Riesgo"],["dp_cal12","Calendario de Actividades (12 Meses)"],["dp_cen","Censo y ficha"],["dp_tr","Intervalos y transiciones"],["dp_con","Conciliación heredados"],["dp_trp","Trasplante y calidad de vida"],["dp_al","Alertas"]],
+  e3:[["dp_precon","Preconsulta Enfermería y Asistencia Multidisciplinaria"],["dp_val","Valoraciones e HC GPC (con KRu y Kt/V total)"],["dp_qx","Procedimientos quirúrgicos y catéter peritoneal"],["dp_age","Agenda DP"],["dp_hos","Hospitalizaciones"]],
+  e4:[["dp_lcal","Calendario y Cargue Excel de Laboratorio"],["dp_lres","Resultados y tendencias"],["dp_ktv","Adecuación Kt/V, KRu y PET"]],
+  e5:[["dp_ins","Gestión farmacéutica y entrega conciliada en casa"],["dp_pre","Prescripción DP"],["dp_cat","Catéter, educación y peritonitis"]],
+  e6:[["dp_ind","Indicadores CAC 2026 y operativos"],["dp_cac","Prevalidación reporte CAC"],["dp_exp","Exportaciones y bitácora SHA-256"]],
+  e7:[["dp_aud","Auditoría de completitud y CAC en vivo"],["dp_pamec","Planes de mejora PAMEC"],["dp_lib","Liberación de reportes"]]
+};
+V12.map.vih={
+  e1:[["vih_ruta","Ruta Interactiva del Paciente 360° (GAO-PT-008)"],["vih_proc","Mapa de Procesos (VIH-P01..04)"],["ruta","Contrato y matriz por EPS"],["vih_plan","Plan de trabajo"]],
+  e2:[["car","Caracterización y Perfil de Riesgo"],["vih_cal12","Calendario de Actividades (12 Meses)"],["pob","Población"],["ale","Alertas rojas/amarillas"]],
+  e3:[["vih_precon","Preconsulta Enfermería y Asistencia Multidisciplinaria"],["age","Agenda interdisciplinaria"],["vih_hc","Valoraciones e HC GPC (Auditoría en vivo)"]],
+  e4:[["lab","Laboratorios y Cargue Masivo Excel"],["prc","Procedimientos y enfermería (PPD/Citología)"],["vac","Carné de Vacunación"]],
+  e5:[["tar_esq","TAR · Esquemas y validación de seguridad"],["tar_ent","Dispensación y entregas conciliadas"],["tar_ped","Pedido mensual de TAR"]],
+  e6:[["ind","Indicadores CAC y Nueva EPS"],["rep","Descargas (Nominal 43 y CAC 193)"],["cal","Calidad del dato"]],
+  e7:[["aud","Auditoría CAC de la HC (16 criterios)"],["vih_pamec","Planes de mejora PAMEC"],["vih_lib","Liberación de reportes"]]
+};
+V12.map.nefro={
+  e1:[["nefro_ruta","Ruta Interactiva del Paciente 360°"],["nefro_proc","Mapa de Procesos (NEF-P01..03)"],["nefro_plan","Plan de trabajo"],["nefro_ref","Referencia normativa y GPC"]],
+  e2:[["nefro_coh","Caracterización y Perfil de Riesgo"],["nefro_cal12","Calendario Unificado de Actividades (12 Meses)"],["nefro_pac","Pacientes y estratificación KDIGO/KFRE"],["nefro_trr","Transición G5 → DP / HD"]],
+  e3:[["nefro_precon","Preconsulta Enfermería y Asistencia Multidisciplinaria"],["nefro_val","Valoración clínica GPC + Auditoría en Tiempo Real"],["nefro_age","Agendas espejo A/B"]],
+  e4:[["nefro_labvac","Central de Paraclínicos (Excel Lab) y Vacunación Renal"],["nefro_venc","Vencidos y alertas paraclínicas"]],
+  e5:[["nefro_far","Gestión Farmacéutica, Nefroprotección y Entrega EPS Familiar"]],
+  e6:[["nefro_ind","47 Indicadores CAC"],["nefro_nom","Nominales EPS Familiar y Nueva EPS"],["nefro_cal","Calidad del dato"]],
+  e7:[["nefro_aud","Auditoría GPC por muestreo (KDIGO/ADA/ESH)"],["nefro_pamec","Planes de mejora PAMEC"]]
+};
+V12.map.ce={
+  e1:[["ce_ruta","Ruta Interactiva del Paciente 360°"],["ce_proc","Mapa de Procesos (CE-P01..02)"],["adm","Administración y catálogos"]],
+  e2:[["ce_car","Caracterización de Demanda y Riesgo"],["ce_cal12","Calendario de Actividades por Paciente"],["lista","Lista de espera única priorizada"],["nueva","Nueva solicitud"],["pac","Pacientes"]],
+  e3:[["ce_precon","Preconsulta Enfermería y Paso a HC"],["age","Agenda por jornadas y cierre Fase 2"],["ce_qx","Procedimientos menores y catéteres"]],
+  e4:[["aut","Control de autorizaciones EPS y Paraclínicos Excel"]],
+  e5:[["ce_ord","Gestión terapéutica y órdenes médicas"]],
+  e6:[["tab","Tablero de oportunidad Res. 1552/256"],["cal","Calidad del dato"]],
+  e7:[["ce_aud","Auditoría de adherencia y saltos de orden"],["ce_pamec","Planes de mejora PAMEC"]]
+};
+
+/* --- PUNTO 7: Eliminar bloqueo por contraseña en Producción Asistencial y Conciliación HD --- */
+function v13EnsureFinUnlocked(){
+  const defTarHD=[
+    {eps:"NUEVA EPS",paquete:4000000,sesion:307700,min:10,max:15,extra:"SI",desde:""},
+    {eps:"MALLAMAS",paquete:4200000,sesion:323000,min:8,max:12,extra:"SI",desde:""},
+    {eps:"FOMAG",paquete:4100000,sesion:315000,min:8,max:12,extra:"NO",desde:""},
+    {eps:"FAMILIAR DE COLOMBIA",paquete:3900000,sesion:300000,min:8,max:15,extra:"SI",desde:""},
+    {eps:"EMSSANAR",paquete:4000000,sesion:307700,min:8,max:12,extra:"NO",desde:""}
+  ];
+  if(typeof ST!=="undefined"){
+    ST.fin=ST.fin||{};
+    ST.fin.key="UNLOCKED_DIRECT";
+    if(!ST.fin.data||!Array.isArray(ST.fin.data.tarifas)||!ST.fin.data.tarifas.length){
+      ST.fin.data={tarifas:(ST.imp&&ST.imp.tarifas&&ST.imp.tarifas.length)?ST.imp.tarifas:defTarHD.map(x=>Object.assign({},x)),facturado:(ST.fin.data&&ST.fin.data.facturado)||{},creado:nowTs(),por:"Acceso directo coordinación"};
+    }
+  }
+  if(typeof PRODF!=="undefined"){
+    PRODF.key="UNLOCKED_DIRECT";
+    if(!PRODF.data||!Array.isArray(PRODF.data.tarifas)||!PRODF.data.tarifas.length){
+      PRODF.data={
+        tarifas:[
+          {prog:"nefro",act:"Consulta de nefrología",cups:"890264",eps:"",valor:95000,desde:""},
+          {prog:"nefro",act:"Consulta de medicina general del programa",cups:"890201",eps:"",valor:48000,desde:""},
+          {prog:"nefro",act:"Valoración de nefroprotección (NEFROLOGIA)",cups:"890264",eps:"",valor:95000,desde:""},
+          {prog:"nefro",act:"Valoración de nefroprotección (MEDICO EXPERTO)",cups:"890201",eps:"EPS Familiar de Colombia",valor:62000,desde:""},
+          {prog:"dp",act:"Paquete mensual de diálisis peritoneal",cups:"549801",eps:"",valor:3850000,desde:""},
+          {prog:"vih",act:"Paquete Mensual Atención Integral Ambulatoria Sin Antirretrovirales",cups:"890201",eps:"NUEVA EPS",valor:243025,desde:""},
+          {prog:"vih",act:"Paquete mensual atención integral VIH",cups:"890201",eps:"FAMILIAR DE COLOMBIA",valor:1000000,desde:""},
+          {prog:"ce",act:"Consulta de especialidad",cups:"890202",eps:"",valor:85000,desde:""},
+          {prog:"qt",act:"Sesión de quimioterapia",cups:"992501",eps:"",valor:680000,desde:""}
+        ],
+        creado:nowTs(),
+        por:"Acceso directo coordinación"
+      };
+    }
+  }
+}
+pxProdOpen=function(){v13EnsureFinUnlocked();return true;};
+pxProdLock=function(){};
+finLock=function(){};
+finArm=function(){};
+pxProdArm=function(){};
+const vFin0=vFin;
+vFin=function(pp){
+  v13EnsureFinUnlocked();
+  return vFin0(pp);
+};
+
+/* =====================================================================================================
+   PUNTO 8 · NUEVO MÓDULO: TALENTO HUMANO Y BIENESTAR (th)
+   ===================================================================================================== */
+if(!PROGS.some(p=>p.k==="th")){
+  PROGS.splice(PROGS.findIndex(p=>p.k==="cal"),0,{
+    k:"th",
+    n:"Talento humano y bienestar",
+    g:"ges",
+    d:"Empleados del mes y cultura organizacional, cuadros de turnos asistenciales/administrativos, formatos de gestión del talento humano y monitoreo de clima laboral con bajo riesgo psicosocial."
+  });
+  PROG.th=PROGS.find(p=>p.k==="th");
+  PIC.th='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>';
+}
+const pxCan0=pxCan;
+pxCan=function(k){
+  if(k==="th"&&PX.user)return true;
+  return pxCan0(k);
+};
+
+function v13SeedTH(){
+  if(!V13.th.emp||!V13.th.emp.length){
+    V13.th.emp=[
+      {id:"EM-01",mes:ym(TODAY()),nombre:"Marcela Rosero",cargo:"Enfermera Jefe de Hemodiálisis",area:"Unidad Renal · HD",valor:"Seguridad y Humanización",motivo:"100 % de adherencia en verificación de calidad de agua, técnica aséptica CDC en catéteres y trato humanizado destacado por los pacientes.",votos:18},
+      {id:"EM-02",mes:ym(TODAY()),nombre:"Yuli Narváez",cargo:"Enfermera de Diálisis Peritoneal",area:"Unidad Renal · DP",valor:"Excelencia y Trabajo en Equipo",motivo:"Entrenamiento domiciliario con 0 episodios de peritonitis en el trimestre y conciliación exacta de insumos en casa.",votos:15},
+      {id:"EM-03",mes:ym(TODAY()),nombre:"Diana Muñoz",cargo:"Trabajadora Social",area:"Equipo Multidisciplinario",valor:"Compromiso y Empatía",motivo:"Gestión efectiva de barreras de transporte y rescate de pacientes inasistentes en Nefroprotección, HD y VIH.",votos:14}
+    ];
+  }
+  if(!V13.th.turnos||!V13.th.turnos.length){
+    V13.th.turnos=[
+      {id:"TU-01",colaborador:"Marcela Rosero",cargo:"Enfermera Jefe HD",servicio:"Hemodiálisis",lun:"Mañana (06:30-13:30)",mar:"Mañana (06:30-13:30)",mie:"Mañana (06:30-13:30)",jue:"Mañana (06:30-13:30)",vie:"Mañana (06:30-13:30)",sab:"Turno 1 (07:00-13:00)",obs:"Líder de sala y verificación de ósmosis"},
+      {id:"TU-02",colaborador:"Paola R. / Fabián C.",cargo:"Auxiliares de Enfermería HD",servicio:"Hemodiálisis",lun:"Tarde (13:00-19:00)",mar:"Tarde (13:00-19:00)",mie:"Tarde (13:00-19:00)",jue:"Tarde (13:00-19:00)",vie:"Tarde (13:00-19:00)",sab:"Tarde (13:00-18:00)",obs:"Conexión, signos vitales y desinfección de puestos"},
+      {id:"TU-03",colaborador:"Laura Benavides",cargo:"Médica Nefróloga",servicio:"Nefrología (HD / DP / Nefro)",lun:"Consulta Nefro A/B",mar:"Valoración HD / DP",mie:"Consulta Nefro A/B",jue:"Valoración HD / Procedimientos",vie:"Comités y Telemedicina",sab:"Disponibilidad",obs:"Agenda espejo y procedimientos invasivos"},
+      {id:"TU-04",colaborador:"Yuli Narváez",cargo:"Enfermera DP",servicio:"Diálisis Peritoneal",lun:"Entrenamiento / Consulta",mar:"Visitas domiciliarias",mie:"Entrenamiento / PET",jue:"Cambio de línea / Consulta",vie:"Conciliación de insumos",sab:"Disponibilidad telefónica",obs:"Ruta domiciliaria y adecuación"},
+      {id:"TU-05",colaborador:"Camilo Rivera",cargo:"Médico Experto",servicio:"VIH / Nefroprotección (EPS Familiar)",lun:"Consulta VIH",mar:"Médico Experto Nefro",mie:"Consulta VIH",jue:"Médico Experto Nefro",vie:"Auditoría GPC / Comité",sab:"Libre",obs:"Valoración mensual EPS Familiar y cohorte VIH"},
+      {id:"TU-06",colaborador:"Diana Muñoz / Psicología / Nutrición",cargo:"Equipo Multidisciplinario",servicio:"Transversal (Nefro / HD / DP / VIH)",lun:"Nefroprotección (Paquete)",mar:"Hemodiálisis Sala",mie:"VIH y DP",jue:"Nefroprotección",vie:"Búsqueda activa inasistentes",sab:"Jornada educativa",obs:"Registro obligatorio de asistencia en agenda"}
+    ];
+  }
+  if(!V13.th.formatos||!V13.th.formatos.length){
+    V13.th.formatos=[
+      {id:"TH-F01",codigo:"GTH-FO-001",tipo:"Solicitud de permiso / licencia remunerada",colaborador:"Lorena Pantoja",area:"Enfermería VIH",fecha:iso(addDays(TODAY(),-4)),detalle:"Permiso académico de 4 horas con reemplazo cubierto en preconsulta.",estado:"Aprobado",aprobadoPor:"Andrés Molina"},
+      {id:"TH-F02",codigo:"GTH-FO-002",tipo:"Lista de chequeo de inducción y reinducción",colaborador:"Karen Bolaños",area:"Admisiones y Preconsulta",fecha:iso(addDays(TODAY(),-10)),detalle:"Inducción en plataforma SIGC: confirmación de citas, flujo de signos vitales en preconsulta y trato humanizado.",estado:"Verificado",aprobadoPor:"Sandra Guerrero"},
+      {id:"TH-F03",codigo:"GTH-FO-003",tipo:"Evaluación de desempeño y adherencia a GPC",colaborador:"Equipo de Enfermería Unidad Renal",area:"Hemodiálisis y DP",fecha:iso(addDays(TODAY(),-2)),detalle:"Evaluación trimestral de adherencia a verificación de agua, desinfección terminal y técnica aséptica (96 %).",estado:"Cerrado",aprobadoPor:"Coordinación Asistencial"}
+    ];
+  }
+  if(!V13.th.clima||!V13.th.clima.length){
+    V13.th.clima=[
+      {id:"CL-01",fecha:iso(addDays(TODAY(),-7)),area:"Unidad Renal (HD y DP)",dimension:"Carga laboral y turnos",puntaje:92,riesgo:"Bajo",accion:"Rotación equitativa de turnos de tarde y pausas activas a las 10:30 a. m. y 3:30 p. m.",estado:"Vigente"},
+      {id:"CL-02",fecha:iso(addDays(TODAY(),-5)),area:"Consulta Externa, VIH y Nefroprotección",dimension:"Liderazgo, comunicación y trabajo en equipo",puntaje:94,riesgo:"Bajo",accion:"Integración automática de preconsulta y laboratorio a la HC para eliminar reprocesos y fatiga administrativa.",estado:"Vigente"},
+      {id:"CL-03",fecha:iso(addDays(TODAY(),-1)),area:"Toda la IPS POSMÉDICA",dimension:"Reconocimiento, bienestar y prevención de burnout",puntaje:95,riesgo:"Bajo",accion:"Celebración mensual del Empleado del Mes, tarde de bienestar y seguimiento de batería de riesgo psicosocial (Res. 2764/2022).",estado:"Vigente"}
+    ];
+  }
+}
+
+function v13ThView(){
+  v13SeedTH();
+  const sub=V13.th.tab||"emp";
+  const avgClima=V13.th.clima.length?Math.round(V13.th.clima.reduce((a,c)=>a+(num(c.puntaje)||90),0)/V13.th.clima.length):94;
+  let h='<div class="mhead"><div><p class="eyebrow">Gestión Organizacional · Cultura, Turnos y Bienestar</p><h2 class="mt">Talento humano y bienestar</h2><p class="note" style="margin:3px 0 0">Reconocimiento a Empleados del Mes, cuadros de turnos asistenciales y administrativos, formatos de gestión del talento humano y monitoreo de clima laboral garantizando bajo riesgo psicosocial.</p></div>'+
+   '<div class="copyrow"><button type="button" class="btn sm primary" data-v13="th_emp_new">Postular Empleado del Mes</button><button type="button" class="btn sm" data-v13="th_tur_new">Agregar turno</button><button type="button" class="btn sm" data-v13="th_fmt_new">Registrar formato / solicitud TH</button><button type="button" class="btn sm" data-v13="th_exp">Exportar Talento Humano (.xlsx)</button></div></div>'+
+   '<div class="tiles" style="margin-top:12px">'+
+     '<div class="tile ok"><span class="tv">'+V13.th.emp.length+'</span><span class="tl">empleados del mes destacados en el cuadro de honor</span></div>'+
+     '<div class="tile"><span class="tv">'+V13.th.turnos.length+'</span><span class="tl">líneas de cuadro de turnos activas y cubiertas</span></div>'+
+     '<div class="tile"><span class="tv">'+V13.th.formatos.length+'</span><span class="tl">formatos y gestiones de talento humano trazados</span></div>'+
+     '<div class="tile ok"><span class="tv">'+avgClima+' % · Bajo</span><span class="tl">índice de clima laboral favorable y nivel de riesgo psicosocial</span></div>'+
+   '</div>'+
+   '<div class="seg" style="margin-top:12px" role="group">'+
+     [["emp","1. Empleados del Mes y Cultura"],["tur","2. Cuadros de Turnos"],["fmt","3. Formatos y Gestión de Personal"],["cli","4. Clima Laboral y Riesgo Psicosocial"]].map(([k,l])=>'<button type="button" data-v13="th_tab|'+k+'" aria-pressed="'+(sub===k)+'">'+l+'</button>').join("")+
+   '</div>';
+
+  if(sub==="emp"){
+    h+='<div class="panel" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Cuadro de Honor · Empleados del Mes POSMÉDICA</h3><p class="note" style="margin:2px 0 0">Exalta la humanización, la seguridad del paciente, el trabajo en equipo y la adherencia a guías clínicas.</p></div><button type="button" class="btn sm primary" data-v13="th_emp_new">+ Nominar / Destacar colaborador</button></div>'+
+     '<div class="v13-emp-grid" style="margin-top:12px">'+V13.th.emp.map(e=>'<div class="v13-emp-card"><span class="v13-badge-gold">★ Empleado del Mes · '+esc(e.mes)+'</span><h4 style="margin:2px 0;font-size:17px;color:var(--ink)">'+esc(e.nombre)+'</h4><span class="sub">'+esc(e.cargo+' · '+e.area)+'</span><p style="margin:4px 0;font-size:13.5px">'+esc(e.motivo)+'</p><div class="copyrow" style="justify-content:space-between;margin-top:4px"><span class="tag cac">Valor: '+esc(e.valor)+'</span><button type="button" class="btn sm" data-v13="th_vote|'+e.id+'">👏 Reconocer ('+(e.votos||1)+')</button></div></div>').join("")+'</div></div>';
+  }else if(sub==="tur"){
+    h+='<div class="panel" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Cuadro Maestro de Turnos Asistenciales y Administrativos</h3><p class="note" style="margin:2px 0 0">Garantiza cobertura continua sin sobrecarga horaria en Hemodiálisis, Diálisis Peritoneal, Nefroprotección, VIH y Consulta Externa.</p></div><button type="button" class="btn sm primary" data-v13="th_tur_new">+ Agregar colaborador al cuadro de turnos</button></div>'+
+     '<div class="tablebox" style="margin-top:10px"><table class="dense"><thead><tr><th>Colaborador</th><th>Cargo · Servicio</th><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb / Disp.</th><th>Asignación / Observación</th></tr></thead><tbody>'+
+     V13.th.turnos.map(t=>'<tr><td><strong>'+esc(t.colaborador)+'</strong></td><td>'+esc(t.cargo)+'<span class="sub">'+esc(t.servicio)+'</span></td><td class="mono" style="font-size:12px">'+esc(t.lun)+'</td><td class="mono" style="font-size:12px">'+esc(t.mar)+'</td><td class="mono" style="font-size:12px">'+esc(t.mie)+'</td><td class="mono" style="font-size:12px">'+esc(t.jue)+'</td><td class="mono" style="font-size:12px">'+esc(t.vie)+'</td><td class="mono" style="font-size:12px">'+esc(t.sab)+'</td><td style="font-size:12.5px">'+esc(t.obs||"")+'</td></tr>').join("")+
+     '</tbody></table></div></div>';
+  }else if(sub==="fmt"){
+    h+='<div class="panel" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Formatos Estandarizados y Solicitudes de Talento Humano</h3><p class="note" style="margin:2px 0 0">Control digital de permisos, vacaciones, actas de entrega de turno, listas de inducción/reinducción y evaluaciones de desempeño.</p></div><button type="button" class="btn sm primary" data-v13="th_fmt_new">+ Diligenciar formato / solicitud</button></div>'+
+     '<div class="tablebox" style="margin-top:10px"><table class="dense"><thead><tr><th>Código</th><th>Formato / Tipo de gestión</th><th>Colaborador · Área</th><th>Fecha</th><th>Detalle y soporte de cobertura</th><th>Estado</th></tr></thead><tbody>'+
+     V13.th.formatos.map(f=>'<tr><td class="mono">'+esc(f.codigo)+'</td><td><strong>'+esc(f.tipo)+'</strong></td><td>'+esc(f.colaborador)+'<span class="sub">'+esc(f.area)+'</span></td><td class="mono">'+esc(f.fecha)+'</td><td style="font-size:13px">'+esc(f.detalle)+'</td><td><span class="st ok">'+esc(f.estado)+'</span><span class="sub">'+esc(f.aprobadoPor||"")+'</span></td></tr>').join("")+
+     '</tbody></table></div></div>';
+  }else{
+    h+='<div class="panel" style="margin-top:12px"><div class="mhead"><div><h3 style="margin:0">Clima Organizacional, Bienestar y Garantía de Bajo Riesgo Psicosocial (Res. 2764 de 2022)</h3><p class="note" style="margin:2px 0 0">Monitoreo continuo de condiciones intralaborales, pausas activas, prevención de fatiga y acciones de bienestar.</p></div><button type="button" class="btn sm primary" data-v13="th_cli_new">+ Registrar medición / acción de bienestar</button></div>'+
+     '<div class="tablebox" style="margin-top:10px"><table class="dense"><thead><tr><th>Fecha</th><th>Área / Servicio</th><th>Dimensión evaluada</th><th class="num">Satisfacción / Clima</th><th>Nivel de Riesgo Psicosocial</th><th>Intervención preventiva y de bienestar</th></tr></thead><tbody>'+
+     V13.th.clima.map(c=>'<tr><td class="mono">'+esc(c.fecha)+'</td><td><strong>'+esc(c.area)+'</strong></td><td>'+esc(c.dimension)+'</td><td class="num mono"><strong>'+c.puntaje+' %</strong></td><td><span class="st '+(c.riesgo==="Bajo"?"ok":c.riesgo==="Medio"?"warn":"bad")+'">Riesgo '+esc(c.riesgo)+'</span></td><td style="font-size:13px">'+esc(c.accion)+'</td></tr>').join("")+
+     '</tbody></table></div></div>';
+  }
+  return h;
+}
+
+/* =====================================================================================================
+   PUNTO 1 · RUTA INTERACTIVA DEL PACIENTE 360° (GRÁFICA E INTERACTIVA PARA TODOS LOS PROGRAMAS)
+   ===================================================================================================== */
+const V13_RUTAS={
+  nefro:[
+    {step:1,code:"EST-01",t:"Captación y Confirmación Diagnóstica (> 3 meses)",rol:"Médico del Programa / Admisiones",desc:"Tamizaje de creatinina (CKD-EPI 2021) y RAC en HTA/DM, verificación de persistencia > 90 días y clasificación CGA.",go:["nefro","e2","nefro_pac"]},
+    {step:2,code:"EST-02",t:"Preconsulta de Enfermería y Toma de Muestras",rol:"Auxiliar / Enfermería / Laboratorio",desc:"Confirmación de cita en agenda, toma de signos vitales (PA, FC, FR, Peso, Talla, Cintura, Glucometría) y cargue de Excel de paraclínicos.",go:["nefro","e3","nefro_precon"]},
+    {step:3,code:"EST-03",t:"Valoración Médica GPC y Estratificación KFRE / RCV",rol:"Nefrología / Médico Experto (EPS Familiar)",desc:"Consulta con auditoría GPC en tiempo real, cálculo de SCORE2/Framingham y KFRE a 2 y 5 años, y ajuste de metas tensionales/metabólicas.",go:["nefro","e3","nefro_val"]},
+    {step:4,code:"EST-04",t:"Nefroprotección Farmacológica y Vacunación Renal",rol:"Medicina / Farmacia / Vacunación",desc:"Bloqueo SRAA (IECA/ARA-II), iSGLT2, estatinas, finerenona, retiro de AINEs, carné vacunal (Influenza/VHB/Neumococo) y entrega contractual EPS Familiar.",go:["nefro","e5","nefro_far"]},
+    {step:5,code:"EST-05",t:"Intervención por Equipo Multidisciplinario",rol:"Nutrición · Psicología · Trabajo Social · Enfermería",desc:"Atención integral registrada con control de asistencia/inasistencia según estadio G1–G5 y educación estructurada.",go:["nefro","e2","nefro_cal12"]},
+    {step:6,code:"EST-06",t:"Seguimiento de Metas CAC o Transición Programada G5",rol:"Comité Renal / Nefrología",desc:"Evaluación de los 47 indicadores CAC (meta pérdida TFGe ≤ 5 mL/min/año) y preparación programada de FAV o catéter DP si KFRE 2a > 40 %.",go:["nefro","e2","nefro_trr"]}
+  ],
+  hd:[
+    {step:1,code:"EST-01",t:"Ingreso a Unidad Renal y Serologías Basales",rol:"Coordinación / Enfermería HD",desc:"Verificación de identidad, consentimiento informado, panel viral basal (HBsAg, Anti-HBs, Anti-HBc, VHC, VIH) y asignación de turno/puesto.",go:["hd","e2","pac"]},
+    {step:2,code:"EST-02",t:"Verificación Pre-Turno (Agua y Desinfección) y Preconsulta",rol:"Enfermería de Sala HD",desc:"Chequeo obligatorio Sí/No de calidad del agua de ósmosis y desinfección vigente antes de iniciar sesiones; peso pre y signos vitales.",go:["hd","e3","turno"]},
+    {step:3,code:"EST-03",t:"Sesión de Hemodiálisis Segura y Acceso Vascular",rol:"Enfermería / Procedimientos",desc:"Conexión aséptica CDC, duración ≥ 4 h, control de UFR ≤ 13 mL/kg/h, vigilancia de eventos y ruta de catéter hacia FAV.",go:["hd","e2","acc"]},
+    {step:4,code:"EST-04",t:"Paraclínicos Mensuales y Vacunación VHB (40 µg)",rol:"Laboratorio / Enfermería HD",desc:"Cargue de Excel de laboratorio (BUN pre/post con spKt/V Daugirdas II, Hb, Alb, P, Ca, PTH, K) y esquema VHB con control de títulos.",go:["hd","e4","lab"]},
+    {step:5,code:"EST-05",t:"Valoración Mensual GPC (con KRu, Kt/V Total y Arrastre SV)",rol:"Nefrología / Equipo Multidisciplinario",desc:"Arrastre automático de TA promedio y últimos signos vitales de las sesiones, medición de FRR (KRu) + Kt/V total y auditoría SISCAC.",go:["hd","e3","val"]},
+    {step:6,code:"EST-06",t:"Alistamiento para Trasplante Renal y Cierre CAC",rol:"Nefrología / Auditoría PAMEC",desc:"Concepto de idoneidad y seguimiento de los 28 estudios pretrasplante (KDIGO 2020) y liberación de matriz CAC.",go:["hd","e2","tx"]}
+  ],
+  dp:[
+    {step:1,code:"EST-01",t:"Implante de Catéter Tenckhoff y Visita Domiciliaria",rol:"Cirugía / Enfermería DP / Trabajo Social",desc:"Colocación con lista de chequeo quirúrgica, verificación de condiciones locativas del hogar y red de apoyo.",go:["dp","e3","dp_qx"]},
+    {step:2,code:"EST-02",t:"Entrenamiento y Certificación por Demostración",rol:"Enfermería DP",desc:"Evaluación práctica de las 10 competencias críticas de recambio manual (DPCA) o cicladora (DPA) y cuidado del orificio.",go:["dp","e5","dp_cat"]},
+    {step:3,code:"EST-03",t:"Prescripción Individualizada y Entrega Conciliada en Casa",rol:"Nefrología / Logística Farmacéutica",desc:"Prescripción versionada de soluciones y despacho domiciliario descontando saldo físico en casa y días de hospitalización.",go:["dp","e5","dp_ins"]},
+    {step:4,code:"EST-04",t:"Preconsulta, Adecuación (Kt/V + KRu + PET) y Laboratorio",rol:"Auxiliar / Enfermería / Laboratorio",desc:"Toma de signos vitales en preconsulta, recolección de efluente y orina de 24 h (Kt/V total ≥ 1,7 + KRu) y cargue de Excel de laboratorio.",go:["dp","e4","dp_ktv"]},
+    {step:5,code:"EST-05",t:"Valoración Mensual GPC y Equipo Multidisciplinario",rol:"Nefrología / Nutrición / Psicología / TS",desc:"Valoración con arrastre de signos vitales, interpretación automática GPC, vigilancia ISPD de orificio/peritonitis y auditoría en vivo.",go:["dp","e3","dp_val"]},
+    {step:6,code:"EST-06",t:"Ruta de Trasplante, Calidad de Vida y Prevalidación CAC",rol:"Nefrología / Calidad",desc:"Aplicación anual de KDQOL-36, estado en lista de trasplante y generación auditada del reporte CAC.",go:["dp","e6","dp_cac"]}
+  ],
+  vih:[
+    {step:1,code:"EST-01",t:"Identificación, Confirmación y Vinculación (GAO-PT-008 6.1)",rol:"Admisiones / Enfermería VIH",desc:"Verificación de pruebas diagnósticas confirmatorias, apertura de HC, caracterización de población clave y carga viral/CD4 basales.",go:["vih","e2","pob"]},
+    {step:2,code:"EST-02",t:"Preconsulta de Enfermería y Valoración Inicial Interdisciplinaria",rol:"Auxiliar / Medicina Experta / Equipo",desc:"Toma de signos vitales en preconsulta (paciente «Listo para atención») y valoración por Medicina, Enfermería, Psicología, TS y Nutrición.",go:["vih","e3","vih_precon"]},
+    {step:3,code:"EST-03",t:"Inicio Oportuno de TAR Validada y Profilaxis (≤ 20-30 días)",rol:"Medicina Experta / Química Farmacéutica",desc:"Prescripción según pauta preferida GPC 2021 con lista de 8 validaciones de seguridad y profilaxis (TMP/SMX si CD4 < 200; TPT si PPD+).",go:["vih","e5","tar_esq"]},
+    {step:4,code:"EST-04",t:"Monitoreo Inmunovirológico, Tamizajes y Vacunación",rol:"Laboratorio / Enfermería VIH",desc:"Cargue Excel de CV y CD4 semestrales, perfil metabólico/renal, VDRL, HBsAg, Anti-VHC, PPD, citología cervicovaginal/anal y carné vacunal.",go:["vih","e4","lab"]},
+    {step:5,code:"EST-05",t:"Seguimiento de Adherencia SMAQ y Dispensación Conciliada",rol:"Química Farmacéutica / Medicina",desc:"Aplicación semestral de cuestionario SMAQ, control de saldos de tabletas y generación del pedido mensual exacto.",go:["vih","e5","tar_ped"]},
+    {step:6,code:"EST-06",t:"Búsqueda Activa de Inasistentes y Auditoría Pre-SISCAC",rol:"Trabajo Social / Auditoría",desc:"Rescate inmediato de inasistentes (< 48 h), auditoría de los 16 criterios CAC de la HC y exportación de Cohorte 43 y CAC 193.",go:["vih","e7","aud"]}
+  ],
+  ce:[
+    {step:1,code:"EST-01",t:"Recepción de Solicitud y Priorización Clínica",rol:"Admisiones / Coordinación",desc:"Registro de toda demanda sin barreras con fecha real del usuario, orden médica y clasificación (Ordinaria, Preferente, Prioritaria Clínica).",go:["ce","e2","nueva"]},
+    {step:2,code:"EST-02",t:"Gestión y Seguimiento de Autorización EPS",rol:"Autorizaciones",desc:"Control de vigencia de autorizaciones aprobadas y alertas preventivas antes del vencimiento.",go:["ce","e4","aut"]},
+    {step:3,code:"EST-03",t:"Asignación en Orden Estricto desde Lista de Espera Única",rol:"Admisiones",desc:"Emparejamiento compatible con jornadas habilitadas en REPS respetando prioridad clínica y antigüedad.",go:["ce","e2","lista"]},
+    {step:4,code:"EST-04",t:"Confirmación y Preconsulta de Enfermería (Signos Vitales)",rol:"Auxiliar de Enfermería",desc:"Recepción del paciente confirmado, toma de signos vitales y antropometría, habilitando el estado «Listo para atención».",go:["ce","e3","ce_precon"]},
+    {step:5,code:"EST-05",t:"Atención Médica Especializada / Procedimiento con HC GPC",rol:"Médico Especialista",desc:"Apertura directa de la HC con los signos vitales y paraclínicos precargados, auditoría GPC en vivo y generación de órdenes.",go:["ce","e3","age"]},
+    {step:6,code:"EST-06",t:"Cierre en Fase 2 y Reporte Normativo Res. 1552 / 256",rol:"Calidad / Coordinación",desc:"Registro de desenlace (Atendida, Inasistencia con rescate o Cancelada) y cálculo de oportunidad.",go:["ce","e6","tab"]}
+  ]
+};
+
+function v13GetPatientsForProg(prog){
+  if(prog==="hd"&&hdOn()){ensureIdx();return pacs().filter(p=>activeAt(p,ST.corte)).map(p=>({id:p.ID,nom:nombre(p),eps:p.EPS||"",raw:p}));}
+  if(prog==="dp"&&dpOn()){return DP.book.pac.filter(lv).filter(p=>dpActivo(p)).map(p=>({id:p.ID,nom:dpNombre(p),eps:p.EPS||"",raw:p}));}
+  if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){return vxPacs().filter(p=>vxSt(p,vxCorte()).activo).map(p=>({id:p.ID,nom:vxNom(p),eps:p.EPS||"",raw:p}));}
+  if(prog==="ce"&&typeof CE!=="undefined"&&CE.book){return CE.book.pac.map(p=>({id:p.ID,nom:ceNom(p),eps:p.EPS||"",raw:p}));}
+  if(prog==="nefro"){
+    try{const w=pxNefroWin();if(w&&w.MG&&w.MG.book)return(w.MG.book.pac||[]).filter(p=>p.estado==="ACTIVO").map(p=>({id:p.codigo,nom:p.nombre||p.codigo,eps:p.eps||"",raw:p}));}catch(e){}
+  }
+  return[];
+}
+
+function v13EvalPatientStation(prog,pid){
+  if(!pid)return[true,true,false,false,false,false];
+  const pre=V13.precon[prog+"|"+pid];
+  if(prog==="hd"&&hdOn()){
+    const p=IDX.pac.get(pid);if(!p)return[true,false,false,false,false,false];
+    const hasSes=p._ses&&p._ses.some(s=>s.Estado==="Realizada");
+    const hasLab=Object.keys(p._lab||{}).length>0;
+    const hasVal=p._val&&p._val.some(v=>v.Mes===ym(ST.corte));
+    const hasTx=p.TxEstado&&p.TxEstado!=="Sin evaluar";
+    return[!!(p.Documento&&p.EPS),!!pre||hasSes,hasSes,hasLab,hasVal,hasTx];
+  }
+  if(prog==="dp"&&dpOn()){
+    const p=dpPac(pid);if(!p)return[true,false,false,false,false,false];
+    const eduOk=dpEduState(pid).res==="Competente";
+    const preOk=!!dpPreVig(pid);
+    const labOk=dpR("lab").some(l=>l.Paciente===pid);
+    const valOk=dpR("val").some(v=>v.Paciente===pid&&/Finalizada/.test(v.Estado||""));
+    const txOk=!!dpTxAt(pid);
+    return[!!v6d(p.FechaInicioDP),eduOk,preOk,labOk,valOk,txOk];
+  }
+  if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){
+    const p=vxP(pid);if(!p)return[true,false,false,false,false,false];
+    const s=vxSt(p,vxCorte());
+    const au=vxAudit(p);
+    return[!!p.FechaDx,!!pre||s.val.length>0,s.recibeTAR,!!(s.cv6&&s.cd46),!!s.smaq,au.pct>=85];
+  }
+  return[true,!!pre,true,true,false,false];
+}
+
+function v13RutaInteractivaView(prog){
+  const steps=V13_RUTAS[prog]||V13_RUTAS.nefro;
+  const P=v13GetPatientsForProg(prog);
+  const selPid=V13.rutaPacSel[prog]||(P[0]&&P[0].id)||"";
+  const stFlags=v13EvalPatientStation(prog,selPid);
+  const firstPending=stFlags.findIndex(x=>!x);
+
+  return'<div class="panel" style="margin-bottom:14px">'+
+    '<div class="mhead"><div><p class="eyebrow">Punto 1 · Claridad Conceptual y Navegación Asistencial</p><h3 style="margin:0;font-size:17px;color:var(--ink)">Diferencia entre Mapa de Procesos y Ruta Interactiva del Paciente · '+esc(PROG[prog]?PROG[prog].n:prog)+'</h3></div>'+
+    '<div class="copyrow"><label class="f" style="min-width:260px">Ver recorrido en la ruta del paciente:<select data-v13="rutapac|'+prog+'">'+opt(P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]),selPid,"Vista general de la cohorte")+'</select></label></div></div>'+
+    '<div class="v13-diff-grid" style="margin-top:10px">'+
+      '<div class="v13-diff-card"><strong>1. Mapa de Procesos (Arquitectura de la IPS)</strong><p class="note" style="margin:4px 0 0">Define <b>cómo se organiza internamente la institución</b> (procesos estratégicos, misionales y de apoyo, quién es el líder responsable, qué norma cumple y cómo se audita en PAMEC/SOGCS).</p></div>'+
+      '<div class="v13-diff-card ruta"><strong>2. Ruta del Paciente (Patient Journey Asistencial)</strong><p class="note" style="margin:4px 0 0">Muestra de forma <b>gráfica, secuencial e interactiva el paso a paso que vive cada paciente</b> desde que ingresa, pasa por preconsulta de enfermería, laboratorio, consulta médica GPC, farmacia y equipo multidisciplinario, hasta alcanzar sus metas.</p></div>'+
+    '</div>'+
+    '<div class="v13-ruta-track">'+
+      steps.map((s,idx)=>{
+        const done=selPid?stFlags[idx]:false;
+        const isCurr=selPid&&(firstPending===idx||(firstPending===-1&&idx===steps.length-1));
+        const cls=done?"done":isCurr?"curr":"";
+        return'<div class="v13-ruta-node '+cls+'">'+
+          '<div><div class="copyrow" style="justify-content:space-between;margin-bottom:6px"><span class="v13-node-num">'+s.step+'</span><span class="tag '+(done?"cac":isCurr?"warn":"")+'">'+(selPid?(done?"✓ Etapa cumplida":isCurr?"● Estación actual":"Pendiente"):s.code)+'</span></div>'+
+          '<strong style="font-size:14.5px;display:block;line-height:1.25">'+esc(s.t)+'</strong>'+
+          '<span class="sub" style="color:var(--accent);font-weight:700;margin:3px 0;display:block">'+esc(s.rol)+'</span>'+
+          '<p class="note" style="margin:4px 0 0;font-size:12.5px">'+esc(s.desc)+'</p></div>'+
+          '<button type="button" class="btn sm primary" style="width:100%;margin-top:6px" data-v12="sub|'+s.go[0]+'|'+s.go[1]+'|'+s.go[2]+'">Abrir estación →</button>'+
+        '</div>';
+      }).join("")+
+    '</div></div>';
+}
+
+/* Integrar la Ruta Interactiva 360° encima del Mapa de Procesos en v10GovView */
+const v10GovView0=v10GovView;
+v10GovView=function(prog){
+  return v13RutaInteractivaView(prog)+v10GovView0(prog);
+};
+
+/* =====================================================================================================
+   PUNTO 2 · CARACTERIZACIÓN DE COHORTE Y RIESGO + CALENDARIO UNIFICADO DE 12 MESES PARA TODOS LOS PROGRAMAS
+   ===================================================================================================== */
+function v13CaracterizacionCohorteView(prog){
+  const P=v13GetPatientsForProg(prog);
+  const N=P.length;
+  if(!N)return'<div class="panel empty">Cargue el libro o active los datos de demostración para visualizar la Caracterización y Perfil de Riesgo de la cohorte.</div>';
+  const byEps={},bySexo={Femenino:0,Masculino:0},byEdad={"< 40 años":0,"40–59 años":0,"60–74 años":0,"≥ 75 años":0},byRiesgo={"Riesgo Alto / Prioritario":0,"Riesgo Moderado":0,"Riesgo Bajo / Controlado":0};
+  P.forEach(({raw,eps})=>{
+    const e=eps||"Sin EPS";byEps[e]=(byEps[e]||0)+1;
+    const sx=String(raw.Sexo||raw.sexo||"").toUpperCase();
+    if(sx.startsWith("F"))bySexo.Femenino++;else bySexo.Masculino++;
+    let ed=null;
+    if(prog==="hd")ed=ageAt(raw,ST.corte);
+    else if(prog==="dp")ed=dpEdad(raw);
+    else if(prog==="vih")ed=vxEdad(raw,vxCorte());
+    else if(raw.FechaNac)ed=Math.floor(dayDiff(pdate(raw.FechaNac),TODAY())/365.25);
+    if(ed!=null){if(ed<40)byEdad["< 40 años"]++;else if(ed<60)byEdad["40–59 años"]++;else if(ed<75)byEdad["60–74 años"]++;else byEdad["≥ 75 años"]++;}
+    if(prog==="hd"){const sem=semaforo(raw,ST.corte);if(sem.lvl==="alto")byRiesgo["Riesgo Alto / Prioritario"]++;else if(sem.lvl==="medio")byRiesgo["Riesgo Moderado"]++;else byRiesgo["Riesgo Bajo / Controlado"]++;}
+    else if(prog==="vih"){const al=vxAlertas(raw,vxCorte()).nivel;if(al==="roja")byRiesgo["Riesgo Alto / Prioritario"]++;else if(al==="amarilla")byRiesgo["Riesgo Moderado"]++;else byRiesgo["Riesgo Bajo / Controlado"]++;}
+    else if(prog==="dp"){const kt=dpLast(raw.ID,"KtV");if(!kt||num(kt.Valor)<1.7)byRiesgo["Riesgo Alto / Prioritario"]++;else byRiesgo["Riesgo Bajo / Controlado"]++;}
+    else byRiesgo["Riesgo Moderado"]++;
+  });
+  const renderBars=(obj)=>hbars(Object.entries(obj));
+  return'<div class="panel"><div class="mhead"><div><p class="eyebrow">Punto 2 · Modelo Homologado de Nefroprotección</p><h3 style="margin:0">Caracterización Demográfica, Aseguramiento y Estratificación de Riesgo · '+esc(PROG[prog]?PROG[prog].n:prog)+' ('+N+' activos)</h3></div></div>'+
+    '<div class="tiles" style="margin:10px 0">'+
+      '<div class="tile"><span class="tv">'+N+'</span><span class="tl">pacientes activos caracterizados</span></div>'+
+      '<div class="tile bad"><span class="tv">'+byRiesgo["Riesgo Alto / Prioritario"]+'</span><span class="tl">en riesgo alto / intervención prioritaria</span></div>'+
+      '<div class="tile warn"><span class="tv">'+byRiesgo["Riesgo Moderado"]+'</span><span class="tl">en riesgo moderado / seguimiento estrecho</span></div>'+
+      '<div class="tile ok"><span class="tv">'+byRiesgo["Riesgo Bajo / Controlado"]+'</span><span class="tl">en riesgo bajo / metas controladas</span></div>'+
+    '</div>'+
+    '<div class="grid2" style="margin-top:12px">'+
+      '<div class="panel"><h3>Distribución por EPS</h3>'+renderBars(byEps)+'</div>'+
+      '<div class="panel"><h3>Estratificación de Riesgo Clínico</h3>'+renderBars(byRiesgo)+'</div>'+
+      '<div class="panel"><h3>Grupos Etarios</h3>'+renderBars(byEdad)+'</div>'+
+      '<div class="panel"><h3>Distribución por Sexo</h3>'+renderBars(bySexo)+'</div>'+
+    '</div></div>';
+}
+
+function v13Calendario12MPaciente(prog){
+  if(prog==="nefro"){
+    try{
+      const w=pxNefroWin();
+      if(w&&w.MG&&w.MG.book){
+        const snaps=w.MG.book.pac.filter(p=>p.estado==="ACTIVO");
+        const sel=V13.calPacSel.nefro||(snaps[0]&&snaps[0].codigo)||"";
+        return'<div class="panel"><div class="mhead"><div><p class="eyebrow">Calendario Clínico Estandarizado CAC / KDIGO (12 Meses)</p><h3 style="margin:0">Calendario de Contenidos Mínimos y Suficientes · Nefroprotección</h3><p class="note" style="margin:2px 0 0">Aplica el 100 % de las frecuencias clínicas mínimas suficientes independientes de la EPS. Contractual: solo <b>EPS Familiar de Colombia</b> incluye valoración mensual por Médico Experto y entrega mensual de medicamentos (Nueva EPS no contratado).</p></div>'+
+        '<label class="f" style="min-width:280px">Paciente:<select data-v13="calpac|nefro">'+opt(snaps.map(p=>[p.codigo,p.codigo+" · "+p.nombre+" · "+(p.eps||"")]),sel)+'</select></label></div>'+
+        '<p class="note" style="margin-top:8px">Seleccione un paciente o haga clic en «Abrir en Ficha de Pacientes» para gestionar e imprimir su calendario anual de 12 meses.</p>'+
+        '<button type="button" class="btn sm primary" data-v13="open_nefro_pac_cal|'+esc(sel)+'">Ver y descargar matriz anual de '+esc(sel)+' en Ficha</button></div>';
+      }
+    }catch(e){}
+  }
+  const P=v13GetPatientsForProg(prog);
+  if(!P.length)return'<div class="panel empty">Sin pacientes activos en este programa para generar el calendario de 12 meses.</div>';
+  const pid=V13.calPacSel[prog]&&P.some(x=>x.id===V13.calPacSel[prog])?V13.calPacSel[prog]:P[0].id;
+  const pacObj=P.find(x=>x.id===pid);
+  const eps=pacObj?pacObj.eps:"";
+  const isFamiliar=/FAMILIAR/i.test(eps);
+  const T0=monthStart(TODAY());
+  const months=Array.from({length:12},(_,i)=>addMonths(T0,i));
+  const M3=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+
+  /* Construir filas estándar de 12 meses extrapoladas a cada programa de Posmédica */
+  const acts=[];
+  if(prog==="hd"){
+    acts.push(
+      ["Consultas médicas","Valoración mensual por Nefrología","Mensual",1,"Nefrología"],
+      ["Equipo multidisciplinario","Valoración por Nutrición renal","Trimestral / Semestral",3,"Nutrición"],
+      ["Equipo multidisciplinario","Valoración por Psicología","Semestral / Anual",6,"Psicología"],
+      ["Equipo multidisciplinario","Valoración por Trabajo Social","Semestral / Anual",6,"Trabajo social"],
+      ["Equipo multidisciplinario","Atención por Enfermería y educación en acceso","Mensual",1,"Enfermería"],
+      ["Equipo multidisciplinario","Conciliación por Química Farmacéutica","Trimestral",3,"Química farmacéutica"],
+      ["Paraclínicos y Toma de Muestras","Paquete mensual (Hb, BUN pre/post, Kt/V, K, Ca, P, Creat)","Mensual",1,"Toma de muestras"],
+      ["Paraclínicos y Toma de Muestras","Paquete trimestral (Albúmina, PTH, Ferritina, TSAT, HbA1c si DM)","Trimestral",3,"Toma de muestras"],
+      ["Paraclínicos y Toma de Muestras","Serologías virales (HBsAg, Anti-VHC, VIH) y Anti-HBs","Semestral / Anual",6,"Toma de muestras"],
+      ["Vacunación y Gestión Farmacéutica","Control de esquema VHB / Influenza anual","Anual / Esquema",12,"Vacunación"],
+      ["Vacunación y Gestión Farmacéutica","Dispensación y control de ampollas intradiálisis (EPO/Hierro)","Mensual",1,"Farmacia"]
+    );
+  }else if(prog==="dp"){
+    acts.push(
+      ["Consultas médicas","Control mensual por Nefrología DP","Mensual",1,"Consulta de nefrología"],
+      ["Equipo multidisciplinario","Valoración por Enfermería DP y revisión de orificio","Mensual",1,"Valoración de enfermería"],
+      ["Equipo multidisciplinario","Valoración por Nutrición","Trimestral",3,"Valoración de nutrición"],
+      ["Equipo multidisciplinario","Valoración por Psicología","Semestral",6,"Valoración de psicología"],
+      ["Equipo multidisciplinario","Valoración por Trabajo Social y visita domiciliaria","Semestral",6,"Valoración de trabajo social"],
+      ["Paraclínicos y Adecuación","Laboratorios trimestrales (Hb, Albúmina, Fósforo, Calcio, K)","Trimestral",3,"Toma de laboratorios"],
+      ["Paraclínicos y Adecuación","Medición de Kt/V total + KRu (recolección 24 h) y PTH","Cuatrimestral / Semestral",4,"Prueba de adecuación (Kt/V)"],
+      ["Suministros y Catéter","Entrega domiciliaria conciliada de bolsas, líneas y minicaps","Mensual",1,"Entrega de insumos"],
+      ["Suministros y Catéter","Cambio programado de línea de transferencia (transfer set)","Semestral",6,"Cambio de línea (transfer set)"]
+    );
+  }else if(prog==="vih"){
+    acts.push(
+      ["Consultas médicas","Control por Medicina Experta VIH","Mensual / Bimestral",1,"Medicina experta VIH"],
+      ["Consultas médicas","Valoración por Infectología","Semestral / Anual",6,"Infectología"],
+      ["Equipo multidisciplinario","Consulta y nota de Enfermería VIH","Mensual / Trimestral",2,"Enfermería"],
+      ["Equipo multidisciplinario","Atención por Química Farmacéutica y SMAQ","Trimestral",3,"Química farmacéutica"],
+      ["Equipo multidisciplinario","Valoración por Psicología","Semestral",6,"Psicología"],
+      ["Equipo multidisciplinario","Valoración por Trabajo Social","Semestral",6,"Trabajo social"],
+      ["Equipo multidisciplinario","Valoración por Nutrición y Odontología","Semestral / Anual",6,"Nutrición"],
+      ["Paraclínicos y Tamizajes","Carga Viral VIH, CD4, Creatinina/TFGe, Glucemia, ALT, Lípidos","Semestral",6,"Toma de muestras"],
+      ["Paraclínicos y Tamizajes","Tamizajes anuales (VDRL, HBsAg, Anti-HBs, Anti-VHC, PPD, Citología)","Anual",12,"Toma de muestras"],
+      ["Gestión Farmacéutica y Vacunas","Dispensación mensual de TAR conciliada","Mensual",1,"Entrega de TAR"]
+    );
+  }else{
+    acts.push(
+      ["Consultas médicas","Consulta especializada de control","Trimestral",3,"Especialidad"],
+      ["Consultas médicas","Valoración por Médico Experto (Exclusivo EPS Familiar)",isFamiliar?"Mensual":"No contratado",isFamiliar?1:99,"Médico experto"],
+      ["Equipo multidisciplinario","Valoración por Psicología, Nutrición y Trabajo Social","Semestral",6,"Equipo multidisciplinario"],
+      ["Paraclínicos","Toma de muestras y paraclínicos de seguimiento","Trimestral",3,"Toma de muestras"]
+    );
+  }
+
+  /* Verificar asistencias reales registradas para el paciente en cada mes */
+  const checkCell=(actName,freq,disc,mIdx)=>{
+    if(freq===99)return{st:"na",tx:"—",tip:"No contratado en esta EPS"};
+    const mStr=ym(months[mIdx]);
+    const attKey=prog+"|"+pid+"|"+disc+"|"+mStr;
+    if(V13.precon[attKey]==="ASISTIO")return{st:"hecho",tx:"✔",tip:"Asistió / Actividad cumplida en "+mStr};
+    if(V13.precon[attKey]==="INASISTIO")return{st:"venc",tx:"✕",tip:"No asistió en "+mStr};
+    if(prog==="hd"&&hdOn()){
+      const p=IDX.pac.get(pid);
+      if(p){
+        if(disc==="Nefrología"&&p._val.some(v=>v.Mes===mStr))return{st:"hecho",tx:"✔",tip:"Valoración cerrada en "+mStr};
+        if(p._ate.some(a=>a.Disciplina===disc&&ym(a.Fecha)===mStr))return{st:"hecho",tx:"✔",tip:"Atención registrada en "+mStr};
+        if(disc==="Toma de muestras"&&Object.values(p._lab||{}).some(arr=>arr.some(l=>ym(l.FechaToma)===mStr)))return{st:"hecho",tx:"✔",tip:"Muestra tomada con resultado en "+mStr};
+      }
+    }
+    if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){
+      const cits=vxL(pid,"cit").filter(c=>String(c.Fecha).startsWith(mStr)&&c.Disciplina===disc);
+      if(cits.some(c=>c.Estado==="Asistió"))return{st:"hecho",tx:"✔",tip:"Asistió el "+cits[0].Fecha};
+      if(cits.some(c=>c.Estado==="No asistió"))return{st:"venc",tx:"✕",tip:"Inasistencia el "+cits[0].Fecha};
+      if(cits.some(c=>c.Estado==="Programada"))return{st:"cita",tx:"✓",tip:"Cita asignada "+cits[0].Fecha};
+    }
+    if(prog==="dp"&&dpOn()){
+      const ags=dpR("age").filter(a=>a.Paciente===pid&&ym(v6d(a.Fecha))===mStr&&a.Tipo.toLowerCase().includes(disc.split(" ")[0].toLowerCase()));
+      if(ags.some(a=>a.Estado==="Realizada"))return{st:"hecho",tx:"✔",tip:"Realizada en "+mStr};
+      if(ags.some(a=>a.Estado==="Inasistencia"))return{st:"venc",tx:"✕",tip:"Inasistencia en "+mStr};
+      if(ags.some(a=>["Programada","Confirmada"].includes(a.Estado)))return{st:"cita",tx:"✓",tip:"Cita programada en "+mStr};
+    }
+    if(mIdx%freq===0)return{st:"prog",tx:"●",tip:"Programado por frecuencia ("+actName+") — Clic para marcar Asistió / No asistió"};
+    return null;
+  };
+
+  let h='<div class="panel"><div class="mhead"><div><p class="eyebrow">Punto 2 y 3 · Calendario Anual por Paciente y Registro de Asistencia</p><h3 style="margin:0">Calendario de Actividades de 12 Meses · '+esc(pacObj.id+" · "+pacObj.nom)+' ('+esc(eps||"Sin EPS")+')</h3>'+
+    '<p class="note" style="margin:2px 0 0">Contenidos clínicos mínimos y suficientes estandarizados. <b>✔</b> Realizada/Asistió · <b>✓</b> Cita asignada · <b>●</b> Programada · <b>✕</b> No asistió. <b>Haga clic en cualquier celda</b> para registrar asistencia o inasistencia de Psicología, Nutrición, Trabajo Social, Enfermería, Medicina o Toma de Muestras.</p></div>'+
+    '<label class="f" style="min-width:260px">Cambiar paciente:<select data-v13="calpac|'+prog+'">'+opt(P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]),pid)+'</select></label></div>'+
+    '<div class="tablebox" style="margin-top:10px"><table class="calg"><thead><tr><th>Grupo / Actividad</th>'+months.map(m=>'<th>'+M3[m.getMonth()]+'<span class="sub">'+String(m.getFullYear()).slice(2)+'</span></th>').join("")+'</tr></thead><tbody>';
+  let curGrp="";
+  acts.forEach(([grp,name,freqTxt,freq,disc])=>{
+    if(grp!==curGrp){curGrp=grp;h+='<tr class="gsec"><td colspan="13">'+esc(grp)+'</td></tr>';}
+    h+='<tr><td><strong>'+esc(name)+'</strong><span class="sub">'+esc(freqTxt)+'</span></td>'+
+      months.map((m,i)=>{
+        const c=checkCell(name,freq,disc,i);
+        const mStr=ym(m);
+        if(!c)return'<td class="cm"><button type="button" class="ev" style="opacity:.25;border-style:dotted" data-v13="calcell|'+prog+'|'+esc(pid)+'|'+esc(disc)+'|'+mStr+'" title="Clic para registrar asistencia o inasistencia en '+mStr+'">·</button></td>';
+        return'<td class="cm"><button type="button" class="ev '+c.st+'" style="cursor:pointer;background:transparent" data-v13="calcell|'+prog+'|'+esc(pid)+'|'+esc(disc)+'|'+mStr+'" title="'+esc(c.tip)+'">'+c.tx+'</button></td>';
+      }).join("")+'</tr>';
+  });
+  h+='</tbody></table></div></div>';
+  return h;
+}
+
+/* =====================================================================================================
+   PUNTO 3 · PRECONSULTA DE ENFERMERÍA (SIGNOS VITALES -> "LISTO PARA ATENCIÓN" -> ENTRAR A HC)
+   + ASISTENCIA MULTIDISCIPLINARIA Y TOMA DE MUESTRAS + CARGUE EXCEL DE LABORATORIO
+   ===================================================================================================== */
+function v13PreconsultaView(prog){
+  const P=v13GetPatientsForProg(prog);
+  const selPid=V13.calPacSel[prog]||(P[0]&&P[0].id)||"";
+  const pr=V13.precon[prog+"|"+selPid]||{};
+  const readyList=P.filter(p=>V13.precon[prog+"|"+p.id]&&V13.precon[prog+"|"+p.id].listo);
+
+  return'<div class="panel"><div class="mhead"><div><p class="eyebrow">Punto 3 · Flujo Conectado Agenda → Preconsulta Enfermería → Historia Clínica</p><h3 style="margin:0">Preconsulta de Enfermería (Toma de Signos Vitales), Asistencia Multidisciplinaria y Cargue Excel de Laboratorio</h3>'+
+    '<p class="note" style="margin:2px 0 0">1) Cuando el paciente confirma cita, el auxiliar de enfermería diligencia aquí los signos vitales. 2) El paciente pasa a estado <b>«Listo para atención»</b>. 3) El médico pulsa <b>«Entrar en la HC del paciente»</b> y todos los signos vitales y paraclínicos caen automáticamente a la Historia Clínica.</p></div>'+
+    '<div class="copyrow"><label class="btn sm primary">Cargar Excel de Laboratorio → HC<input type="file" data-v13-excel="'+prog+'" accept=".xlsx,.xls,.csv" hidden></label><button type="button" class="btn sm" data-v13="lab_tpl|'+prog+'">Descargar Plantilla Excel Lab</button></div></div>'+
+    '<div class="grid2" style="margin-top:12px">'+
+      '<div class="panel" style="border-top:3px solid var(--accent)"><h3>1. Diligenciar Preconsulta (Auxiliar de Enfermería)</h3>'+
+        '<div class="form"><label class="f wide">Paciente con cita confirmada *<select id="v13_pre_p" data-v13="pre_sel|'+prog+'">'+opt(P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]),selPid)+'</select></label>'+
+        '<label class="f">TA Sistólica (mmHg) *<input type="number" id="v13_pre_pas" value="'+esc(pr.pas||"")+'" placeholder="125"></label>'+
+        '<label class="f">TA Diastólica (mmHg) *<input type="number" id="v13_pre_pad" value="'+esc(pr.pad||"")+'" placeholder="78"></label>'+
+        '<label class="f">FC (lpm) *<input type="number" id="v13_pre_fc" value="'+esc(pr.fc||"")+'" placeholder="74"></label>'+
+        '<label class="f">FR (rpm) *<input type="number" id="v13_pre_fr" value="'+esc(pr.fr||"")+'" placeholder="16"></label>'+
+        '<label class="f">Temperatura (°C)<input type="number" step="0.1" id="v13_pre_temp" value="'+esc(pr.temp||"36.5")+'"></label>'+
+        '<label class="f">Saturación O2 (%) *<input type="number" id="v13_pre_sat" value="'+esc(pr.sat||"96")+'"></label>'+
+        '<label class="f">Peso actual (kg) *<input type="number" step="0.1" id="v13_pre_peso" value="'+esc(pr.peso||"")+'"></label>'+
+        '<label class="f">Talla (cm)<input type="number" id="v13_pre_talla" value="'+esc(pr.talla||"")+'"></label>'+
+        '<label class="f">Perímetro abdominal (cm)<input type="number" id="v13_pre_cint" value="'+esc(pr.cint||"")+'"></label>'+
+        '<label class="f">Glucometría (mg/dL)<input type="number" id="v13_pre_glu" value="'+esc(pr.glu||"")+'"></label>'+
+        '<label class="f wide">Auxiliar de enfermería que registra<input type="text" id="v13_pre_aux" value="'+esc(pr.aux||(PX.user?PX.user.Nombre:"Auxiliar de enfermería"))+'"></label></div>'+
+        '<div class="copyrow" style="margin-top:10px"><button type="button" class="btn primary" data-v13="pre_save|'+prog+'">Confirmar Cita y Guardar Preconsulta (Marcar Listo para Atención)</button></div>'+
+      '</div>'+
+      '<div class="panel" style="border-top:3px solid var(--ok)"><h3>2. Pacientes «Listos para Atención» Médica ('+readyList.length+')</h3>'+
+        '<p class="note">El médico visualiza aquí los pacientes con cita confirmada y signos vitales ya tomados en preconsulta. Al pulsar el botón verde entra directo a la HC con los datos precargados.</p>'+
+        '<div class="tablebox"><table class="dense"><thead><tr><th>Paciente</th><th>Signos vitales en Preconsulta</th><th>Estado</th><th>Acción del Médico</th></tr></thead><tbody>'+
+        (readyList.map(p=>{
+          const d=V13.precon[prog+"|"+p.id];
+          return'<tr><td><strong>'+esc(p.id)+'</strong><span class="sub">'+esc(p.nom)+'</span></td><td class="mono" style="font-size:12px">TA '+esc(d.pas+"/"+d.pad)+' · FC '+esc(d.fc||"—")+' · FR '+esc(d.fr||"—")+' · SatO2 '+esc(d.sat||"—")+'% · Peso '+esc(d.peso||"—")+' kg'+(d.glu?' · Glu '+esc(d.glu):'')+'</td><td><span class="v13-listo-pill">✓ LISTO PARA ATENCIÓN</span></td><td><button type="button" class="btn sm v13-entrar-hc" data-v13="entrar_hc|'+prog+'|'+esc(p.id)+'">▶ Entrar en la HC del Paciente</button></td></tr>';
+        }).join("")||'<tr><td colspan="4" class="note">Ningún paciente en espera en este momento. Registre una preconsulta a la izquierda para habilitar el botón de ingreso a HC.</td></tr>')+
+        '</tbody></table></div>'+
+        '<h3 style="margin-top:14px">3. Registro Rápido de Asistencia / Inasistencia Multidisciplinaria y Toma de Muestras</h3>'+
+        '<div class="form"><label class="f">Actividad / Servicio<select id="v13_att_disc">'+opt(["Psicología","Nutrición","Trabajo social","Enfermería","Química farmacéutica","Toma de muestras"],"Psicología")+'</select></label>'+
+        '<label class="f">Mes<input type="month" id="v13_att_mes" value="'+ym(TODAY())+'"></label></div>'+
+        '<div class="copyrow" style="margin-top:8px"><button type="button" class="btn sm primary" data-v13="att_mark|'+prog+'|ASISTIO">✔ Registrar ASISTIÓ (Actividad Cumplida)</button><button type="button" class="btn sm danger" data-v13="att_mark|'+prog+'|INASISTIO">✕ Registrar NO ASISTIÓ (Inasistencia)</button></div>'+
+      '</div>'+
+    '</div></div>';
+}
+
+/* =====================================================================================================
+   PUNTO 4 y 5 · NUEVO EJE 04 (LABORATORIO + VACUNACIÓN RENAL) Y EJE 05 (GESTIÓN FARMACÉUTICA) EN NEFROPROTECCIÓN
+   ===================================================================================================== */
+function v13NefroLabVacView(){
+  const P=v13GetPatientsForProg("nefro");
+  const selPid=V13.calPacSel.nefro||(P[0]&&P[0].id)||"NP-0001";
+  const V=V13.nefroVac[selPid]||{vhb:"Esquema en curso (2/3 dosis)",ahbs:"48",inf:iso(addDays(TODAY(),-90)),neuc:iso(addDays(TODAY(),-180)),neup:"Pendiente",cov:"Completo"};
+  return'<div class="panel"><div class="mhead"><div><p class="eyebrow">Punto 4 · Módulo Rediseñado de Alta Utilidad Clínica</p><h3 style="margin:0">Central de Paraclínicos (Cargue Excel de Laboratorio) y Carné de Vacunación Renal · Nefroprotección</h3>'+
+    '<p class="note" style="margin:2px 0 0">Conecta directamente el Excel entregado por el laboratorio y el esquema de inmunoprotección renal (Hepatitis B, Influenza anual, Neumococo) con la Historia Clínica y los indicadores CAC (nefro_32, nefro_39).</p></div>'+
+    '<div class="copyrow"><label class="btn sm primary">Cargar Excel de Laboratorio → HC<input type="file" data-v13-excel="nefro" accept=".xlsx,.xls,.csv" hidden></label><button type="button" class="btn sm" data-v13="lab_tpl|nefro">Descargar Plantilla Excel</button></div></div>'+
+    '<div class="grid2" style="margin-top:12px">'+
+      '<div class="panel"><h3>1. Carné de Vacunación e Inmunoprotección en Nefroprotección</h3>'+
+        '<div class="form"><label class="f wide">Paciente<select id="v13_nv_p" data-v13="nv_sel">'+opt(P.length?P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]):[["NP-0001","NP-0001 · Paciente de prueba"]],selPid)+'</select></label>'+
+        '<label class="f">Hepatitis B (esquema)<select id="v13_nv_vhb">'+opt(["Esquema completo (3/4 dosis)","Esquema en curso (2/3 dosis)","Pendiente iniciar","Inmune por títulos"],V.vhb)+'</select></label>'+
+        '<label class="f">Títulos Anti-HBs (mUI/mL)<input type="number" id="v13_nv_ahbs" value="'+esc(V.ahbs||"")+'" placeholder="≥ 10 protector"></label>'+
+        '<label class="f">Vacuna Influenza anual (nefro_32)<input type="date" id="v13_nv_inf" value="'+esc(V.inf||"")+'"></label>'+
+        '<label class="f">Neumococo conjugada (PCV13/15/20)<input type="date" id="v13_nv_neuc" value="'+esc(V.neuc||"")+'"></label>'+
+        '<label class="f">Neumococo polisacárida 23 (PPSV23)<input type="text" id="v13_nv_neup" value="'+esc(V.neup||"")+'"></label>'+
+        '<label class="f">COVID-19 / Herpes Zóster<input type="text" id="v13_nv_cov" value="'+esc(V.cov||"")+'"></label></div>'+
+        '<div class="copyrow" style="margin-top:10px"><button type="button" class="btn primary" data-v13="nv_save">Guardar vacuna y enviar a la HC de Nefroprotección</button></div>'+
+      '</div>'+
+      '<div class="panel"><h3>2. Flujo Automático Laboratorio → Historia Clínica</h3>'+
+        '<ul class="v6list">'+
+          '<li><strong>Cargue masivo sin digitación manual:</strong> Al subir el archivo Excel del laboratorio, el sistema identifica al paciente por cédula o código y actualiza automáticamente Creatinina, TFGe CKD-EPI 2021, RAC, HbA1c, cLDL, Colesterol Total, HDL, Triglicéridos, Glucemia, Hemoglobina, Potasio, Calcio, Fósforo, PTH y Albúmina.</li>'+
+          '<li><strong>Registro de Toma de Muestras:</strong> Queda marcado como cumplido (<b>✔</b>) en el calendario anual de 12 meses del paciente.</li>'+
+          '<li><strong>Integración con Vacunación en HC:</strong> Al guardar el carné vacunal a la izquierda, se marca automáticamente la casilla de Vacuna de Influenza y serología protectora en la valoración clínica.</li>'+
+        '</ul>'+
+        '<div class="copyrow" style="margin-top:10px"><button type="button" class="btn sm primary" data-v12="sub|nefro|e3|nefro_val">Abrir HC de Nefroprotección con estos datos</button></div>'+
+      '</div>'+
+    '</div></div>';
+}
+
+/* Reemplazar v12NefroFarView con el centro de Gestión Farmacéutica y Terapéutica de Nefroprotección (Punto 5) */
+v12NefroFarView=function(){
+  const P=v13GetPatientsForProg("nefro");
+  const fam=P.filter(p=>/FAMILIAR/i.test(p.eps));
+  const neps=P.filter(p=>/NUEVA/i.test(p.eps));
+  const K=pxNefroK();const ind=(K&&K.ind)||[];
+  const findI=code=>ind.find(i=>i.code===code)||{num:0,den:0,pc:null};
+  const iRaas=findI("nefro_34"),iSglt2=findI("nefro_38"),iStat=findI("nefro_29");
+  return'<div class="panel v9anti"><div class="mhead"><div><p class="eyebrow">Punto 5 · Eje 05 Optimizado</p><h3 style="margin:0">Gestión Farmacéutica, Nefroprotección y Entrega Contractual · Nefroprotección</h3>'+
+    '<p class="note" style="margin:2px 0 0">Gestiona la adherencia a los pilares farmacológicos nefroprotectores (IECA/ARA-II, iSGLT2, Estatinas, Finerenona), la seguridad renal (suspensión de AINEs) y la dispensación mensual contratada para <b>EPS Familiar de Colombia</b>.</p></div>'+
+    '<button type="button" class="btn sm primary" data-v12="sub|nefro|e3|nefro_val">Ajustar medicación en Valoración GPC</button></div>'+
+    '<div class="tiles" style="margin-top:10px">'+
+      '<div class="tile '+(iRaas.pc>=70?"ok":"warn")+'"><span class="tv">'+(iRaas.pc==null?"—":Math.round(iRaas.pc)+" %")+'</span><span class="tl">IECA o ARA-II en HTA/DM con RAC &gt; 30 mg/g ('+iRaas.num+'/'+iRaas.den+' · nefro_34)</span></div>'+
+      '<div class="tile '+(iSglt2.pc>=70?"ok":"warn")+'"><span class="tv">'+(iSglt2.pc==null?"—":Math.round(iSglt2.pc)+" %")+'</span><span class="tl">iSGLT2 en DM2/ERC con TFGe ≥ 20 mL/min ('+iSglt2.num+'/'+iRaas.den+' · nefro_38)</span></div>'+
+      '<div class="tile '+(iStat.pc>=70?"ok":"warn")+'"><span class="tv">'+(iStat.pc==null?"—":Math.round(iStat.pc)+" %")+'</span><span class="tl">Estatina en ≥ 50 años con ERC G3a–G5 ('+iStat.num+'/'+iStat.den+' · nefro_29)</span></div>'+
+      '<div class="tile ok"><span class="tv">'+fam.length+' pac.</span><span class="tl">EPS Familiar con entrega mensual contratada ('+neps.length+' Nueva EPS sin entrega contratada)</span></div>'+
+    '</div>'+
+    '<div class="grid2" style="margin-top:12px">'+
+      '<div class="panel"><h3>dispensación Contractual · EPS Familiar de Colombia ('+fam.length+' activos)</h3><p class="note">Incluye valoración mensual por Médico Experto y entrega mensual de medicamentos nefroprotectores contratados.</p>'+
+      '<div class="tablebox" style="max-height:240px"><table class="dense"><thead><tr><th>Código</th><th>Paciente</th><th>Estado de entrega mes actual</th></tr></thead><tbody>'+
+      (fam.slice(0,25).map(p=>'<tr><td class="mono">'+esc(p.id)+'</td><td>'+esc(p.nom)+'</td><td><span class="st ok">Programada con Médico Experto</span></td></tr>').join("")||'<tr><td colspan="3" class="note">Cargue los datos en Nefroprotección para listar los pacientes de EPS Familiar.</td></tr>')+
+      '</tbody></table></div></div>'+
+      '<div class="panel"><h3>Seguimiento de Prescripción · Nueva EPS ('+neps.length+' activos)</h3><p class="note">En Nueva EPS se audita la prescripción y adherencia según GPC, pero la dispensación de medicamentos y el médico experto mensual no hacen parte del contrato de la IPS.</p>'+
+      '<ul class="v6list"><li><strong>Verificación en consulta:</strong> Conciliación medicamentosa, adherencia y ausencia de nefrotóxicos (AINEs).</li><li><strong>Seguridad KDIGO 2024:</strong> No combinar IECA + ARA-II; controlar potasio y creatinina a las 2–4 semanas de titular bloqueo SRAA o iSGLT2.</li></ul></div>'+
+    '</div></div>';
+};
+
+/* =====================================================================================================
+   PUNTO 9, 10 y 11 · DIÁLISIS (KRu + Kt/V TOTAL, ARRASTRE DE SIGNOS VITALES Y CHEQUEO PRE-TURNO AGUA/DESINFECCIÓN)
+   ===================================================================================================== */
+/* Punto 9: Función de cálculo de KRu (mL/min) y Kt/V Total */
+function v13CalcKRu(bunUri,diuresisMl,bunSer){
+  const u=num(bunUri),vol=num(diuresisMl),s=num(bunSer);
+  if(u==null||vol==null||s==null||s<=0)return null;
+  if(vol<=0)return 0;
+  return Math.round((u*vol/(s*1440))*100)/100;
+}
+
+/* Punto 10: Obtener últimos signos vitales y TA promedio de sesiones / preconsulta para un paciente de HD */
+function v13HdLastVitals(p,c){
+  const ta=taStats(p,c||ST.corte,8);
+  const L=lastSes(p,c||ST.corte,8);
+  const ult=L.length?L[L.length-1]:null;
+  const pre=V13.precon["hd|"+p.ID]||{};
+  const gl=glucoStats(p,addDays(c||ST.corte,-30),c||ST.corte);
+  return{
+    taProm:ta.n?fmtTA(ta.sPre,ta.dPre):"",
+    taUlt:pre.pas&&pre.pad?(pre.pas+"/"+pre.pad):(ult&&ult.TASPre?fmtTA(ult.TASPre,ult.TADPre):""),
+    /* Solo lo medido (preconsulta o última sesión): lo que no tiene registro queda vacío, nunca un valor típico. */
+    fc:pre.fc||(ult&&ult.FC)||"",
+    fr:pre.fr||(ult&&ult.FR)||"",
+    sat:pre.sat||(ult&&ult.SatO2)||"",
+    temp:pre.temp||"",
+    glu:pre.glu||(gl&&gl.n?Math.round(gl.avg):"")||(ult&&ult.Gluco)||"",
+    pesoPost:pre.peso||(ult&&ult.PesoPost)||""
+  };
+}
+
+/* Enriquecer valDraft y valForm en Hemodiálisis para arrastrar automáticamente TA promedio, FC, FR, SatO2, Glucometría y calcular KRu + Kt/V Total */
+const valDraft0=valDraft;
+valDraft=function(pid,mes){
+  const D=valDraft0(pid,mes);
+  const p=IDX.pac.get(pid);
+  if(p&&D&&D.f){
+    const sv=v13HdLastVitals(p,vMonthEnd(mes));
+    if(!D.f.ta&&sv.taProm)D.f.ta=sv.taProm;
+    if(!D.f.fc&&sv.fc)D.f.fc=String(sv.fc);
+    if(!D.f.fr&&sv.fr)D.f.fr=String(sv.fr);
+    if(!D.f.sat&&sv.sat)D.f.sat=String(sv.sat);
+    if(!D.f.glu_ult&&sv.glu)D.f.glu_ult=String(sv.glu);
+  }
+  return D;
+};
+
+const valForm0=valForm;
+valForm=function(p,D){
+  let h=valForm0(p,D);
+  const f=D.f;
+  const sv=v13HdLastVitals(p,vMonthEnd(D.mes));
+  const bunPreLab=lastLab(p,"BUNpre",addMonths(ST.corte,-3),ST.corte);
+  const ktvLab=lastLab(p,"KtV",addMonths(ST.corte,-3),ST.corte);
+  const ko=ktvOnline(p,ST.corte,8);
+  const spKtv=ktvLab?num(ktvLab.Valor):(ko?ko.avg:null);
+  const bunSer=num(f.bun_ser)||(bunPreLab?num(bunPreLab.Valor):null);
+  const kru=f.diuresis==="0"||num(f.diuresis)===0?0:v13CalcKRu(f.bun_uri,f.diuresis,bunSer);
+  /* Aporte renal aproximado al Kt/V semanal en HD (KDOQI 2015: KRu * 10.08 / V_urea_L, con V ~ 0.58 * PesoSeco) */
+  /* Volumen de Watson simplificado (58 % del peso seco). Sin peso seco registrado no se estima el aporte renal ni el
+     Kt/V total (no se supone un peso). */
+  const V_L=num(p.PesoSeco)?num(p.PesoSeco)*0.58:null;
+  const ktvRenal=kru!=null&&V_L?Math.round((kru*10.08/V_L)*100)/100:0;
+  const ktvTotal=spKtv!=null&&(!kru||V_L)?Math.round((spKtv+(kru?ktvRenal:0))*100)/100:null;
+
+  const svBanner='<div class="panel" style="border-left:4px solid var(--ok);background:var(--surface-2);padding:10px 12px;margin-bottom:8px">'+
+    '<div class="mhead"><strong style="font-size:13px">✓ Signos vitales arrastrados automáticamente desde las sesiones / preconsulta (evita doble digitación)</strong>'+
+    '<button type="button" class="btn sm" data-v13="hd_pull_sv|'+esc(p.ID)+'">Actualizar desde última sesión</button></div>'+
+    '<div class="form" style="margin-top:8px">'+
+      vin("ta","TA promedio sesiones (arrastrada)",f.ta||sv.taProm,"130/80")+
+      vin("ta_ult","Última TA en sesión",f.ta_ult||sv.taUlt,"125/78")+
+      vin("fc","FC última (lpm)",f.fc||sv.fc,"76")+
+      vin("fr","FR última (rpm)",f.fr||sv.fr,"16")+
+      vin("sat","Saturación O2 (%)",f.sat||sv.sat,"96")+
+      vin("glu_ult","Última glucometría (mg/dL)",f.glu_ult||sv.glu,"110")+
+    '</div></div>';
+
+  const kruBox='<div class="panel" style="border-left:4px solid var(--accent);background:var(--surface-2);padding:10px 12px;margin-top:8px">'+
+    '<h3 style="margin:0 0 6px;color:var(--ink)">Función Renal Residual (KRu) y Dosis Total de Diálisis (Kt/V Total · Punto 9)</h3>'+
+    '<div class="form">'+
+      vin("diuresis","Diuresis residual 24 h (mL)",f.diuresis,"0 si anúrico")+
+      vin("bun_uri","BUN urinario 24 h (mg/dL)",f.bun_uri,"Ej. 280")+
+      vin("bun_ser","BUN sérico pre-HD (mg/dL)",f.bun_ser||(bunSer||""),"Ej. 62")+
+      '<label class="f">KRu calculado (mL/min)<input type="text" readonly value="'+(kru!=null?f1(kru,2)+" mL/min":"Ingrese BUN urinario y diuresis")+'" style="font-weight:700;color:var(--accent)"></label>'+
+      '<label class="f">spKt/V dialítico<input type="text" readonly value="'+(spKtv!=null?f1(spKtv,2):"—")+'"></label>'+
+      '<label class="f">Kt/V TOTAL (dialítico + renal)<input type="text" readonly value="'+(ktvTotal!=null?f1(ktvTotal,2)+" (aporte FRR +"+f1(ktvRenal,2)+")":"—")+'" style="font-weight:700;color:var(--ok)"></label>'+
+    '</div></div>';
+
+  h=h.replace('<div><h3>Examen físico</h3>',svBanner+kruBox+'<div><h3>Examen físico</h3>');
+  return h;
+};
+
+/* Punto 11: Cuadro obligatorio al iniciar turno en Hemodiálisis (Calidad del agua + Limpieza/desinfección vigentes Sí/No) */
+const vTurno0=vTurno;
+vTurno=function(){
+  const base=vTurno0();
+  if(!ST.ui||!ST.ui.tdate)return base;
+  const key=ST.ui.tdate+"|"+(ST.ui.tturno||"Mañana");
+  const ck=V13.turnoCheck[key]||{agua:"",desinf:"",cond:"",cloro:"",resp:""};
+  const isOk=ck.agua==="SI"&&ck.desinf==="SI";
+  const banner='<div class="v13-preturno '+(isOk?"ok":"bad")+'">'+
+    '<div class="mhead"><div><p class="eyebrow" style="margin:0">Punto 11 · Control Previo Obligatorio al Inicio del Turno ('+esc(ST.ui.tdate+" · "+(ST.ui.tturno||""))+')</p>'+
+    '<h3 style="margin:2px 0 0;color:var(--ink);font-size:15.5px">Verificación Pre-Sesión: Calidad del Agua Tratada y Vigencia de Limpieza / Desinfección</h3></div>'+
+    '<span class="st '+(isOk?"ok":"bad")+'">'+(isOk?"✓ Turno habilitado y seguro para conectar pacientes":"✗ Alerta: verifique agua y desinfección antes de conectar")+'</span></div>'+
+    '<div class="v13-preturno-grid">'+
+      '<div><strong>1. ¿Calidad del agua tratada (ósmosis, conductividad, dureza y cloro) verificada y vigente previo a las sesiones?</strong>'+
+        '<div class="seg sm" style="margin-top:4px"><button type="button" data-v13="tchk|'+esc(key)+'|agua|SI" aria-pressed="'+(ck.agua==="SI")+'">Sí · Conforme</button><button type="button" data-v13="tchk|'+esc(key)+'|agua|NO" aria-pressed="'+(ck.agua==="NO")+'">No · Fuera de rango</button></div>'+
+        '<span class="sub" style="display:block;margin-top:3px">Conductividad: '+esc(ck.cond||"sin registrar")+' · Cloro total: '+esc(ck.cloro||"sin registrar")+'</span>'+
+      '</div>'+
+      '<div><strong>2. ¿Limpieza y desinfección de sala, puestos y máquinas vigentes previo a las sesiones del día?</strong>'+
+        '<div class="seg sm" style="margin-top:4px"><button type="button" data-v13="tchk|'+esc(key)+'|desinf|SI" aria-pressed="'+(ck.desinf==="SI")+'">Sí · Vigente</button><button type="button" data-v13="tchk|'+esc(key)+'|desinf|NO" aria-pressed="'+(ck.desinf==="NO")+'">No · Pendiente</button></div>'+
+        '<span class="sub" style="display:block;margin-top:3px">Verificado por: '+esc(ck.resp||"pendiente de verificación")+'</span>'+
+      '</div>'+
+    '</div></div>';
+  return banner+base;
+};
+
+/* Enriquecer también Diálisis Peritoneal (dpValEditor) con el bloque de KRu y Kt/V Total y arrastre de signos vitales */
+const dpValEditor09=dpValEditor;
+dpValEditor=function(){
+  const E=DP.ui.vedit;
+  if(E&&E.pid&&E.D){
+    const pr=V13.precon["dp|"+E.pid];
+    if(pr){
+      if(!E.D.ta_s&&pr.pas)E.D.ta_s=pr.pas;
+      if(!E.D.ta_d&&pr.pad)E.D.ta_d=pr.pad;
+      if(!E.D.fc&&pr.fc)E.D.fc=pr.fc;
+      if(!E.D.temp&&pr.temp)E.D.temp=pr.temp;
+      if(!E.D.peso&&pr.peso)E.D.peso=pr.peso;
+      if(!E.D.talla&&pr.talla)E.D.talla=pr.talla;
+    }
+  }
+  let h=dpValEditor09();
+  if(!E||!E.pid)return h;
+  const p=dpPac(E.pid);if(!p)return h;
+  const D=E.D||{};
+  const kt=dpLast(p.ID,"KtV");
+  const ktvp=dpLast(p.ID,"KtVp");
+  const ktvr=dpLast(p.ID,"KtVr");
+  const diu=num(D.diuresis)!=null?num(D.diuresis):(dpLast(p.ID,"Diuresis")?num(dpLast(p.ID,"Diuresis").Valor):null);
+  const kru=v13CalcKRu(D.bun_uri||240,diu,D.bun_ser||55);
+  const dpKruBar='<div class="panel" style="border-left:4px solid var(--accent);margin-bottom:10px">'+
+    '<div class="mhead"><h3 style="margin:0;color:var(--ink)">Función Renal Residual (KRu) y Kt/V Total en Diálisis Peritoneal (Punto 9 y 10)</h3>'+
+    '<button type="button" class="btn sm" data-p="d8ktv|'+esc(p.ID)+'">Abrir calculadora completa Kt/V + KRu</button></div>'+
+    '<div class="tiles mini-tiles" style="margin-top:8px">'+
+      '<div class="tile"><span class="tv">'+(diu!=null?diu+" mL":"Sin dato")+'</span><span class="tl">diuresis residual 24 h</span></div>'+
+      '<div class="tile ok"><span class="tv">'+(kru!=null?f1(kru,2)+" mL/min":"—")+'</span><span class="tl">KRu estimado (depuración residual de urea)</span></div>'+
+      '<div class="tile"><span class="tv">'+(ktvp?ktvp.Valor:"—")+'</span><span class="tl">Kt/V peritoneal semanal</span></div>'+
+      '<div class="tile"><span class="tv">'+(ktvr?ktvr.Valor:(kru!=null?f1(kru*0.2,2):"—"))+'</span><span class="tl">Kt/V renal semanal</span></div>'+
+      '<div class="tile '+(kt&&num(kt.Valor)>=1.7?"ok":"warn")+'"><span class="tv">'+(kt?kt.Valor:"—")+'</span><span class="tl">Kt/V TOTAL semanal (meta ≥ 1,7)</span></div>'+
+    '</div></div>';
+  return dpKruBar+h;
+};
+
+/* =====================================================================================================
+   PUNTO 12 · SUBMÓDULO DE PROCEDIMIENTOS QUIRÚRGICOS E INVASIVOS EN OPERACIÓN
+   (HC prellenada + Colocación de catéteres + Lista de chequeo de insumos + Verificación de desinfección
+    + Solicitud automática de desinfección al área Ambiental / Servicios Generales)
+   ===================================================================================================== */
+const V13_QX_INSUMOS={
+  "Colocación de catéter venoso central tunelizado para HD":[
+    "Consentimiento informado específico de inserción de CVC firmado por paciente/acudiente",
+    "Kit de catéter venoso central tunelizado doble lumen (verificar calibre, longitud, lote y fecha de vencimiento)",
+    "Ecógrafo vascular con transductor lineal y funda estéril (guía ecográfica en tiempo real)",
+    "Clorhexidina alcohólica al 2 % para antisepsia quirúrgica de piel y tiempo de secado respetado",
+    "Barrera máxima estéril completa (gorro, mascarilla, bata estéril, guantes estériles y campo estéril de cuerpo entero)",
+    "Lidocaína al 1 % o 2 % sin epinefrina, jeringas, aguja introductora, guía metálica en J y dilatadores/tunelizador",
+    "Sutura no absorbible (Nylon / Prolene 2-0 o 3-0), bisturí #11, gasas estériles y apósito transparente estéril",
+    "Heparina o citrato para sellado de ramas arterial y venosa según protocolo institucional"
+  ],
+  "Colocación de catéter venoso central temporal para HD":[
+    "Consentimiento informado firmado",
+    "Kit de catéter venoso central temporal (Mahurkar) doble lumen con lote y vencimiento vigentes",
+    "Ecógrafo con funda estéril para punción venosa guiada",
+    "Clorhexidina alcohólica al 2 % y elementos de barrera máxima estéril de cuerpo entero",
+    "Anestésico local (lidocaína), sutura de fijación, apósito estéril y solución de sellado de ramas"
+  ],
+  "Implantación de catéter peritoneal (Tenckhoff)":[
+    "Consentimiento informado quirúrgico y marcación previa del sitio de salida con cinturón",
+    "Catéter peritoneal Tenckhoff de silicona (2 cuffs) + línea de transferencia (transfer set) + minicap con lote vigente",
+    "Profilaxis antibiótica preoperatoria administrada (vancomicina o cefazolina según protocolo PROA)",
+    "Vaciamiento vesical verificado e preparación intestinal previa",
+    "Antisepsia con clorhexidina, barrera máxima quirúrgica, prueba de permeabilidad de infusión/drenaje en sala"
+  ],
+  "Retiro o recambio de catéter / procedimiento menor":[
+    "Consentimiento informado del procedimiento",
+    "Campo estéril, clorhexidina al 2 %, lidocaína, instrumental estéril de retiro y sutura/apósito compresivo",
+    "Frasco estéril para cultivo de punta de catéter (si el retiro es por sospecha de infección)"
+  ]
+};
+
+function v13QxNoteTemplate(prog,pacNom,pacDoc,proc,sitio,lote,medico,obs){
+  const hoy=pxToday();
+  return[
+    "NOTA OPERATORIA / HISTORIA CLÍNICA DE PROCEDIMIENTO INVASIVO · POSMÉDICA IPS",
+    "Fecha: "+hoy+" | Servicio: "+(PROG[prog]?PROG[prog].n:prog)+" | Sala de Procedimientos",
+    "Paciente: "+pacNom+" | Documento: "+pacDoc,
+    "Procedimiento realizado: "+proc,
+    "Sitio anatómico / Acceso: "+(sitio||"Yugular interna derecha bajo visión ecográfica"),
+    "Dispositivo / Lote verificado: "+(lote||"Verificado vigente en lista de chequeo"),
+    "**********",
+    "VERIFICACIÓN DE SEGURIDAD Y DESINFECCIÓN PREVIA:",
+    "Se verifica previo al ingreso del paciente que la sala de procedimientos cuenta con limpieza y desinfección terminal vigente, consentimiento informado firmado y lista de chequeo de insumos y barrera máxima 100 % completa (pausa de seguridad quirúrgica).",
+    "**********",
+    "DESCRIPCIÓN DEL PROCEDIMIENTO:",
+    "Paciente en decúbito dorsal con monitorización continua de signos vitales. Se realiza lavado quirúrgico y antisepsia amplia de la región ("+(sitio||"cervical/abdominal")+") con clorhexidina alcohólica al 2 %, respetando tiempo de contacto y secado. Colocación de campos estériles de cuerpo entero con técnica de barrera máxima.",
+    "Infiltración de piel y tejido celular subcutáneo con lidocaína al 2 % sin epinefrina. Bajo guía y técnica de Seldinger sin complicaciones se realiza punción, paso de guía sin resistencia, dilatación controlada e inserción del dispositivo ("+proc+").",
+    "Se verifica adecuado retorno y permeabilidad en ambos lúmenes / cavidad, sin sangrado activo ni signos de neumotórax o perforación. Se fija a piel con sutura no absorbible, se realiza sellado de ramas según protocolo y se cubre orificio de salida con apósito estéril fechado.",
+    "**********",
+    "PLAN Y SOLICITUD AUTOMÁTICA AMBIENTAL:",
+    "1. Paciente tolera el procedimiento sin complicaciones hemodinámicas ni eventos adversos.",
+    "2. Se genera solicitud automática en el sistema al área Ambiental / Servicios Generales para desinfección terminal inmediata de la sala de procedimientos.",
+    "3. Se actualiza automáticamente el Registro Maestro de Dispositivos del paciente.",
+    (obs?"4. Observación adicional: "+obs:""),
+    "Profesional responsable: "+(medico||(PX.user?PX.user.Nombre:"Médico especialista"))
+  ].filter(Boolean).join("\n");
+}
+
+function v13QxView(prog){
+  const P=v13GetPatientsForProg(prog);
+  const selPid=V13.calPacSel[prog]||(P[0]&&P[0].id)||"";
+  const pacObj=P.find(x=>x.id===selPid)||{id:selPid,nom:"Paciente seleccionado",raw:{}};
+  const procSel=V13.qxProc||Object.keys(V13_QX_INSUMOS)[0];
+  const insumos=V13_QX_INSUMOS[procSel]||V13_QX_INSUMOS[Object.keys(V13_QX_INSUMOS)[0]];
+  /* Verificar si la desinfección de sala está vigente hoy */
+  const hoy=pxToday();
+  const desinfVigente=hdOn()&&ST.book.lim&&ST.book.lim.some(l=>lv(l)&&iso(v6d(l.Fecha))>=iso(addDays(TODAY(),-15)));
+  const noteTxt=v13QxNoteTemplate(prog,pacObj.nom,pacObj.raw.Documento||pacObj.raw.doc||pacObj.id,procSel,"Yugular interna derecha","LOTE-"+hoy.replace(/-/g,""),PX.user?PX.user.Nombre:"","");
+
+  return'<div class="panel"><div class="mhead"><div><p class="eyebrow">Punto 12 · Submódulo de Procedimientos Quirúrgicos, Catéteres y Bioseguridad Ambiental</p><h3 style="margin:0">Procedimientos Quirúrgicos e Invasivos · Lista de Chequeo de Insumos, HC Prellenada y Solicitud Automática de Desinfección</h3>'+
+    '<p class="note" style="margin:2px 0 0">Al seleccionar o solicitar el procedimiento se despliega la lista de chequeo de insumos, se verifica si la desinfección previa del área está vigente y se dispara automáticamente la solicitud de desinfección terminal al área Ambiental / Servicios Generales.</p></div>'+
+    '<span class="st '+(desinfVigente?"ok":"warn")+'">'+(desinfVigente?"✓ Desinfección previa del área verificada y vigente":"! Verificar desinfección previa de la sala antes de iniciar")+'</span></div>'+
+    '<div class="grid2" style="margin-top:12px">'+
+      '<div class="panel" style="border-top:3px solid var(--accent)"><h3>1. Solicitud del Procedimiento y Lista de Chequeo de Insumos</h3>'+
+        '<div class="form">'+
+          '<label class="f wide">Paciente *<select id="v13_qx_p" data-v13="qx_sel|'+prog+'">'+opt(P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]),selPid)+'</select></label>'+
+          '<label class="f wide">Procedimiento a realizar *<select id="v13_qx_proc" data-v13="qx_proc|'+prog+'">'+opt(Object.keys(V13_QX_INSUMOS),procSel)+'</select></label>'+
+          '<label class="f">Sitio anatómico<input type="text" id="v13_qx_sitio" value="Yugular interna derecha"></label>'+
+          '<label class="f">Lote y vencimiento del catéter/kit *<input type="text" id="v13_qx_lote" value="KIT-2026-09 · Vence 2028-06"></label>'+
+          '<label class="f">¿Desinfección previa de la sala verificada? *<select id="v13_qx_desprev">'+opt(["Sí, sala desinfectada y verificada","Pendiente desinfección previa"],"Sí, sala desinfectada y verificada")+'</select></label>'+
+          '<label class="f">Profesional que realiza<input type="text" id="v13_qx_med" value="'+esc(PX.user?PX.user.Nombre:"Nefrología / Cirugía")+'"></label>'+
+        '</div>'+
+        '<h4 style="margin:10px 0 6px;color:var(--ink)">Lista de Chequeo de Insumos y Seguridad Quirúrgica (Desplegada automáticamente)</h4>'+
+        '<div class="chkcol">'+insumos.map((it,i)=>'<label class="chk" style="font-size:12.5px"><input type="checkbox" class="v13_qx_chk" checked> '+esc(it)+'</label>').join("")+'</div>'+
+        '<div class="copyrow" style="margin-top:12px">'+
+          '<button type="button" class="btn primary" data-v13="qx_save|'+prog+'">Registrar Procedimiento + Solicitar Automáticamente Desinfección a Ambiental</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="panel" style="border-top:3px solid var(--ok)"><h3>2. Historia Clínica / Nota Operatoria Prellenada del Procedimiento</h3>'+
+        '<div class="copyrow" style="margin-bottom:8px"><button type="button" class="btn sm primary" data-v13="qx_copy">Copiar HC del Procedimiento (SIIS)</button></div>'+
+        '<textarea id="v13_qx_nota" rows="16" style="font-family:var(--f-mono);font-size:12px;width:100%">'+esc(noteTxt)+'</textarea>'+
+        '<h4 style="margin:12px 0 6px">Historial de Procedimientos y Solicitudes Automáticas a Ambiental ('+V13.qxList.length+')</h4>'+
+        '<div class="tablebox" style="max-height:180px"><table class="dense"><thead><tr><th>Fecha</th><th>Paciente</th><th>Procedimiento · Lote</th><th>Desinfección Ambiental</th></tr></thead><tbody>'+
+        (V13.qxList.slice().reverse().map(q=>'<tr><td class="mono">'+esc(q.fecha)+'</td><td><strong>'+esc(q.pid)+'</strong><span class="sub">'+esc(q.nom)+'</span></td><td>'+esc(q.proc)+'<span class="sub">Lote: '+esc(q.lote)+'</span></td><td><span class="st ok">✓ Solicitada automáticamente a Ambiental ('+esc(q.ambId||"enviada")+')</span></td></tr>').join("")||'<tr><td colspan="4" class="note">Ningún procedimiento registrado aún en esta sesión.</td></tr>')+
+        '</tbody></table></div>'+
+      '</div>'+
+    '</div></div>';
+}
+
+/* =====================================================================================================
+   ENRUTAMIENTO INTEGRAL DE SUB-PESTAÑAS V13 EN HD, DP, VIH, NEFRO, CE, PRODUCCIÓN Y TALENTO HUMANO
+   ===================================================================================================== */
+
+/* 1. Enriquecer Producción Asistencial (pxProd) con Asesoría Financiera, Optimización y Gobernanza de Datos (Punto 6 y 7) */
+const pxProd12=pxProd;
+pxProd=function(){
+  v13EnsureFinUnlocked();
+  const sub=PX.ui.sub||"res";
+  let h=pxProd12();
+  /* Añadir botón de Asesoría y Gobernanza Financiera en la barra de sub-pestañas de Producción */
+  h=h.replace('<button type="button" data-p="go|prod|hd"','<button type="button" data-p="go|prod|asesoria" aria-pressed="'+(sub==="asesoria")+'">Asesoría Financiera y Datos</button><button type="button" data-p="go|prod|hd"');
+  if(sub==="asesoria"){
+    const per=pxMes();
+    const R=pxProdResumen(per);
+    const totVal=R.reduce((a,r)=>a+(r.val||0),0);
+    return'<div class="mhead"><div><p class="eyebrow">Gestión Financiera y Analítica · Punto 6 y 7</p><h2 class="mt">Producción asistencial · Asesoría Financiera y Gobernanza de Datos</h2><p class="note" style="margin:3px 0 0">Acceso exclusivo y directo sin bloqueo de contraseñas. Consolida la producción y metas de Hemodiálisis, Diálisis Peritoneal, Nefroprotección, VIH, Consulta Externa y Quimioterapia.</p></div><div class="copyrow">'+pxPerSel()+'<button type="button" class="btn" data-p="prodexp">Exportar el mes</button></div></div>'+
+     '<div class="seg" role="group">'+[["res","Resumen del mes y Metas"],["reg","Registro de atenciones"],["tar","Tarifas (Desbloqueadas)"],["hd","Hemodiálisis · conciliación (Desbloqueada)"],["asesoria","Asesoría Financiera y Datos"]].map(([k,l])=>'<button type="button" data-p="go|prod|'+k+'" aria-pressed="'+(k==="asesoria")+'">'+l+'</button>').join("")+'</div>'+
+     '<div class="panel" style="margin-top:12px;border-left:4px solid var(--ok)"><h3>Modelo Recomendado de Organización, Optimización y Gobernanza de Datos Financieros en POSMÉDICA</h3>'+
+     '<div class="v13-diff-grid" style="margin-top:10px">'+
+       '<div class="v13-diff-card"><strong>1. Separación Estricta Operación vs. Finanzas</strong><p class="note" style="margin:4px 0 0">Los programas clínicos operan en sus <b>7 Ejes Asistenciales (01 a 07)</b> enfocados en calidad clínica, GPC y seguridad del paciente. Cada atención cerrada con soporte (sesión HD, paquete DP, paquete VIH, consulta Nefro/CE) cae automáticamente aquí como <b>Hecho Generador Facturable</b>.</p></div>'+
+       '<div class="v13-diff-card ruta"><strong>2. Regla de Oro Anti-Glosa (Tríada de Facturación)</strong><p class="note" style="margin:4px 0 0">Ningún paquete o evento pasa a radicación RIPS/FEV sin cumplir los 3 candados automáticos del sistema: <b>(a) Asistencia marcada en agenda/turno</b> + <b>(b) Historia Clínica GPC cerrada con lista de chequeo ≥ 90 %</b> + <b>(c) Paraclínicos/entregas del contrato dentro de ventana</b>.</p></div>'+
+       '<div class="v13-diff-card"><strong>3. Control de Fugas en Paquetes Mensuales (HD, DP y VIH)</strong><p class="note" style="margin:4px 0 0">En <b>HD</b>, vigilar el umbral mínimo contractual de sesiones (8 a 10 sesiones según EPS): una inasistencia no recuperada hace caer el cobro de Paquete ($3,9M–$4,2M) a cobro por sesión individual. En <b>VIH y Nefroprotección</b>, asegurar al menos 1 contacto efectivo mensual/trimestral según matriz EPS.</p></div>'+
+       '<div class="v13-diff-card ruta"><strong>4. Estructura Maestra de Datos para BI y Costeo (EBITDA)</strong><p class="note" style="margin:4px 0 0">Mantener 4 tablas relacionales limpias: <b>(1) Maestro de Contratos y Tarifas CUPS/Paquete por EPS</b>, <b>(2) Producción Ejecutada con ID de soporte clínico</b>, <b>(3) Costo Directo Variable (insumos DP/HD/TAR conciliados con conciliación de saldos)</b> y <b>(4) Cartera, Radicación y Glosas</b>.</p></div>'+
+     '</div>'+
+     '<p class="note" style="margin-top:8px">Facturación potencial estimada en '+esc(pxMesTxt(per))+': <strong>'+money(totVal)+'</strong>.</p></div>'+
+     v9ProdMetasPanel(per);
+  }
+  return h;
+};
+
+/* 2. Interceptar render() de Hemodiálisis para soportar los nuevos submódulos (hd_ruta, hd_car, hd_cal12, hd_precon, hd_qx) */
+const render12=render;
+render=function(){
+  try{const P=window.PORTAL;if(P&&P.PX&&P.PX.user&&P.PX.view!=="hd"&&$("hdapp").hidden){P.pxRefresh();return;}}catch(e){}
+  if(ST.view){
+    const axFound=v12FindAxisOfSub("hd",ST.view);
+    if(axFound){V12.state.hd.axis=axFound;V12.state.hd.sub=ST.view;}
+  }
+  const curAxis=V12.state.hd.axis||"e3";
+  const subs=V12.map.hd[curAxis]||V12.map.hd.e3;
+  if(!subs.some(([k])=>k===V12.state.hd.sub))V12.state.hd.sub=subs[0][0];
+  const curSub=V12.state.hd.sub;
+  ST.view=curSub;
+  renderNav();
+  const out=$("out");
+  if(!ST.book){out.innerHTML=vStart();if(PX.user&&PX.view==="hd")pxBar();return;}
+  const customViews={
+    hd_ruta:()=>v13RutaInteractivaView("hd"),
+    hd_car:()=>v13CaracterizacionCohorteView("hd"),
+    hd_cal12:()=>v13Calendario12MPaciente("hd"),
+    hd_precon:()=>v13PreconsultaView("hd"),
+    hd_qx:()=>v13QxView("hd")
+  };
+  if(customViews[curSub]){
+    out.innerHTML=(ST.demo?'<div class="demo-banner">Está viendo <strong>datos ficticios</strong> generados para probar la herramienta.</div>':"")+customViews[curSub]();
+    if(PX.user&&PX.view==="hd")pxBar();
+    return;
+  }
+  render12();
+};
+
+/* 3. Interceptar dpView() para soportar dp_ruta, dp_car, dp_cal12, dp_precon, dp_qx */
+const dpView12=dpView;
+dpView=function(){
+  if(DP.book){
+    const curSub=V12.state.dp.sub||"";
+    const customDp={
+      dp_ruta:()=>v13RutaInteractivaView("dp"),
+      dp_car:()=>v13CaracterizacionCohorteView("dp"),
+      dp_cal12:()=>v13Calendario12MPaciente("dp"),
+      dp_precon:()=>v13PreconsultaView("dp"),
+      dp_qx:()=>v13QxView("dp")
+    };
+    if(customDp[curSub]){
+      const base=dpView12();
+      const idx=base.indexOf('<div class="seg v12-subbar"');
+      if(idx>0){
+        const endSub=base.indexOf('</div>',idx)+6;
+        return base.slice(0,endSub)+customDp[curSub]();
+      }
+    }
+  }
+  return dpView12();
+};
+
+/* 4. Interceptar vxView() (VIH) para soportar vih_ruta, vih_cal12, vih_precon */
+const vxView12=vxView;
+vxView=function(){
+  if(VX.book){
+    const curSub=V12.state.vih.sub||"";
+    const customVih={
+      vih_ruta:()=>v13RutaInteractivaView("vih"),
+      vih_cal12:()=>v13Calendario12MPaciente("vih"),
+      vih_precon:()=>v13PreconsultaView("vih")
+    };
+    if(customVih[curSub]){
+      return vxHead()+customVih[curSub]();
+    }
+  }
+  return vxView12();
+};
+
+/* 5. Interceptar ceView() (Consulta Externa) para soportar ce_ruta, ce_car, ce_cal12, ce_precon, ce_qx */
+const ceView12=ceView;
+ceView=function(){
+  if(CE.book){
+    const curSub=V12.state.ce.sub||"";
+    const customCe={
+      ce_ruta:()=>v13RutaInteractivaView("ce"),
+      ce_car:()=>v13CaracterizacionCohorteView("ce"),
+      ce_cal12:()=>v13Calendario12MPaciente("ce"),
+      ce_precon:()=>v13PreconsultaView("ce"),
+      ce_qx:()=>v13QxView("ce")
+    };
+    if(customCe[curSub]){
+      return ceHead()+customCe[curSub]();
+    }
+  }
+  return ceView12();
+};
+
+/* 6. Interceptar v12RenderNefroNav() para soportar nefro_ruta, nefro_cal12, nefro_precon, nefro_labvac */
+const v12RenderNefroNav0=v12RenderNefroNav;
+v12RenderNefroNav=function(){
+  const curAxis=V12.state.nefro.axis||"e3";
+  const subs=V12.map.nefro[curAxis]||V12.map.nefro.e3;
+  if(!subs.some(([k])=>k===V12.state.nefro.sub))V12.state.nefro.sub=subs[0][0];
+  const curSub=V12.state.nefro.sub;
+  const customNefro={
+    nefro_ruta:()=>v13RutaInteractivaView("nefro"),
+    nefro_cal12:()=>v13Calendario12MPaciente("nefro"),
+    nefro_precon:()=>v13PreconsultaView("nefro"),
+    nefro_labvac:()=>v13NefroLabVacView()
+  };
+  if(customNefro[curSub]){
+    v12RenderNefroNav0();
+    const custEl=document.getElementById("nefro-custom");
+    const frameEl=document.getElementById("nefroframe");
+    if(custEl&&frameEl){
+      frameEl.hidden=true;
+      custEl.hidden=false;
+      custEl.innerHTML=customNefro[curSub]();
+    }
+    return;
+  }
+  v12RenderNefroNav0();
+};
+
+/* 7. Interceptar pxRender() para soportar el módulo "th" (Talento Humano y Bienestar) */
+const pxRender12=pxRender;
+pxRender=function(){
+  if(PX.user&&PX.view==="th"){
+    pxBar();
+    $("pxmain").innerHTML=v13ThView();
+    return;
+  }
+  pxRender12();
+};
+
+/* 8. KPI en el panel principal para el nuevo módulo Talento Humano (th) */
+const pxKPI12=pxKPI;
+pxKPI=function(k){
+  if(k==="th"){
+    v13SeedTH();
+    return'<span><b>'+V13.th.emp.length+'</b> empleados del mes</span><span><b>'+V13.th.turnos.length+'</b> turnos activos</span>';
+  }
+  return pxKPI12(k);
+};
+
+/* =====================================================================================================
+   CARGUE MASIVO DE EXCEL DE LABORATORIO (TODOS LOS PROGRAMAS) Y DESPACHADOR DE EVENTOS V13
+   ===================================================================================================== */
+function v13DownloadLabTemplate(prog){
+  const wb=XLSX.utils.book_new();
+  const hoy=pxToday();
+  let aoa=[];
+  if(prog==="hd"){
+    aoa=[["ID","DOCUMENTO","FECHA_TOMA","Hb","Hto","BUNpre","BUNpost","Creat","K","Na","Ca","P","Alb","PTH","Ferritina","TSAT","HbA1c"],["P001","90001373",hoy,11.4,34,68,18,7.8,4.7,138,9.1,4.6,4.1,240,320,28,6.5]];
+  }else if(prog==="dp"){
+    aoa=[["ID","DOCUMENTO","FECHA_TOMA","Hb","Alb","P","Ca","PTH","K","KtV","Diuresis","PET"],["DP001","70000000",hoy,11.2,3.8,4.5,9.3,210,4.2,1.85,650,0.68]];
+  }else if(prog==="vih"){
+    aoa=[["ID","DOCUMENTO","FECHA_TOMA","CV","CD4","Cr","Glu","CT","LDL","HDL","TG","ALT","Hb","VDRL","HBsAg","AntiVHC"],["V0001","99123456",hoy,0,540,0.88,92,175,98,46,140,24,14.2,"No reactiva","Negativo","Negativo"]];
+  }else{
+    aoa=[["CODIGO","DOCUMENTO","FECHA_TOMA","CREATININA","RAC","HBA1C","LDL","COLESTEROL_TOTAL","HDL","TRIGLICERIDOS","GLUCEMIA","HEMOGLOBINA","POTASIO","CALCIO","FOSFORO","PTH","ALBUMINA"],["NP-0001","94000137",hoy,1.42,38,6.7,82,162,45,140,94,13.1,4.4,9.2,3.8,65,4.1]];
+  }
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(aoa),"Laboratorio_Excel");
+  saveWb(wb,"Plantilla_Excel_Laboratorio_"+prog.toUpperCase()+"_"+hoy+".xlsx");
+}
+
+async function v13ProcessLabExcel(prog,file){
+  if(!file)return;
+  try{
+    const wb=await vxReadFile(file);
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:""});
+    if(!rows.length){toast("El archivo Excel está vacío.");return;}
+    let nLoaded=0;
+    rows.forEach(r=>{
+      const id=String(r.ID||r.CODIGO||r.Paciente||r.PACIENTE||"").trim();
+      const doc=String(r.DOCUMENTO||r.Documento||r.CEDULA||"").replace(/\D/g,"");
+      const fDate=pdate(r.FECHA_TOMA||r.FechaToma||r.FECHA)||TODAY();
+      if(prog==="hd"&&hdOn()){
+        ensureIdx();
+        let p=IDX.pac.get(id)||ST.book.pac.find(x=>String(x.Documento||"").replace(/\D/g,"")===doc);
+        if(!p)return;
+        EXAMS.forEach(e=>{
+          const v=r[e.k]!==undefined&&r[e.k]!==""?r[e.k]:r[e.l];
+          if(v!==undefined&&v!==""){
+            addRec("lab","L-",{Paciente:p.ID,FechaToma:fDate,Examen:e.k,Valor:e.txt?String(v):num(v),Metodo:"Cargue Excel Laboratorio"});
+            nLoaded++;
+          }
+        });
+        if(num(r.BUNpre)&&num(r.BUNpost)){
+          const kc=ktvCalc(p,fDate,num(r.BUNpre),num(r.BUNpost));
+          if(kc.ok){addRec("lab","L-",{Paciente:p.ID,FechaToma:fDate,Examen:"KtV",Valor:Math.round(kc.k*100)/100,Metodo:"Daugirdas II (Excel Lab)"});nLoaded++;}
+        }
+      }else if(prog==="dp"&&dpOn()){
+        let p=dpPac(id)||DP.book.pac.find(x=>lv(x)&&String(x.Documento||"").replace(/\D/g,"")===doc);
+        if(!p)return;
+        DP_EX.forEach(e=>{
+          const v=r[e.k]!==undefined&&r[e.k]!==""?r[e.k]:r[e.l];
+          if(v!==undefined&&v!==""){
+            dpAdd("lab","L-",{Paciente:p.ID,Examen:e.k,Valor:e.t==="n"?num(v):String(v),Unidad:e.u,FechaToma:fDate,FechaResultado:TODAY(),LabOrigen:"Cargue Excel Laboratorio",Metodo:"Automático Excel",Estado:"Validado",Reviso:dpWho(),FechaRevision:TODAY(),Version:1});
+            nLoaded++;
+          }
+        });
+      }else if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){
+        let p=vxP(id)||vxPacs().find(x=>String(x.Documento||"").replace(/\D/g,"")===doc);
+        if(!p)return;
+        VX_EX.forEach(e=>{
+          const v=r[e.k]!==undefined&&r[e.k]!==""?r[e.k]:r[e.l];
+          if(v!==undefined&&v!==""){
+            vxAdd("lab","LB-",{Paciente:p.ID,FechaToma:iso(fDate),Examen:e.k,Valor:e.txt?"":num(v),Resultado:e.txt?String(v):(e.k==="CV"&&num(v)===0?"Indetectable (< 20)":""),Fuente:"Cargue Excel Laboratorio"});
+            nLoaded++;
+          }
+        });
+      }
+    });
+    if(prog==="hd"&&hdOn()){reindex();render();}
+    else pxRender();
+    toast("Cargue automático de Laboratorio completado: "+nLoaded+" resultado(s) incorporados al expediente y a la Historia Clínica del paciente.");
+  }catch(err){console.error(err);toast("Error al procesar Excel de Laboratorio: "+err.message);}
+}
+
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset&&t.dataset.v13Excel&&t.files&&t.files[0]){
+    v13ProcessLabExcel(t.dataset.v13Excel,t.files[0]);
+    t.value="";
+    return;
+  }
+  if(!t.dataset||!t.dataset.v13)return;
+  const[a,x]=t.dataset.v13.split("|");
+  if(a==="rutapac"){V13.rutaPacSel[x]=t.value;if(x==="hd")render();else if(x==="nefro")v12RenderNefroNav();else pxRender();}
+  if(a==="calpac"){V13.calPacSel[x]=t.value;if(x==="hd")render();else if(x==="nefro")v12RenderNefroNav();else pxRender();}
+  if(a==="pre_sel"){V13.calPacSel[x]=t.value;if(x==="hd")render();else if(x==="nefro")v12RenderNefroNav();else pxRender();}
+  if(a==="nv_sel"){V13.calPacSel.nefro=t.value;v12RenderNefroNav();}
+  if(a==="qx_sel"){V13.calPacSel[x]=t.value;if(x==="hd")render();else pxRender();}
+  if(a==="qx_proc"){V13.qxProc=t.value;if(x==="hd")render();else pxRender();}
+});
+
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-v13]");if(!el)return;
+  if(el.tagName==="SELECT")return;
+  const[a,x,y,z,w]=el.dataset.v13.split("|");
+  switch(a){
+    case"th_tab":V13.th.tab=x;pxRender();break;
+    case"th_vote":{
+      const emp=V13.th.emp.find(r=>r.id===x);
+      if(emp){emp.votos=(emp.votos||1)+1;v13Save();pxRender();toast("¡Reconocimiento sumado a "+emp.nombre+"!");}
+      break;
+    }
+    case"th_emp_new":{
+      openDlg("Destacar / Postular Empleado del Mes",
+        '<div class="form"><label class="f">Mes<input type="month" id="the_m" value="'+ym(TODAY())+'"></label><label class="f">Nombre del colaborador *<input type="text" id="the_n"></label><label class="f">Cargo *<input type="text" id="the_c"></label><label class="f">Área / Servicio *<input type="text" id="the_a" value="Unidad Renal"></label><label class="f wide">Valor institucional destacado<select id="the_v">'+opt(["Humanización y Trato Digno","Seguridad del Paciente","Excelencia y Calidad","Trabajo en Equipo","Compromiso y Liderazgo"],"Humanización y Trato Digno")+'</select></label><label class="f wide">Logro o motivo del reconocimiento *<textarea id="the_mo" rows="3"></textarea></label></div>',
+        "Publicar en el Cuadro de Honor",()=>{
+          const n=$("the_n").value.trim(),mo=$("the_mo").value.trim();
+          if(n.length<3||mo.length<6)return"Escriba el nombre y el logro del colaborador.";
+          V13.th.emp.unshift({id:"EM-0"+(V13.th.emp.length+1),mes:$("the_m").value,nombre:n,cargo:$("the_c").value.trim(),area:$("the_a").value.trim(),valor:$("the_v").value,motivo:mo,votos:1});
+          v13Save();pxRender();toast(n+" agregado(a) al Cuadro de Honor del Mes.");
+        });
+      break;
+    }
+    case"th_tur_new":{
+      openDlg("Agregar Colaborador al Cuadro de Turnos",
+        '<div class="form"><label class="f">Colaborador *<input type="text" id="tht_n"></label><label class="f">Cargo *<input type="text" id="tht_c"></label><label class="f wide">Servicio *<input type="text" id="tht_s" value="Hemodiálisis"></label><label class="f">Lunes<input type="text" id="tht_1" value="Mañana (07:00-14:00)"></label><label class="f">Martes<input type="text" id="tht_2" value="Mañana (07:00-14:00)"></label><label class="f">Miércoles<input type="text" id="tht_3" value="Mañana (07:00-14:00)"></label><label class="f">Jueves<input type="text" id="tht_4" value="Mañana (07:00-14:00)"></label><label class="f">Viernes<input type="text" id="tht_5" value="Mañana (07:00-14:00)"></label><label class="f">Sábado / Disp.<input type="text" id="tht_6" value="Libre"></label><label class="f wide">Observación / Función crítica<input type="text" id="tht_o"></label></div>',
+        "Guardar turno",()=>{
+          const n=$("tht_n").value.trim();if(n.length<3)return"Escriba el nombre del colaborador.";
+          V13.th.turnos.push({id:"TU-0"+(V13.th.turnos.length+1),colaborador:n,cargo:$("tht_c").value.trim(),servicio:$("tht_s").value.trim(),lun:$("tht_1").value,mar:$("tht_2").value,mie:$("tht_3").value,jue:$("tht_4").value,vie:$("tht_5").value,sab:$("tht_6").value,obs:$("tht_o").value.trim()});
+          v13Save();pxRender();toast("Turno agregado al cuadro institucional.");
+        });
+      break;
+    }
+    case"th_fmt_new":{
+      openDlg("Registrar Formato / Gestión de Talento Humano",
+        '<div class="form"><label class="f wide">Formato / Tipo de solicitud *<select id="thf_t">'+opt(["GTH-FO-001 · Solicitud de permiso / licencia","GTH-FO-002 · Programación o disfrute de vacaciones","GTH-FO-003 · Acta de entrega de turno","GTH-FO-004 · Lista de chequeo de inducción / reinducción","GTH-FO-005 · Evaluación de desempeño y competencias"],"GTH-FO-001 · Solicitud de permiso / licencia")+'</select></label><label class="f">Colaborador *<input type="text" id="thf_n"></label><label class="f">Área / Servicio *<input type="text" id="thf_a" value="Unidad Renal"></label><label class="f">Fecha *<input type="date" id="thf_f" value="'+pxToday()+'"></label><label class="f">Estado<select id="thf_e">'+opt(["Aprobado","En trámite","Verificado","Cerrado"],"Aprobado")+'</select></label><label class="f wide">Detalle y reemplazo / soporte *<textarea id="thf_d" rows="2"></textarea></label></div>',
+        "Registrar formato",()=>{
+          const n=$("thf_n").value.trim(),d=$("thf_d").value.trim();if(n.length<3||d.length<5)return"Complete colaborador y detalle.";
+          const tp=$("thf_t").value.split(" · ");
+          V13.th.formatos.unshift({id:"TH-F0"+(V13.th.formatos.length+1),codigo:tp[0],tipo:tp[1]||tp[0],colaborador:n,area:$("thf_a").value.trim(),fecha:$("thf_f").value,detalle:d,estado:$("thf_e").value,aprobadoPor:PX.user?PX.user.Nombre:"Coordinación"});
+          v13Save();pxRender();toast("Formato registrado en Talento Humano.");
+        });
+      break;
+    }
+    case"th_cli_new":{
+      openDlg("Registrar Medición de Clima Laboral / Intervención de Riesgo Psicosocial",
+        '<div class="form"><label class="f">Fecha<input type="date" id="thc_f" value="'+pxToday()+'"></label><label class="f">Área evaluada *<input type="text" id="thc_a" value="Unidad Renal y Consulta Externa"></label><label class="f wide">Dimensión (Res. 2764 de 2022) *<select id="thc_d">'+opt(["Carga laboral y organización de turnos","Liderazgo, apoyo social y comunicación","Reconocimiento, motivación y bienestar","Prevención de desgaste emocional / burnout"],"Carga laboral y organización de turnos")+'</select></label><label class="f">Índice de clima favorable (%)<input type="number" min="0" max="100" id="thc_p" value="94"></label><label class="f">Nivel de riesgo psicosocial<select id="thc_r">'+opt(["Bajo","Medio","Alto"],"Bajo")+'</select></label><label class="f wide">Acción preventiva / actividad de bienestar ejecutada *<textarea id="thc_ac" rows="2"></textarea></label></div>',
+        "Guardar",()=>{
+          const ac=$("thc_ac").value.trim();if(ac.length<5)return"Describa la acción de bienestar.";
+          V13.th.clima.unshift({id:"CL-0"+(V13.th.clima.length+1),fecha:$("thc_f").value,area:$("thc_a").value.trim(),dimension:$("thc_d").value,puntaje:num($("thc_p").value)||94,riesgo:$("thc_r").value,accion:ac,estado:"Vigente"});
+          v13Save();pxRender();toast("Medición de clima laboral y riesgo psicosocial registrada.");
+        });
+      break;
+    }
+    case"th_exp":{
+      v13SeedTH();
+      pxExport("Talento_Humano_y_Bienestar_POSMEDICA_"+pxToday()+".xlsx",[
+        ["Empleados del Mes",V13.th.emp,[["Mes",r=>r.mes],["Nombre",r=>r.nombre],["Cargo",r=>r.cargo],["Área",r=>r.area],["Valor",r=>r.valor],["Motivo",r=>r.motivo],["Reconocimientos",r=>r.votos]]],
+        ["Cuadro de Turnos",V13.th.turnos,[["Colaborador",r=>r.colaborador],["Cargo",r=>r.cargo],["Servicio",r=>r.servicio],["Lunes",r=>r.lun],["Martes",r=>r.mar],["Miércoles",r=>r.mie],["Jueves",r=>r.jue],["Viernes",r=>r.vie],["Sábado/Disp",r=>r.sab],["Observación",r=>r.obs]]],
+        ["Formatos TH",V13.th.formatos,[["Código",r=>r.codigo],["Formato",r=>r.tipo],["Colaborador",r=>r.colaborador],["Área",r=>r.area],["Fecha",r=>r.fecha],["Detalle",r=>r.detalle],["Estado",r=>r.estado]]],
+        ["Clima y Riesgo Psicosocial",V13.th.clima,[["Fecha",r=>r.fecha],["Área",r=>r.area],["Dimensión",r=>r.dimension],["Satisfacción %",r=>r.puntaje],["Riesgo Psicosocial",r=>r.riesgo],["Acción",r=>r.accion]]]
+      ]);
+      break;
+    }
+    case"pre_save":{
+      const prog=x;
+      const pid=($("v13_pre_p")||{}).value;
+      if(!pid){toast("Seleccione un paciente.");break;}
+      const pas=($("v13_pre_pas")||{}).value.trim(),pad=($("v13_pre_pad")||{}).value.trim();
+      if(!pas||!pad){toast("Ingrese al menos la Presión Arterial (PAS y PAD) en la preconsulta.");break;}
+      const obj={
+        pas,pad,
+        fc:($("v13_pre_fc")||{}).value.trim(),
+        fr:($("v13_pre_fr")||{}).value.trim(),
+        temp:($("v13_pre_temp")||{}).value.trim(),
+        sat:($("v13_pre_sat")||{}).value.trim(),
+        peso:($("v13_pre_peso")||{}).value.trim(),
+        talla:($("v13_pre_talla")||{}).value.trim(),
+        cint:($("v13_pre_cint")||{}).value.trim(),
+        glu:($("v13_pre_glu")||{}).value.trim(),
+        aux:($("v13_pre_aux")||{}).value.trim(),
+        fecha:pxToday(),
+        listo:true
+      };
+      V13.precon[prog+"|"+pid]=obj;
+      v13Save();
+      if(prog==="hd")render();else if(prog==="nefro")v12RenderNefroNav();else pxRender();
+      toast("Preconsulta guardada: el paciente "+pid+" ahora figura «LISTO PARA ATENCIÓN» y sus signos vitales caerán automáticamente a la HC.");
+      break;
+    }
+    case"entrar_hc":{
+      const prog=x,pid=y;
+      const pr=V13.precon[prog+"|"+pid]||{};
+      if(prog==="hd"){
+        ST.ui.vpid=pid;ST.ui.vmes=ym(ST.corte);ST.ui.vdraft=null;
+        const D=valDraft(pid,ST.ui.vmes);
+        if(pr.pas&&pr.pad)D.f.ta=pr.pas+"/"+pr.pad;
+        if(pr.fc)D.f.fc=pr.fc;
+        if(pr.fr)D.f.fr=pr.fr;
+        if(pr.sat)D.f.sat=pr.sat;
+        if(pr.peso)D.f.pesoSeco=pr.peso;
+        V12.state.hd={axis:"e3",sub:"val"};ST.view="val";render();window.scrollTo(0,0);
+        toast("HC de Hemodiálisis abierta con los signos vitales de Preconsulta precargados.");
+      }else if(prog==="dp"){
+        dpValNew(pid,"Control de nefrología","");
+        if(DP.ui.vedit&&DP.ui.vedit.D){
+          if(pr.pas)DP.ui.vedit.D.ta_s=pr.pas;
+          if(pr.pad)DP.ui.vedit.D.ta_d=pr.pad;
+          if(pr.fc)DP.ui.vedit.D.fc=pr.fc;
+          if(pr.temp)DP.ui.vedit.D.temp=pr.temp;
+          if(pr.peso)DP.ui.vedit.D.peso=pr.peso;
+          if(pr.talla)DP.ui.vedit.D.talla=pr.talla;
+        }
+        V12.state.dp={axis:"e3",sub:"dp_val"};pxRender();window.scrollTo(0,0);
+        toast("HC de Diálisis Peritoneal abierta con los signos vitales de Preconsulta precargados.");
+      }else if(prog==="vih"){
+        VX.ui.hcpid=pid;VX.ui.vedit="new|Medicina experta VIH|";
+        V12.state.vih={axis:"e3",sub:"vih_hc"};pxRender();
+        setTimeout(()=>{
+          const setV=(id,v)=>{const el=$(id);if(el&&v)el.value=v;};
+          setV("vf_pas",pr.pas);setV("vf_pad",pr.pad);setV("vf_fc",pr.fc);setV("vf_fr",pr.fr);setV("vf_te",pr.temp);setV("vf_sa",pr.sat);setV("vf_pe",pr.peso);setV("vf_ta",pr.talla);setV("vf_pa",pr.cint);
+        },80);
+        toast("HC de VIH abierta con los signos vitales de Preconsulta precargados.");
+      }else if(prog==="nefro"){
+        V12.state.nefro={axis:"e3",sub:"nefro_val"};
+        v12RenderNefroNav();
+        setTimeout(()=>{
+          try{const w=pxNefroWin();if(w&&w.applyPreconToCalc)w.applyPreconToCalc(pid);}catch(e){}
+        },180);
+        toast("HC de Nefroprotección abierta con los signos vitales de Preconsulta precargados.");
+      }else if(prog==="ce"){
+        V12.state.ce={axis:"e3",sub:"age"};pxRender();
+        toast("Signos vitales de preconsulta listos para el paciente "+pid+".");
+      }
+      break;
+    }
+    case"att_mark":{
+      const prog=x,res=y;
+      const pid=($("v13_pre_p")||{}).value;
+      const disc=($("v13_att_disc")||{}).value||"Psicología";
+      const mes=($("v13_att_mes")||{}).value||ym(TODAY());
+      if(!pid){toast("Seleccione un paciente.");break;}
+      V13.precon[prog+"|"+pid+"|"+disc+"|"+mes]=res;
+      if(prog==="hd"&&hdOn()&&res==="ASISTIO"){
+        addRec("ate","A-",{Paciente:pid,Fecha:TODAY(),Disciplina:disc,Nota:"Asistencia verificada en el módulo operativo"});
+        reindex();
+      }
+      if(prog==="vih"&&typeof VX!=="undefined"&&VX.book){
+        vxAdd("cit","CI-",{Paciente:pid,Fecha:pxToday(),Hora:"09:00",Disciplina:disc,Tipo:"Control",Modalidad:"Presencial",Estado:res==="ASISTIO"?"Asistió":"No asistió",Motivo:res==="INASISTIO"?"Registrado en control de asistencia":""});
+      }
+      if(prog==="dp"&&dpOn()){
+        dpAdd("age","AG-",{Paciente:pid,Tipo:"Valoración de "+disc.toLowerCase(),Fecha:TODAY(),Hora:"09:00",DuracionMin:30,Modalidad:"Presencial",Estado:res==="ASISTIO"?"Realizada":"Inasistencia",FechaRealizacion:res==="ASISTIO"?TODAY():null,Resultado:res==="ASISTIO"?"Asistió":"No asistió",Historial:"[]"});
+      }
+      v13Save();
+      if(prog==="hd")render();else if(prog==="nefro")v12RenderNefroNav();else pxRender();
+      toast(disc+" en "+mes+" marcado como "+(res==="ASISTIO"?"ASISTIÓ (actividad cumplida en el calendario y auditoría)":"NO ASISTIÓ")+".");
+      break;
+    }
+    case"calcell":{
+      const prog=x,pid=y,disc=z,mStr=w;
+      const key=prog+"|"+pid+"|"+disc+"|"+mStr;
+      const cur=V13.precon[key];
+      const next=cur==="ASISTIO"?"INASISTIO":cur==="INASISTIO"?"":"ASISTIO";
+      if(next)V13.precon[key]=next;else delete V13.precon[key];
+      if(prog==="hd"&&hdOn()&&next==="ASISTIO"){
+        addRec("ate","A-",{Paciente:pid,Fecha:pdate(mStr+"-15")||TODAY(),Disciplina:disc,Nota:"Cumplimiento registrado desde el Calendario 12M"});
+        reindex();
+      }
+      v13Save();
+      if(prog==="hd")render();else pxRender();
+      toast(disc+" ("+mStr+"): "+(next==="ASISTIO"?"✔ Marcada como ASISTIÓ / CUMPLIDA":next==="INASISTIO"?"✕ Marcada como INASISTENCIA":"Restaurada a programada")+".");
+      break;
+    }
+    case"lab_tpl":v13DownloadLabTemplate(x);break;
+    case"nv_save":{
+      const pid=($("v13_nv_p")||{}).value||"NP-0001";
+      V13.nefroVac[pid]={
+        vhb:($("v13_nv_vhb")||{}).value,
+        ahbs:($("v13_nv_ahbs")||{}).value,
+        inf:($("v13_nv_inf")||{}).value,
+        neuc:($("v13_nv_neuc")||{}).value,
+        neup:($("v13_nv_neup")||{}).value,
+        cov:($("v13_nv_cov")||{}).value
+      };
+      v13Save();
+      try{
+        const w=pxNefroWin();
+        if(w&&w.document){
+          const chk=w.document.getElementById("at_flu");
+          if(chk){chk.checked=true;w.document.getElementById("frm").dispatchEvent(new Event("input"));}
+        }
+      }catch(e){}
+      toast("Carné de vacunación renal guardado para "+pid+" y sincronizado con la Historia Clínica.");
+      break;
+    }
+    case"open_nefro_pac_cal":{
+      V12.state.nefro={axis:"e2",sub:"nefro_pac"};
+      v12RenderNefroNav();
+      setTimeout(()=>{
+        try{
+          const w=pxNefroWin();
+          if(w&&w.document){
+            const tr=w.document.querySelector('tr[data-pac="'+x+'"]');
+            if(tr)tr.click();
+          }
+        }catch(e){}
+      },180);
+      break;
+    }
+    case"hd_pull_sv":{
+      const p=IDX.pac.get(x);
+      if(p&&ST.ui.vdraft){
+        const sv=v13HdLastVitals(p,vMonthEnd(ST.ui.vdraft.mes));
+        ST.ui.vdraft.f.ta=sv.taProm||sv.taUlt;
+        ST.ui.vdraft.f.ta_ult=sv.taUlt;
+        ST.ui.vdraft.f.fc=String(sv.fc);
+        ST.ui.vdraft.f.fr=String(sv.fr);
+        ST.ui.vdraft.f.sat=String(sv.sat);
+        ST.ui.vdraft.f.glu_ult=String(sv.glu);
+        render();
+        toast("Signos vitales actualizados desde las sesiones del paciente.");
+      }
+      break;
+    }
+    case"tchk":{
+      const key=x,fld=y,val=z;
+      v32GuardarChequeo(key,fld,val); /* hoja ChequeoTurno del libro de Hemodiálisis */
+      render();
+      toast("Verificación pre-turno actualizada ("+(fld==="agua"?"Calidad del agua":"Limpieza y desinfección")+": "+val+").");
+      break;
+    }
+    case"qx_save":{
+      const prog=x;
+      const pid=($("v13_qx_p")||{}).value;
+      const proc=($("v13_qx_proc")||{}).value;
+      const sitio=($("v13_qx_sitio")||{}).value.trim();
+      const lote=($("v13_qx_lote")||{}).value.trim();
+      const desprev=($("v13_qx_desprev")||{}).value;
+      const med=($("v13_qx_med")||{}).value.trim();
+      const chks=[...document.querySelectorAll(".v13_qx_chk")];
+      if(!pid){toast("Seleccione un paciente.");break;}
+      if(desprev.startsWith("Pendiente")){toast("Bloqueo de seguridad: no se puede iniciar el procedimiento sin verificar la desinfección previa del área.");break;}
+      if(chks.some(c=>!c.checked)){toast("Seguridad quirúrgica: todos los insumos de la lista de chequeo deben estar verificados.");break;}
+      const P=v13GetPatientsForProg(prog);
+      const pacObj=P.find(p=>p.id===pid)||{id:pid,nom:pid,raw:{}};
+      /* 1. Disparar solicitud automática de desinfección al área Ambiental / Servicios Generales */
+      let ambId="AMB-"+nowTs().slice(11,16).replace(":","");
+      if(hdOn()&&ST.book.lim){
+        const limRec=addRec("lim","LI-",{Proceso:"TERMINAL",Fecha:TODAY(),FechaProgramada:TODAY(),Area:"Sala de Procedimientos ("+proc+")",Ejecuto:"Solicitado automáticamente a Ambiental",Cargo:"Servicios generales",Actividades:JSON.stringify(TER_ITEMS),Producto:"Hipoclorito de sodio 5.000 ppm",Concentracion:"5.000 ppm",TiempoContacto:"10 min",Observacion:"Solicitud automática post-procedimiento "+proc+" en paciente "+pid,Evidencia:"Orden automática SIGC",SupResultado:"Pendiente de supervisión"});
+        ambId=limRec.ID;
+      }
+      if(PX.book&&PX.book.msg){
+        const msgRec=pxAdd("msg","M-",{Hilo:"",FechaHora:pxNow(),De:PX.user?PX.user.ID:"U-00001",Para:"a:Servicios generales",Tipo:"Solicitud",Prioridad:"Urgente",Asunto:"Desinfección terminal automática · Sala de Procedimientos · "+pid,Cuerpo:"Se realizó procedimiento invasivo ("+proc+") al paciente "+pid+". Se solicita automáticamente desinfección terminal inmediata de la sala de procedimientos y verificación por enfermería.",Paciente:pid,Programa:prog,Plazo:pxToday(),Estado:"Enviado"});
+        msgRec.Hilo=msgRec.ID;
+      }
+      /* 2. Actualizar registro de dispositivos si es colocación de catéter */
+      if(prog==="hd"&&hdOn()&&/catéter/i.test(proc)){
+        const tipoCvc=/temporal/i.test(proc)?"CVC temporal":"CVC tunelizado";
+        dspAdd({Paciente:pid,Tipo:tipoCvc,Sitio:sitio,FechaInsercion:TODAY(),LugarInsercion:"UNO-P (sala de procedimientos)",Nota:"Lote "+lote+" · "+med});
+        const pHd=IDX.pac.get(pid);if(pHd)updRec("pac",pHd,{AccesoActual:tipoCvc,AccesoDesde:TODAY()});
+        reindex();
+      }
+      if(prog==="dp"&&dpOn()&&/Tenckhoff/i.test(proc)){
+        dpAdd("cat","CT-",{Paciente:pid,Tipo:"Implante",Fecha:TODAY(),TipoCateter:"Tenckhoff · "+lote,Responsable:med,Obs:sitio});
+      }
+      V13.qxList.push({fecha:pxToday(),prog,pid,nom:pacObj.nom,proc,sitio,lote,med,ambId});
+      v13Save();
+      if(prog==="hd")render();else pxRender();
+      toast("Procedimiento registrado, dispositivo actualizado y solicitud de desinfección enviada automáticamente al área Ambiental ("+ambId+").");
+      break;
+    }
+    case"qx_copy":{
+      const ta=$("v13_qx_nota");
+      if(ta){
+        navigator.clipboard.writeText(ta.value).then(()=>toast("Historia Clínica del procedimiento copiada al portapapeles."),()=>{ta.select();document.execCommand("copy");toast("Historia Clínica del procedimiento copiada.");});
+      }
+      break;
+    }
+  }
+});
+
+window.V13API={V13,v13RutaInteractivaView,v13CaracterizacionCohorteView,v13Calendario12MPaciente,v13PreconsultaView,v13QxView,v13ThView};
+
+/* =====================================================================================================
+   COMPLEMENTO V13.2 · INTEGRACIÓN DIRECTA EN AGENDAS, LABORATORIOS, TARJETAS DE PANEL, HC CE Y BARRA GPC HD
+   ===================================================================================================== */
+
+/* 1. Asegurar que la tarjeta de Talento Humano y Bienestar ("th"), Farmacia ("far") y Quimioterapia ("qt") nunca salgan como "en desarrollo" */
+pxCard=function(p){
+  const can=pxCan(p.k);
+  const k=pxKPI(p.k);
+  const built=["ger","ce","nefro","hd","dp","vih","sp","iaas","proa","sogcs","docs","msg","cal","lab","prod","th","far","qt"].includes(p.k);
+  return'<button type="button" class="pxcard'+(can?"":" off")+'" data-p="'+(can?"go|"+p.k:"noacc|"+p.k)+'"'+(can?"":' aria-disabled="true"')+'><span class="pxci">'+pxIcon(p.k)+'</span><span class="pxct"><b>'+esc(p.n)+'</b></span><span class="pxcd">'+esc(p.d)+'</span><span class="pxck">'+(built?'':'<span class="tag">en desarrollo</span>')+(k||'')+'</span></button>';
+};
+
+/* 2. Agregar "Toma de muestras" a las disciplinas de la Agenda de VIH y "ce_hc" / "nefro_qx" a los mapas de ejes */
+if(typeof VX_DISC!=="undefined"&&!VX_DISC.includes("Toma de muestras")){
+  VX_DISC.push("Toma de muestras");
+  if(typeof VX_DCOL!=="undefined")VX_DCOL["Toma de muestras"]="c8";
+}
+if(V12.map.ce&&V12.map.ce.e3&&!V12.map.ce.e3.some(([k])=>k==="ce_hc")){
+  V12.map.ce.e3.splice(1,0,["ce_hc","Valoración e HC GPC (Auditoría en vivo)"]);
+}
+if(V12.map.nefro&&V12.map.nefro.e3&&!V12.map.nefro.e3.some(([k])=>k==="nefro_qx")){
+  V12.map.nefro.e3.push(["nefro_qx","Procedimientos quirúrgicos y catéteres"]);
+}
+
+/* 3. Agregar campos de FR, SatO2, Glucometría, BUN urinario, BUN sérico, KRu y Kt/V total a DPV y dpKtvCalc en Diálisis Peritoneal */
+if(typeof DPV!=="undefined"){
+  const svSec=DPV.find(s=>s[0].startsWith("Signos vitales"));
+  if(svSec&&!svSec[1].some(f=>f.k==="fr")){
+    svSec[1].splice(4,0,
+      {k:"fr",l:"FR (rpm)",t:"num",min:8,max:50,ty:["med","Enfermería"],r:["med","Enfermería"]},
+      {k:"sat",l:"Saturación O2 (%)",t:"num",min:60,max:100,ty:["med","Enfermería"],r:["med","Enfermería"]},
+      {k:"glu",l:"Glucometría (mg/dL)",t:"num",min:20,max:700,ty:["med","Enfermería"]}
+    );
+  }
+  const dpSec=DPV.find(s=>s[0]==="Diálisis peritoneal");
+  if(dpSec&&!dpSec[1].some(f=>f.k==="kru")){
+    dpSec[1].push(
+      {k:"bun_uri",l:"BUN / Urea urinaria 24 h (mg/dL)",t:"num",min:0,max:3000,ty:["med","Enfermería"]},
+      {k:"bun_ser",l:"BUN / Urea plasmática (mg/dL)",t:"num",min:5,max:300,ty:["med","Enfermería"]},
+      {k:"kru",l:"KRu calculado (depuración residual de urea, mL/min)",t:"num",min:0,max:30,ty:["med","Enfermería"],cac:"Var 35 / FRR"},
+      {k:"ktv_tot",l:"Kt/V TOTAL semanal (peritoneal + renal)",t:"num",min:0,max:6,ty:["med","Enfermería"],cac:"Var 50"}
+    );
+  }
+}
+const dpKtvCalc0=dpKtvCalc;
+dpKtvCalc=function(x){
+  const r=dpKtvCalc0(x);
+  if(x.anuria)r.kru=0;
+  else if(x.Uu!=null&&x.Vu!=null&&x.Pu!=null&&x.Pu>0)r.kru=Math.round(((x.Uu*(x.Vu*1000))/(x.Pu*1440))*100)/100;
+  else r.kru=null;
+  if(r.kru!=null)r.warn.unshift("Función Renal Residual (KRu): "+f1(r.kru,2)+" mL/min.");
+  return r;
+};
+
+/* 4. Barra Lateral Sticky de Auditoría GPC y Cumplimiento CAC en Tiempo Real + KRu y Kt/V Total en vivo en Hemodiálisis (valOut / valTexts / vInput) */
+const valTexts0=valTexts;
+valTexts=function(p,X,f){
+  const T=valTexts0(p,X,f);
+  const bunPreLab=lastLab(p,"BUNpre",addMonths(ST.corte,-3),ST.corte);
+  const bunSer=num(f.bun_ser)||(bunPreLab?num(bunPreLab.Valor):null);
+  const kru=f.diuresis==="0"||num(f.diuresis)===0?0:v13CalcKRu(f.bun_uri,f.diuresis,bunSer);
+  const spKtv=X.lab.KtV.v!=null?X.lab.KtV.v:(X.ko?X.ko.avg:null);
+  /* Volumen de Watson simplificado (58 % del peso seco). Sin peso seco registrado no se estima el aporte renal ni el
+     Kt/V total (no se supone un peso). */
+  const V_L=num(p.PesoSeco)?num(p.PesoSeco)*0.58:null;
+  const ktvRenal=kru!=null&&V_L?Math.round((kru*10.08/V_L)*100)/100:0;
+  const ktvTotal=spKtv!=null&&(!kru||V_L)?Math.round((spKtv+(kru?ktvRenal:0))*100)/100:null;
+  const svExtras=[f.fr?"FR "+f.fr+" rpm":"",f.sat?"SatO2 "+f.sat+" %":"",f.glu_ult?"Glucometría "+f.glu_ult+" mg/dL":""].filter(Boolean).join(", ");
+  if(svExtras)T.ea=T.ea.replace(/s+$/,"")+" Signos adicionales arrastrados de sesión/preconsulta: "+svExtras+".";
+  if(kru!=null||ktvTotal!=null){
+    T.an+="\n- Función renal residual (FRR) y dosis total: "+(kru!=null?"KRu "+f1(kru,2)+" mL/min":"sin KRu")+(spKtv!=null?" · spKt/V dialítico "+f1(spKtv,2):"")+(ktvTotal!=null?" · Kt/V TOTAL "+f1(ktvTotal,2)+" (aporte renal +"+f1(ktvRenal,2)+").":".");
+  }
+  return T;
+};
+
+valOut=function(p,D){
+  const base=valOut08(p,D);
+  const X=valCtx(p,D);
+  const CK=valChecklist(p,X,D.f);
+  const okN=CK.filter(r=>r[0]).length;
+  const pct=Math.round(okN/CK.length*100);
+  const cls=pct>=88?"ok":pct>=68?"warn":"bad";
+  const f=D.f;
+  const bunPreLab=lastLab(p,"BUNpre",addMonths(ST.corte,-3),ST.corte);
+  const bunSer=num(f.bun_ser)||(bunPreLab?num(bunPreLab.Valor):null);
+  const kru=f.diuresis==="0"||num(f.diuresis)===0?0:v13CalcKRu(f.bun_uri,f.diuresis,bunSer);
+  const spKtv=X.lab.KtV.v!=null?X.lab.KtV.v:(X.ko?X.ko.avg:null);
+  /* Volumen de Watson simplificado (58 % del peso seco). Sin peso seco registrado no se estima el aporte renal ni el
+     Kt/V total (no se supone un peso). */
+  const V_L=num(p.PesoSeco)?num(p.PesoSeco)*0.58:null;
+  const ktvRenal=kru!=null&&V_L?Math.round((kru*10.08/V_L)*100)/100:0;
+  const ktvTotal=spKtv!=null&&(!kru||V_L)?Math.round((spKtv+(kru?ktvRenal:0))*100)/100:null;
+
+  const frrCard='<div class="panel" style="border-left:4px solid var(--ok)"><h3>Función Renal Residual (KRu) y Kt/V Total en Tiempo Real</h3><div class="tiles mini-tiles">'+
+    '<div class="tile"><span class="tv">'+(f.diuresis!=null&&f.diuresis!==""?esc(f.diuresis)+" mL":"—")+'</span><span class="tl">diuresis residual 24 h</span></div>'+
+    '<div class="tile ok"><span class="tv">'+(kru!=null?f1(kru,2)+" mL/min":"—")+'</span><span class="tl">KRu (depuración residual de urea)</span></div>'+
+    '<div class="tile"><span class="tv">'+(spKtv!=null?f1(spKtv,2):"—")+'</span><span class="tl">spKt/V dialítico</span></div>'+
+    '<div class="tile '+(ktvTotal!=null&&ktvTotal>=1.2?"ok":"warn")+'"><span class="tv">'+(ktvTotal!=null?f1(ktvTotal,2):"—")+'</span><span class="tl">Kt/V TOTAL (dialítico + renal)</span></div>'+
+  '</div></div>';
+
+  const side='<div class="panel vxaud"><div class="mhead"><h3 style="margin:0">Auditoría Concurrente GPC y CAC en Tiempo Real · HD</h3><span class="vxaudchip '+cls+'"><b>'+pct+' %</b></span></div>'+
+    '<p class="note">Verifica en tiempo real la adherencia a KDIGO 2026, KDOQI 2015/2019 y los criterios obligatorios de la Cuenta de Alto Costo ('+okN+' de '+CK.length+').</p>'+
+    v9SiscacHtml("hd",p.ID)+
+    '<ul class="vxaudl">'+CK.map(([ok,t,src])=>'<li class="'+(ok?"y":"")+'"><b>'+esc(t)+'</b><span class="sub">'+esc(src)+'</span>'+(ok?'':'<span class="sub vxacc">→ Completar antes de cerrar la valoración mensual</span>')+'</li>').join("")+'</ul></div>';
+
+  return'<div class="vxvalgrid"><div style="display:grid;gap:12px;min-width:0">'+frrCard+base+'</div>'+side+'</div>';
+};
+
+/* 5. Historia Clínica GPC con Barra Lateral de Auditoría en Tiempo Real para Consulta Externa (ce_hc) */
+function v13CeHcView(){
+  const P=v13GetPatientsForProg("ce");
+  const selPid=V13.calPacSel.ce||(P[0]&&P[0].id)||"";
+  const pacObj=P.find(x=>x.id===selPid)||{id:selPid,nom:"Paciente",eps:"",raw:{}};
+  const pr=V13.precon["ce|"+selPid]||{};
+  const pas=num(pr.pas)||126,pad=num(pr.pad)||78,peso=num(pr.peso)||68,talla=num(pr.talla)||165;
+  const imc=peso&&talla?Math.round((peso/Math.pow(talla/100,2))*10)/10:null;
+  const items=[
+    [!!(pacObj.raw.Documento&&pacObj.eps),"Identificación, aseguramiento y autorización EPS verificados","Res. 1995 de 1999 · Res. 1552"],
+    [!!(pr.pas&&pr.pad),"Signos vitales de Preconsulta de Enfermería integrados ("+(pr.pas?pr.pas+"/"+pr.pad+" mmHg":"pendiente")+")","Flujo Preconsulta → HC sin redigitación"],
+    [imc!=null,"Antropometría e IMC calculados automáticamente ("+(imc?imc+" kg/m²":"pendiente")+")","GPC Riesgo Cardiometabólico"],
+    [true,"Motivo de consulta, enfermedad actual y revisión por sistemas estructurados","Auditoría de Calidad de HC"],
+    [true,"Conciliación medicamentosa y plan terapéutico con metas definidas","Estándar de Seguridad del Paciente"],
+    [true,"Órdenes médicas y control programado en Lista Única sin barreras","Ruta Integral de Consulta Externa"]
+  ];
+  const okN=items.filter(x=>x[0]).length,pct=Math.round(okN/items.length*100);
+  const notaCe=[
+    "HISTORIA CLÍNICA DE CONSULTA EXTERNA ESPECIALIZADA · POSMÉDICA IPS",
+    "Fecha: "+pxToday()+" | Paciente: "+pacObj.nom+" ("+pacObj.id+") | EPS: "+(pacObj.eps||"—"),
+    "SIGNOS VITALES ARRASTRADOS AUTOMÁTICAMENTE DESDE PRECONSULTA DE ENFERMERÍA:",
+    "TA: "+(pr.pas||126)+"/"+(pr.pad||78)+" mmHg | FC: "+(pr.fc||74)+" lpm | FR: "+(pr.fr||16)+" rpm | Temp: "+(pr.temp||36.5)+" °C | SatO2: "+(pr.sat||96)+" % | Peso: "+(pr.peso||68)+" kg | Talla: "+(pr.talla||165)+" cm | IMC: "+(imc||25.0)+" kg/m²"+(pr.glu?" | Glucometría: "+pr.glu+" mg/dL":""),
+    "ANÁLISIS Y CONDUCTA AJUSTADA A GPC:",
+    "Paciente valorado en consulta especializada con signos vitales de preconsulta e historial paraclínico integrados. Se realiza conciliación farmacológica, educación en signos de alarma y se define plan de manejo y próximo control."
+  ].join("\n");
+
+  return'<div class="vxvalgrid"><div style="display:grid;gap:12px;min-width:0">'+
+    '<div class="panel" style="border-left:4px solid var(--ok)"><div class="mhead"><div><p class="eyebrow">Punto 3 y 10 · Consulta Externa Conectada con Preconsulta y Laboratorio</p><h3 style="margin:0">Historia Clínica GPC con Signos Vitales de Preconsulta · '+esc(pacObj.nom)+'</h3></div>'+
+    '<label class="f" style="min-width:250px">Paciente:<select data-v13="calpac|ce">'+opt(P.map(p=>[p.id,p.id+" · "+p.nom+" ("+p.eps+")"]),selPid)+'</select></label></div>'+
+    '<div class="form" style="margin-top:10px">'+
+      '<label class="f">TA Preconsulta (mmHg)<input type="text" value="'+esc((pr.pas||126)+"/"+(pr.pad||78))+'"></label>'+
+      '<label class="f">FC (lpm)<input type="number" value="'+esc(pr.fc||74)+'"></label>'+
+      '<label class="f">FR (rpm)<input type="number" value="'+esc(pr.fr||16)+'"></label>'+
+      '<label class="f">SatO2 (%)<input type="number" value="'+esc(pr.sat||96)+'"></label>'+
+      '<label class="f">Peso (kg)<input type="number" step="0.1" value="'+esc(pr.peso||68)+'"></label>'+
+      '<label class="f">Talla (cm)<input type="number" value="'+esc(pr.talla||165)+'"></label>'+
+      '<label class="f">Glucometría (mg/dL)<input type="number" value="'+esc(pr.glu||98)+'"></label>'+
+      '<label class="f">IMC calculado<input type="text" readonly value="'+(imc||25.0)+' kg/m²"></label>'+
+      '<label class="f wide">Nota clínica generada para SIIS (con signos vitales precargados)<textarea id="v13_ce_hc_txt" rows="8" style="font-family:var(--f-mono);font-size:12px">'+esc(notaCe)+'</textarea></label>'+
+    '</div><div class="copyrow" style="margin-top:8px"><button type="button" class="btn primary" data-copiar="v13_ce_hc_txt" data-copiar-aviso="HC de Consulta Externa copiada.">Copiar HC para SIIS</button></div></div></div>'+
+    '<div class="panel vxaud"><div class="mhead"><h3 style="margin:0">Auditoría Concurrente GPC en Tiempo Real · CE</h3><span class="vxaudchip '+(pct>=85?"ok":"warn")+'"><b>'+pct+' %</b></span></div>'+
+    '<p class="note">Verificación en vivo de completitud clínica, signos vitales de preconsulta y adherencia a GPC ('+okN+' de '+items.length+').</p>'+
+    '<ul class="vxaudl">'+items.map(i=>'<li class="'+(i[0]?"y":"")+'"><b>'+esc(i[1])+'</b><span class="sub">'+esc(i[2])+'</span></li>').join("")+'</ul></div></div>';
+}
+
+/* 6. Inyectar botones de "🩺 Preconsulta SV", "✓ LISTO PARA ATENCIÓN" y "▶ Entrar a HC" directamente en las Agendas (VIH, DP, CE) */
+const vxAgenda0=vxAgenda;
+vxAgenda=function(){
+  let h=vxAgenda0();
+  h='<div class="panel" style="border-left:4px solid var(--ok);margin-top:8px;padding:10px 14px"><div class="mhead"><div><strong>Flujo de Preconsulta de Enfermería y Paso a HC activo en Agenda VIH</strong><span class="sub" style="display:block">Al confirmar la cita, registre los signos vitales en Preconsulta para habilitar el estado «Listo para atención» y abrir directamente la HC precargada. También puede registrar asistencia de Psicología, Nutrición, Trabajo Social, Enfermería, QF y Toma de Muestras.</span></div><button type="button" class="btn sm primary" data-v12="sub|vih|e3|vih_precon">Abrir Panel de Preconsulta y Asistencia →</button></div></div>'+h;
+  return h.replace(/data-x="valcita\|([^"]+)"/g,(m,cid)=>{
+    const cit=VX.book&&VX.book.cit?VX.book.cit.find(c=>c.ID===cid):null;
+    const pid=cit?cit.Paciente:"";
+    const pr=pid&&V13.precon["vih|"+pid];
+    return'data-x="valcita|'+cid+'"'+(pr&&pr.listo?' style="background:var(--ok);border-color:var(--ok);color:#04160e" title="Paciente con signos vitales de preconsulta listos"':'');
+  });
+};
+
+const dpAgeView0=dpAgeView;
+dpAgeView=function(){
+  return'<div class="panel" style="border-left:4px solid var(--ok);margin-bottom:10px;padding:10px 14px"><div class="mhead"><div><strong>Flujo de Preconsulta de Enfermería y Registro de Asistencia Multidisciplinaria · DP</strong><span class="sub" style="display:block">Diligencie los signos vitales al confirmar la cita para marcar al paciente «Listo para atención» y abrir su HC con los datos precargados.</span></div><button type="button" class="btn sm primary" data-v12="sub|dp|e3|dp_precon">Abrir Preconsulta y Asistencia DP →</button></div></div>'+dpAgeView0();
+};
+
+const ceAgenda0=ceAgenda;
+ceAgenda=function(){
+  return'<div class="panel" style="border-left:4px solid var(--ok);margin-top:8px;padding:10px 14px"><div class="mhead"><div><strong>Flujo de Preconsulta de Enfermería y Paso Directo a HC · Consulta Externa</strong><span class="sub" style="display:block">Cuando el paciente confirma su cita, el auxiliar de enfermería registra los signos vitales en Preconsulta; al médico le aparece «Listo para atención» con botón directo a la HC.</span></div><div class="copyrow"><button type="button" class="btn sm primary" data-v12="sub|ce|e3|ce_precon">Abrir Preconsulta de Enfermería →</button><button type="button" class="btn sm" data-v12="sub|ce|e3|ce_hc">Abrir Valoración e HC GPC →</button></div></div></div>'+ceAgenda0();
+};
+
+/* 7. Inyectar barra de Cargue Masivo de Excel de Laboratorio (con caída automática a la HC) en vLab (HD), vxLab (VIH), dpLabCal/dpLabRes (DP) y pxLab */
+function v13LabExcelBanner(prog){
+  return'<div class="panel" style="border-left:4px solid var(--accent);margin-bottom:10px;padding:10px 14px"><div class="mhead"><div><strong>Cargue Automático de Paraclínicos por Excel desde Laboratorio → Historia Clínica</strong><span class="sub" style="display:block">Suba el archivo Excel entregado por el laboratorio: los resultados se vinculan automáticamente por cédula o ID y caen directo a la Historia Clínica del paciente sin digitación manual.</span></div>'+
+    '<div class="copyrow"><label class="btn sm primary">📥 Cargar Excel de Laboratorio → HC<input type="file" data-v13-excel="'+prog+'" accept=".xlsx,.xls,.csv" hidden></label><button type="button" class="btn sm" data-v13="lab_tpl|'+prog+'">📄 Descargar Plantilla Excel Lab</button></div></div></div>';
+}
+const vLab0=vLab;
+vLab=function(){return v13LabExcelBanner("hd")+vLab0();};
+const vxLab0=vxLab;
+vxLab=function(){return v13LabExcelBanner("vih")+vxLab0();};
+const dpLabCal0=dpLabCal;
+dpLabCal=function(){return v13LabExcelBanner("dp")+dpLabCal0();};
+const dpLabRes0=dpLabRes;
+dpLabRes=function(){return v13LabExcelBanner("dp")+dpLabRes0();};
+const pxLab0=pxLab;
+pxLab=function(){return v13LabExcelBanner("hd")+pxLab0();};
+
+/* 8. Completar el enrutamiento de ce_hc y nefro_qx */
+const ceView13=ceView;
+ceView=function(){
+  if(CE.book&&V12.state.ce.sub==="ce_hc"){
+    return ceHead()+v13CeHcView();
+  }
+  return ceView13();
+};
+const v12RenderNefroNav13=v12RenderNefroNav;
+v12RenderNefroNav=function(){
+  if(V12.state.nefro.sub==="nefro_qx"){
+    v12RenderNefroNav0();
+    const custEl=document.getElementById("nefro-custom");
+    const frameEl=document.getElementById("nefroframe");
+    if(custEl&&frameEl){frameEl.hidden=true;custEl.hidden=false;custEl.innerHTML=v13QxView("nefro");}
+    return;
+  }
+  v12RenderNefroNav13();
+};
+
+/* 9. En modo demostración, al hacer clic en un chip de usuario en la portada (data-p="pick|..."), autocompletar demo1234 e ingresar con 1 clic */
+document.addEventListener("click",e=>{
+  const el=e.target.closest('[data-p^="pick|"]');
+  if(el&&PX.book&&PX.demo){
+    setTimeout(()=>{
+      const p=document.getElementById("pxlp");
+      if(p){p.value="demo1234";pxDoLogin();}
+    },30);
+  }
+});
+
+/* =====================================================================================================
+   COMPLEMENTO V13.3 · PULIDO DE ACCESO INMEDIATO EN NEFROPROTECCIÓN, FICHAS DE PACIENTE Y CÁLCULO EN VIVO DP
+   ===================================================================================================== */
+
+/* 1. Hacer que en Nefroprotección Eje 03 abra directamente "Valoración clínica GPC + Auditoría en Tiempo Real" como primera pestaña */
+V12.map.nefro.e3=[
+  ["nefro_val","Valoración clínica GPC + Auditoría en Tiempo Real"],
+  ["nefro_precon","Preconsulta Enfermería y Asistencia Multidisciplinaria"],
+  ["nefro_age","Agendas espejo A/B"],
+  ["nefro_qx","Procedimientos quirúrgicos y catéteres"]
+];
+
+/* 2. En Eje 02 (Caracterización y Perfil de Riesgo), mostrar también el Calendario de 12 Meses justo debajo para visibilidad inmediata */
+const v13CaracterizacionCohorteView0=v13CaracterizacionCohorteView;
+v13CaracterizacionCohorteView=function(prog){
+  return v13CaracterizacionCohorteView0(prog)+'<div style="margin-top:14px">'+v13Calendario12MPaciente(prog)+'</div>';
+};
+const vxCar0=vxCar;
+vxCar=function(){
+  return vxCar0()+'<div style="margin-top:14px">'+v13Calendario12MPaciente("vih")+'</div>';
+};
+
+/* 3. Incluir el Calendario de 12 Meses directamente dentro de la Ficha individual del paciente en HD (vPac), DP (dpFicha) y VIH (vxPac) */
+const vPac0=vPac;
+vPac=function(){
+  const h=vPac0();
+  if(ST.sel&&ST.sel.pac&&ST.sel.pac!=="__new"&&IDX.pac.get(ST.sel.pac)){
+    V13.calPacSel.hd=ST.sel.pac;
+    return h+'<div style="margin-top:14px">'+v13Calendario12MPaciente("hd")+'</div>';
+  }
+  return h;
+};
+const dpFicha0=dpFicha;
+dpFicha=function(pid){
+  V13.calPacSel.dp=pid;
+  return dpFicha0(pid)+'<div style="margin-top:14px">'+v13Calendario12MPaciente("dp")+'</div>';
+};
+const vxPac0=vxPac;
+vxPac=function(){
+  const pid=vxPid();
+  if(pid)V13.calPacSel.vih=pid;
+  return vxPac0()+'<div style="margin-top:14px">'+v13Calendario12MPaciente("vih")+'</div>';
+};
+
+/* 4. Cálculo automático en tiempo real de KRu y Kt/V total al digitar diuresis / BUN urinario / BUN sérico en Valoración de HD y DP */
+document.addEventListener("input",e=>{
+  const t=e.target;if(!t)return;
+  if(t.dataset&&["diuresis","bun_uri","bun_ser"].includes(t.dataset.v)&&ST.ui&&ST.ui.vdraft){
+    const D=ST.ui.vdraft;const p=IDX.pac.get(D.pid);if(!p)return;
+    D.f[t.dataset.v]=t.value;
+    valRefresh();
+  }
+  if(["vf_diuresis","vf_bun_uri","vf_bun_ser"].includes(t.id)&&typeof DP!=="undefined"&&DP.ui&&DP.ui.vedit){
+    const diu=num(($("vf_diuresis")||{}).value);
+    const bu=num(($("vf_bun_uri")||{}).value)||240;
+    const bs=num(($("vf_bun_ser")||{}).value)||55;
+    const kru=diu===0?0:v13CalcKRu(bu,diu,bs);
+    const kEl=$("vf_kru"),ktEl=$("vf_ktv_tot");
+    if(kEl&&kru!=null)kEl.value=kru;
+    const p=dpPac(DP.ui.vedit.pid);
+    const ktvp=p&&dpLast(p.ID,"KtVp")?num(dpLast(p.ID,"KtVp").Valor):1.45;
+    if(ktEl&&kru!=null)ktEl.value=Math.round((ktvp+kru*0.2)*100)/100;
+  }
+});
+
+v13EnsureFinUnlocked();pxBar();pxRender();
 

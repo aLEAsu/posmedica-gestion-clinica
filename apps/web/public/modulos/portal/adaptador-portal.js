@@ -354,6 +354,14 @@
   window.loadDemo = function () {
     toast("Los datos ficticios se retiraron: el sistema trabaja con la base de datos.");
   };
+  // v3.x: las vistas nuevas cargaban la demostración del portal o la base embebida de los Dashboards si aún no había
+  // libro. Aquí los libros llegan del servidor, y los Dashboards se importan con «Importar libro o Dashboard».
+  window.pxDemo = async function () {
+    toast("Los datos ficticios se retiraron: el sistema trabaja con la base de datos.");
+  };
+  window.hdxLoadBase = function (silent) {
+    if (!silent) toast("Hemodiálisis se carga desde el servidor. Los Dashboards mensuales se importan con «Importar libro o Dashboard».");
+  };
   window.vStart = function () {
     return '<div class="panel empty"><p>' + esc(S_HD.estado) + "</p></div>";
   };

@@ -51,9 +51,9 @@ const f1=(v,n)=>v==null||isNaN(v)?"—":Number(v).toLocaleString("es-CO",{minimu
 const pct=v=>v==null||isNaN(v)?"—":f1(v*100)+" %";
 /* portal.js:30 */
 const money=v=>v==null||isNaN(v)?"—":"$ "+Math.round(v).toLocaleString("es-CO");
-/* portal.js:2415 */
+/* portal.js:2416 */
 const VX_CAC_COLS=["v1ideps", "v2regimen", "v3tipodocumentoidentificacionusu", "v4numerodeidentificacion", "v5primeapellido", "v6segundoapellido", "v7primernombre", "v8segundonombre", "v9fechadenacimiento", "v10sexo", "v11codigopertenenciaetnica", "v12poblacionclave", "v13codigomunicipioresidencia", "v14fechaafiliacionentidad", "v15mujergestante", "v16menorde12meseshijodemadrre", "v17personacontuberculosisactiva", "v18condicionrespectodiagnostico", "v19fechadiagnosticogestacion", "v20fechatamizajevihprimertrimest", "v21fechatamizajevihsegundotrimes", "v22fechatamizajevihtercertrimest", "v23fechadetamizajeparavihmomento", "v24mujercondxdevihencualquiermom", "v241edadgestacionalmomentodxvihd", "v242recibiottoparavihdurantegest", "v243edadgestacionalcomienzodelat", "v244tarduranteintrapartogestacio", "v245resultadogestacionreportadag", "v246fechaculminaciongestacionrep", "v247supresionfarmacolactanciamat", "v248tipoidentificacionreciennaci", "v249numeroidentreciennacidovivoe", "v25tipoidentificamadredemenor12m", "v251numidentificamadredelmenor12", "v252madredemenor12mexpuestoalvih", "v26profilaxisconantirretrovrecie", "v27suministrodeformulalactea", "v28fechapracargaviralparavihenme", "v281resultprimeracargaviralenmen", "v29fechasegundacargaviralmenor12", "v291resultsegundacargaviralmenor", "v30fechaterceracargaviralmenor18", "v301resultadoterceracargaviralme", "v31condicionfinalmenor12mesesexp", "v32fechadxtuberculosisactivarepo", "v33fecharealizatamizajeparavihpe", "v34fechapruebapresuntivarapidaoe", "v35comollegoapruebapresuntivapar", "v36fechadeconfirmaciondedxinfecc", "v361entidadquereportapteconvihes", "v362entidadreportanteanterior", "v37fechainicioatencionporvih", "v38mecanismoviadetransmisiondelv", "v39estadioclinicomomentodxninosa", "v40serealizoconteolinfocitostcd4", "v401conteodelinfocitostcd4moment", "v41serealizocargaviralalmomentod", "v411valordelacargaviralalmomento", "v42fechadeiniciodelaterapiaantir", "v421medicamento1conelqueiniciola", "v422medicamento2conelqueiniciola", "v423medicamento3conelqueiniciola", "v424medicamento4conelqueiniciola", "v425medicamento5conelqueiniciola", "v43conteodelinfocitostcd4almomen", "v431valorconteolinfocitostcd4mom", "v44cargaviralalmomentodeliniciod", "v441valordelacargaviralaliniciod", "v45motivodeiniciodelatar", "v46teniacoinfeccionconvirusdehep", "v47teniacoinfeccionconvirushepat", "v48teniacoinfeccioncontuberculos", "v49nummesesdispensoformcompltarp", "v50numconsultmedasistiopersvivev", "v51hatenidocambiosenelesquemaini", "v511fecprimercambiocualqumedicam", "v512causadelcambiodemedicamentoc", "v513medicamento1queocasionoelcam", "v514medicamento2queocasionoelcam", "v515medicamento3queocasionoelcam", "v516medicamento4queocasionoelcam", "v517fallasdesdeeliniciodelatarha", "v518numerodefallasdesdeeliniciod", "v521infeccionesbacterianasmultip", "v522candidiasisesofagicatraqueal", "v523tuberculosispulmonaroextrapu", "v524cancerdecervixinvasivo", "v525coccidioidomicosisdiseminada", "v526citomegaloviruscualqorganoex", "v527retinitisporcitomegalovirusc", "v528herpessimpleulcerasmucocutan", "v529diarreaporisosporabelliocryp", "v5210histoplasmosisdiseminadaoex", "v5211linfomadeburkittinmunoblast", "v5212neumoniaporpneumocystisjiro", "v5213neumoniarecurrente", "v5214septicemiaporsalmonellarecu", "v5215infecciondiseminadaoextrapu", "v5216criptococosisextrapulmonar", "v5217sarcomadekaposi", "v5218sindromededesgasteasociadoa", "v5219leucoencefalopatiamultifoca", "v5220toxoplasmosiscerebral", "v5221demenciaasociadaalvih", "v5222neumoniaintersticiallinfoid", "v53codigodehabdelasededelaipsdon", "v531fechadeingresoalaipsactualpa", "v532municipiodelaips", "v533quienhacelaatencionclinicayf", "v534valoracionporinfectologoenlo", "v54fechadelaultimagenotipificaci", "v55estadioclinicoactualparaninos", "v56fechadeultimocolesterolldl", "v561resultadodelultimocolesterol", "v57fechadeultimoniveldetriglicer", "v571resultadodelultimoniveldetri", "v58fechadeultimahemoglobinaseric", "v581resultadodelaultimahemoglobi", "v59fechadelaultimaenzimaalaninaa", "v591resultadodelaultimaaltotgpse", "v60fechadeultimacreatininaserica", "v601resultadodelaultimacreatinin", "v61fechadeultimaglucemiasericaen", "v611resultadodelaultimaglucemias", "v62fechadeultimamediciondelpesoc", "v621resultadodelaultimamediciond", "v63talla", "v64tieneneuropatiaperiferica", "v65tienelipoatrofiaolipodistrofi", "v66tienecoinfeccionconhepatitisb", "v67tienecoinfeccionconhepatitisc", "v68tieneotuvocoinfeccioncontuber", "v681tipodetuberculosisactivaquep", "v682lapersonaconcoinfecciontbvih", "v683fecdeiniciodeltratamantitube", "v684medicamento1deltratamantitub", "v685medicamento2deltratamantitub", "v686medicamento3deltratamantitub", "v687medicamento4deltratamantitub", "v688medicamento5deltratamantitub", "v689medicamento6deltratamantitub", "v6810medicamento7deltratamantitu", "v6811medicamento8deltratamantitu", "v6812medicamento9deltratamantitu", "v6813fechaenqueterminoeltratamie", "v6814condiciondeegresodeltratami", "v69tienecirrosishepatica", "v70tieneenfermedadrenalcronicapo", "v71tieneenfermedadcoronaria", "v72tieneohatenidootrasinfeccdetr", "v73tieneneoplasianorelacionadaco", "v74discapacidadfuncional", "v75fechadelultimoconteodelinfoci", "v751valordelultimoconteodelinfoc", "v76fechadelaultimacargaviralpara", "v761valordelaultimacargaviralpar", "v77recibetar", "v771fechadeiniciodelosmedicament", "v772medicamento1delataractual", "v773medicamento2delataractual", "v774medicamento3delataractual", "v775medicamento4delataractual", "v776medicamento5delataractual", "v777medicamento6delataractual", "v778numerodemesesquesedispensola", "v78numerodecondonessuministrados", "v79metododeplanificacionfamilper", "v80vacunacioncontralahepatitisa", "v81vacunacioncontralahepatitisb", "v82vacunacioncontraneumococo", "v83tamizajeclinicoparatuberculos", "v84sehizoppdopruebasequivalentes", "v85recibiotratamientoparatubercu", "v861recibiotratamientoparasifili", "v86sehizotamizajeparasifilisenla", "v87sehizotamizajeparavphanogenit", "v88sehizotamizajeparahepatitisbe", "v89sehizotamizajeparahepatitisce", "v90resultadodelaevaluacionderies", "v91profilaxisparamacmycobacteriu", "v92profilaxisparacriptococoneofo", "v93profilaxisparapneumocystisjir", "v94costototaldeatencionnohospita", "v95costototaldeatencionhospitala", "v96numerodehospitalizacionesenel", "v97novedaddelusuariorespectoalan", "v971fechadedesafiliaciondelaenti", "v972entidadalacualsetrasladoelus", "v973fechademuerte", "v974causademuerte", "v98fechadecorte", "v99codigounicobduabdexpvsmsps"];
-/* portal.js:2704 */
+/* portal.js:2705 */
 const VXS={
  pac:["Pacientes",["ID","TipoDoc","Documento","PrimerNombre","SegundoNombre","PrimerApellido","SegundoApellido","FechaNac","Sexo","EPS","Regimen","CodMunicipio","Municipio","Zona","Direccion","Telefono","ContactoRed","Etnia","PoblacionClave","NaturalDe","Escolaridad","Ocupacion","EstadoCivil","Mecanismo","TipoIngreso","FechaDx","FechaPresentacion","FechaIngresoIPS","OportunistaDx","Modalidad","Sede","Gestante","UltAtencionExt","CIE10","FechaAfiliacion","OrientacionSexual","PracticaAnal","TARPrevio","TARPrevioDetalle","DxOtraIPS","SoporteDx","MotivoTamizaje","PruebasDx","Barreras","NovedadNominal","Estado","FechaEgreso","MotivoEgreso","Observaciones","Usuario","Registrado","Anulado","MotivoAnulacion"]],
  ant:["Antecedentes",["ID","Paciente","Fecha","Patologicos","Oportunistas","ITS","TB","Quirurgicos","FarmNoTAR","Toxicos","Alergicos","Transfusionales","Traumaticos","Psiquiatricos","Psicosociales","Discapacidad","Familiares","GrupoSanguineo","Ginecoobstetricos","Usuario","Registrado"]],
@@ -71,41 +71,41 @@ const VXS={
  log:["Bitacora",["FechaHora","Usuario","Accion","Hoja","Registro","Detalle"]],
  cfg:["Config",["Clave","Valor"]]
 };
-/* portal.js:2721 */
+/* portal.js:2722 */
 const VXK=Object.keys(VXS);
-/* portal.js:2724 */
-const VX_EPS=["NUEVA EPS","FAMILIAR DE COLOMBIA","MALLAMAS","FOMAG","EMSSANAR","OTRA"];
 /* portal.js:2725 */
-const VX_EPSCODE_DEF={"FAMILIAR DE COLOMBIA":"CCF033"};
+const VX_EPS=["NUEVA EPS","FAMILIAR DE COLOMBIA","MALLAMAS","FOMAG","EMSSANAR","OTRA"];
 /* portal.js:2726 */
+const VX_EPSCODE_DEF={"FAMILIAR DE COLOMBIA":"CCF033"};
+/* portal.js:2727 */
 const VX_REG=[["S","Subsidiado"],["C","Contributivo"],["E","Especial / excepción"],["N","No asegurado"]];
-/* portal.js:2728 */
-const VX_MUN=[["86001","MOCOA"],["86219","COLÓN"],["86320","ORITO"],["86568","PUERTO ASÍS"],["86569","PUERTO CAICEDO"],["86571","PUERTO GUZMÁN"],["86573","PUERTO LEGUÍZAMO"],["86749","SIBUNDOY"],["86755","SAN FRANCISCO"],["86757","SAN MIGUEL"],["86760","SANTIAGO"],["86865","VALLE DEL GUAMUEZ"],["86885","VILLAGARZÓN"]];
 /* portal.js:2729 */
-const VX_MUN_ALIAS={"HORMIGA":"VALLE DEL GUAMUEZ","LA HORMIGA":"VALLE DEL GUAMUEZ","VALLE GUAMUEZ":"VALLE DEL GUAMUEZ","PUERTO ASIS":"PUERTO ASÍS","VILLAGARZON":"VILLAGARZÓN","COLON":"COLÓN","PUERTO GUZMAN":"PUERTO GUZMÁN","PUERTO LEGUIZAMO":"PUERTO LEGUÍZAMO"};
+const VX_MUN=[["86001","MOCOA"],["86219","COLÓN"],["86320","ORITO"],["86568","PUERTO ASÍS"],["86569","PUERTO CAICEDO"],["86571","PUERTO GUZMÁN"],["86573","PUERTO LEGUÍZAMO"],["86749","SIBUNDOY"],["86755","SAN FRANCISCO"],["86757","SAN MIGUEL"],["86760","SANTIAGO"],["86865","VALLE DEL GUAMUEZ"],["86885","VILLAGARZÓN"]];
 /* portal.js:2730 */
-const VX_PCLAVE=["1.Hombre que tiene relaciones con Hombres","2.Trabajadoras sexuales","3.Privados de la libertad","4.Bisexual","5.Transgenero","6.Heterosexual","7.Menor en seguimiento"];
+const VX_MUN_ALIAS={"HORMIGA":"VALLE DEL GUAMUEZ","LA HORMIGA":"VALLE DEL GUAMUEZ","VALLE GUAMUEZ":"VALLE DEL GUAMUEZ","PUERTO ASIS":"PUERTO ASÍS","VILLAGARZON":"VILLAGARZÓN","COLON":"COLÓN","PUERTO GUZMAN":"PUERTO GUZMÁN","PUERTO LEGUIZAMO":"PUERTO LEGUÍZAMO"};
 /* portal.js:2731 */
-const VX_TINGR=["Nuevo diagnóstico","Traslado de IPS","Traslado de EPS / cesión","Rediagnóstico o reingreso","Menor expuesto en seguimiento"];
+const VX_PCLAVE=["1.Hombre que tiene relaciones con Hombres","2.Trabajadoras sexuales","3.Privados de la libertad","4.Bisexual","5.Transgenero","6.Heterosexual","7.Menor en seguimiento"];
 /* portal.js:2732 */
-const VX_ESTADO=["Activo","Fallecido","Trasladado","Abandono","Alta","Desafiliado"];
+const VX_TINGR=["Nuevo diagnóstico","Traslado de IPS","Traslado de EPS / cesión","Rediagnóstico o reingreso","Menor expuesto en seguimiento"];
 /* portal.js:2733 */
-const VX_MODAL=["Presencial","Telemedicina"];
+const VX_ESTADO=["Activo","Fallecido","Trasladado","Abandono","Alta","Desafiliado"];
 /* portal.js:2734 */
-const VX_DISC=["Medicina experta VIH","Infectología","Enfermería","Psicología","Trabajo social","Nutrición","Química farmacéutica","Odontología"];
+const VX_MODAL=["Presencial","Telemedicina"];
 /* portal.js:2735 */
-const VX_DISC_ACT={"Medicina experta VIH":"Consulta de medicina del programa","Infectología":"Consulta de infectología","Enfermería":"Atención de enfermería","Psicología":"Valoración por psicología","Trabajo social":"Valoración por trabajo social","Nutrición":"Valoración por nutrición","Química farmacéutica":"Atención farmacéutica","Odontología":"Consulta de odontología"};
+const VX_DISC=["Medicina experta VIH","Infectología","Enfermería","Psicología","Trabajo social","Nutrición","Química farmacéutica","Odontología"];
 /* portal.js:2736 */
-const VX_CITTIPO=["Control","Ingreso","Prioritaria","Telemedicina de seguimiento","Entrega de TAR"];
+const VX_DISC_ACT={"Medicina experta VIH":"Consulta de medicina del programa","Infectología":"Consulta de infectología","Enfermería":"Atención de enfermería","Psicología":"Valoración por psicología","Trabajo social":"Valoración por trabajo social","Nutrición":"Valoración por nutrición","Química farmacéutica":"Atención farmacéutica","Odontología":"Consulta de odontología"};
 /* portal.js:2737 */
-const VX_MOTINAS=["No contactado / no informa","Sin transporte o dinero","Laboral","Olvido","Enfermedad intercurrente","Hospitalizado","Viaje o cambio de residencia","Barrera de autorización EPS","Decide no asistir","Otro"];
+const VX_CITTIPO=["Control","Ingreso","Prioritaria","Telemedicina de seguimiento","Entrega de TAR"];
 /* portal.js:2738 */
-const VX_NOV=["Hospitalización por causa VIH (enfermedad oportunista)","Hospitalización por otra causa","Enfermedad oportunista","Tuberculosis activa","Coinfección hepatitis B","Coinfección hepatitis C","Gestación","Falla virológica","Fallecimiento por causa VIH","Fallecimiento por otra causa","Traslado de IPS","Abandono","Alta del programa","Desafiliación"];
+const VX_MOTINAS=["No contactado / no informa","Sin transporte o dinero","Laboral","Olvido","Enfermedad intercurrente","Hospitalizado","Viaje o cambio de residencia","Barrera de autorización EPS","Decide no asistir","Otro"];
 /* portal.js:2739 */
-const VX_PRC=["Tuberculina (PPD)","Citología cervicovaginal","Citología anal","ADN-VPH"];
+const VX_NOV=["Hospitalización por causa VIH (enfermedad oportunista)","Hospitalización por otra causa","Enfermedad oportunista","Tuberculosis activa","Coinfección hepatitis B","Coinfección hepatitis C","Gestación","Falla virológica","Fallecimiento por causa VIH","Fallecimiento por otra causa","Traslado de IPS","Abandono","Alta del programa","Desafiliación"];
 /* portal.js:2740 */
+const VX_PRC=["Tuberculina (PPD)","Citología cervicovaginal","Citología anal","ADN-VPH"];
+/* portal.js:2741 */
 const VX_PRF=["Trimetoprim/sulfametoxazol","Isoniazida (TB latente)","Rifapentina/isoniazida (TB latente)","Azitromicina","Fluconazol","Tratamiento antituberculoso","AAD hepatitis C","Otra"];
-/* portal.js:2742 */
+/* portal.js:2743 */
 const VX_EX=[
  {k:"CV",l:"Carga viral VIH",u:"copias/mL",c:"908832",g:"inm"},{k:"CD4",l:"Linfocitos T CD4",u:"cél/µL",c:"906744",g:"inm"},{k:"CD4P",l:"CD4 porcentaje",u:"%",c:"906744",g:"inm"},{k:"CD8",l:"Linfocitos T CD8",u:"cél/µL",c:"906744",g:"inm"},
  {k:"Hb",l:"Hemoglobina",u:"g/dL",c:"902210",g:"hem"},{k:"Hto",l:"Hematocrito",u:"%",c:"902210",g:"hem"},{k:"Leu",l:"Leucocitos",u:"/µL",c:"902210",g:"hem"},{k:"Plt",l:"Plaquetas",u:"/µL",c:"902210",g:"hem"},
@@ -121,9 +121,9 @@ const VX_EX=[
  {k:"HLAB5701",l:"HLA-B*5701",c:"",g:"oth",txt:["Negativo","Positivo"],nota:"Corregido: las guías decían HLA-B27 (906517); antes de abacavir se tamiza HLA-B*5701 (GPC 2021, rec. 41). CUPS por confirmar"},
  {k:"GENO",l:"Genotipo VIH",c:"908802",g:"oth",txt:["Sin mutaciones relevantes","Con mutaciones de resistencia"]}
 ];
-/* portal.js:2757 */
+/* portal.js:2758 */
 const VXE=Object.fromEntries(VX_EX.map(e=>[e.k,e]));
-/* portal.js:2759 */
+/* portal.js:2760 */
 const VX_CONTRATO_DEF={
  "NUEVA EPS":{fuente:"Guía rápida laboratorios NUEVA EPS (adjunta)",items:[
   ["CV","S","Cada seis meses",""],["CD4","S","Cada seis meses",""],["CT","S","Cada seis meses",""],["LDL","S","Cada seis meses",""],["HDL","S","Cada seis meses",""],["TG","S","Cada seis meses",""],["Cr","S","Cada seis meses",""],["UA","S","Cada seis meses",""],["FA","S","Cada seis meses",""],["AST","S","Cada seis meses",""],["ALT","S","Cada seis meses",""],["Hb","S","Cada seis meses (hemograma)",""],["Glu","S","Cada seis meses","Agregada: la exige el indicador CAC 16 (corrección sobre la guía)"],
@@ -136,13 +136,13 @@ const VX_CONTRATO_DEF={
   ["PPD","A","Cada año si el resultado previo es negativo","Antecedente de TB: no se toma"],["CITANAL","A","Cada año","Hombres que tienen sexo con hombres"],["CITCV","A","Cada año","Mujeres en edad reproductiva"],
   ["Toxo","N","Si CD4 menor de 200",""],["CrAg","N","Tomar a todos si CD4 menor de 100",""],["Histo","N","Tomar a todos si CD4 menor de 50",""],["BT","N","Según necesidad",""],["HbA1c","N","Según necesidad","Corregido: la guía repetía el CUPS 903862 de proteínas en orina de 24 h; CUPS de HbA1c por confirmar"],["HLAB5701","N","Antes de iniciar abacavir","Corregido: la guía decía HLA-B27 (906517)"]]}
 };
-/* portal.js:2772 */
+/* portal.js:2773 */
 const VX_GUIA_DIF={soloNueva:["Amilasa (903805)","Citomegalovirus IgG e IgM (906205, 906206)","Coprológico por concentración (907003)","Creatina (903822)","Proteínas diferenciadas y totales (903861, 903863)","Genotipo VIH (908802), solo por infectología","Antígeno e de hepatitis B (906318)","Anticuerpos hepatitis delta (906226)","Osteodensitometría por absorción dual (886012)"],soloFamiliar:["Sodio (903864)","Microalbuminuria (903026)","Hemoglobina glicosilada (la guía repetía el CUPS 903862: corregido, CUPS por confirmar)","Osteodensitometría por TC (886011)"]};
-/* portal.js:2774 */
-const VX_MED={TDF:["Tenofovir disoproxil","ITIAN"],TAF:["Tenofovir alafenamida","ITIAN"],"3TC":["Lamivudina","ITIAN"],FTC:["Emtricitabina","ITIAN"],ABC:["Abacavir","ITIAN"],AZT:["Zidovudina","ITIAN"],EFV:["Efavirenz","ITINN"],NVP:["Nevirapina","ITINN"],RPV:["Rilpivirina","ITINN"],DOR:["Doravirina","ITINN"],ETR:["Etravirina","ITINN"],DTG:["Dolutegravir","INI"],BIC:["Bictegravir","INI"],RAL:["Raltegravir","INI"],EVG:["Elvitegravir","INI"],CAB:["Cabotegravir","INI"],DRV:["Darunavir","IP"],ATV:["Atazanavir","IP"],LPV:["Lopinavir","IP"],RTV:["Ritonavir","Potenciador"],COBI:["Cobicistat","Potenciador"]};
 /* portal.js:2775 */
-const VX_CLASES=[["INI","Inhibidores de integrasa"],["ITIAN","Inhibidores nucleósidos de transcriptasa reversa"],["ITINN","Inhibidores no nucleósidos de transcriptasa reversa"],["IP","Inhibidores de proteasa"],["Potenciador","Potenciadores farmacocinéticos"]];
+const VX_MED={TDF:["Tenofovir disoproxil","ITIAN"],TAF:["Tenofovir alafenamida","ITIAN"],"3TC":["Lamivudina","ITIAN"],FTC:["Emtricitabina","ITIAN"],ABC:["Abacavir","ITIAN"],AZT:["Zidovudina","ITIAN"],EFV:["Efavirenz","ITINN"],NVP:["Nevirapina","ITINN"],RPV:["Rilpivirina","ITINN"],DOR:["Doravirina","ITINN"],ETR:["Etravirina","ITINN"],DTG:["Dolutegravir","INI"],BIC:["Bictegravir","INI"],RAL:["Raltegravir","INI"],EVG:["Elvitegravir","INI"],CAB:["Cabotegravir","INI"],DRV:["Darunavir","IP"],ATV:["Atazanavir","IP"],LPV:["Lopinavir","IP"],RTV:["Ritonavir","Potenciador"],COBI:["Cobicistat","Potenciador"]};
 /* portal.js:2776 */
+const VX_CLASES=[["INI","Inhibidores de integrasa"],["ITIAN","Inhibidores nucleósidos de transcriptasa reversa"],["ITINN","Inhibidores no nucleósidos de transcriptasa reversa"],["IP","Inhibidores de proteasa"],["Potenciador","Potenciadores farmacocinéticos"]];
+/* portal.js:2777 */
 const VX_ESQ=[
  {n:"TDF/3TC/DTG",c:["TDF","3TC","DTG"],it:[["Tenofovir disoproxil/lamivudina/dolutegravir 300/300/50 mg tableta",1]]},
  {n:"BIC/FTC/TAF",c:["BIC","FTC","TAF"],it:[["Bictegravir/emtricitabina/tenofovir alafenamida 50/200/25 mg tableta",1]]},
@@ -160,11 +160,11 @@ const VX_ESQ=[
  {n:"ATV/r + TDF/FTC",c:["ATV","RTV","TDF","FTC"],it:[["Atazanavir 300 mg cápsula",1],["Ritonavir 100 mg tableta",1],["Tenofovir disoproxil/emtricitabina 300/200 mg tableta",1]]},
  {n:"LPV/r + AZT/3TC",c:["LPV","RTV","AZT","3TC"],it:[["Lopinavir/ritonavir 200/50 mg tableta",4],["Zidovudina/lamivudina 300/150 mg tableta",2]]},
  {n:"Esquema sin especificar (importado)",c:[],it:[]}];
-/* portal.js:2793 */
+/* portal.js:2794 */
 const VXQ=Object.fromEntries(VX_ESQ.map(e=>[e.n,e]));
-/* portal.js:2796 */
+/* portal.js:2797 */
 const VX_GPC_PREF=["DTG + TAF/FTC","DTG + TDF/FTC","ABC/3TC/DTG","DTG + ABC/3TC","DTG/3TC","BIC/FTC/TAF","RAL + TDF/FTC","RAL + ABC/3TC","EVG/c/FTC/TAF"];
-/* portal.js:2798 */
+/* portal.js:2799 */
 const VX_VAC=[
  {k:"VHB",l:"Hepatitis B",n:3,nota:"Esquema de 3 dosis; anti-HBs posvacunal. Excluye anti-HBs de 10 o más y coinfección."},
  {k:"VHA",l:"Hepatitis A",n:2,nota:"Si anticuerpos totales no reactivos."},
@@ -172,33 +172,33 @@ const VX_VAC=[
  {k:"INF",l:"Influenza",n:0,nota:"Una dosis anual."},{k:"VPH",l:"VPH",n:3,ed:[9,26],nota:"Tres dosis en inmunocomprometidos; rango de edad usado: 9 a 26 años (por confirmar)."},
  {k:"TD",l:"Td / Tdap",n:1,dias:3650,nota:"Refuerzo cada 10 años."},{k:"COV",l:"COVID-19",n:1,nota:"Según lineamiento vigente."},
  {k:"FA",l:"Fiebre amarilla",n:1,viva:true,opc:true,nota:"Vacuna viva: contraindicada con CD4 menor de 200."},{k:"SRP",l:"Triple viral (SRP)",n:1,viva:true,opc:true,nota:"Vacuna viva: contraindicada con CD4 menor de 200."}];
-/* portal.js:2805 */
-const VXV=Object.fromEntries(VX_VAC.map(v=>[v.k,v]));
 /* portal.js:2806 */
+const VXV=Object.fromEntries(VX_VAC.map(v=>[v.k,v]));
+/* portal.js:2807 */
 const VX_VACEST=["Aplicada","Antecedente con soporte","Antecedente sin soporte","Contraindicada","Rechazada"];
-/* portal.js:2809 */
-const vxLive=r=>r.Anulado!=="SI";
 /* portal.js:2810 */
-const vxD=v=>v instanceof Date?v:pdate(v);
+const vxLive=r=>r.Anulado!=="SI";
 /* portal.js:2811 */
+const vxD=v=>v instanceof Date?v:pdate(v);
+/* portal.js:2812 */
 const vxNom=p=>p?[p.PrimerNombre,p.SegundoNombre,p.PrimerApellido,p.SegundoApellido].filter(x=>x&&x!=="NONE").join(" "):"";
-/* portal.js:2813 */
-const vxCorte=()=>VX.corte||(VX.corte=monthEnd(addMonths(TODAY(),-1)));
 /* portal.js:2814 */
-const vxMunCode=n=>{const k=VX_MUN_ALIAS[norm(n)]||n;const m=VX_MUN.find(x=>norm(x[1])===norm(k));return m?m[0]:"";};
+const vxCorte=()=>VX.corte||(VX.corte=monthEnd(addMonths(TODAY(),-1)));
 /* portal.js:2815 */
-const vxMunName=c=>{const m=VX_MUN.find(x=>x[0]===String(c).trim());return m?m[1]:"";};
+const vxMunCode=n=>{const k=VX_MUN_ALIAS[norm(n)]||n;const m=VX_MUN.find(x=>norm(x[1])===norm(k));return m?m[0]:"";};
 /* portal.js:2816 */
-const vxCfg=(k,d)=>{const r=VX.book&&VX.book.cfg.find(x=>x.Clave===k);if(!r)return d;try{return JSON.parse(r.Valor);}catch(e){return r.Valor;}};
+const vxMunName=c=>{const m=VX_MUN.find(x=>x[0]===String(c).trim());return m?m[1]:"";};
 /* portal.js:2817 */
+const vxCfg=(k,d)=>{const r=VX.book&&VX.book.cfg.find(x=>x.Clave===k);if(!r)return d;try{return JSON.parse(r.Valor);}catch(e){return r.Valor;}};
+/* portal.js:2818 */
 function vxNewBook(){const b={};VXK.forEach(k=>b[k]=[]);return b;}
-/* portal.js:2824 */
-const vxEdad=(p,at)=>{const n=vxD(p.FechaNac);if(!n)return null;const d=at||TODAY();let a=d.getFullYear()-n.getFullYear();if(d.getMonth()<n.getMonth()||(d.getMonth()===n.getMonth()&&d.getDate()<n.getDate()))a--;return a;};
 /* portal.js:2825 */
-const vxGrupoEtario=a=>a==null?"Sin dato":a<15?"Menor de 15":a<20?"15 a 19":a<30?"20 a 29":a<40?"30 a 39":a<50?"40 a 49":a<60?"50 a 59":"60 y más";
+const vxEdad=(p,at)=>{const n=vxD(p.FechaNac);if(!n)return null;const d=at||TODAY();let a=d.getFullYear()-n.getFullYear();if(d.getMonth()<n.getMonth()||(d.getMonth()===n.getMonth()&&d.getDate()<n.getDate()))a--;return a;};
 /* portal.js:2826 */
+const vxGrupoEtario=a=>a==null?"Sin dato":a<15?"Menor de 15":a<20?"15 a 19":a<30?"20 a 29":a<40?"30 a 39":a<50?"40 a 49":a<60?"50 a 59":"60 y más";
+/* portal.js:2827 */
 const vxF=(v,n)=>v==null||v===""||isNaN(v)?"":Number(v).toLocaleString("es-CO",{maximumFractionDigits:n==null?2:n});
-/* portal.js:2829 */
+/* portal.js:2830 */
 function vxIdx(){if(VX.memo.idx)return VX.memo.idx;const I={pac:new Map(),lab:{},tar:{},ent:{},cit:{},val:{},vac:{},prc:{},prf:{},nov:{},ant:{},sol:{},cac:{}};
  if(!VX.book)return I;VX.book.pac.filter(vxLive).forEach(p=>I.pac.set(p.ID,p));
  const push=(k,key,r)=>{(I[k][r.Paciente]=I[k][r.Paciente]||[]).push(r);};
@@ -208,41 +208,41 @@ function vxIdx(){if(VX.memo.idx)return VX.memo.idx;const I={pac:new Map(),lab:{}
  Object.values(I.lab).forEach(L=>L.sort((a,b)=>(a._d||0)-(b._d||0)));
  ["tar","ent","cit","val","vac","prc","prf","nov","ant"].forEach(k=>Object.values(I[k]).forEach(L=>L.sort((a,b)=>String(a.Inicio||a.Fecha||a.Ordenado||"").localeCompare(String(b.Inicio||b.Fecha||b.Ordenado||"")))));
  return VX.memo.idx=I;}
-/* portal.js:2838 */
-const vxPacs=()=>VX.book?VX.book.pac.filter(vxLive):[];
 /* portal.js:2839 */
-const vxP=id=>vxIdx().pac.get(id);
+const vxPacs=()=>VX.book?VX.book.pac.filter(vxLive):[];
 /* portal.js:2840 */
+const vxP=id=>vxIdx().pac.get(id);
+/* portal.js:2841 */
 const vxL=(id,k)=>(vxIdx()[k][id]||[]);
-/* portal.js:2842 */
-function vxLast(pid,ex,upto,from){const L=vxL(pid,"lab");for(let i=L.length-1;i>=0;i--){const r=L[i];if(r.Examen!==ex||!r._d)continue;if(upto&&r._d>upto)continue;if(from&&r._d<from)return null;return r;}return null;}
 /* portal.js:2843 */
-function vxFirst(pid,ex,from,upto){const L=vxL(pid,"lab");for(const r of L){if(r.Examen!==ex||!r._d)continue;if(from&&r._d<from)continue;if(upto&&r._d>upto)return null;return r;}return null;}
+function vxLast(pid,ex,upto,from){const L=vxL(pid,"lab");for(let i=L.length-1;i>=0;i--){const r=L[i];if(r.Examen!==ex||!r._d)continue;if(upto&&r._d>upto)continue;if(from&&r._d<from)return null;return r;}return null;}
 /* portal.js:2844 */
-const vxVal=r=>r?num(r.Valor):null;
+function vxFirst(pid,ex,from,upto){const L=vxL(pid,"lab");for(const r of L){if(r.Examen!==ex||!r._d)continue;if(from&&r._d<from)continue;if(upto&&r._d>upto)return null;return r;}return null;}
 /* portal.js:2845 */
-const vxPos=r=>!!r&&/^(Reactiv|Positiv|Con mutac|Detectable)/i.test(String(r.Resultado||""));
+const vxVal=r=>r?num(r.Valor):null;
 /* portal.js:2846 */
-const vxCVind=r=>{if(!r)return null;const v=num(r.Valor);if(v!=null)return v<50;const t=String(r.Resultado||"");if(/indetect|no detect|menor de 50|<\s*50|<\s*20/i.test(t))return true;if(/detect/i.test(t))return false;return null;};
+const vxPos=r=>!!r&&/^(Reactiv|Positiv|Con mutac|Detectable)/i.test(String(r.Resultado||""));
 /* portal.js:2847 */
+const vxCVind=r=>{if(!r)return null;const v=num(r.Valor);if(v!=null)return v<50;const t=String(r.Resultado||"");if(/indetect|no detect|menor de 50|<\s*50|<\s*20/i.test(t))return true;if(/detect/i.test(t))return false;return null;};
+/* portal.js:2848 */
 const vxFmtLab=r=>{if(!r)return"";const e=VXE[r.Examen]||{};const v=num(r.Valor);return(v!=null?vxF(v,e.k==="CV"?0:2)+(e.u?" "+e.u:""):"")+(r.Resultado?(v!=null?" · ":"")+r.Resultado:"");};
-/* portal.js:2850 */
-function vxPeriodo(corte){const c=corte||vxCorte();const ini=VX.ui.pini?pdate(VX.ui.pini):addDays(addMonths(c,-12),1);return{c,ini,w6:addMonths(c,-6),w12:addMonths(c,-12)};}
 /* portal.js:2851 */
-function vxActivo(p,c){const ing=vxD(p.FechaIngresoIPS)||vxD(p.FechaDx);if(ing&&ing>c)return false;const eg=vxD(p.FechaEgreso);if(p.Estado&&p.Estado!=="Activo"&&(!eg||eg<=c))return false;return true;}
+function vxPeriodo(corte){const c=corte||vxCorte();const ini=VX.ui.pini?pdate(VX.ui.pini):addDays(addMonths(c,-12),1);return{c,ini,w6:addMonths(c,-6),w12:addMonths(c,-12)};}
 /* portal.js:2852 */
-function vxTarAt(pid,c){return vxL(pid,"tar").filter(t=>{const i=vxD(t.Inicio),f=vxD(t.Fin);return i&&i<=c&&(!f||f>c);}).pop()||null;}
+function vxActivo(p,c){const ing=vxD(p.FechaIngresoIPS)||vxD(p.FechaDx);if(ing&&ing>c)return false;const eg=vxD(p.FechaEgreso);if(p.Estado&&p.Estado!=="Activo"&&(!eg||eg<=c))return false;return true;}
 /* portal.js:2853 */
-function vxTarIni(pid){const L=vxL(pid,"tar").map(t=>vxD(t.Inicio)).filter(Boolean).sort((a,b)=>a-b);return L[0]||null;}
+function vxTarAt(pid,c){return vxL(pid,"tar").filter(t=>{const i=vxD(t.Inicio),f=vxD(t.Fin);return i&&i<=c&&(!f||f>c);}).pop()||null;}
 /* portal.js:2854 */
-function vxUltEnt(pid,c){return vxL(pid,"ent").filter(e=>{const d=vxD(e.Fecha);return d&&d<=c;}).pop()||null;}
+function vxTarIni(pid){const L=vxL(pid,"tar").map(t=>vxD(t.Inicio)).filter(Boolean).sort((a,b)=>a-b);return L[0]||null;}
 /* portal.js:2855 */
-function vxCobertura(e){const d=vxD(e.Fecha);return d?addDays(d,Math.round((num(e.Meses)||1)*30)):null;}
+function vxUltEnt(pid,c){return vxL(pid,"ent").filter(e=>{const d=vxD(e.Fecha);return d&&d<=c;}).pop()||null;}
 /* portal.js:2856 */
-function vxUltAtencion(pid,c){const L=vxL(pid,"cit").filter(x=>x.Estado==="Asistió"&&vxD(x.Fecha)&&vxD(x.Fecha)<=c).map(x=>vxD(x.Fecha));const p=vxP(pid);const ext=p&&vxD(p.UltAtencionExt);if(ext&&ext<=c)L.push(ext);return L.sort((a,b)=>a-b).pop()||null;}
+function vxCobertura(e){const d=vxD(e.Fecha);return d?addDays(d,Math.round((num(e.Meses)||1)*30)):null;}
 /* portal.js:2857 */
-function vxNovAt(pid,tipoRe,c,from){return vxL(pid,"nov").filter(n=>{const d=vxD(n.Fecha);return tipoRe.test(n.Tipo)&&d&&d<=c&&(!from||d>=from);});}
+function vxUltAtencion(pid,c){const L=vxL(pid,"cit").filter(x=>x.Estado==="Asistió"&&vxD(x.Fecha)&&vxD(x.Fecha)<=c).map(x=>vxD(x.Fecha));const p=vxP(pid);const ext=p&&vxD(p.UltAtencionExt);if(ext&&ext<=c)L.push(ext);return L.sort((a,b)=>a-b).pop()||null;}
 /* portal.js:2858 */
+function vxNovAt(pid,tipoRe,c,from){return vxL(pid,"nov").filter(n=>{const d=vxD(n.Fecha);return tipoRe.test(n.Tipo)&&d&&d<=c&&(!from||d>=from);});}
+/* portal.js:2859 */
 function vxSt(p,corte){const c=corte||vxCorte();const key=p.ID+"|"+iso(c);if(VX.memo[key])return VX.memo[key];const P=vxPeriodo(c);const id=p.ID;
  const s={p,id,c,edad:vxEdad(p,c),activo:vxActivo(p,c),expuesto:p.TipoIngreso==="Menor expuesto en seguimiento"};
  s.dx=vxD(p.FechaDx);s.ing=vxD(p.FechaIngresoIPS);
@@ -269,7 +269,7 @@ function vxSt(p,corte){const c=corte||vxCorte();const key=p.ID+"|"+iso(c);if(VX.
  s.igra=vxLast(id,"IGRA",c);
  s.disc=new Set(vxL(id,"cit").filter(x=>x.Estado==="Asistió"&&vxD(x.Fecha)>=P.ini&&vxD(x.Fecha)<=c).map(x=>x.Disciplina));
  return VX.memo[key]=s;}
-/* portal.js:2886 */
+/* portal.js:2887 */
 function vxVacEstado(p,c){c=c||TODAY();const id=p.ID;const st=vxSt(p,vxCorte());const L=vxL(id,"vac").filter(v=>vxD(v.Fecha)&&vxD(v.Fecha)<=c||!v.Fecha);const ed=vxEdad(p,c);const cd4=st.cd4v;
  const ahbs=vxVal(vxLast(id,"AntiHBs",c));const vha=vxLast(id,"VHA",c);
  return VX_VAC.map(v=>{const D=L.filter(x=>x.Vacuna===v.k&&["Aplicada","Antecedente con soporte"].includes(x.Estado));const ss=L.filter(x=>x.Vacuna===v.k&&x.Estado==="Antecedente sin soporte");const ci=L.some(x=>x.Vacuna===v.k&&x.Estado==="Contraindicada"),re=L.some(x=>x.Vacuna===v.k&&x.Estado==="Rechazada");
@@ -285,17 +285,17 @@ function vxVacEstado(p,c){c=c||TODAY();const id=p.ID;const st=vxSt(p,vxCorte());
   if(v.viva&&cd4!=null&&cd4<200&&!/Completo|Inmune/.test(est)){est+=" · contraindicada hoy (CD4 menor de 200)";cls="bad";acc="";}
   if(ci){est="Contraindicada (registro)";cls="base";acc="";}if(re&&cls==="warn"){est+=" · rechazada";}
   return{v,D,est,cls,acc,ss};});}
-/* portal.js:2901 */
+/* portal.js:2902 */
 const vxVacCompleta=(p,keys,c)=>{const E=vxVacEstado(p,c);return keys.every(k=>{const e=E.find(x=>x.v.k===k);return e&&(e.cls==="ok"||/Fuera del rango|No aplica/.test(e.est));});};
-/* portal.js:2904 */
+/* portal.js:2905 */
 const vxContrato=eps=>{const C=vxCfg("contrato",VX_CONTRATO_DEF);return C[eps]||C["NUEVA EPS"];};
-/* portal.js:2906 */
-const vxHSH=p=>/^1\./.test(p.PoblacionClave||"")||(/^4\./.test(p.PoblacionClave||"")&&!String(p.Sexo).startsWith("F"));
 /* portal.js:2907 */
+const vxHSH=p=>/^1\./.test(p.PoblacionClave||"")||(/^4\./.test(p.PoblacionClave||"")&&!String(p.Sexo).startsWith("F"));
+/* portal.js:2908 */
 const vxSolRecs=mes=>VX.book?VX.book.sol.filter(vxLive).filter(r=>r.Mes===mes):[];
-/* portal.js:2909 */
+/* portal.js:2910 */
 const vxSolTieneRes=r=>{const L=vxL(r.Paciente,"lab");const ms=pdate(r.Mes+"-01");return L.some(l=>l.Examen===r.Examen&&l._d&&l._d>=addMonths(ms,-1));};
-/* portal.js:2912 */
+/* portal.js:2913 */
 function vxAlertas(p,c){c=c||vxCorte();const s=vxSt(p,c);if(!s.activo)return{nivel:"—",L:[]};if(s.expuesto)return{nivel:"amarilla",L:[{n:"amarilla",t:"Menor expuesto en seguimiento: definir condición frente al VIH (no entra en los indicadores de PVV)",k:"clin"}]};const L=[];const R=(t,k)=>L.push({n:"roja",t,k}),A=(t,k)=>L.push({n:"amarilla",t,k});const P=vxPeriodo(c);
  if(!s.recibeTAR)R("Sin TAR registrada al corte","clin");
  if(s.cv6&&num(s.cv6.Valor)!=null&&num(s.cv6.Valor)>=200)R("Carga viral detectable ("+vxF(num(s.cv6.Valor),0)+" copias/mL)","clin");
@@ -316,29 +316,29 @@ function vxAlertas(p,c){c=c||vxCorte();const s=vxSt(p,c);if(!s.activo)return{niv
  if(!vxLast(p.ID,"Cr",c,P.w6))A("TFG no calculada (sin creatinina en 6 meses)","dato");
  const ldl=vxVal(vxLast(p.ID,"LDL",c,P.w12)),tg=vxVal(vxLast(p.ID,"TG",c,P.w12));if((ldl!=null&&ldl>=160)||(tg!=null&&tg>=500))A("Perfil lipídico alterado (LDL "+(ldl==null?"—":ldl)+", TG "+(tg==null?"—":tg)+"): verificar plan","clin");
  return{nivel:L.some(x=>x.n==="roja")?"roja":L.length?"amarilla":"verde",L};}
-/* portal.js:2934 */
+/* portal.js:2935 */
 function vxTFG(cr,edad,sexo){if(cr==null||edad==null)return null;const f=String(sexo||"").startsWith("F");const k=f?0.7:0.9,a=f?-0.241:-0.302;const x=cr/k;return 142*Math.pow(Math.min(x,1),a)*Math.pow(Math.max(x,1),-1.2)*Math.pow(0.9938,edad)*(f?1.012:1);}
-/* portal.js:2938 */
-const VX_GPC14=["DTG + TDF/FTC","DTG + ABC/3TC","ABC/3TC/DTG","RAL + TDF/FTC","RAL + ABC/3TC","ATV/r + TDF/FTC","DRV/c + TDF/FTC"];
 /* portal.js:2939 */
-const vxEnRango=(d,a,b)=>!!d&&d>=a&&d<=b;
+const VX_GPC14=["DTG + TDF/FTC","DTG + ABC/3TC","ABC/3TC/DTG","RAL + TDF/FTC","RAL + ABC/3TC","ATV/r + TDF/FTC","DRV/c + TDF/FTC"];
 /* portal.js:2940 */
-const vxLabIn=(id,k,a,b)=>vxL(id,"lab").some(r=>r.Examen===k&&vxEnRango(r._d,a,b));
+const vxEnRango=(d,a,b)=>!!d&&d>=a&&d<=b;
 /* portal.js:2941 */
-const vxPrcIn=(id,re,a,b)=>vxL(id,"prc").some(x=>re.test(x.Tipo)&&x.Estado!=="Ordenado"&&vxEnRango(vxD(x.FechaLectura||x.Fecha),a,b));
+const vxLabIn=(id,k,a,b)=>vxL(id,"lab").some(r=>r.Examen===k&&vxEnRango(r._d,a,b));
 /* portal.js:2942 */
-const vxPrfIn=(id,re,a,b)=>vxL(id,"prf").some(x=>re.test(x.Medicamento)&&vxD(x.Inicio)&&vxD(x.Inicio)<=b&&(!vxD(x.Fin)||vxD(x.Fin)>=a));
+const vxPrcIn=(id,re,a,b)=>vxL(id,"prc").some(x=>re.test(x.Tipo)&&x.Estado!=="Ordenado"&&vxEnRango(vxD(x.FechaLectura||x.Fecha),a,b));
 /* portal.js:2943 */
-const vxHospVIH=(id,a,b)=>vxL(id,"nov").filter(n=>/^Hospitalización por causa VIH/.test(n.Tipo)&&vxEnRango(vxD(n.Fecha),a,b));
+const vxPrfIn=(id,re,a,b)=>vxL(id,"prf").some(x=>re.test(x.Medicamento)&&vxD(x.Inicio)&&vxD(x.Inicio)<=b&&(!vxD(x.Fin)||vxD(x.Fin)>=a));
 /* portal.js:2944 */
-function vxFalla(id,a,b){if(vxL(id,"nov").some(n=>n.Tipo==="Falla virológica"&&vxEnRango(vxD(n.Fecha),a,b)))return true;const C=vxL(id,"lab").filter(r=>r.Examen==="CV"&&vxEnRango(r._d,a,b)&&num(r.Valor)!=null);for(let i=1;i<C.length;i++)if(num(C[i].Valor)>200&&num(C[i-1].Valor)>200)return true;return false;}
+const vxHospVIH=(id,a,b)=>vxL(id,"nov").filter(n=>/^Hospitalización por causa VIH/.test(n.Tipo)&&vxEnRango(vxD(n.Fecha),a,b));
 /* portal.js:2945 */
-const vxR=(ok,d,falta)=>({ok:!!ok,d:d||"",falta:!!falta});
+function vxFalla(id,a,b){if(vxL(id,"nov").some(n=>n.Tipo==="Falla virológica"&&vxEnRango(vxD(n.Fecha),a,b)))return true;const C=vxL(id,"lab").filter(r=>r.Examen==="CV"&&vxEnRango(r._d,a,b)&&num(r.Valor)!=null);for(let i=1;i<C.length;i++)if(num(C[i].Valor)>200&&num(C[i-1].Valor)>200)return true;return false;}
 /* portal.js:2946 */
-const vxUP=(a,m,strict)=>({t:"up",a,m,strict}),vxDOWN=(a,m)=>({t:"down",a,m}),vxLB={t:"lb"};
+const vxR=(ok,d,falta)=>({ok:!!ok,d:d||"",falta:!!falta});
 /* portal.js:2947 */
-const vxSemRng=(jun,dic)=>c=>c.getMonth()<6?jun:dic;
+const vxUP=(a,m,strict)=>({t:"up",a,m,strict}),vxDOWN=(a,m)=>({t:"down",a,m}),vxLB={t:"lb"};
 /* portal.js:2948 */
+const vxSemRng=(jun,dic)=>c=>c.getMonth()<6?jun:dic;
+/* portal.js:2949 */
 const VX_IND=[
  /* ---- CAC: consenso basado en la evidencia, actualización 2023 (Tabla 1) ---- */
  {id:"CAC-04",set:"cac",dom:"Binomio madre-hijo",n:"TAR en gestantes que viven con el VIH",nd:"Gestantes con VIH en TAR según GPC (rec. 14) / gestantes con VIH",rng:vxUP(100,95),f:s=>!s.gest?null:vxR(s.tar&&VX_GPC14.includes(s.tar.Esquema),s.tar?s.tar.Esquema:"Sin TAR",!s.tar)},
@@ -389,42 +389,42 @@ const VX_IND=[
  {id:"NEPS-11",set:"neps",dom:"Tratamiento",n:"Oportunidad de ingreso a la IPS especializada",per:"mes",nd:"Casos nuevos con 30 días o menos entre la confirmación y el ingreso a la IPS / casos nuevos del mes",rng:vxUP(95,90,true),f:(s,P)=>{if(!s.incidente||!vxEnRango(s.dx,P.mi,P.c))return null;if(!s.ing)return vxR(false,"Sin fecha de ingreso",true);const d=dayDiff(s.dx,s.ing);return vxR(d<=30,d+" días");}},
  {id:"NEPS-12",set:"neps",dom:"Gestión del riesgo",n:"Personas en TAR con carga viral indetectable (últimos 6 meses)",nd:"En TAR con última CV menor de 50 tomada en 6 meses / PVV en TAR",rng:vxUP(85,80),f:s=>!s.recibeTAR?null:vxR(s.cv6&&vxCVind(s.cv6),s.cv6?vxFmtLab(s.cv6):"Sin CV en 6 meses",!s.cv6)}
 ];
-/* portal.js:2998 */
-const VXI=Object.fromEntries(VX_IND.map(d=>[d.id,d]));
 /* portal.js:2999 */
-function vxRng(d,c){return typeof d.rng==="function"?d.rng(c):d.rng;}
+const VXI=Object.fromEntries(VX_IND.map(d=>[d.id,d]));
 /* portal.js:3000 */
+function vxRng(d,c){return typeof d.rng==="function"?d.rng(c):d.rng;}
+/* portal.js:3001 */
 function vxNivel(d,pct,c){const r=vxRng(d,c);if(pct==null)return["Sin denominador","base"];if(r.t==="lb")return["Línea de base","info"];
  if(r.t==="down")return pct<r.a?["Alto","ok"]:pct<r.m?["Medio","warn"]:["Bajo","bad"];
  const ge=(v,t)=>r.strict?v>t:v>=t;return ge(pct,r.a)?["Alto","ok"]:pct>=r.m?["Medio","warn"]:["Bajo","bad"];}
-/* portal.js:3003 */
+/* portal.js:3004 */
 function vxRngTxt(d,c){const r=vxRng(d,c);if(r.t==="lb")return r.low?"Línea de base (menor es mejor)":"Línea de base";if(r.t==="down")return r.a===r.m?"Menor de "+r.a+" %":"Alto menor de "+r.a+" % · Medio "+r.a+" a "+r.m+" % · Bajo "+r.m+" % o más";return"Alto "+(r.strict?"mayor de ":"")+vxF(r.a,1)+" % o más · Medio "+vxF(r.m,1)+" % · Bajo menor de "+vxF(r.m,1)+" %";}
-/* portal.js:3005 */
-function vxFiltro(p,F){F=F||VX.ui.f||{};if(F.eps&&p.EPS!==F.eps)return false;if(F.reg&&p.Regimen!==F.reg)return false;if(F.mun&&p.Municipio!==F.mun)return false;if(F.sexo&&!String(p.Sexo).startsWith(F.sexo))return false;if(F.pc&&p.PoblacionClave!==F.pc)return false;if(F.mod&&p.Modalidad!==F.mod)return false;return true;}
 /* portal.js:3006 */
-function vxPer(c){const P=vxPeriodo(c);P.mi=monthStart(P.c);P.ai=new Date(P.c.getFullYear(),0,1);return P;}
+function vxFiltro(p,F){F=F||VX.ui.f||{};if(F.eps&&p.EPS!==F.eps)return false;if(F.reg&&p.Regimen!==F.reg)return false;if(F.mun&&p.Municipio!==F.mun)return false;if(F.sexo&&!String(p.Sexo).startsWith(F.sexo))return false;if(F.pc&&p.PoblacionClave!==F.pc)return false;if(F.mod&&p.Modalidad!==F.mod)return false;return true;}
 /* portal.js:3007 */
+function vxPer(c){const P=vxPeriodo(c);P.mi=monthStart(P.c);P.ai=new Date(P.c.getFullYear(),0,1);return P;}
+/* portal.js:3008 */
 function vxCalc(d,c,F,pac){c=c||vxCorte();const P=vxPer(c);const rows=[];let num=0,den=0;
  (pac||vxPacs()).filter(p=>vxFiltro(p,F)).forEach(p=>{const s=vxSt(p,c);if(s.expuesto)return;if(!d.all&&!s.activo)return;if(d.all){const ing=s.ing||s.dx;if(ing&&ing>c)return;const eg=vxD(p.FechaEgreso);if(eg&&eg<P.ini)return;}
   const r=d.f(s,P);if(r==null)return;if(r.x){rows.push({p,s,res:"Excluido",d:r.x});return;}den++;if(r.ok)num++;rows.push({p,s,res:r.ok?(d.inv?"Evento":"Cumple"):(d.inv?"Sin evento":"No cumple"),ok:r.ok,falta:r.falta,d:r.d});});
  const pct=den?num/den*100:null;const[nv,cls]=vxNivel(d,pct,c);return{d,num,den,pct,nv,cls,rows,c};}
-/* portal.js:3011 */
+/* portal.js:3012 */
 function vxCalcBy(d,c,F,key){const g={};vxPacs().filter(p=>vxFiltro(p,F)).forEach(p=>{const k=key(p)||"Sin dato";(g[k]=g[k]||[]).push(p);});return Object.entries(g).map(([k,L])=>{const r=vxCalc(d,c,F,L);return{k,num:r.num,den:r.den,pct:r.pct,nv:r.nv,cls:r.cls};}).sort((a,b)=>b.den-a.den);}
-/* portal.js:3229 */
-const VX_PAQ_DEF={"NUEVA EPS":{con:"Paquete Mensual Atención Integral Ambulatoria",sin:"Paquete Mensual Atención Integral Ambulatoria Sin Antirretrovirales"},"FAMILIAR DE COLOMBIA":{con:"Paquete mensual atención integral VIH",sin:"Paquete mensual atención integral VIH"}};
 /* portal.js:3230 */
-function vxPaq(p,per){const P=vxCfg("paquetes",VX_PAQ_DEF)[p.EPS];if(!P)return"Paquete mensual (EPS sin paquete configurado)";const ms=pdate(per+"-01"),me=monthEnd(ms);const e=vxL(p.ID,"ent").filter(x=>vxD(x.Fecha)<=me).pop();return e&&e.Lugar==="Farmacia de la IPS"&&vxD(e.Fecha)>=addMonths(ms,-2)?P.con:P.sin;}
+const VX_PAQ_DEF={"NUEVA EPS":{con:"Paquete Mensual Atención Integral Ambulatoria",sin:"Paquete Mensual Atención Integral Ambulatoria Sin Antirretrovirales"},"FAMILIAR DE COLOMBIA":{con:"Paquete mensual atención integral VIH",sin:"Paquete mensual atención integral VIH"}};
 /* portal.js:3231 */
-function vxFactMes(per,F){const ms=pdate(per+"-01"),me=monthEnd(ms);const out=[];vxPacs().filter(p=>!F||vxFiltro(p,F)).forEach(p=>{const s=vxSt(p,me);const eg=vxD(p.FechaEgreso);if(!s.activo&&!(eg&&eg>=ms))return;const at=vxL(p.ID,"cit").filter(x=>x.Estado==="Asistió"&&vxEnRango(vxD(x.Fecha),ms,me));out.push({p,at,fact:at.length>0,paq:vxPaq(p,per)});});return out;}
+function vxPaq(p,per){const P=vxCfg("paquetes",VX_PAQ_DEF)[p.EPS];if(!P)return"Paquete mensual (EPS sin paquete configurado)";const ms=pdate(per+"-01"),me=monthEnd(ms);const e=vxL(p.ID,"ent").filter(x=>vxD(x.Fecha)<=me).pop();return e&&e.Lugar==="Farmacia de la IPS"&&vxD(e.Fecha)>=addMonths(ms,-2)?P.con:P.sin;}
 /* portal.js:3232 */
-function vxProdMes(per,F){const R={};vxFactMes(per,F).filter(x=>x.fact).forEach(x=>{const k=(x.p.EPS||"Sin EPS")+"|"+x.paq;const r=R[k]=R[k]||{eps:x.p.EPS||"Sin EPS",act:x.paq,cant:0,pac:new Set()};r.cant++;r.pac.add(x.p.ID);});return Object.values(R).sort((a,b)=>a.eps.localeCompare(b.eps)||a.act.localeCompare(b.act));}
+function vxFactMes(per,F){const ms=pdate(per+"-01"),me=monthEnd(ms);const out=[];vxPacs().filter(p=>!F||vxFiltro(p,F)).forEach(p=>{const s=vxSt(p,me);const eg=vxD(p.FechaEgreso);if(!s.activo&&!(eg&&eg>=ms))return;const at=vxL(p.ID,"cit").filter(x=>x.Estado==="Asistió"&&vxEnRango(vxD(x.Fecha),ms,me));out.push({p,at,fact:at.length>0,paq:vxPaq(p,per)});});return out;}
 /* portal.js:3233 */
+function vxProdMes(per,F){const R={};vxFactMes(per,F).filter(x=>x.fact).forEach(x=>{const k=(x.p.EPS||"Sin EPS")+"|"+x.paq;const r=R[k]=R[k]||{eps:x.p.EPS||"Sin EPS",act:x.paq,cant:0,pac:new Set()};r.cant++;r.pac.add(x.p.ID);});return Object.values(R).sort((a,b)=>a.eps.localeCompare(b.eps)||a.act.localeCompare(b.act));}
+/* portal.js:3234 */
 function vxDiscMes(per,F){const R={};VX.book.cit.filter(vxLive).filter(x=>x.Estado==="Asistió"&&String(x.Fecha).startsWith(per)).forEach(x=>{const p=vxP(x.Paciente);if(!p||(F&&!vxFiltro(p,F)))return;const a=VX_DISC_ACT[x.Disciplina]||x.Disciplina;const k=(p.EPS||"Sin EPS")+"|"+a;const r=R[k]=R[k]||{eps:p.EPS||"Sin EPS",act:a,cant:0,pac:new Set()};r.cant++;r.pac.add(p.ID);});return Object.values(R).sort((a,b)=>a.eps.localeCompare(b.eps)||a.act.localeCompare(b.act));}
-/* portal.js:3442 */
-const VX_NOM_COLS=["CONSECUTIVO","IPS ESPECIALIZADA","COD HABILITACION_IPS ATENCION","FECHA DEL INFORME","FECHA INGRESO A LA IPS ","TIPO DE IDENTIFICACION","NUMERO DE IDENTIFICACION","PRIMER APELLIDO","SEGUNDO APELLIDO","PRIMER NOMBRE","SEGUNDO NOMBRE","POBLACION CLAVE","DEPARTAMENTO DE \nRESIDENCIA DEL PACIENTE","MUNICIPIO DE RESIDENCIA DEL PACIENTE","DIRECCIÓN DE RESIDENCIA","DATO DE CONTACTO","FECHA DIAGNÓSTICO","CIE 10 PRINCIPAL","FECHA CARGA VIRAL AL MOMENTO DEL DIAGNOSTICO ","RESULTADO CARGA VIRAL AL MOMENTO DEL DIAGNOSTICO","FECHA CONTEO DE LINFOCITOS CD4 AL MOMENTO DEL DIAGNOSTICO ","RESULTADO CD4 REALIZADO AL MOMENTO DEL DIAGNOSTICO","ESTADIO INICIAL","FECHA INICIO DE PRIMERA TAR ","FECHA  ULTIMO CD4","RESULTADO ULTIMO CD4","FECHA ULTIMA CARGA VIRAL","RESULTADO ULTIMA CARGA VIRAL","RECIBE TRATAMIENTO ANTIRETROVIRAL ACTUALMENTE","ESTADIO ACTUAL","FECHA TOMA PPD","RESULTADO PPD","FECHA TAMIZAJE SIFILIS","RESULTADO PRUEBA SIFILIS","COINFECCION TB","FECHA TAMIZAJE HEPATITIS C","RESULTADO HEPATITIS C","COINFECCION HEPATITIS C","GESTANTE","MODALIDAD ATENCION","NOVEDADES","FECHA DE LA ULTIMA ATENCION","SEDE"];
 /* portal.js:3443 */
+const VX_NOM_COLS=["CONSECUTIVO","IPS ESPECIALIZADA","COD HABILITACION_IPS ATENCION","FECHA DEL INFORME","FECHA INGRESO A LA IPS ","TIPO DE IDENTIFICACION","NUMERO DE IDENTIFICACION","PRIMER APELLIDO","SEGUNDO APELLIDO","PRIMER NOMBRE","SEGUNDO NOMBRE","POBLACION CLAVE","DEPARTAMENTO DE \nRESIDENCIA DEL PACIENTE","MUNICIPIO DE RESIDENCIA DEL PACIENTE","DIRECCIÓN DE RESIDENCIA","DATO DE CONTACTO","FECHA DIAGNÓSTICO","CIE 10 PRINCIPAL","FECHA CARGA VIRAL AL MOMENTO DEL DIAGNOSTICO ","RESULTADO CARGA VIRAL AL MOMENTO DEL DIAGNOSTICO","FECHA CONTEO DE LINFOCITOS CD4 AL MOMENTO DEL DIAGNOSTICO ","RESULTADO CD4 REALIZADO AL MOMENTO DEL DIAGNOSTICO","ESTADIO INICIAL","FECHA INICIO DE PRIMERA TAR ","FECHA  ULTIMO CD4","RESULTADO ULTIMO CD4","FECHA ULTIMA CARGA VIRAL","RESULTADO ULTIMA CARGA VIRAL","RECIBE TRATAMIENTO ANTIRETROVIRAL ACTUALMENTE","ESTADIO ACTUAL","FECHA TOMA PPD","RESULTADO PPD","FECHA TAMIZAJE SIFILIS","RESULTADO PRUEBA SIFILIS","COINFECCION TB","FECHA TAMIZAJE HEPATITIS C","RESULTADO HEPATITIS C","COINFECCION HEPATITIS C","GESTANTE","MODALIDAD ATENCION","NOVEDADES","FECHA DE LA ULTIMA ATENCION","SEDE"];
+/* portal.js:3444 */
 function vxNominalRows(eps){const c=vxCorte();const out=[];vxPacs().filter(p=>p.EPS===eps&&vxFiltro(Object.assign({},p,{EPS:eps}))).forEach(p=>{const r=vxNomRow(p,c);if(r)out.push({p,r});});out.forEach((x,i)=>x.r.CONSECUTIVO=i+1);return out;}
-/* portal.js:3445 */
+/* portal.js:3446 */
 function vxNomRow(p,c,force){const mi=monthStart(c);const W="1800-01-01";{const s=vxSt(p,c);const eg=vxD(p.FechaEgreso);if(!force&&!s.activo&&!(eg&&eg>=mi&&eg<=c))return null;
   const men=p.TipoIngreso==="Menor expuesto en seguimiento";const cvdx=s.cvdx,cd4dx=s.cd4dx;const cv=s.cv,cd4=s.cd4;
   const ppd=vxL(p.ID,"prc").filter(x=>x.Tipo==="Tuberculina (PPD)"&&["Aplicado","Leída"].includes(x.Estado)&&vxD(x.Fecha)<=c).pop();const sif=[vxLast(p.ID,"VDRL",c),vxLast(p.ID,"TREP",c)].filter(Boolean).sort((a,b)=>a._d-b._d).pop();const hc=vxLast(p.ID,"AntiVHC",c);
@@ -442,7 +442,7 @@ function vxNomRow(p,c,force){const mi=monthStart(c);const W="1800-01-01";{const 
   set("FECHA TAMIZAJE HEPATITIS C",hc?hc.FechaToma:W);set("RESULTADO HEPATITIS C",hc?(vxPos(hc)?"1. Positiva":"2. Negativa"):"4. No se realizo");set("COINFECCION HEPATITIS C",s.vhc?"SI":"NO");
   set("GESTANTE",s.gest?"SI":"NO");set("MODALIDAD ATENCION",p.Modalidad||"Presencial");set("NOVEDADES",p.NovedadNominal||nov);set("FECHA DE LA ULTIMA ATENCION",s.ultAt?iso(s.ultAt):"");set("SEDE",p.Sede||vxCfg("sede","MOCOA"));
   return r;}}
-/* portal.js:3462 */
+/* portal.js:3463 */
 function vxNominalValidar(rows){const E=[];const add=(x,campo,t)=>E.push({x,campo,t});
  rows.forEach(x=>{const r=x.r;["FECHA INGRESO A LA IPS ","POBLACION CLAVE","DIRECCIÓN DE RESIDENCIA","DATO DE CONTACTO","FECHA DIAGNÓSTICO","FECHA DE LA ULTIMA ATENCION"].forEach(k=>{if(!r[k])add(x,k.trim(),"Campo obligatorio vacío");});
   if(r["FECHA DIAGNÓSTICO"]==="1800-01-01"&&!/^7\./.test(r["POBLACION CLAVE"]))add(x,"FECHA DIAGNÓSTICO","Regla 2: comodín 1800-01-01 solo para menor en seguimiento");
@@ -451,9 +451,9 @@ function vxNominalValidar(rows){const E=[];const add=(x,campo,t)=>E.push({x,camp
   if(String(r["DATO DE CONTACTO"]).replace(/\D/g,"").length&&String(r["DATO DE CONTACTO"]).replace(/\D/g,"").length<7)add(x,"DATO DE CONTACTO","Teléfono incompleto");
   const e1=r["ESTADIO INICIAL"],a=r["ESTADIO ACTUAL"];if(/Estadio 3/.test(e1)&&!/^3/.test(a)&&!/^4/.test(a))add(x,"ESTADIO ACTUAL","Regla 7: inicial 3 debe seguir en 3");if(/Estadio 2/.test(e1)&&/^1/.test(a))add(x,"ESTADIO ACTUAL","Regla 7: inicial 2 no puede bajar a 1");
   if(r["COD HABILITACION_IPS ATENCION"].length>12)add(x,"COD HABILITACION","Más de 12 dígitos");});return E;}
-/* portal.js:3478 */
+/* portal.js:3479 */
 function vxCACRows(eps){const c=vxCorte();const out=[];const tr=[];vxPacs().filter(p=>p.EPS===eps).forEach(p=>{const x=vxCACRow(p,c);if(!x)return;out.push({p,D:x.D});x.tr.forEach(t=>tr.push(t));});return{out,tr};}
-/* portal.js:3480 */
+/* portal.js:3481 */
 function vxCACRow(p,c,force){const P=vxPer(c);const code=vxCfg("epscode",VX_EPSCODE_DEF)[p.EPS]||"";const tr=[];{const s=vxSt(p,c);const eg=vxD(p.FechaEgreso);if(!force&&!s.activo&&!(eg&&eg>=P.ini))return null;const prev=vxIdx().cac[p.ID];let D={};try{D=prev?JSON.parse(prev.Datos):{};}catch(e){D={};}const nuevo=!prev;
   const up=(k,v,f)=>{if(v==null||v==="")return;const a=D[k]==null?"":String(D[k]);if(a!==String(v)){tr.push({p,k,a,v:String(v),f});D[k]=v;}};
   const NM=x=>norm(x).replace(/[^A-Z ]/g,"").trim();const fem=String(p.Sexo).startsWith("F");
@@ -473,44 +473,46 @@ function vxCACRow(p,c,force){const P=vxPer(c);const code=vxCfg("epscode",VX_EPSC
   if(s.ing)up("v531fechadeingresoalaipsactualpa",iso(s.ing),"Paciente");if(s.dx)up("v36fechadeconfirmaciondedxinfecc",iso(s.dx),"Paciente");if(p.FechaAfiliacion)up("v14fechaafiliacionentidad",p.FechaAfiliacion,"Paciente");
   up("v98fechadecorte",iso(c),"Corte");if(nuevo)tr.push({p,k:"(todas)",a:"",v:"POR DILIGENCIAR",f:"Paciente sin arrastre CAC: completar las variables codificadas con el instructivo vigente"});
   return{D,tr,nuevo};}}
-/* portal.js:3499 */
-function vxPcCAC(p){const t=p.PoblacionClave||"";const f=String(p.Sexo).startsWith("F");if(/^1\./.test(t))return 4;if(/^2\./.test(t))return 1;if(/^3\./.test(t))return 8;if(/^5\./.test(t))return f?3:2;if(/^4\./.test(t))return f?9:4;if(/^[67]\./.test(t))return 9;return null;}
 /* portal.js:3500 */
+function vxPcCAC(p){const t=p.PoblacionClave||"";const f=String(p.Sexo).startsWith("F");if(/^1\./.test(t))return 4;if(/^2\./.test(t))return 1;if(/^3\./.test(t))return 8;if(/^5\./.test(t))return f?3:2;if(/^4\./.test(t))return f?9:4;if(/^[67]\./.test(t))return 9;return null;}
+/* portal.js:3501 */
 function vxCACValidar(out){const E=[];const c=vxCorte();out.forEach(x=>{const D=x.D;const fn=pdate(D.v9fechadenacimiento),fa=pdate(D.v14fechaafiliacionentidad);if(fn&&fa&&fn>fa)E.push({x,k:"v9",t:"Fecha de nacimiento posterior a la fecha de afiliación (var. 9)"});if(fn&&fn>=c)E.push({x,k:"v9",t:"Fecha de nacimiento no anterior al corte"});if(D.v10sexo==="H"&&String(D.v15mujergestante)!=="9")E.push({x,k:"v15",t:"Hombre con variable 15 distinta de 9"});["v5primeapellido","v7primernombre"].forEach(k=>{if(/[^A-Z ]/.test(String(D[k]||"")))E.push({x,k,t:"Caracteres no permitidos (tildes, símbolos o números)"});});if(!D.v14fechaafiliacionentidad)E.push({x,k:"v14",t:"Sin fecha de afiliación (no está en el libro VIH: completar desde BDUA)"});});return E;}
-/* portal.js:3574 */
-const VX_CAC_LBL={v1ideps:"Entidad reportante",v2regimen:"Régimen de la entidad",v3tipodocumentoidentificacionusu:"Tipo de documento",v4numerodeidentificacion:"Número de documento",v5primeapellido:"Primer apellido",v6segundoapellido:"Segundo apellido (NOAP si no tiene)",v7primernombre:"Primer nombre",v8segundonombre:"Segundo nombre (NONE si no tiene)",v9fechadenacimiento:"Fecha de nacimiento",v10sexo:"Sexo H/M/I",v11codigopertenenciaetnica:"Pertenencia étnica 1-6",v12poblacionclave:"Población clave 1-9",v13codigomunicipioresidencia:"Municipio de residencia (DANE)",v14fechaafiliacionentidad:"Fecha de afiliación",v15mujergestante:"Gestante 1/2/3/9",v16menorde12meseshijodemadrre:"Menor de 12 meses hijo de madre con VIH",v17personacontuberculosisactiva:"TB activa 1/2/3",v18condicionrespectodiagnostico:"Condición frente al dx de VIH",v19fechadiagnosticogestacion:"Fecha dx de la gestación",v20fechatamizajevihprimertrimest:"Tamizaje VIH 1er trimestre",v21fechatamizajevihsegundotrimes:"Tamizaje VIH 2º trimestre",v22fechatamizajevihtercertrimest:"Tamizaje VIH 3er trimestre",v23fechadetamizajeparavihmomento:"Tamizaje VIH en el parto",v24mujercondxdevihencualquiermom:"Dx de VIH durante la gestación",v241edadgestacionalmomentodxvihd:"Edad gestacional al dx",v242recibiottoparavihdurantegest:"TAR durante la gestación",v243edadgestacionalcomienzodelat:"Edad gestacional al inicio TAR",v244tarduranteintrapartogestacio:"TAR intraparto",v245resultadogestacionreportadag:"Resultado de la gestación",v246fechaculminaciongestacionrep:"Fecha de culminación",v247supresionfarmacolactanciamat:"Supresión de la lactancia",v248tipoidentificacionreciennaci:"Tipo doc. recién nacido",v249numeroidentreciennacidovivoe:"Número doc. recién nacido",v25tipoidentificamadredemenor12m:"Tipo doc. de la madre",v251numidentificamadredelmenor12:"Número doc. de la madre",v252madredemenor12mexpuestoalvih:"Madre con dx confirmado",v26profilaxisconantirretrovrecie:"Profilaxis ARV del recién nacido",v27suministrodeformulalactea:"Fórmula láctea",v28fechapracargaviralparavihenme:"1ª CV del menor (fecha)",v281resultprimeracargaviralenmen:"1ª CV del menor (resultado)",v29fechasegundacargaviralmenor12:"2ª CV del menor (fecha)",v291resultsegundacargaviralmenor:"2ª CV del menor (resultado)",v30fechaterceracargaviralmenor18:"3ª CV del menor (fecha)",v301resultadoterceracargaviralme:"3ª CV del menor (resultado)",v31condicionfinalmenor12mesesexp:"Condición final del menor",v32fechadxtuberculosisactivarepo:"Fecha dx TB activa",v33fecharealizatamizajeparavihpe:"Tamizaje VIH en persona con TB",v34fechapruebapresuntivarapidaoe:"Fecha de la prueba presuntiva","v35comollegoapruebapresuntivapar": "Cómo llegó a la prueba presuntiva", "v36fechadeconfirmaciondedxinfecc": "Fecha de confirmación del dx de VIH", "v361entidadquereportapteconvihes": "Entidad que reporta al paciente con VIH", "v362entidadreportanteanterior": "Entidad reportante anterior", "v37fechainicioatencionporvih": "Fecha de inicio de la atención por VIH", "v38mecanismoviadetransmisiondelv": "Mecanismo de transmisión", "v39estadioclinicomomentodxninosa": "Estadio clínico al dx", "v40serealizoconteolinfocitostcd4": "¿CD4 al momento del dx?", "v401conteodelinfocitostcd4moment": "CD4 al momento del dx", "v41serealizocargaviralalmomentod": "¿CV al momento del dx?", "v411valordelacargaviralalmomento": "CV al momento del dx", "v42fechadeiniciodelaterapiaantir": "Fecha de inicio de la primera TAR", "v421medicamento1conelqueiniciola": "Medicamento 1 del inicio de TAR", "v422medicamento2conelqueiniciola": "Medicamento 2 del inicio de TAR", "v423medicamento3conelqueiniciola": "Medicamento 3 del inicio de TAR", "v424medicamento4conelqueiniciola": "Medicamento 4 del inicio de TAR", "v425medicamento5conelqueiniciola": "Medicamento 5 del inicio de TAR", "v43conteodelinfocitostcd4almomen": "¿CD4 al inicio de TAR?", "v431valorconteolinfocitostcd4mom": "CD4 al inicio de TAR", "v44cargaviralalmomentodeliniciod": "¿CV al inicio de TAR?", "v441valordelacargaviralaliniciod": "CV al inicio de TAR", "v45motivodeiniciodelatar": "Motivo de inicio de la TAR", "v46teniacoinfeccionconvirusdehep": "Coinfección VHB al inicio de TAR", "v47teniacoinfeccionconvirushepat": "Coinfección VHC al inicio de TAR", "v48teniacoinfeccioncontuberculos": "Coinfección TB al inicio de TAR", "v49nummesesdispensoformcompltarp": "Meses con dispensación completa de TAR", "v50numconsultmedasistiopersvivev": "Consultas médicas a las que asistió", "v51hatenidocambiosenelesquemaini": "¿Cambios del esquema inicial?", "v511fecprimercambiocualqumedicam": "Fecha del primer cambio", "v512causadelcambiodemedicamentoc": "Causa del cambio", "v513medicamento1queocasionoelcam": "Medicamento 1 que ocasionó el cambio", "v514medicamento2queocasionoelcam": "Medicamento 2 que ocasionó el cambio", "v515medicamento3queocasionoelcam": "Medicamento 3 que ocasionó el cambio", "v516medicamento4queocasionoelcam": "Medicamento 4 que ocasionó el cambio", "v517fallasdesdeeliniciodelatarha": "¿Fallas desde el inicio de la TAR?", "v518numerodefallasdesdeeliniciod": "Número de fallas", "v521infeccionesbacterianasmultip": "Infecciones bacterianas múltiples o recurrentes", "v522candidiasisesofagicatraqueal": "Candidiasis esofágica, traqueal o pulmonar", "v523tuberculosispulmonaroextrapu": "Tuberculosis pulmonar o extrapulmonar", "v524cancerdecervixinvasivo": "Cáncer de cérvix invasivo", "v525coccidioidomicosisdiseminada": "Coccidioidomicosis diseminada", "v526citomegaloviruscualqorganoex": "Citomegalovirus (órgano distinto de hígado, bazo o ganglios)", "v527retinitisporcitomegalovirusc": "Retinitis por citomegalovirus", "v528herpessimpleulcerasmucocutan": "Herpes simple con úlceras mucocutáneas", "v529diarreaporisosporabelliocryp": "Diarrea por Isospora o Cryptosporidium", "v5210histoplasmosisdiseminadaoex": "Histoplasmosis diseminada", "v5211linfomadeburkittinmunoblast": "Linfoma de Burkitt, inmunoblástico o primario del SNC", "v5212neumoniaporpneumocystisjiro": "Neumonía por Pneumocystis jirovecii", "v5213neumoniarecurrente": "Neumonía recurrente", "v5214septicemiaporsalmonellarecu": "Septicemia por Salmonella recurrente", "v5215infecciondiseminadaoextrapu": "Micobacterias diseminadas o extrapulmonares", "v5216criptococosisextrapulmonar": "Criptococosis extrapulmonar", "v5217sarcomadekaposi": "Sarcoma de Kaposi", "v5218sindromededesgasteasociadoa": "Síndrome de desgaste por VIH", "v5219leucoencefalopatiamultifoca": "Leucoencefalopatía multifocal progresiva", "v5220toxoplasmosiscerebral": "Toxoplasmosis cerebral", "v5221demenciaasociadaalvih": "Demencia asociada al VIH", "v5222neumoniaintersticiallinfoid": "Neumonía intersticial linfoide", "v53codigodehabdelasededelaipsdon": "Código de habilitación de la sede de la IPS", "v531fechadeingresoalaipsactualpa": "Fecha de ingreso a la IPS actual", "v532municipiodelaips": "Municipio de la IPS", "v533quienhacelaatencionclinicayf": "Quién hace la atención clínica", "v534valoracionporinfectologoenlo": "Valoración por infectología en el periodo", "v54fechadelaultimagenotipificaci": "Fecha de la última genotipificación", "v55estadioclinicoactualparaninos": "Estadio clínico actual", "v56fechadeultimocolesterolldl": "Fecha del último LDL", "v561resultadodelultimocolesterol": "Último LDL", "v57fechadeultimoniveldetriglicer": "Fecha de los últimos triglicéridos", "v571resultadodelultimoniveldetri": "Últimos triglicéridos", "v58fechadeultimahemoglobinaseric": "Fecha de la última hemoglobina", "v581resultadodelaultimahemoglobi": "Última hemoglobina", "v59fechadelaultimaenzimaalaninaa": "Fecha de la última ALT", "v591resultadodelaultimaaltotgpse": "Última ALT", "v60fechadeultimacreatininaserica": "Fecha de la última creatinina", "v601resultadodelaultimacreatinin": "Última creatinina", "v61fechadeultimaglucemiasericaen": "Fecha de la última glucemia", "v611resultadodelaultimaglucemias": "Última glucemia", "v62fechadeultimamediciondelpesoc": "Fecha del último peso", "v621resultadodelaultimamediciond": "Último peso (kg)", "v63talla": "Talla (cm)", "v64tieneneuropatiaperiferica": "Neuropatía periférica", "v65tienelipoatrofiaolipodistrofi": "Lipoatrofia o lipodistrofia", "v66tienecoinfeccionconhepatitisb": "Coinfección con hepatitis B", "v67tienecoinfeccionconhepatitisc": "Coinfección con hepatitis C", "v68tieneotuvocoinfeccioncontuber": "Coinfección con tuberculosis", "v681tipodetuberculosisactivaquep": "Tipo de tuberculosis activa", "v682lapersonaconcoinfecciontbvih": "Persona con coinfección TB/VIH (estado)", "v683fecdeiniciodeltratamantitube": "Inicio del tratamiento antituberculoso", "v684medicamento1deltratamantitub": "Antituberculoso 1", "v685medicamento2deltratamantitub": "Antituberculoso 2", "v686medicamento3deltratamantitub": "Antituberculoso 3", "v687medicamento4deltratamantitub": "Antituberculoso 4", "v688medicamento5deltratamantitub": "Antituberculoso 5", "v689medicamento6deltratamantitub": "Antituberculoso 6", "v6810medicamento7deltratamantitu": "Antituberculoso 7", "v6811medicamento8deltratamantitu": "Antituberculoso 8", "v6812medicamento9deltratamantitu": "Antituberculoso 9", "v6813fechaenqueterminoeltratamie": "Fin del tratamiento antituberculoso", "v6814condiciondeegresodeltratami": "Condición de egreso del tratamiento TB", "v69tienecirrosishepatica": "Cirrosis hepática", "v70tieneenfermedadrenalcronicapo": "Enfermedad renal crónica", "v71tieneenfermedadcoronaria": "Enfermedad coronaria", "v72tieneohatenidootrasinfeccdetr": "Otras infecciones de transmisión sexual", "v73tieneneoplasianorelacionadaco": "Neoplasia no relacionada con sida", "v74discapacidadfuncional": "Discapacidad funcional", "v75fechadelultimoconteodelinfoci": "Fecha del último CD4", "v751valordelultimoconteodelinfoc": "Último CD4", "v76fechadelaultimacargaviralpara": "Fecha de la última carga viral", "v761valordelaultimacargaviralpar": "Última carga viral", "v77recibetar": "¿Recibe TAR?", "v771fechadeiniciodelosmedicament": "Inicio de los medicamentos actuales", "v772medicamento1delataractual": "Medicamento 1 de la TAR actual", "v773medicamento2delataractual": "Medicamento 2 de la TAR actual", "v774medicamento3delataractual": "Medicamento 3 de la TAR actual", "v775medicamento4delataractual": "Medicamento 4 de la TAR actual", "v776medicamento5delataractual": "Medicamento 5 de la TAR actual", "v777medicamento6delataractual": "Medicamento 6 de la TAR actual", "v778numerodemesesquesedispensola": "Meses de TAR dispensada", "v78numerodecondonessuministrados": "Condones suministrados", "v79metododeplanificacionfamilper": "Método de planificación familiar", "v80vacunacioncontralahepatitisa": "Vacunación hepatitis A", "v81vacunacioncontralahepatitisb": "Vacunación hepatitis B", "v82vacunacioncontraneumococo": "Vacunación neumococo", "v83tamizajeclinicoparatuberculos": "Tamizaje clínico de tuberculosis", "v84sehizoppdopruebasequivalentes": "PPD o prueba equivalente", "v85recibiotratamientoparatubercu": "Tratamiento de TB latente", "v861recibiotratamientoparasifili": "Tratamiento para sífilis", "v86sehizotamizajeparasifilisenla": "Tamizaje de sífilis", "v87sehizotamizajeparavphanogenit": "Tamizaje de VPH anogenital", "v88sehizotamizajeparahepatitisbe": "Tamizaje de hepatitis B", "v89sehizotamizajeparahepatitisce": "Tamizaje de hepatitis C", "v90resultadodelaevaluacionderies": "Resultado del riesgo cardiovascular", "v91profilaxisparamacmycobacteriu": "Profilaxis para MAC", "v92profilaxisparacriptococoneofo": "Profilaxis para criptococo", "v93profilaxisparapneumocystisjir": "Profilaxis para Pneumocystis", "v94costototaldeatencionnohospita": "Costo atención no hospitalaria", "v95costototaldeatencionhospitala": "Costo atención hospitalaria", "v96numerodehospitalizacionesenel": "Hospitalizaciones en el periodo", "v97novedaddelusuariorespectoalan": "Novedad respecto al reporte anterior", "v971fechadedesafiliaciondelaenti": "Fecha de desafiliación", "v972entidadalacualsetrasladoelus": "Entidad a la que se trasladó", "v973fechademuerte": "Fecha de muerte", "v974causademuerte": "Causa de muerte", "v98fechadecorte": "Fecha de corte", "v99codigounicobduabdexpvsmsps": "Código único BDUA"};
 /* portal.js:3575 */
-function vxCacCod(k){const m=/^v(\d+)/.exec(k);if(!m)return k;const d=m[1];if(d.length<=2)return d;const a=d.slice(0,2);return+a>=24&&+a<=99&&d.length>2?a+"."+d.slice(2):d;}
+const VX_CAC_LBL={v1ideps:"Entidad reportante",v2regimen:"Régimen de la entidad",v3tipodocumentoidentificacionusu:"Tipo de documento",v4numerodeidentificacion:"Número de documento",v5primeapellido:"Primer apellido",v6segundoapellido:"Segundo apellido (NOAP si no tiene)",v7primernombre:"Primer nombre",v8segundonombre:"Segundo nombre (NONE si no tiene)",v9fechadenacimiento:"Fecha de nacimiento",v10sexo:"Sexo H/M/I",v11codigopertenenciaetnica:"Pertenencia étnica 1-6",v12poblacionclave:"Población clave 1-9",v13codigomunicipioresidencia:"Municipio de residencia (DANE)",v14fechaafiliacionentidad:"Fecha de afiliación",v15mujergestante:"Gestante 1/2/3/9",v16menorde12meseshijodemadrre:"Menor de 12 meses hijo de madre con VIH",v17personacontuberculosisactiva:"TB activa 1/2/3",v18condicionrespectodiagnostico:"Condición frente al dx de VIH",v19fechadiagnosticogestacion:"Fecha dx de la gestación",v20fechatamizajevihprimertrimest:"Tamizaje VIH 1er trimestre",v21fechatamizajevihsegundotrimes:"Tamizaje VIH 2º trimestre",v22fechatamizajevihtercertrimest:"Tamizaje VIH 3er trimestre",v23fechadetamizajeparavihmomento:"Tamizaje VIH en el parto",v24mujercondxdevihencualquiermom:"Dx de VIH durante la gestación",v241edadgestacionalmomentodxvihd:"Edad gestacional al dx",v242recibiottoparavihdurantegest:"TAR durante la gestación",v243edadgestacionalcomienzodelat:"Edad gestacional al inicio TAR",v244tarduranteintrapartogestacio:"TAR intraparto",v245resultadogestacionreportadag:"Resultado de la gestación",v246fechaculminaciongestacionrep:"Fecha de culminación",v247supresionfarmacolactanciamat:"Supresión de la lactancia",v248tipoidentificacionreciennaci:"Tipo doc. recién nacido",v249numeroidentreciennacidovivoe:"Número doc. recién nacido",v25tipoidentificamadredemenor12m:"Tipo doc. de la madre",v251numidentificamadredelmenor12:"Número doc. de la madre",v252madredemenor12mexpuestoalvih:"Madre con dx confirmado",v26profilaxisconantirretrovrecie:"Profilaxis ARV del recién nacido",v27suministrodeformulalactea:"Fórmula láctea",v28fechapracargaviralparavihenme:"1ª CV del menor (fecha)",v281resultprimeracargaviralenmen:"1ª CV del menor (resultado)",v29fechasegundacargaviralmenor12:"2ª CV del menor (fecha)",v291resultsegundacargaviralmenor:"2ª CV del menor (resultado)",v30fechaterceracargaviralmenor18:"3ª CV del menor (fecha)",v301resultadoterceracargaviralme:"3ª CV del menor (resultado)",v31condicionfinalmenor12mesesexp:"Condición final del menor",v32fechadxtuberculosisactivarepo:"Fecha dx TB activa",v33fecharealizatamizajeparavihpe:"Tamizaje VIH en persona con TB",v34fechapruebapresuntivarapidaoe:"Fecha de la prueba presuntiva","v35comollegoapruebapresuntivapar": "Cómo llegó a la prueba presuntiva", "v36fechadeconfirmaciondedxinfecc": "Fecha de confirmación del dx de VIH", "v361entidadquereportapteconvihes": "Entidad que reporta al paciente con VIH", "v362entidadreportanteanterior": "Entidad reportante anterior", "v37fechainicioatencionporvih": "Fecha de inicio de la atención por VIH", "v38mecanismoviadetransmisiondelv": "Mecanismo de transmisión", "v39estadioclinicomomentodxninosa": "Estadio clínico al dx", "v40serealizoconteolinfocitostcd4": "¿CD4 al momento del dx?", "v401conteodelinfocitostcd4moment": "CD4 al momento del dx", "v41serealizocargaviralalmomentod": "¿CV al momento del dx?", "v411valordelacargaviralalmomento": "CV al momento del dx", "v42fechadeiniciodelaterapiaantir": "Fecha de inicio de la primera TAR", "v421medicamento1conelqueiniciola": "Medicamento 1 del inicio de TAR", "v422medicamento2conelqueiniciola": "Medicamento 2 del inicio de TAR", "v423medicamento3conelqueiniciola": "Medicamento 3 del inicio de TAR", "v424medicamento4conelqueiniciola": "Medicamento 4 del inicio de TAR", "v425medicamento5conelqueiniciola": "Medicamento 5 del inicio de TAR", "v43conteodelinfocitostcd4almomen": "¿CD4 al inicio de TAR?", "v431valorconteolinfocitostcd4mom": "CD4 al inicio de TAR", "v44cargaviralalmomentodeliniciod": "¿CV al inicio de TAR?", "v441valordelacargaviralaliniciod": "CV al inicio de TAR", "v45motivodeiniciodelatar": "Motivo de inicio de la TAR", "v46teniacoinfeccionconvirusdehep": "Coinfección VHB al inicio de TAR", "v47teniacoinfeccionconvirushepat": "Coinfección VHC al inicio de TAR", "v48teniacoinfeccioncontuberculos": "Coinfección TB al inicio de TAR", "v49nummesesdispensoformcompltarp": "Meses con dispensación completa de TAR", "v50numconsultmedasistiopersvivev": "Consultas médicas a las que asistió", "v51hatenidocambiosenelesquemaini": "¿Cambios del esquema inicial?", "v511fecprimercambiocualqumedicam": "Fecha del primer cambio", "v512causadelcambiodemedicamentoc": "Causa del cambio", "v513medicamento1queocasionoelcam": "Medicamento 1 que ocasionó el cambio", "v514medicamento2queocasionoelcam": "Medicamento 2 que ocasionó el cambio", "v515medicamento3queocasionoelcam": "Medicamento 3 que ocasionó el cambio", "v516medicamento4queocasionoelcam": "Medicamento 4 que ocasionó el cambio", "v517fallasdesdeeliniciodelatarha": "¿Fallas desde el inicio de la TAR?", "v518numerodefallasdesdeeliniciod": "Número de fallas", "v521infeccionesbacterianasmultip": "Infecciones bacterianas múltiples o recurrentes", "v522candidiasisesofagicatraqueal": "Candidiasis esofágica, traqueal o pulmonar", "v523tuberculosispulmonaroextrapu": "Tuberculosis pulmonar o extrapulmonar", "v524cancerdecervixinvasivo": "Cáncer de cérvix invasivo", "v525coccidioidomicosisdiseminada": "Coccidioidomicosis diseminada", "v526citomegaloviruscualqorganoex": "Citomegalovirus (órgano distinto de hígado, bazo o ganglios)", "v527retinitisporcitomegalovirusc": "Retinitis por citomegalovirus", "v528herpessimpleulcerasmucocutan": "Herpes simple con úlceras mucocutáneas", "v529diarreaporisosporabelliocryp": "Diarrea por Isospora o Cryptosporidium", "v5210histoplasmosisdiseminadaoex": "Histoplasmosis diseminada", "v5211linfomadeburkittinmunoblast": "Linfoma de Burkitt, inmunoblástico o primario del SNC", "v5212neumoniaporpneumocystisjiro": "Neumonía por Pneumocystis jirovecii", "v5213neumoniarecurrente": "Neumonía recurrente", "v5214septicemiaporsalmonellarecu": "Septicemia por Salmonella recurrente", "v5215infecciondiseminadaoextrapu": "Micobacterias diseminadas o extrapulmonares", "v5216criptococosisextrapulmonar": "Criptococosis extrapulmonar", "v5217sarcomadekaposi": "Sarcoma de Kaposi", "v5218sindromededesgasteasociadoa": "Síndrome de desgaste por VIH", "v5219leucoencefalopatiamultifoca": "Leucoencefalopatía multifocal progresiva", "v5220toxoplasmosiscerebral": "Toxoplasmosis cerebral", "v5221demenciaasociadaalvih": "Demencia asociada al VIH", "v5222neumoniaintersticiallinfoid": "Neumonía intersticial linfoide", "v53codigodehabdelasededelaipsdon": "Código de habilitación de la sede de la IPS", "v531fechadeingresoalaipsactualpa": "Fecha de ingreso a la IPS actual", "v532municipiodelaips": "Municipio de la IPS", "v533quienhacelaatencionclinicayf": "Quién hace la atención clínica", "v534valoracionporinfectologoenlo": "Valoración por infectología en el periodo", "v54fechadelaultimagenotipificaci": "Fecha de la última genotipificación", "v55estadioclinicoactualparaninos": "Estadio clínico actual", "v56fechadeultimocolesterolldl": "Fecha del último LDL", "v561resultadodelultimocolesterol": "Último LDL", "v57fechadeultimoniveldetriglicer": "Fecha de los últimos triglicéridos", "v571resultadodelultimoniveldetri": "Últimos triglicéridos", "v58fechadeultimahemoglobinaseric": "Fecha de la última hemoglobina", "v581resultadodelaultimahemoglobi": "Última hemoglobina", "v59fechadelaultimaenzimaalaninaa": "Fecha de la última ALT", "v591resultadodelaultimaaltotgpse": "Última ALT", "v60fechadeultimacreatininaserica": "Fecha de la última creatinina", "v601resultadodelaultimacreatinin": "Última creatinina", "v61fechadeultimaglucemiasericaen": "Fecha de la última glucemia", "v611resultadodelaultimaglucemias": "Última glucemia", "v62fechadeultimamediciondelpesoc": "Fecha del último peso", "v621resultadodelaultimamediciond": "Último peso (kg)", "v63talla": "Talla (cm)", "v64tieneneuropatiaperiferica": "Neuropatía periférica", "v65tienelipoatrofiaolipodistrofi": "Lipoatrofia o lipodistrofia", "v66tienecoinfeccionconhepatitisb": "Coinfección con hepatitis B", "v67tienecoinfeccionconhepatitisc": "Coinfección con hepatitis C", "v68tieneotuvocoinfeccioncontuber": "Coinfección con tuberculosis", "v681tipodetuberculosisactivaquep": "Tipo de tuberculosis activa", "v682lapersonaconcoinfecciontbvih": "Persona con coinfección TB/VIH (estado)", "v683fecdeiniciodeltratamantitube": "Inicio del tratamiento antituberculoso", "v684medicamento1deltratamantitub": "Antituberculoso 1", "v685medicamento2deltratamantitub": "Antituberculoso 2", "v686medicamento3deltratamantitub": "Antituberculoso 3", "v687medicamento4deltratamantitub": "Antituberculoso 4", "v688medicamento5deltratamantitub": "Antituberculoso 5", "v689medicamento6deltratamantitub": "Antituberculoso 6", "v6810medicamento7deltratamantitu": "Antituberculoso 7", "v6811medicamento8deltratamantitu": "Antituberculoso 8", "v6812medicamento9deltratamantitu": "Antituberculoso 9", "v6813fechaenqueterminoeltratamie": "Fin del tratamiento antituberculoso", "v6814condiciondeegresodeltratami": "Condición de egreso del tratamiento TB", "v69tienecirrosishepatica": "Cirrosis hepática", "v70tieneenfermedadrenalcronicapo": "Enfermedad renal crónica", "v71tieneenfermedadcoronaria": "Enfermedad coronaria", "v72tieneohatenidootrasinfeccdetr": "Otras infecciones de transmisión sexual", "v73tieneneoplasianorelacionadaco": "Neoplasia no relacionada con sida", "v74discapacidadfuncional": "Discapacidad funcional", "v75fechadelultimoconteodelinfoci": "Fecha del último CD4", "v751valordelultimoconteodelinfoc": "Último CD4", "v76fechadelaultimacargaviralpara": "Fecha de la última carga viral", "v761valordelaultimacargaviralpar": "Última carga viral", "v77recibetar": "¿Recibe TAR?", "v771fechadeiniciodelosmedicament": "Inicio de los medicamentos actuales", "v772medicamento1delataractual": "Medicamento 1 de la TAR actual", "v773medicamento2delataractual": "Medicamento 2 de la TAR actual", "v774medicamento3delataractual": "Medicamento 3 de la TAR actual", "v775medicamento4delataractual": "Medicamento 4 de la TAR actual", "v776medicamento5delataractual": "Medicamento 5 de la TAR actual", "v777medicamento6delataractual": "Medicamento 6 de la TAR actual", "v778numerodemesesquesedispensola": "Meses de TAR dispensada", "v78numerodecondonessuministrados": "Condones suministrados", "v79metododeplanificacionfamilper": "Método de planificación familiar", "v80vacunacioncontralahepatitisa": "Vacunación hepatitis A", "v81vacunacioncontralahepatitisb": "Vacunación hepatitis B", "v82vacunacioncontraneumococo": "Vacunación neumococo", "v83tamizajeclinicoparatuberculos": "Tamizaje clínico de tuberculosis", "v84sehizoppdopruebasequivalentes": "PPD o prueba equivalente", "v85recibiotratamientoparatubercu": "Tratamiento de TB latente", "v861recibiotratamientoparasifili": "Tratamiento para sífilis", "v86sehizotamizajeparasifilisenla": "Tamizaje de sífilis", "v87sehizotamizajeparavphanogenit": "Tamizaje de VPH anogenital", "v88sehizotamizajeparahepatitisbe": "Tamizaje de hepatitis B", "v89sehizotamizajeparahepatitisce": "Tamizaje de hepatitis C", "v90resultadodelaevaluacionderies": "Resultado del riesgo cardiovascular", "v91profilaxisparamacmycobacteriu": "Profilaxis para MAC", "v92profilaxisparacriptococoneofo": "Profilaxis para criptococo", "v93profilaxisparapneumocystisjir": "Profilaxis para Pneumocystis", "v94costototaldeatencionnohospita": "Costo atención no hospitalaria", "v95costototaldeatencionhospitala": "Costo atención hospitalaria", "v96numerodehospitalizacionesenel": "Hospitalizaciones en el periodo", "v97novedaddelusuariorespectoalan": "Novedad respecto al reporte anterior", "v971fechadedesafiliaciondelaenti": "Fecha de desafiliación", "v972entidadalacualsetrasladoelus": "Entidad a la que se trasladó", "v973fechademuerte": "Fecha de muerte", "v974causademuerte": "Causa de muerte", "v98fechadecorte": "Fecha de corte", "v99codigounicobduabdexpvsmsps": "Código único BDUA"};
 /* portal.js:3576 */
-function vxCacNum(k){const c=vxCacCod(k);return parseInt(c,10)||0;}
+function vxCacCod(k){const m=/^v(\d+)/.exec(k);if(!m)return k;const d=m[1];if(d.length<=2)return d;const a=d.slice(0,2);return+a>=24&&+a<=99&&d.length>2?a+"."+d.slice(2):d;}
 /* portal.js:3577 */
+function vxCacNum(k){const c=vxCacCod(k);return parseInt(c,10)||0;}
+/* portal.js:3578 */
 function vxCacLbl(k){if(VX_CAC_LBL[k])return VX_CAC_LBL[k];return k.replace(/^v\d+/,"").replace(/^(\d)/,"").replace(/fecha/g,"fecha ").replace(/resultado/g,"resultado ").replace(/valor/g,"valor ").replace(/medicamento/g,"medicamento ").replace(/tiene/g,"tiene ").replace(/\s+/g," ").trim();}
-/* portal.js:3584 */
-const VX_AGFREQ_DEF={"Medicina experta VIH":30,"Infectología":180,"Enfermería":30,"Química farmacéutica":90,"Psicología":180,"Trabajo social":180,"Nutrición":180,"Odontología":365};
 /* portal.js:3585 */
+const VX_AGFREQ_DEF={"Medicina experta VIH":30,"Infectología":180,"Enfermería":30,"Química farmacéutica":90,"Psicología":180,"Trabajo social":180,"Nutrición":180,"Odontología":365};
+/* portal.js:3586 */
 const vxAgFreq=d=>(vxCfg("agfreq",VX_AGFREQ_DEF)||VX_AGFREQ_DEF)[d]||180;
 /* portal.js:3587 */
+const VX_DCOL={"Medicina experta VIH":"c1","Infectología":"c2","Enfermería":"c3","Química farmacéutica":"c4","Psicología":"c5","Trabajo social":"c6","Nutrición":"c7","Odontología":"c8"};
+/* portal.js:3588 */
 const vxCitProg=(pid,d)=>vxL(pid,"cit").filter(x=>x.Estado==="Programada"&&(!d||x.Disciplina===d)).sort((a,b)=>a.Fecha.localeCompare(b.Fecha));
-/* portal.js:3589 */
+/* portal.js:3590 */
 function vxAgEstado(p,d){const t=TODAY();const at=vxL(p.ID,"cit").filter(x=>x.Disciplina===d&&x.Estado==="Asistió").map(x=>vxD(x.Fecha)).filter(Boolean).sort((a,b)=>a-b);const last=at[at.length-1]||null;const pr=vxCitProg(p.ID,d)[0];const f=vxAgFreq(d);
  const base=last||vxD(p.FechaIngresoIPS)||t;const due=addDays(base,f);
  if(pr)return{d,last,due,pr,cls:"ok",txt:"agendado "+pr.Fecha};
  if(due<=t)return{d,last,due,cls:"bad",txt:(last?"vencido desde "+iso(due):"sin primera atención"),dias:dayDiff(due,t)};
  if(due<=addDays(t,7))return{d,last,due,cls:"warn",txt:"vence "+iso(due)};
  return{d,last,due,cls:"ok",txt:"próximo "+iso(due)};}
-/* portal.js:3596 */
+/* portal.js:3597 */
 function vxPuedeAgendar(pid,d,exceptId){const L=vxCitProg(pid,d).filter(x=>x.ID!==exceptId);return L.length?L[0]:null;}
-/* portal.js:3636 */
-const VX_SMAQ=[["q1","¿Alguna vez olvida tomar la medicación?",["Sí","No"]],["q2","¿Toma siempre los fármacos a la hora indicada?",["Sí","No"]],["q3","¿Alguna vez deja de tomar los fármacos si se siente mal?",["Sí","No"]],["q4","¿Olvidó tomar la medicación durante el fin de semana?",["Sí","No"]],["q5","En la última semana, ¿cuántas veces no tomó alguna dosis?",["Ninguna","1 a 2","3 a 5","6 a 10","Más de 10"]],["q6","Desde la última visita, ¿cuántos días completos no tomó la medicación?",null]];
 /* portal.js:3637 */
+const VX_SMAQ=[["q1","¿Alguna vez olvida tomar la medicación?",["Sí","No"]],["q2","¿Toma siempre los fármacos a la hora indicada?",["Sí","No"]],["q3","¿Alguna vez deja de tomar los fármacos si se siente mal?",["Sí","No"]],["q4","¿Olvidó tomar la medicación durante el fin de semana?",["Sí","No"]],["q5","En la última semana, ¿cuántas veces no tomó alguna dosis?",["Ninguna","1 a 2","3 a 5","6 a 10","Más de 10"]],["q6","Desde la última visita, ¿cuántos días completos no tomó la medicación?",null]];
+/* portal.js:3638 */
 function vxSmaqRes(d){if(!d||!d.q1)return"";const no=d.q1==="Sí"||d.q2==="No"||d.q3==="Sí"||d.q4==="Sí"||["3 a 5","6 a 10","Más de 10"].includes(d.q5)||num(d.q6)>2;return no?"No adherente":"Adherente";}
-/* portal.js:3640 */
-const VX_TARCHK=[["c1","Conciliación medicamentosa (TAR previo y medicamentos no TAR)"],["c2","Interacciones farmacológicas revisadas"],["c3","Función renal revisada (TFG) si el esquema tiene tenofovir"],["c4","Estado de hepatitis B revisado (HBsAg) antes de iniciar o suspender tenofovir o lamivudina"],["c5","HLA-B*5701 negativo si el esquema tiene abacavir"],["c6","Gestación o deseo reproductivo considerado"],["c7","Genotipo revisado si el cambio es por falla virológica"],["c8","Educación al paciente sobre dosis, horario y efectos adversos"]];
 /* portal.js:3641 */
+const VX_TARCHK=[["c1","Conciliación medicamentosa (TAR previo y medicamentos no TAR)"],["c2","Interacciones farmacológicas revisadas"],["c3","Función renal revisada (TFG) si el esquema tiene tenofovir"],["c4","Estado de hepatitis B revisado (HBsAg) antes de iniciar o suspender tenofovir o lamivudina"],["c5","HLA-B*5701 negativo si el esquema tiene abacavir"],["c6","Gestación o deseo reproductivo considerado"],["c7","Genotipo revisado si el cambio es por falla virológica"],["c8","Educación al paciente sobre dosis, horario y efectos adversos"]];
+/* portal.js:3642 */
 function vxTarChkApl(p,esq,motivo){const s=vxSt(p,TODAY());const q=VXQ[esq]||{c:[]};return{c3:q.c.some(m=>m==="TDF"),c4:q.c.some(m=>["TDF","TAF","3TC","FTC"].includes(m))||!!(s.tar&&VXQ[s.tar.Esquema]&&VXQ[s.tar.Esquema].c.some(m=>["TDF","TAF","3TC","FTC"].includes(m))),c5:q.c.includes("ABC"),c6:String(p.Sexo).startsWith("F"),c7:motivo==="Falla virológica"};}
-/* portal.js:3773 */
-const VX_FTXT={S:"Cada 6 meses",A:"Cada año",I:"Solo al ingreso",N:"Según condición"};
 /* portal.js:3774 */
+const VX_FTXT={S:"Cada 6 meses",A:"Cada año",I:"Solo al ingreso",N:"Según condición"};
+/* portal.js:3775 */
 function vxLabPlan(p,ref){ref=ref||TODAY();const key="lp|"+p.ID+"|"+iso(ref);if(VX.memo[key])return VX.memo[key];const id=p.ID;const s=vxSt(p,ref);const C=vxContrato(p.EPS);const out=[];const last=k=>vxLast(id,k,ref);
  C.items.forEach(([k,f,txt,obs])=>{const e=VXE[k];if(!e||["CD4P","CD8"].includes(k))return;const r=last(k);const d=r?r._d:null;const row={k,f,txt,obs,last:d,next:null,est:"",mot:""};
   const per=(m)=>{row.next=d?addMonths(d,m):null;row.est=!d?"Faltante":row.next<=ref?"Vencido":row.next<=addDays(ref,30)?"Próximo":"Vigente";};
@@ -531,9 +533,9 @@ function vxLabPlan(p,ref){ref=ref||TODAY();const key="lp|"+p.ID+"|"+iso(ref);if(
   if(k==="CV"&&s.cv6&&num(s.cv6.Valor)>=200&&row.est==="Vigente"){row.est="Faltante";row.mot="carga viral detectable: control";}
   out.push(row);});
  return VX.memo[key]=out;}
-/* portal.js:3795 */
+/* portal.js:3796 */
 function vxDue(p,mes){const me=monthEnd(pdate(mes+"-01"));return vxLabPlan(p,me).filter(x=>["Faltante","Vencido"].includes(x.est)).map(x=>({k:x.k,o:x.est+(x.mot?" · "+x.mot:x.last?" (último "+iso(x.last)+")":""),t:x.txt}));}
-/* portal.js:3811 */
+/* portal.js:3812 */
 function vxPPD(p,ref){ref=ref||TODAY();const s=vxSt(p,ref);const L=vxL(p.ID,"prc").filter(x=>x.Tipo==="Tuberculina (PPD)");const pos=L.find(x=>/Positiva/.test(x.Resultado||""))||(vxPos(vxLast(p.ID,"IGRA",ref))?{FechaLectura:iso(vxLast(p.ID,"IGRA",ref)._d),Lectura:"IGRA"}:null);const lt=L[L.length-1];
  if(s.expuesto)return{est:"No aplica",cls:"base"};
  if(s.tbAlgunaVez)return{est:"No indicada: TB activa o previa",cls:"base"};
@@ -542,7 +544,7 @@ function vxPPD(p,ref){ref=ref||TODAY();const s=vxSt(p,ref);const L=vxL(p.ID,"prc
  if(lt&&lt.Estado==="Aplicado"){const a=pdate(lt.Fecha);const dd=dayDiff(a,ref);return{est:dd<2?"Aplicada, leer entre "+iso(addDays(a,2))+" y "+iso(addDays(a,3)):dd<=3?"Por leer hoy (ventana 48 a 72 h)":"Lectura vencida (más de 72 h): repetir",cls:dd<=3?"warn":"bad",fecha:lt.Fecha,x:lt};}
  if(lt&&lt.Estado==="Leída"){const nx=addMonths(pdate(lt.FechaLectura||lt.Fecha),12);return nx<=ref?{est:"Vencida: repetir (anual)",cls:"bad",fecha:iso(nx)}:{est:"Negativa, próxima "+iso(nx),cls:"ok",fecha:iso(nx),next:nx};}
  return{est:"Pendiente: nunca realizada",cls:"bad"};}
-/* portal.js:3819 */
+/* portal.js:3820 */
 function vxCit(p,tipo,ref){ref=ref||TODAY();const s=vxSt(p,ref);const fem=String(p.Sexo).startsWith("F");const ed=s.edad;
  const apl=tipo==="Citología cervicovaginal"?(fem&&ed!=null&&ed>=25&&ed<=65):(vxHSH(p)||p.PracticaAnal==="Sí"||/^5\./.test(p.PoblacionClave||""));
  if(s.expuesto||!apl){if(tipo==="Citología anal"&&!p.PracticaAnal&&ed>=18&&!vxHSH(p))return{est:"Caracterizar prácticas sexuales",cls:"info",car:true};return{est:"No aplica",cls:"base"};}
@@ -555,7 +557,15 @@ function vxCit(p,tipo,ref){ref=ref||TODAY();const s=vxSt(p,ref);const fem=String
  if(anor&&!lt.Conducta)return{est:"Anormal ("+lt.Resultado+") sin conducta registrada",cls:"bad",fecha:lt.FechaLectura||lt.Fecha,x:lt,acc:"cond"};
  const nx=addMonths(pdate(lt.FechaLectura||lt.Fecha),12);if(anor)return{est:"Anormal en seguimiento: "+lt.Conducta,cls:"warn",fecha:lt.FechaLectura};
  return nx<=ref?{est:"Vencida: repetir (anual)",cls:"bad",fecha:iso(nx)}:{est:"Negativa, próxima "+iso(nx),cls:"ok",fecha:iso(nx),next:nx};}
-/* portal.js:3831 */
+/* portal.js:3832 */
 function vxPrcPend(p){const o=[];const a=vxPPD(p);if(["bad","warn"].includes(a.cls))o.push({t:"Tuberculina (PPD)",est:a.est,fecha:a.fecha});["Citología cervicovaginal","Citología anal"].forEach(t=>{const c=vxCit(p,t);if(["bad","warn"].includes(c.cls)||c.car)o.push({t,est:c.est,fecha:c.fecha});});return o;}
-return { esc, pad, iso, fd, ym, addDays, addMonths, monthStart, monthEnd, dayDiff, nowTs, pdate, num, norm, f1, pct, money, VX_CAC_COLS, VXS, VXK, VX_EPS, VX_EPSCODE_DEF, VX_REG, VX_MUN, VX_MUN_ALIAS, VX_PCLAVE, VX_TINGR, VX_ESTADO, VX_MODAL, VX_DISC, VX_DISC_ACT, VX_CITTIPO, VX_MOTINAS, VX_NOV, VX_PRC, VX_PRF, VX_EX, VXE, VX_CONTRATO_DEF, VX_GUIA_DIF, VX_MED, VX_CLASES, VX_ESQ, VXQ, VX_GPC_PREF, VX_VAC, VXV, VX_VACEST, vxLive, vxD, vxNom, vxCorte, vxMunCode, vxMunName, vxCfg, vxNewBook, vxEdad, vxGrupoEtario, vxF, vxIdx, vxPacs, vxP, vxL, vxLast, vxFirst, vxVal, vxPos, vxCVind, vxFmtLab, vxPeriodo, vxActivo, vxTarAt, vxTarIni, vxUltEnt, vxCobertura, vxUltAtencion, vxNovAt, vxSt, vxVacEstado, vxVacCompleta, vxContrato, vxHSH, vxSolRecs, vxSolTieneRes, vxAlertas, vxTFG, VX_GPC14, vxEnRango, vxLabIn, vxPrcIn, vxPrfIn, vxHospVIH, vxFalla, vxR, vxUP, vxDOWN, vxLB, vxSemRng, VX_IND, VXI, vxRng, vxNivel, vxRngTxt, vxFiltro, vxPer, vxCalc, vxCalcBy, VX_AGFREQ_DEF, vxAgFreq, vxCitProg, vxAgEstado, vxPuedeAgendar, VX_SMAQ, vxSmaqRes, VX_TARCHK, vxTarChkApl, VX_FTXT, vxLabPlan, vxDue, vxPPD, vxCit, vxPrcPend, VX_PAQ_DEF, vxPaq, vxFactMes, vxProdMes, vxDiscMes, VX_NOM_COLS, vxNominalRows, vxNomRow, vxNominalValidar, vxCACRows, vxCACRow, vxPcCAC, vxCACValidar, VX_CAC_LBL, vxCacCod, vxCacNum, vxCacLbl, VX, TODAY };
+/* portal.js:7948 */
+if(!VXS.ent[1].includes("SaldoPrevio"))VXS.ent[1].push("SaldoPrevio","UnidadesTeoricas","Lote","FechaVencimiento","DiasInterrupcion");
+/* portal.js:11250 */
+if(typeof VX_DISC!=="undefined"&&!VX_DISC.includes("Toma de muestras")){
+  VX_DISC.push("Toma de muestras");
+  if(typeof VX_DCOL!=="undefined")VX_DCOL["Toma de muestras"]="c8";
+}
+
+return { esc, pad, iso, fd, ym, addDays, addMonths, monthStart, monthEnd, dayDiff, nowTs, pdate, num, norm, f1, pct, money, VX_CAC_COLS, VXS, VXK, VX_EPS, VX_EPSCODE_DEF, VX_REG, VX_MUN, VX_MUN_ALIAS, VX_PCLAVE, VX_TINGR, VX_ESTADO, VX_MODAL, VX_DISC, VX_DISC_ACT, VX_CITTIPO, VX_MOTINAS, VX_NOV, VX_PRC, VX_PRF, VX_EX, VXE, VX_CONTRATO_DEF, VX_GUIA_DIF, VX_MED, VX_CLASES, VX_ESQ, VXQ, VX_GPC_PREF, VX_VAC, VXV, VX_VACEST, vxLive, vxD, vxNom, vxCorte, vxMunCode, vxMunName, vxCfg, vxNewBook, vxEdad, vxGrupoEtario, vxF, vxIdx, vxPacs, vxP, vxL, vxLast, vxFirst, vxVal, vxPos, vxCVind, vxFmtLab, vxPeriodo, vxActivo, vxTarAt, vxTarIni, vxUltEnt, vxCobertura, vxUltAtencion, vxNovAt, vxSt, vxVacEstado, vxVacCompleta, vxContrato, vxHSH, vxSolRecs, vxSolTieneRes, vxAlertas, vxTFG, VX_GPC14, vxEnRango, vxLabIn, vxPrcIn, vxPrfIn, vxHospVIH, vxFalla, vxR, vxUP, vxDOWN, vxLB, vxSemRng, VX_IND, VXI, vxRng, vxNivel, vxRngTxt, vxFiltro, vxPer, vxCalc, vxCalcBy, VX_AGFREQ_DEF, vxAgFreq, vxCitProg, vxAgEstado, vxPuedeAgendar, VX_SMAQ, vxSmaqRes, VX_TARCHK, vxTarChkApl, VX_FTXT, vxLabPlan, vxDue, vxPPD, vxCit, vxPrcPend, VX_PAQ_DEF, vxPaq, vxFactMes, vxProdMes, vxDiscMes, VX_NOM_COLS, vxNominalRows, vxNomRow, vxNominalValidar, vxCACRows, vxCACRow, vxPcCAC, vxCACValidar, VX_CAC_LBL, vxCacCod, vxCacNum, vxCacLbl, VX_DCOL, VX, TODAY };
 }

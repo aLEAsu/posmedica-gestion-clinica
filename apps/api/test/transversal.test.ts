@@ -2,7 +2,7 @@
    HD, VIH y DP que su módulo usa. Se verifica (1) con el prototipo, que todas las vistas de cada módulo transversal se
    dibujan IDÉNTICAS con esas hojas que con el libro completo, y (2) con la API, que las demás hojas no se entregan. */
 import { beforeAll, describe, expect, it } from "vitest";
-import { HOJAS_TRANSVERSALES } from "../src/modulos/libro/transversal.js";
+import { COLUMNAS_TRANSVERSALES, HOJAS_TRANSVERSALES } from "../src/modulos/libro/transversal.js";
 import { agente, crearUsuario, sembrarProgramas } from "./ayuda.js";
 // @ts-expect-error utilidades de prueba del paquete de reglas (TypeScript sin compilar)
 import { cargarPortal } from "../../../packages/clinical-rules/test/oraculo.ts";
@@ -25,8 +25,12 @@ describe("las vistas transversales no cambian con las hojas mínimas", () => {
     o.ev<string>(`(() => { const vista = { lab: pxLab, prod: pxProd, sp: pxSP, iaas: pxIAAS, proa: pxPROA }[${JSON.stringify(t)}]; PX.view = ${JSON.stringify(t)};
       return ${JSON.stringify(SUBVISTAS[t])}.map(s => { PX.ui = { sub: s }; try { TRM.c = {}; } catch (e) {} try { return s + ":" + vista(); } catch (e) { return s + ": EXC " + e.message; } }).join("\\n"); })()`);
   const poner = (t: string | null) =>
-    o.ev(`(() => { const H = ${JSON.stringify(HOJAS_TRANSVERSALES)}, t = ${JSON.stringify(t)};
-      const solo = (b, prog) => { if (!t) return b; const ok = (H[prog] || {})[t] || []; const n = Object.assign({}, b); for (const k of Object.keys(n)) if (Array.isArray(n[k]) && !ok.includes(k) && k !== "log" && !(k === "cfg" && prog !== "dp")) n[k] = []; return n; };
+    o.ev(`(() => { const H = ${JSON.stringify(HOJAS_TRANSVERSALES)}, C = ${JSON.stringify(COLUMNAS_TRANSVERSALES)}, t = ${JSON.stringify(t)};
+      // Igual que el servidor: hojas que el módulo no usa, vacías; hojas con columnas limitadas, solo esas columnas.
+      const solo = (b, prog) => { if (!t) return b; const ok = (H[prog] || {})[t] || []; const cs = ((C[prog] || {})[t]) || {}; const n = Object.assign({}, b);
+        for (const k of Object.keys(n)) { if (!Array.isArray(n[k]) || k === "log" || (k === "cfg" && prog !== "dp")) continue; if (!ok.includes(k)) { n[k] = []; continue; }
+          if (cs[k]) n[k] = n[k].map(r => Object.fromEntries(Object.entries(r).filter(([c]) => cs[k].includes(c) || c === "ID" || c.startsWith("_")))); }
+        return n; };
       ST.book = solo(__orig.hd, "hd"); IDX.dirty = true; VX.book = solo(__orig.vih, "vih"); VX.memo = {}; DP.book = solo(__orig.dp, "dp"); })()`);
   for (const t of Object.keys(SUBVISTAS)) {
     it(t, () => {
@@ -71,6 +75,18 @@ describe("la API entrega solo las hojas mínimas", () => {
       },
     });
     expect(r.status, JSON.stringify(r.body)).toBe(200);
+  });
+
+  it("Producción recibe de las valoraciones de HD solo el mes, sin su texto clínico (v3.2)", async () => {
+    expect((await admin.post("/api/v1/hd/sincronizar", { cambios: {
+      pac: { nuevos: [{ ID: "P9001", TipoDoc: "CC", Documento: "990000101", Nombres: "Ficticio", Apellidos: "Prueba", Sexo: "Femenino" }] },
+      val: { nuevos: [{ ID: "V-9001", Paciente: "P9001", Mes: "2026-10", EnfermedadActual: "Texto clínico de prueba" }] },
+    } })).status).toBe(200);
+    const h = (await u["prod.tr"].get("/api/v1/hd/libro")).body.hojas;
+    expect(h.val).toHaveLength(1);
+    expect(h.val[0].Mes).toBe("2026-10");
+    expect(h.val[0].EnfermedadActual).toBeUndefined();
+    expect(h.val[0].Paciente).toBeUndefined();
   });
 
   it("Producción recibe citas de VIH pero no su TAR", async () => {

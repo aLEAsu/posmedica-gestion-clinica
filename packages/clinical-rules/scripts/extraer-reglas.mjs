@@ -86,7 +86,7 @@ const GLOBALES_PERMITIDOS = new Set([
   "Uint8Array", "TextEncoder", "TextDecoder", "encodeURIComponent", "decodeURIComponent",
 ]);
 
-function generar({ archivo, funcion, cabecera, fuentes, incluir, sentencias, preludio, provistos, exportar }) {
+function generar({ archivo, funcion, cabecera, fuentes, incluir, sentencias, preludio, provistos, exportar, complementos = "", exportarExtra = [] }) {
   const todas = new Map();
   for (const f of fuentes) for (const [k, v] of f.defs) if (!todas.has(k)) todas.set(k, v);
   const elegidas = new Set();
@@ -115,7 +115,7 @@ function generar({ archivo, funcion, cabecera, fuentes, incluir, sentencias, pre
   }
   const ordenadas = [...elegidas].sort((a, b) => (a.archivo === b.archivo ? a.linea - b.linea : fuentes.findIndex((f) => f.archivo === a.archivo) - fuentes.findIndex((f) => f.archivo === b.archivo)));
   const cuerpo = ordenadas.map((d) => `/* ${d.archivo}:${d.linea} */\n${d.texto}`).join("\n");
-  const nombresExport = exportar ?? [...nombresIncluidos, ...[...provistos].filter((x) => x !== "XLSX")];
+  const nombresExport = exportar ?? [...nombresIncluidos, ...[...provistos].filter((x) => x !== "XLSX"), ...exportarExtra];
   const js = `// GENERADO por packages/clinical-rules/scripts/extraer-reglas.mjs a partir de apps/web/public/modulos/.
 // NO EDITAR A MANO: cualquier cambio de regla se hace en el código del módulo y se vuelve a extraer.
 // Las referencias «portal.js:línea» son líneas de apps/web/public/modulos/portal/portal.js; las de Nefroprotección, de nefro/ruta-*.js.
@@ -124,6 +124,7 @@ export function ${funcion}(ctx) {
 "use strict";
 ${preludio}
 ${cuerpo}
+${complementos}
 return { ${nombresExport.join(", ")} };
 }
 `;
@@ -180,8 +181,31 @@ const HD_INCLUIR = [
   "CAC_H_FOMAG", "CAC_H_ERC", "CAC_SHEET_FOMAG", "CAC_SHEET_ERC", "D1800", "isoOr", "cacVals",
 ];
 
+/* Hojas nuevas de la v3.2 (hd-hojas.js) y núcleo HDX (v3.1): lectura estricta de los Dashboards (hdx-lectura.js) y los 17 indicadores CAC con su definición
+   operativa (hdx-nucleo.js). Esos archivos AMPLÍAN lo definido en portal.js (columnas del libro, reindex, accessAt, cada
+   indicador y evalInd) al cargar la página. El motor los ejecuta textualmente, en el mismo orden, después de las
+   definiciones: así calcula lo mismo que la interfaz. Sus funciones que cargan o pintan (hdxLoadBase…) no se llaman. */
+function iifes(nombreArchivo) {
+  const codigo = P.porArchivo[nombreArchivo];
+  if (!codigo) throw new Error(`No está ${nombreArchivo} en la página del portal.`);
+  const ast = acorn.parse(codigo, { ecmaVersion: "latest", sourceType: "script", locations: true });
+  const partes = ast.body.filter((n) => n.type === "ExpressionStatement" && n.expression.type === "CallExpression" && /Function/.test(n.expression.callee.type));
+  if (!partes.length) throw new Error(`${nombreArchivo}: no tiene bloques (function(){…})() que ejecutar.`);
+  return partes.map((n) => `/* ${nombreArchivo}:${n.loc.start.line} */\n${codigo.slice(n.start, n.end)}`).join("\n");
+}
+const HD_COMPLEMENTOS = `/* ---- Núcleo HDX v3.1: se ejecuta igual que en la página. «window» es aquí un objeto propio del motor (no el navegador):
+   allí dejan HDX y HX los bloques originales. ---- */
+const window = {};
+${iifes("hd-hojas.js")}
+${iifes("hdx-lectura.js")}
+const HDX = window.HDX;
+${iifes("hdx-nucleo.js")}
+const HX = window.HX;`;
+
 generar({
   archivo: "hd.js",
+  complementos: HD_COMPLEMENTOS,
+  exportarExtra: ["HDX", "HX"],
   funcion: "crearMotorHD",
   cabecera: "// Hemodiálisis: índice por paciente, indicadores CAC e institucionales, semáforo, alertas, calidad del dato y de diálisis,\n// calendario de laboratorios, vacunación VHB, trasplante, facturación y valores de la matriz CAC.",
   fuentes: [PRINCIPAL],
@@ -212,7 +236,7 @@ const VIH_INCLUIR = [
   "VX_FTXT", "vxLabPlan", "vxDue", "vxPPD", "vxCit", "vxPrcPend",
   // producción y reportes
   "VX_PAQ_DEF", "vxPaq", "vxFactMes", "vxProdMes", "vxDiscMes", "VX_NOM_COLS", "vxNominalRows", "vxNomRow", "vxNominalValidar", "vxCACRows", "vxCACRow", "vxPcCAC", "vxCACValidar",
-  "VX_CAC_LBL", "vxCacCod", "vxCacNum", "vxCacLbl",
+  "VX_CAC_LBL", "vxCacCod", "vxCacNum", "vxCacLbl", "VX_DCOL",
 ];
 
 generar({
@@ -225,6 +249,9 @@ generar({
 /* Estado que en el prototipo vivía en la pantalla. ctx.libro: el libro del programa VIH (mismas hojas y columnas). */
 const VX = { book: ctx.libro, ui: Object.assign({ tab: "tab" }, ctx.ui || {}), dirty: false, corte: ctx.corte ? new Date(ctx.corte) : null, demo: false, ver: 0, memo: {} };`,
   provistos: new Set(["VX", "TODAY", "XLSX"]),
+  // Sentencias sueltas de portal.js: v2.1 suma la disciplina «Toma de muestras» (VX_DCOL es su color) y v0.9 las
+  // columnas de conciliación de las entregas de TAR (VXS.ent).
+  sentencias: new Set(["VX_DISC", "VX_DCOL", "VXS"]),
 });
 
 /* ---------- Nefroprotección ---------- */

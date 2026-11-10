@@ -1,4 +1,4 @@
-// Código propio del proyecto (punto de partida: prototipo v0.8 de la coordinación médica). Se edita aquí.
+// Código propio del proyecto. Ruta de Nefroprotección (punto de partida: prototipo v3.2).
 
 /* ===================== GESTIÓN DEL PROGRAMA ===================== */
 (function(){
@@ -13,7 +13,7 @@ const VERSION="8.0";
 let DL=null;try{if(window.claude&&window.claude.use)window.claude.use("downloads").then(x=>{DL=x;}).catch(()=>{});}catch(e){}
 
 /* ---------- API (PostgREST detrás de nginx en /api) ---------- */
-const API="/api/v1/nefro/pg/"; /* CAMBIO DE CONFIGURACIÓN: fachada del servidor */
+const API="/api/v1/nefro/pg/"; /* fachada del servidor */
 async function apiGet(path){const r=await fetch(API+path,{headers:{Accept:"application/json"}});if(!r.ok)throw new Error(r.status+" "+(await r.text()).slice(0,300));return r.json();}
 async function apiRpc(fn,payload){const r=await fetch(API+"rpc/"+fn,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({p:payload})});const t=await r.text();if(!r.ok){let m=t;try{m=JSON.parse(t).message||t;}catch(e){}throw new Error(m);}return t?JSON.parse(t):null;}
 async function apiPost(path,body){const r=await fetch(API+path,{method:"POST",headers:{"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(body)});if(!r.ok){let m=await r.text();try{m=JSON.parse(m).message||m;}catch(e){}throw new Error(m);}}
@@ -332,7 +332,7 @@ function slotCell(j,t,a,C){
   const here=C.filter(c=>c.hora===t&&c.ag===a);const act=here.filter(c=>c.estado!=="CANCELADA"),cn=here.filter(c=>c.estado==="CANCELADA");
   let h="";
   act.forEach(c=>{const p=pOf(c.c)||{},s=sOf(c.c);const prev=inasCount(c.c,c.fecha,365);
-    h+='<button type="button" class="slot st-'+AG_CLS[c.estado]+'" data-ag="cita|'+esc(c.id)+'"><span class="sl1"><strong>'+esc(c.c)+'</strong> '+esc((p.nombre||"").split(" ").slice(0,3).join(" "))+'</span><span class="sl2">'+esc(epsShort(p.eps))+(s&&s.c.grupo?' · G'+s.c.grupo:'')+' · '+esc((c.tipo||"").toLowerCase())+'</span><span class="sl3"><span class="est">'+esc(AG_EST[c.estado])+'</span>'+(c.conf==="CONFIRMADA"?'<span class="fl ok">confirmada</span>':c.conf?'<span class="fl">'+esc(c.conf.toLowerCase())+'</span>':'')+(prev?'<span class="fl bad">'+prev+' inasist. previa'+(prev>1?'s':'')+'</span>':'')+(p.estado&&p.estado!=="ACTIVO"?'<span class="fl bad">paciente '+esc(p.estado.toLowerCase())+'</span>':'')+'</span></button>';});
+    h+='<button type="button" class="slot st-'+AG_CLS[c.estado]+'" data-ag="cita|'+esc(c.id)+'"><span class="sl1"><strong>'+esc(c.c)+'</strong> '+esc((p.nombre||"").split(" ").slice(0,3).join(" "))+'</span><span class="sl2">'+esc(epsShort(p.eps))+(s&&s.c.grupo?' · G'+s.c.grupo:'')+' · '+esc((c.tipo||"").toLowerCase())+'</span><span class="sl3"><span class="est">'+esc(AG_EST[c.estado])+'</span>'+((window.NEFRO_PRECON&&window.NEFRO_PRECON[c.c]&&window.NEFRO_PRECON[c.c].listo)?'<span class="fl ok" style="background:var(--ok-soft);font-weight:700">✓ LISTO PARA ATENCIÓN</span>':(c.conf==="CONFIRMADA"?'<span class="fl ok">confirmada · hacer preconsulta</span>':c.conf?'<span class="fl">'+esc(c.conf.toLowerCase())+'</span>':''))+(prev?'<span class="fl bad">'+prev+' inasist. previa'+(prev>1?'s':'')+'</span>':'')+(p.estado&&p.estado!=="ACTIVO"?'<span class="fl bad">paciente '+esc(p.estado.toLowerCase())+'</span>':'')+'</span></button>';});
   if(!act.length)h+=j.estado==="ABIERTA"?'<button type="button" class="slot free" data-ag="asig|'+esc(j.id)+'|'+t+'|'+a+'">+ Asignar</button>':'<span class="note">—</span>';
   if(cn.length)h+='<span class="sub agcn">'+cn.map(c=>'<button type="button" class="lnk" data-ag="cita|'+esc(c.id)+'">cancelada '+esc(c.c)+'</button>').join(" ")+'</span>';
   return h;
@@ -1149,20 +1149,26 @@ function calPlan(s){
     for(let k=0;k<NM;k+=1){if(ctlC[k])continue;if(k%im!==0&&im>1)continue;const pa=(paOff||a1cOff)&&(nx==null||k<nx);cells[k]={t:"prog",tx:pa?"F+PA":"F"};}
     R("Consultas médicas","Médico experto · formulación de medicamentos contratados"+((paOff||a1cOff)?" (F+PA: con control de "+(paOff?"PA":"")+(paOff&&a1cOff?" y ":"")+(a1cOff?"HbA1c":"")+" hasta la próxima valoración)":""),"MEDICO EXPERTO",cells,"Modelo de "+(s.p.eps||"la EPS")+": en los meses sin valoración por nefrología el paciente asiste a médico experto para formulación.");}
   /* laboratorios y equipo */
-  const align=k=>{if(!pkg||!nefM.length)return{k};const prev=nefM.filter(x=>x<=k);if(prev.length)return{k:prev[prev.length-1],mov:prev[prev.length-1]!==k};return{k:nefM[0],mov:nefM[0]!==k};};
   s.items.forEach(it=>{if(["ctl","ajuste","experto"].includes(it.k))return;
     const grp=it.tipo==="Laboratorio"?"Laboratorios":(it.grp==="Equipo"&&!["rcv","desnut","edu","flu","kfre"].includes(it.k))?"Equipo multidisciplinario":"Clínica, educación y vacunas";
-    const cells=blank();occ(it).forEach(o=>{const a=grp==="Clínica, educación y vacunas"&&it.k!=="edu"?{k:o.k}:align(o.k);if(a.k>=NM)return;const prev=cells[a.k];cells[a.k]={t:o.venc?"venc":(prev&&prev.t==="venc"?"venc":"prog"),mov:a.mov};});
+    const cells=blank();occ(it).forEach(o=>{if(o.k>=NM)return;const prev=cells[o.k];cells[o.k]={t:o.venc?"venc":(prev&&prev.t==="venc"?"venc":"prog"),mov:false};});
     R(grp,it.nombre+(it.m?" · cada "+it.m+(it.m===1?" mes":" meses"):it.wk?" · a las "+it.wk+" semanas":""),itemServ(s,it),cells,it.why);});
-  /* citas ya asignadas */
-  const fut=((ST.book.CI||{})[s.p.codigo]||[]).filter(c=>(c.estado==="ASIGNADA"||c.estado==="EN SALA")&&c.fecha>=T0);
-  rows.forEach(r=>{if(!r.serv)return;fut.filter(c=>c.serv===r.serv).forEach(c=>{const k=mi(c.fecha);if(k<0||k>=NM)return;r.cells[k]=Object.assign({},r.cells[k]||{t:"prog"},{cita:fd(c.fecha)+" "+c.hora});});});
+  if(M.meds||/Familiar/i.test(s.p.eps||"")){
+    const medCells=blank();for(let k=0;k<NM;k++)medCells[k]={t:"prog",tx:"MED"};
+    R("Gestión farmacéutica contractual","Entrega mensual de medicamentos nefroprotectores (contrato EPS Familiar)","QUIMICA FARMACEUTICA",medCells,"Contratado exclusivamente para EPS Familiar de Colombia junto con la valoración mensual por médico experto.");
+  }
+  /* citas ya asignadas y asistencias/inasistencias registradas */
+  const allCits=((ST.book.CI||{})[s.p.codigo]||[]).filter(c=>c.fecha>=T0);
+  rows.forEach(r=>{if(!r.serv)return;allCits.filter(c=>c.serv===r.serv).forEach(c=>{const k=mi(c.fecha);if(k<0||k>=NM)return;
+    if(c.estado==="ATENDIDA")r.cells[k]={t:"hecho",tx:"✔"};
+    else if(c.estado==="INASISTENCIA")r.cells[k]={t:"venc",tx:"✕"};
+    else if(c.estado==="ASIGNADA"||c.estado==="EN SALA")r.cells[k]=Object.assign({},r.cells[k]||{t:"prog"},{cita:fd(c.fecha)+" "+c.hora});
+  });});
   /* lo realizado en el mes en curso */
   s.items.forEach(it=>{if(it.last&&it.last>=T0&&it.last<=ST.corte){const r=rows.find(x=>x.name.startsWith(it.nombre));if(r&&(!r.cells[0]||r.cells[0].t!=="prog"))r.cells[0]={t:"hecho"};}});
-  const notas=[];
-  if(pkg)notas.push("Paquete de "+(s.p.eps||"la EPS")+": cada toma de laboratorios entra por nefrología; los paraclínicos y el equipo se alinean al mes de nefrología igual o anterior a su vencimiento (marcados ↤).");
-  if(fuera)notas.push("Frecuencia base de nefrología cada "+rev+" meses: fuera del paquete (el paquete cubre controles mensuales, bimestrales o trimestrales). Requiere autorización o ruta aparte con la EPS.");
-  if(M.meds)notas.push("EPS con medicamentos contratados: la formulación se hace en la consulta del mes.");
+  const notas=["Calendario clínico estandarizado según la Herramienta Técnica de Contenidos Mínimos y Suficientes para Nefroprotección (CAC / KDIGO 2024), independiente de la EPS."];
+  if(/Familiar/i.test(s.p.eps||"")||M.meds)notas.push("Regla contractual EPS Familiar de Colombia: incluye valoración mensual por Médico Experto (meses sin nefrología) y entrega mensual de medicamentos.");
+  else if(/Nueva EPS/i.test(s.p.eps||""))notas.push("Regla contractual Nueva EPS: aplica el 100 % del calendario clínico de contenidos mínimos y suficientes por estadio; valoración mensual por médico experto y entrega de medicamentos no contratados.");
   return{months,rows,notas,pkg,fuera,inter,rev};}
 function calHtml(s){const C=calPlan(s);const cell=c=>{if(!c)return'<td class="cm"></td>';const cls=c.cita?"cita":c.t==="venc"?"venc":c.t==="hecho"?"hecho":c.fuera?"fuera":"";const tx=c.cita?"✓":c.t==="venc"?"!":c.t==="hecho"?"✔":(c.tx||"●")+(c.mov?"↤":"");return'<td class="cm"><span class="ev '+cls+'" title="'+esc(c.cita?"Cita "+c.cita:c.t==="venc"?"Vencido o sin registro: programar ya":c.t==="hecho"?"Realizado este mes":c.mov?"Se adelanta al mes de nefrología":"Programado")+'">'+tx+'</span></td>';};
   let h='<section class="panel"><div class="mhead"><h3 style="margin:0">Calendario de actividades · 12 meses</h3><div class="copyrow"><button type="button" class="btn sm" id="calexp">Descargar calendario</button></div></div>';
@@ -1667,6 +1673,6 @@ if(window.NEFRO_DEMO){$("booklabel").hidden=true;$("bookdemo").textContent="Rege
   document.querySelector(".privacy").innerHTML='<strong>Página de demostración.</strong> 300 pacientes inventados (100 por EPS) con seis meses de agenda simulada y dos meses programados. Las cifras salen del generador, no del programa. No cargue datos reales aquí.';
   if(!AST.user)AST.user="Demostración";if(typeof XLSX!=="undefined"){loadDemo(true);show("agenda");}}
 else probe().then(ok=>{if(ok){$("bookdemo").hidden=true;loadDb().catch(e=>{$("bookinfo").textContent="No se pudo leer la base de datos: "+e.message;});}});
-window.MG.agendaGuardada=function(){ST.dirty=false;try{bookInfo();}catch(e){}};window.MG.estadoRuta=function(){return ST;}; /* PUENTE agregado por extraer-modulos.mjs */
+window.MG.agendaGuardada=function(){ST.dirty=false;try{bookInfo();}catch(e){}};window.MG.estadoRuta=function(){return ST;}; /* puente con el adaptador */
 })();
 

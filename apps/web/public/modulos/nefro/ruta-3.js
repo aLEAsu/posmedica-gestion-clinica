@@ -1,4 +1,4 @@
-// Código propio del proyecto (punto de partida: prototipo v0.8 de la coordinación médica). Se edita aquí.
+// Código propio del proyecto. Ruta de Nefroprotección (punto de partida: prototipo v3.2).
 
 /* ===================== INTERFAZ ===================== */
 (function(){

@@ -1,4 +1,4 @@
-// Código propio del proyecto (punto de partida: prototipo v0.8 de la coordinación médica). Se edita aquí.
+// Código propio del proyecto. Ruta de Nefroprotección (punto de partida: prototipo v3.2).
 
 /* ===================== RIESGO CARDIOVASCULAR Y FUNCIÓN RENAL (compartido portal / Nefroprotección) =====================
    Fórmulas transcritas de las publicaciones; ninguna está validada por la IPS. La decisión clínica es del profesional.

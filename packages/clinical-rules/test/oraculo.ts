@@ -17,7 +17,9 @@ function comodin(): unknown {
       if (k === "length") return 0;
       if (k === "value" || k === "textContent" || k === "innerHTML") return "";
       if (k === "checked" || k === "hidden") return false;
-      if (k === "dataset" || k === "style") return {};
+      if (k === "dataset") return {};
+      // La interfaz ajusta variables CSS (tema, escala de letra) con style.setProperty.
+      if (k === "style") return { setProperty() {}, removeProperty() {}, getPropertyValue: () => "" };
       return comodin();
     },
     set: () => true,
@@ -78,6 +80,10 @@ function contexto(hoy: Date, extra: Record<string, unknown> = {}, relojReal = fa
     btoa,
     fetch: () => Promise.reject(new Error("sin red en el oráculo")),
     AbortController,
+    // La interfaz observa cambios del DOM y del tamaño de la ventana.
+    MutationObserver: comodin(),
+    ResizeObserver: comodin(),
+    IntersectionObserver: comodin(),
     ...extra,
   };
   g.window = g;

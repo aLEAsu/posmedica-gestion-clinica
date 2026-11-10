@@ -8,15 +8,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
 <link rel="stylesheet" href="../portal.css">
 <link rel="stylesheet" href="../modulo.css">
 </head>
 <body>
-<!-- Página propia del proyecto (punto de partida: prototipo v0.8). Se edita aquí. -->
 <div class="cargando-modulo" id="cargando-modulo">Cargando…</div>
 
 
-<meta name="sigc-version" content="0.8 · 13-oct-2026 · DP integral">
+<meta name="sigc-version" content="3.1 · 10-nov-2026 · Hemodiálisis: base real leída solo de los Dashboards mayo-noviembre 2026 (sin datos generados), caracterización epidemiológica de la cohorte y tablero CAC de 17 indicadores con cálculo auditado. Base: 3.0 · 2.2 · 26-oct-2026 · Diálisis peritoneal v1.1 reemplaza el módulo DP nativo en la navegación; nuevo módulo Contratos y tecnologías v1.1 (sin precios). Ambos embebidos como aplicaciones independientes. Base: 2.1">
 
 
 
@@ -38,6 +38,7 @@
     </div>
   </header>
   <nav class="nav" id="nav" role="tablist" aria-label="Secciones"></nav>
+  <div id="hd-subbar"></div>
   <div class="bookbar panel" id="bookbar">
     <div class="copyrow">
       <label class="btn primary" for="bookfile">Cargar libro o Dashboard</label><input type="file" id="bookfile" accept=".xlsx,.xls" hidden>
@@ -58,7 +59,30 @@
 </div>
 </section>
 <section id="nefroapp" hidden></section>
+<section id="extapp" hidden></section>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- =====================================================================================================
+     SIGC POSMÉDICA v3.2 · REDISEÑO VISUAL AMIGABLE Y BARRA LATERAL ESTILO GEMINI (EXPLORADOR DE SUBMÓDULOS)
+     ===================================================================================================== -->
 
 
 
@@ -69,6 +93,13 @@
 <div id="dlg" class="ovl" hidden></div>
 <script src="../vendor/xlsx.full.min.js"></script>
 <script src="portal.js"></script>
+<script src="hd-hojas.js"></script>
+<script src="hdx-lectura.js"></script>
+<script src="hdx-nucleo.js"></script>
+<script src="motor-v30.js"></script>
+<script src="hd-registros.js"></script>
+<script src="hdx-vistas.js"></script>
+<script src="barra-lateral.js"></script>
 <script src="../adaptador-comun.js"></script>
 <script src="adaptador-portal.js"></script>
 </body>

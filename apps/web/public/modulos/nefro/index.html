@@ -1,5 +1,5 @@
 <!doctype html><html><head>
-<!-- Página propia del proyecto (punto de partida: prototipo v0.8). Se edita aquí. --><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!-- Página propia del proyecto (punto de partida: prototipo v3.2). Se edita aquí. --><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Ruta de Nefroprotección POSMÉDICA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -702,6 +702,33 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
 <script src="ruta-4.js"></script>
 
 <script src="ruta-5.js"></script>
+
+
+<style>
+.wrap{max-width:1580px!important}
+.grid{grid-template-columns:minmax(0,380px) minmax(0,1fr)!important}
+.nefro-calc-wrap{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:14px;align-items:start}
+@media (max-width:860px){.nefro-calc-wrap{grid-template-columns:minmax(0,1fr)}}
+.nefro-gpc-side{position:sticky;top:12px;max-height:calc(100vh - 28px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:10px;padding:14px;box-shadow:var(--shadow);display:grid;gap:10px}
+.nefro-gpc-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.nefro-gpc-chip{font-family:var(--f-mono);font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px;border:1px solid currentColor}
+.nefro-gpc-chip.ok{color:var(--ok);background:var(--ok-soft)}
+.nefro-gpc-chip.warn{color:var(--warn);background:var(--warn-soft)}
+.nefro-gpc-chip.bad{color:var(--bad);background:var(--bad-soft)}
+ul.nefro-audl{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+ul.nefro-audl li{padding:6px 8px 6px 26px;border-radius:6px;background:var(--bad-soft);position:relative;font-size:13px;line-height:1.35}
+ul.nefro-audl li::before{content:"✗";position:absolute;left:8px;top:6px;font-weight:700;color:var(--bad)}
+ul.nefro-audl li.y{background:var(--ok-soft)}
+ul.nefro-audl li.y::before{content:"✓";color:var(--ok)}
+ul.nefro-audl li.w{background:var(--warn-soft)}
+ul.nefro-audl li.w::before{content:"!";color:var(--warn)}
+ul.nefro-audl li.na{background:var(--surface-2);color:var(--muted)}
+ul.nefro-audl li.na::before{content:"–";color:var(--muted)}
+ul.nefro-audl .sub{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.precon-bar{background:var(--surface-2);border:1px solid var(--accent);border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.listo-badge{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok);border-radius:999px;padding:1px 8px}
+</style>
+<script src="ruta-6.js"></script>
 
 <script src="adaptador-nefro.js"></script>
 <link rel="stylesheet" href="../modulo.css">

@@ -60,7 +60,7 @@ describe("importación inicial y equivalencia de resultados", () => {
 
     const libro = await admin.get("/api/v1/hd/libro");
     expect(libro.status).toBe(200);
-    const m = crearMotorHD({ libro: libroDesdeApi(libro.body), hoy: HOY, corte: HOY, inicioPeriodo: o.ev("ST.ps") }) as unknown as Record<string, unknown>;
+    const m = crearMotorHD({ facturacion: clonarLibro(o.ev("ST.fin && ST.fin.data ? ST.fin.data : null")), libro: libroDesdeApi(libro.body), hoy: HOY, corte: HOY, inicioPeriodo: o.ev("ST.ps") }) as unknown as Record<string, unknown>;
     evaluarEn(m, "ensureIdx()");
     for (const expr of ["IND.map(d => evalInd(d, ctxFor(ST.corte, ST.ps, ST.eps)))", "alertas()", "calidad()", "pacs().map(p => semaforo(p, ST.corte))", "pacs().map(p => vacStatus(p, ST.corte))", "pacs().map(p => calidadDe(p, ST.corte))", "pacs().map(p => cacVals(p, ST.corte, ST.ps))"]) {
       const A = normalizar(evaluarEn(m, expr)), B = normalizar(o.ev(expr));

@@ -81,7 +81,7 @@ describe("dispositivos, limpieza y microbiología guardados en la base", () => {
     expect(rPx.body.hojas.mic).toHaveLength(mic.length); // Hemodiálisis lee los cultivos de sus pacientes
     // _ts es el sello de concurrencia del adaptador: no participa en ningún cálculo.
     const portal = Object.fromEntries(Object.entries(rPx.body.hojas as Record<string, Fila[]>).map(([k, L]) => [k, L.map(({ _ts, ...x }) => x)]));
-    const m = crearMotorHD({ libro: libroHd(rHd.body), portal, hoy: HOY, corte: HOY, inicioPeriodo: o.ev("ST.ps") }) as unknown as Record<string, unknown>;
+    const m = crearMotorHD({ facturacion: clonarLibro(o.ev("ST.fin && ST.fin.data ? ST.fin.data : null")), libro: libroHd(rHd.body), portal, hoy: HOY, corte: HOY, inicioPeriodo: o.ev("ST.ps") }) as unknown as Record<string, unknown>;
     evaluarEn(m, "ensureIdx()");
     for (const expr of ['cdCalc(ST.ps, ST.corte, "")', "ST.book.evt.filter(e => e.Tipo === ITS).map(itsConf)", "IND.map(d => evalInd(d, ctxFor(ST.corte, ST.ps, ST.eps)))", "alertas()", "calidad()"]) {
       const A = normalizar(evaluarEn(m, expr)), B = normalizar(o.ev(expr));

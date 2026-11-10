@@ -482,8 +482,19 @@ El coordinador entregó el prototipo v3.2. **Es la referencia de a dónde debe l
 - Despliegue: Render **gratuito** con datos reales. ⚠️ La base gratuita expira a los 30 días y no tiene copias: descargue el respaldo JSON con frecuencia.
 
 ### Plan
-- **B. Interfaz v3.2 y Hemodiálisis**: barra lateral y tema; tablas y vistas de SIIS, oxígeno, chequeo pre-turno, gobierno clínico, tablero CAC de 17 indicadores; reglas clínicas al día; importación de los Dashboards.
+- **B. Interfaz v3.2 y Hemodiálisis**: ✅ hecha (ver «Fase B» abajo).
 - **C. Transversales**: preconsulta, caracterización y calendario, procedimientos, cargue masivo de laboratorio, Nefroprotección ejes 04 y 05.
 - **D. Diálisis peritoneal v1.1.**
 - **E. Contratos y tecnologías, Talento humano y Producción.**
 - **F. Pruebas de la API completas, pruebas de aceptación y guía de despliegue.**
+
+### Fase B (hecha, 10 de noviembre de 2026)
+- **Código**: el núcleo del portal y los archivos de la v3.2 (`hdx-lectura.js`, `hdx-nucleo.js`, `motor-v30.js`, `hdx-vistas.js`, `barra-lateral.js`) y la Ruta de Nefroprotección v3.2 son código propio en `apps/web/public/modulos/`, sin datos embebidos (`HDX_BASE` vacío; ningún documento ni nombre de paciente de la referencia, verificado). DP v1.1 y Contratos v1.1 quedan para las fases D y E.
+- **Persistencia** (`hd-hojas.js`, `hd-registros.js`, migración `20261110120000_v32_hemodialisis_registros`, solo aditiva): actividades SIIS, oxígeno medicinal y chequeo pre-turno pasan de la memoria del navegador a hojas del libro de HD con tabla, permisos, auditoría y llave foránea al paciente; la sesión guarda FC, FR y SatO2; columnas nuevas de la lectura de Dashboards y de la entrega de TAR de VIH.
+- **Reglas clínicas**: el motor ejecuta también el núcleo HDX v3.1 (los 17 indicadores CAC con su definición operativa redefinen ventanas, fuentes y denominadores) y la disciplina «Toma de muestras» de VIH. Facturación sin clave en la interfaz (en la aplicación solo la recibe el administrador).
+- **Seguridad del paciente** (hallazgos de la v3.2 corregidos en el código propio): el turno precargaba FC 76, FR 16 y SatO2 96 %; el chequeo pre-turno daba por «Sí» agua y desinfección (con conductividad y cloro inventados); la bitácora de oxígeno usaba paciente P001, flujo 2 L/min, 180 min y SatO2 88→96 % por defecto; el Kt/V renal suponía 65 kg sin peso seco; el arrastre de signos vitales completaba FC, FR, SatO2 y temperatura. Ahora lo no medido queda vacío y lo obligatorio se exige.
+- **Privacidad**: sin copia local en IndexedDB ni estado en `localStorage` (preconsulta, procedimientos y Talento humano quedan en memoria hasta la fase C/E). Producción recibe de las valoraciones solo las columnas que cuenta, PROA solo el nombre y la profilaxis de VIH (`columnasHoja`, nuevo en el motor de libros).
+- **CSP**: 11 manejadores `onclick` en línea de la v3.x pasan a atributos `data-` con un manejador delegado.
+- **Generador del esquema**: ahora emite las llaves foráneas al paciente (antes se habían agregado a mano y `npm run esquema` las habría borrado).
+- **Pruebas**: reglas 164/164, API 102/102 (nueva `test/hd-v32.test.ts`), build completo; verificado en el navegador con la cohorte ficticia en una base e2e aparte.
+- **Pendiente para la fase C**: hojas nuevas del portal (Quimioterapia, Capacitaciones, Liberación de reportes), preconsulta, procedimientos, SISCAC y metas en tablas propias; valores por defecto de la HC de Consulta externa (glucometría 98, IMC 25).

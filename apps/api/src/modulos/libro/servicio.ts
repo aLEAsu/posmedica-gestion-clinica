@@ -69,6 +69,10 @@ export interface ConfigLibro {
   leeHoja?: (hoja: string, u: UsuarioSesion, ctx?: any) => boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   leeFila?: (hoja: string, fila: Fila, u: UsuarioSesion, ctx?: any) => boolean;
+  /** Qué columnas de una hoja recibe el usuario (minimización, Ley 1581): null = todas. La clave y el sello de
+      concurrencia siempre van. Quien recibe columnas parciales no puede escribir esa hoja (lo impide «escribe»). */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  columnasHoja?: (hoja: string, u: UsuarioSesion, ctx?: any) => readonly string[] | null;
   /** Quién puede guardar algo en este libro (filtro de entrada). Por defecto: «registrar» en el programa. */
   puedeEscribir?: (u: UsuarioSesion) => boolean;
   /** Quién puede crear o modificar registros de una hoja. Por defecto: «registrar» en el programa. */
@@ -329,7 +333,11 @@ export function crearServicioLibro(C: ConfigLibro) {
         const filas = esHojaP(h)
           ? (await D.findMany({ include: { persona: { include: { eps: true } } }, orderBy: orden })).map((f) => aRegistroPaciente(f as Fila & { persona: PersonaConEps }))
           : (await D.findMany({ orderBy: orden })).map((f) => aRegistro(h, f));
-        return C.leeFila ? filas.filter((f) => leeFila(h, f, u, ctx)) : filas;
+        const visibles = C.leeFila ? filas.filter((f) => leeFila(h, f, u, ctx)) : filas;
+        const cols = C.columnasHoja ? C.columnasHoja(h, u, ctx) : null;
+        if (!cols) return visibles;
+        const deja = new Set([...cols, C.hojas[h].clave, "_ts"]);
+        return visibles.map((f) => Object.fromEntries(Object.entries(f).filter(([c]) => deja.has(c))));
       }),
       LECTURAS_SIMULTANEAS,
     );
