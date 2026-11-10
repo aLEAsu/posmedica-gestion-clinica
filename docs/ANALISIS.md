@@ -452,3 +452,38 @@ Antes de desplegar en producción, dos de las migraciones de esta ronda necesita
 - `npm run pacientes:verificar-huerfanas -w apps/api` después de `20261019130000_fk_paciente_hd_vih_dp_ce` (A6; esta migración usa `NOT VALID` y no bloqueará el despliegue, pero conviene validar las restricciones cuanto antes).
 
 Queda abierto 1 hallazgo Medio (A8, ligado a A5/A6) pendiente de la misma verificación de datos, y la suite completa de la API (`npm test -w apps/api`) sin poder correrse contra una base real en este entorno — recomendado antes de desplegar.
+
+## 13. Prototipo v3.2 como referencia (10 de noviembre de 2026)
+
+El coordinador entregó el prototipo v3.2. **Es la referencia de a dónde debe llegar el sistema, no parte del proyecto**: no se modifica, no se versiona (trae datos reales de pacientes: Ley 1581) y ni el build ni las pruebas lo leen.
+
+### Paso 1 (hecho): el proyecto deja de depender del HTML
+- El código de los módulos (`apps/web/public/modulos/portal/`, `nefro/`, `portal.css`), que antes se copiaba del prototipo en cada build, es ahora **código propio versionado**, tomado de la v0.8 tal como estaba en producción.
+- `apps/web/scripts/preparar-modulos.mjs` reemplaza a `extraer-modulos.mjs`: solo copia SheetJS y, después de `vite build`, pone la huella de caché en `dist/` (ya no reescribe archivos fuente).
+- `packages/clinical-rules` extrae las reglas del código propio y su oráculo ejecuta ese mismo código. Las reglas generadas no cambiaron (solo las citas de origen: `portal.js:línea`, `nefro/ruta-N.js:línea`). 164 de 164 pruebas en verde.
+- El HTML salió del repositorio (`git rm --cached`) y `.gitignore` lo excluye. Queda en la carpeta de cada quien como documento de referencia.
+
+### Qué pide la v3.2 (brechas frente al proyecto)
+| Área | Lo que muestra la v3.2 | En el proyecto |
+|---|---|---|
+| Interfaz | Barra lateral, tema claro/oscuro, escala de letra, 8 ejes por programa, buscador MPI (Ctrl+K) | Portal v0.8 |
+| Hemodiálisis | Gobierno clínico (5 GPC, 6 protocolos, calculadora UKM, 13 sillas), ruta 360°, mapa de 14 procesos, cohorte operativa, 64 eventos SIIS, oxígeno medicinal (GFA-FO-OXI-001), tablero CAC de 17 indicadores por EPS, KRu y Kt/V total, chequeo pre-turno (agua, desinfección), gráficas de laboratorio por paciente, farmacia intradiálisis | Falta todo; los indicadores y la vacunación VIH cambian (reglas clínicas) |
+| Transversal | Preconsulta de enfermería («listo para atención»), caracterización y calendario de 12 meses en todos los programas, procedimientos quirúrgicos e invasivos (lista de chequeo, solicitud de desinfección), cargue masivo de laboratorio desde Excel | Falta |
+| Nefroprotección | Eje 04 Laboratorio y vacunación renal, eje 05 gestión farmacéutica | Falta |
+| Diálisis peritoneal | v1.1: censo, habilitación, contratación, gestión clínica, Kt/V, laboratorios, farmacia, peritonitis, CAC 2026 por EPS | v0.8 (24 tablas `dp_*`) |
+| Gestión | Contratos y tecnologías (buscador por programa y EPS), Talento humano y Bienestar, Producción con asesoría financiera | Falta |
+| Datos | Libro maestro, carga de los Dashboards mensuales de HD | Importación del libro o Dashboard v0.8 |
+
+### Decisiones (10 de noviembre de 2026)
+- Enfoque: **código propio**. Cada función de la v3.2 se lleva al código de los módulos con tablas, API, permisos y auditoría reales; nada se guarda solo en el navegador.
+- Datos reales: entran a la base por importación (Excel o Dashboard), nunca embebidos en el código.
+- Diálisis peritoneal: se migra a la v1.1 (tablas nuevas, con paso de lo que ya está en `dp_*`).
+- Contratos y tecnologías y Talento humano: solo administradores. Oxígeno e insumos: por permiso del programa.
+- Despliegue: Render **gratuito** con datos reales. ⚠️ La base gratuita expira a los 30 días y no tiene copias: descargue el respaldo JSON con frecuencia.
+
+### Plan
+- **B. Interfaz v3.2 y Hemodiálisis**: barra lateral y tema; tablas y vistas de SIIS, oxígeno, chequeo pre-turno, gobierno clínico, tablero CAC de 17 indicadores; reglas clínicas al día; importación de los Dashboards.
+- **C. Transversales**: preconsulta, caracterización y calendario, procedimientos, cargue masivo de laboratorio, Nefroprotección ejes 04 y 05.
+- **D. Diálisis peritoneal v1.1.**
+- **E. Contratos y tecnologías, Talento humano y Producción.**
+- **F. Pruebas de la API completas, pruebas de aceptación y guía de despliegue.**

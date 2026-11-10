@@ -127,7 +127,7 @@ Render → **New → Static Site** → elija el repositorio:
 
 Variable de entorno: `NODE_VERSION` = `22`.
 
-> El build del frontend genera las páginas de los módulos (`/modulos/portal`, donde viven Hemodiálisis, VIH y los módulos transversales, y `/modulos/nefro`, que el portal abre dentro de sí) copiando el código del prototipo «Gestión Clínica POSMÉDICA (1).html», que está en el repositorio.
+> Las páginas de los módulos (`/modulos/portal`, donde viven Hemodiálisis, VIH y los módulos transversales, y `/modulos/nefro`, que el portal abre dentro de sí) son código propio en `apps/web/public/modulos/`. El build solo copia SheetJS local y, después de `vite build`, pone la huella de caché en `dist/modulos/c/`. El prototipo HTML no está en el repositorio ni se usa en el build.
 
 Clic en **Create Static Site**.
 

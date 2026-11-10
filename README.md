@@ -3,7 +3,7 @@
 Versión web multiusuario del prototipo «Gestión Clínica POSMÉDICA» (UNO-P · Mocoa, Putumayo).
 Frontend React, backend Node.js y base de datos PostgreSQL, desplegados en Render.
 
-> El prototipo HTML del coordinador médico es la **especificación funcional**: reglas clínicas, cálculos, indicadores, textos y diseño se conservan tal cual. Ver [docs/ANALISIS.md](docs/ANALISIS.md).
+> El prototipo HTML del coordinador médico es la **especificación funcional** (a dónde debe llegar el sistema). **No forma parte del proyecto**: no está en el repositorio (trae datos reales de pacientes), ni el build ni las pruebas lo leen. Desde el 10 nov 2026 el código de los módulos es propio y se edita en `apps/web/public/modulos/`. Hasta ese día los módulos se copiaban del prototipo: reglas clínicas, cálculos, indicadores, textos y diseño se conservan tal cual. Ver [docs/ANALISIS.md](docs/ANALISIS.md).
 
 ## Estado
 
@@ -41,10 +41,10 @@ apps/api                 Backend: Express 5 + Prisma 6 + PostgreSQL (TypeScript)
   src/modulos/nefro/     Fachada de la API de la Ruta de nefroprotección y su agenda
   test/                  Pruebas de integración (Vitest + Supertest)
 apps/web                 Frontend: React 19 + Vite (estilos copiados del prototipo)
-  public/modulos/          Interfaz ORIGINAL del prototipo + adaptadores a la API: portal/ (HD, VIH, transversales) y nefro/
-  scripts/extraer-modulos.mjs  Copia textual del código del prototipo a public/modulos (corre en cada build)
+  public/modulos/          Código PROPIO de los módulos (partió del prototipo v0.8) + adaptadores a la API: portal/ (HD, VIH, transversales) y nefro/
+  scripts/preparar-modulos.mjs  Copia SheetJS local y, tras vite build, pone la huella de caché en dist/modulos/c/
 packages/shared          Catálogo de programas y regla única de permisos (front y back)
-packages/clinical-rules  Reglas clínicas extraídas del prototipo + pruebas de equivalencia (ver su README)
+packages/clinical-rules  Reglas clínicas extraídas del código de los módulos + pruebas de equivalencia (ver su README)
 _analisis/               Prototipo separado por módulos: referencia para las fases siguientes
 docs/                    Análisis y documentación
 ```
@@ -100,7 +100,7 @@ Cada corrida crea una base temporal `posmedica_test_<marca>` en el Postgres loca
 
 ## Cómo funcionan los módulos migrados
 
-Cada módulo conserva **la interfaz y la lógica originales del prototipo** (copiadas textualmente en cada build) y un **adaptador** (`public/modulos/<modulo>/adaptador-<modulo>.js`, con el motor de sincronización común en `public/modulos/adaptador-comun.js`) las conecta con el servidor. En el backend, un **motor genérico de libros** (`apps/api/src/modulos/libro/`) atiende a todos los programas con su configuración (`modulos/hd/config.ts`, `modulos/vih/config.ts`):
+Cada módulo conserva **la interfaz y la lógica del prototipo** (su código vive en `public/modulos/` y se edita ahí) y un **adaptador** (`public/modulos/<modulo>/adaptador-<modulo>.js`, con el motor de sincronización común en `public/modulos/adaptador-comun.js`) las conecta con el servidor. En el backend, un **motor genérico de libros** (`apps/api/src/modulos/libro/`) atiende a todos los programas con su configuración (`modulos/hd/config.ts`, `modulos/vih/config.ts`):
 
 - Al abrir, carga los datos desde la base (`GET /api/v1/<programa>/libro`), no desde un archivo de Excel.
 - Cada cambio que el módulo registra se guarda en el servidor en segundos (`POST /api/v1/<programa>/sincronizar`). La línea de estado muestra «Guardando…» o «Guardado · hora».

@@ -1,6 +1,6 @@
-// GENERADO por packages/clinical-rules/scripts/extraer-reglas.mjs a partir de «Gestión Clínica POSMÉDICA (1).html».
-// NO EDITAR A MANO: cualquier cambio de regla se hace en el prototipo validado por la coordinación médica y se vuelve a extraer.
-// Las referencias «prototipo:línea» son líneas del archivo HTML del prototipo; las de Nefroprotección, de _analisis/.
+// GENERADO por packages/clinical-rules/scripts/extraer-reglas.mjs a partir de apps/web/public/modulos/.
+// NO EDITAR A MANO: cualquier cambio de regla se hace en el código del módulo y se vuelve a extraer.
+// Las referencias «portal.js:línea» son líneas de apps/web/public/modulos/portal/portal.js; las de Nefroprotección, de nefro/ruta-*.js.
 // Ruta de Nefroprotección v8: riesgo cardiovascular y función renal (RCV), motor clínico (clasificación, metas, medicamentos,
 // plan) y motor de cohorte (fichas e indicadores).
 export function crearMotorNefro(ctx) {
@@ -9,7 +9,7 @@ export function crearMotorNefro(ctx) {
 let __modelo = ctx && ctx.modeloEps ? JSON.parse(JSON.stringify(ctx.modeloEps)) : null;
 const window = { get EPSMODEL() { return __modelo || (__modelo = JSON.parse(JSON.stringify(EPSMODEL_DEF))); } };
 const XLSX = ctx && ctx.XLSX;
-/* nefroproteccion/riesgo_cv.js:17 */
+/* nefro/ruta-1.js:18 */
 const RCV=(function(){
 "use strict";
 function ckdepi(scr,age,female){if(!(scr>0)||age==null)return null;const k=female?0.7:0.9,a=female?-0.241:-0.302;return 142*Math.pow(Math.min(scr/k,1),a)*Math.pow(Math.max(scr/k,1),-1.2)*Math.pow(0.9938,age)*(female?1.012:1);}
@@ -58,7 +58,7 @@ const REFS=["SCORE2 working group and ESC Cardiovascular risk collaboration. SCO
  "Cockcroft DW, Gault MH. Prediction of creatinine clearance from serum creatinine. Nephron. 1976;16:31-41."];
 return{ckdepi,cockcroft,score2,framingham,auto,evalAll,pct,REFS};
 })();
-/* nefroproteccion/motor_clinico.js:3 */
+/* nefro/ruta-2.js:4 */
 const NP=(function(){
 "use strict";
 const AI=a=>["A1","A2","A3"].indexOf(a);
@@ -485,9 +485,9 @@ function note(d,c,P){
 
 return{ckd,kfre,gStage,aCat,classify,plan,note,goals,addMonths,addDays,fd,days,GRUPO,MEDST,CAUSA};
 })();
-/* nefroproteccion/motor_clinico.js:430 */
+/* nefro/ruta-2.js:431 */
 const EPSMODEL_DEF={"EPS Familiar de Colombia":{inter:"MEDICO EXPERTO",interMeses:1,ajustePor:"MEDICO EXPERTO",multi:"PROGRAMA",meds:true},"Nueva EPS":{inter:"NINGUNO",interMeses:1,ajustePor:"NEFROLOGIA",multi:"PAQUETE",meds:false},"Mallamas EPS":{inter:"NINGUNO",interMeses:1,ajustePor:"MEDICO DEL PROGRAMA",multi:"PROGRAMA",meds:false}};
-/* nefroproteccion/motor_cohorte.js:3 */
+/* nefro/ruta-4.js:4 */
 const COH=(function(){
 "use strict";
 const EPS=["EPS Familiar de Colombia","Nueva EPS","Mallamas EPS"];

@@ -1,4 +1,4 @@
-/* Equivalencia Hemodiálisis: prototipo original (oráculo) frente a crearMotorHD, con la cohorte ficticia de
+/* Equivalencia Hemodiálisis: código del portal (oráculo) frente a crearMotorHD, con la cohorte ficticia de
    40 pacientes que trae el propio prototipo («Ver con datos ficticios»), en dos fechas de corte distintas, y con la
    demostración institucional completa (pxDemo), que agrega el registro de dispositivos, la limpieza y la hoja
    Microbiología del libro institucional (confirmación de ITS-CVC y días-catéter). */

@@ -1,5 +1,6 @@
 /* Extractor de reglas clínicas.
-   Copia TEXTUALMENTE (sin reescribir) las definiciones de lógica clínica del prototipo a módulos sin DOM:
+   Copia TEXTUALMENTE (sin reescribir) las definiciones de lógica clínica del código de los módulos
+   (apps/web/public/modulos/portal/portal.js y nefro/ruta-*.js, el mismo que sirve la aplicación) a módulos sin DOM:
      src/generado/hd.js     crearMotorHD(ctx)
      src/generado/vih.js    crearMotorVIH(ctx)
      src/generado/nefro.js  crearMotorNefro(ctx)
@@ -7,18 +8,18 @@
    del navegador (ST, VX, TODAY), que pasa a venir del contexto `ctx`. Si una definición incluida usa otra que no
    se incluyó, el extractor falla y la nombra: así no puede quedar una regla a medias.
 
-   Uso: npm run extraer -w packages/clinical-rules  (después de cualquier cambio en el prototipo) */
+   Uso: npm run extraer -w packages/clinical-rules  (después de cualquier cambio de lógica clínica en los módulos) */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as acorn from "acorn";
 import * as walk from "acorn-walk";
-import { ETIQUETA, leerPrototipo } from "./fuente.mjs";
+import { ETIQUETA, leerModulos } from "./fuente.mjs";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const SALIDA = process.env.SALIDA_REGLAS ? resolve(process.env.SALIDA_REGLAS) : resolve(aqui, "../src/generado");
 const INVENTARIO = [];
-const P = leerPrototipo();
+const P = leerModulos();
 
 /* ---------- análisis ---------- */
 
@@ -91,7 +92,7 @@ function generar({ archivo, funcion, cabecera, fuentes, incluir, sentencias, pre
   const elegidas = new Set();
   for (const n of incluir) {
     const d = todas.get(n);
-    if (!d) throw new Error(`${archivo}: «${n}» no existe en el prototipo.`);
+    if (!d) throw new Error(`${archivo}: «${n}» no existe en el código del módulo.`);
     elegidas.add(d);
   }
   // Sentencias sueltas que solo amplían catálogos ya incluidos (sin tocar la pantalla): se copian en su lugar.
@@ -115,9 +116,9 @@ function generar({ archivo, funcion, cabecera, fuentes, incluir, sentencias, pre
   const ordenadas = [...elegidas].sort((a, b) => (a.archivo === b.archivo ? a.linea - b.linea : fuentes.findIndex((f) => f.archivo === a.archivo) - fuentes.findIndex((f) => f.archivo === b.archivo)));
   const cuerpo = ordenadas.map((d) => `/* ${d.archivo}:${d.linea} */\n${d.texto}`).join("\n");
   const nombresExport = exportar ?? [...nombresIncluidos, ...[...provistos].filter((x) => x !== "XLSX")];
-  const js = `// GENERADO por packages/clinical-rules/scripts/extraer-reglas.mjs a partir de «Gestión Clínica POSMÉDICA (1).html».
-// NO EDITAR A MANO: cualquier cambio de regla se hace en el prototipo validado por la coordinación médica y se vuelve a extraer.
-// Las referencias «prototipo:línea» son líneas del archivo HTML del prototipo; las de Nefroprotección, de _analisis/.
+  const js = `// GENERADO por packages/clinical-rules/scripts/extraer-reglas.mjs a partir de apps/web/public/modulos/.
+// NO EDITAR A MANO: cualquier cambio de regla se hace en el código del módulo y se vuelve a extraer.
+// Las referencias «portal.js:línea» son líneas de apps/web/public/modulos/portal/portal.js; las de Nefroprotección, de nefro/ruta-*.js.
 ${cabecera}
 export function ${funcion}(ctx) {
 "use strict";
@@ -136,7 +137,7 @@ return { ${nombresExport.join(", ")} };
 
 // Todo el script principal del prototipo (Hemodiálisis, portal, VIH, Consulta externa, DP, IAAS/PROA…) es una sola
 // fuente: el prototipo no repite nombres de primer nivel, y Hemodiálisis usa definiciones que viven más abajo
-// (dispositivos, microbiología). El origen se cita con la línea del archivo HTML.
+// (dispositivos, microbiología). El origen se cita con la línea de portal.js.
 const PRINCIPAL = { archivo: ETIQUETA, ...definiciones(P.principal, P.lineaBase, ETIQUETA) };
 
 /* Utilidades de fecha y número del prototipo (hd.js) que también usa VIH. */
@@ -232,11 +233,13 @@ const VX = { book: ctx.libro, ui: Object.assign({ tab: "tab" }, ctx.ui || {}), d
   const cohorte = P.nefroScripts.find((s) => s.includes("MOTOR DE COHORTE"));
   const riesgo = P.nefroScripts.find((s) => s.includes("RIESGO CARDIOVASCULAR Y FUNCIÓN RENAL"));
   if (!clinico || !cohorte || !riesgo) throw new Error("No se encontraron los motores de Nefroprotección.");
-  const N0 = { archivo: "riesgo_cv.js", ...definiciones(riesgo, 0, "nefroproteccion/riesgo_cv.js") };
-  const N1 = { archivo: "motor_clinico.js", ...definiciones(clinico, 0, "nefroproteccion/motor_clinico.js") };
-  const N2 = { archivo: "motor_cohorte.js", ...definiciones(cohorte, 0, "nefroproteccion/motor_cohorte.js") };
+  // Origen citado: el archivo de la Ruta donde vive cada script (nefro/ruta-N.js).
+  const ruta = (s) => `nefro/ruta-${P.nefroScripts.indexOf(s) + 1}.js`;
+  const N0 = { archivo: "riesgo_cv.js", ...definiciones(riesgo, 0, ruta(riesgo)) };
+  const N1 = { archivo: "motor_clinico.js", ...definiciones(clinico, 0, ruta(clinico)) };
+  const N2 = { archivo: "motor_cohorte.js", ...definiciones(cohorte, 0, ruta(cohorte)) };
   // Los demás scripts de la Ruta (interfaz, gestión, v8) solo sirven para detectar dependencias no incluidas.
-  const resto = P.nefroScripts.filter((s) => ![riesgo, clinico, cohorte].includes(s)).map((s, i) => ({ archivo: `interfaz-${i + 1}`, ...definiciones(s, 0, `nefroproteccion/interfaz-${i + 1}`) }));
+  const resto = P.nefroScripts.filter((s) => ![riesgo, clinico, cohorte].includes(s)).map((s, i) => ({ archivo: `interfaz-${i + 1}`, ...definiciones(s, 0, ruta(s)) }));
   // Las sentencias que tocan window/localStorage (modelo por EPS guardado en el navegador) se omiten: el modelo llega en ctx.
   const omitidas = [...N0.otras, ...N1.otras, ...N2.otras].map((o) => `${o.linea}: ${o.texto.slice(0, 80)}`);
   console.log("Nefro: sentencias omitidas (estado del navegador):\n  " + omitidas.join("\n  "));
@@ -261,8 +264,8 @@ const XLSX = ctx && ctx.XLSX;`,
     "# Inventario de reglas clínicas extraídas",
     "",
     "> GENERADO por `packages/clinical-rules/scripts/extraer-reglas.mjs`. No editar a mano.",
-    "> Cada definición se copió **textualmente** del prototipo «Gestión Clínica POSMÉDICA (1).html». La columna *Origen* apunta a `_analisis/`.",
-    "> Equivalencia verificada en `packages/clinical-rules/test/` (prototipo original frente al módulo extraído, con las cohortes ficticias del propio prototipo).",
+    "> Cada definición se copió **textualmente** del código de los módulos (`apps/web/public/modulos/`). La columna *Origen* da el archivo y la línea.",
+    "> Equivalencia verificada en `packages/clinical-rules/test/` (código del módulo frente al motor extraído, con las cohortes ficticias de demostración).",
     "> Descripción clínica de cada regla: `docs/ANALISIS.md` §4.",
     "",
   ];

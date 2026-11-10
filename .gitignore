@@ -19,10 +19,11 @@ respaldos/
 .DS_Store
 Thumbs.db
 
-# Generados en cada build por apps/web/scripts/extraer-modulos.mjs (copias textuales del prototipo y SheetJS)
-apps/web/public/modulos/portal.css
+# SheetJS local, copiado en cada build por apps/web/scripts/preparar-modulos.mjs (los módulos son código propio y sí se versionan)
 apps/web/public/modulos/vendor/
-apps/web/public/modulos/*/index.html
-apps/web/public/modulos/portal/portal.js
-apps/web/public/modulos/nefro/ruta-*.js
 apps/web/public/modulos/c/
+
+# Prototipo HTML de la coordinación médica: solo referencia funcional, trae datos REALES de pacientes (Ley 1581).
+# Se conserva en la carpeta de cada quien; nunca va al repositorio ni lo lee el build.
+Gestión Clínica POSMÉDICA*.html
+*.html.bak

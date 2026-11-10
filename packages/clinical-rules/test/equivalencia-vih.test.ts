@@ -1,4 +1,4 @@
-/* Equivalencia VIH: prototipo original (oráculo) frente a crearMotorVIH, con la cohorte ficticia del prototipo
+/* Equivalencia VIH: código del portal (oráculo) frente a crearMotorVIH, con la cohorte ficticia del prototipo
    (159 pacientes con distribución parecida a la real: Nueva EPS y EPS Familiar, municipios del Putumayo). */
 import { describe, expect, it } from "vitest";
 import { crearMotorVIH } from "../src/generado/vih.js";
