@@ -10,6 +10,9 @@ interface Ctx {
   despertando: boolean;
   ingresar: (usuario: string, clave: string) => Promise<UsuarioSesion>;
   salir: (motivo?: string) => Promise<void>;
+  /** La última sesión terminó porque el usuario pulsó «Salir» (no por inactividad ni desde otro equipo): define si el
+      ingreso recuerda a qué página volver. */
+  salidaVoluntaria: boolean;
   actualizar: (u: UsuarioSesion | null) => void;
 }
 
@@ -19,6 +22,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<UsuarioSesion | null>(null);
   const [cargando, setCargando] = useState(true);
   const [despertando, setDespertando] = useState(false);
+  const [salidaVoluntaria, setSalidaVoluntaria] = useState(false);
   const aviso = useAviso();
 
   useEffect(() => {
@@ -56,6 +60,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
         setUsuario((u) => (u ? { ...u, debeCambiarClave: true } : u));
         return;
       }
+      setSalidaVoluntaria(false);
       setUsuario(null);
       aviso("Su sesión terminó por inactividad o desde otro equipo. Ingrese de nuevo.");
     });
@@ -72,6 +77,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
       try {
         await api.post("/auth/logout");
       } finally {
+        setSalidaVoluntaria(true);
         setUsuario(null);
         if (motivo) aviso(motivo);
       }
@@ -79,7 +85,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
     [aviso],
   );
 
-  const valor = useMemo(() => ({ usuario, cargando, despertando, ingresar, salir, actualizar: setUsuario }), [usuario, cargando, despertando, ingresar, salir]);
+  const valor = useMemo(() => ({ usuario, cargando, despertando, ingresar, salir, salidaVoluntaria, actualizar: setUsuario }), [usuario, cargando, despertando, ingresar, salir, salidaVoluntaria]);
   return <SesionCtx.Provider value={valor}>{children}</SesionCtx.Provider>;
 }
 
