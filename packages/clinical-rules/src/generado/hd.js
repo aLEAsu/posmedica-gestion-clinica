@@ -788,12 +788,13 @@ const window = {};
   const AUD = ["Usuario", "Registrado", "Anulado", "MotivoAnulacion"];
   SH.sii = ["ActividadesSIIS", ["ID", "Fecha", "Paciente", "Codigo", "Actividad", "Tipo", "Categoria", "Protocolo", "Turno", "Puesto", "Severidad", "Nota", "Estado", "Origen", ...AUD]];
   SH.oxi = ["OxigenoMedicinal", ["ID", "Fecha", "Turno", "Puesto", "Paciente", "CodigoSIIS", "Indicacion", "Dispositivo", "FlujoLmin", "Minutos", "SatO2Pre", "SatO2Post", "Cilindro", "Lote", "VenceCilindro", "PsiInicial", "PsiFinal", "Litros", "M3", "Nota", ...AUD]];
+  SH.cil = ["CilindrosOxigeno", ["ID", "Tipo", "CapacidadM3", "Factor", "Ubicacion", "Lote", "Vence", "Psi", "Estado", ...AUD]];
   SH.chk = ["ChequeoTurno", ["ID", "Fecha", "Turno", "Agua", "Desinfeccion", "Conductividad", "Cloro", "Observacion", ...AUD]];
-  for (const k of ["sii", "oxi", "chk"]) if (!BOOK_KEYS.includes(k)) BOOK_KEYS.splice(BOOK_KEYS.indexOf("cor"), 0, k);
+  for (const k of ["sii", "oxi", "cil", "chk"]) if (!BOOK_KEYS.includes(k)) BOOK_KEYS.splice(BOOK_KEYS.indexOf("cor"), 0, k);
   const ses = SH.ses[1];
   for (const c of ["FC", "FR", "SatO2"]) if (!ses.includes(c)) ses.splice(ses.indexOf("Gluco"), 0, c);
-  ["VenceCilindro"].forEach((f) => DATE_F.add(f));
-  ["FC", "FR", "SatO2", "Puesto", "FlujoLmin", "Minutos", "SatO2Pre", "SatO2Post", "PsiInicial", "PsiFinal", "Litros", "M3"].forEach((f) => NUM_F.add(f));
+  ["VenceCilindro", "Vence"].forEach((f) => DATE_F.add(f));
+  ["FC", "FR", "SatO2", "Puesto", "FlujoLmin", "Minutos", "SatO2Pre", "SatO2Post", "PsiInicial", "PsiFinal", "Litros", "M3", "CapacidadM3", "Factor", "Psi"].forEach((f) => NUM_F.add(f));
 })();
 /* hdx-lectura.js:8 */
 (function(root){

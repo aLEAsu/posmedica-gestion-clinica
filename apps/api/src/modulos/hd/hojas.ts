@@ -27,6 +27,7 @@ export const MODELOS_HD = {
   // v3.2 (hd-hojas.js): actividades SIIS, bitácora de oxígeno medicinal y verificación pre-turno.
   sii: { modelo: "HdActividadSiis", tabla: "hd_actividad_siis" },
   oxi: { modelo: "HdOxigeno", tabla: "hd_oxigeno" },
+  cil: { modelo: "HdCilindroOxigeno", tabla: "hd_cilindro_oxigeno" },
   chk: { modelo: "HdChequeoTurno", tabla: "hd_chequeo_turno" },
   cor: { modelo: "HdCorte", tabla: "hd_corte" },
 };

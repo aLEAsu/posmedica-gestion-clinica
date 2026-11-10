@@ -17,6 +17,7 @@
   const claveDe = (col, d) => (col === "formula" ? d.pac + "|" + d.cod : String(d[LISTAS[col]] == null ? "" : d[LISTAS[col]]));
 
   let usuario = null;
+  let sinContratos = false;
   let base = null; // { coleccion: Map(clave → json) } de lo último guardado
   let ts = {}; // { coleccion: { clave: sello } }
   let version = 0;
@@ -96,6 +97,15 @@
     base = vista();
     // Los valores iniciales que el usuario puede escribir se guardan en el servidor con el primer cambio.
     if (permiso("registrar")) for (const col of porDefecto) if (!SOLO_ADMIN.has(col) || esAdmin()) base[col] = new Map();
+    // Contenido de los contratos por EPS: lo entrega la API (no va en el código público).
+    try {
+      const k = await pedir("GET", "/dp11/contratos");
+      for (const x of Object.keys(CONTRATOS)) delete CONTRATOS[x];
+      Object.assign(CONTRATOS, k.contratos || {});
+      sinContratos = !k.contratos;
+    } catch (e) {
+      sinContratos = true;
+    }
     const c = $("corte");
     if (c) c.value = S.corte;
     render();
@@ -236,22 +246,53 @@
   function avisoCargaInicial() {
     const viejo = document.getElementById("dp11-carga");
     if (viejo) viejo.remove();
-    if (!esAdmin() || (S.pacientes || []).length) return;
+    const vacio = !(S.pacientes || []).length;
+    if (!esAdmin() || (!vacio && !sinContratos)) return;
     const d = document.createElement("div");
     d.id = "dp11-carga";
     d.setAttribute("role", "region");
     d.style.cssText = "margin:12px;padding:12px 14px;border:1px solid var(--line,#ccc);border-left:4px solid var(--accent,#06b6d4);border-radius:10px;font:14px/1.5 system-ui,sans-serif";
     d.innerHTML =
-      "<strong>Diálisis peritoneal v1.1 está vacío.</strong> Carga inicial (solo administrador):" +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn sm primary" data-dp11="v08">Traer pacientes y laboratorios de DP v0.8</button>' +
-      '<button type="button" class="btn sm" data-dp11="json">Importar copia .json del módulo</button></div>' +
-      '<p class="note" style="margin:6px 0 0">Del v0.8 solo se trae lo que tiene equivalencia clara; lo demás se informa. La copia .json es la que descarga el botón «Guardar» del módulo.</p>';
+      "<strong>" + (vacio ? "Diálisis peritoneal v1.1 está vacío." : "Faltan los contratos por EPS.") + "</strong> Carga inicial (solo administrador):" +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">' +
+      (vacio ? '<button type="button" class="btn sm primary" data-dp11="v08">Traer pacientes y laboratorios de DP v0.8</button><button type="button" class="btn sm" data-dp11="json">Importar copia .json del módulo</button>' : "") +
+      (sinContratos ? '<button type="button" class="btn sm" data-dp11="contratos">Cargar contratos por EPS (.json o .html del prototipo)</button><input type="file" id="dp11-contratos" accept=".json,.html,.htm" hidden>' : "") +
+      "</div>" +
+      '<p class="note" style="margin:6px 0 0">Del v0.8 solo se trae lo que tiene equivalencia clara; lo demás se informa. La copia .json es la que descarga el botón «Guardar» del módulo. De un .html del prototipo solo se extraen y envían los contratos.</p>';
+    const fc = d.querySelector("#dp11-contratos");
+    if (fc)
+      fc.onchange = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const rd = new FileReader();
+        rd.onload = async () => {
+          try {
+            const t = String(rd.result).trim();
+            let contratos;
+            if (t.startsWith("{")) contratos = JSON.parse(t);
+            else {
+              const ln = t.split("\n").find((l) => l.startsWith("const DP11_HTML="));
+              if (!ln) throw new Error("El archivo no trae el módulo de Diálisis peritoneal v1.1.");
+              const m = /\nconst CONTRATOS=(.*?);\n/.exec(JSON.parse(ln.slice("const DP11_HTML=".length).replace(/;\s*$/, "")));
+              if (!m) throw new Error("No se encontraron los contratos dentro del módulo.");
+              contratos = JSON.parse(m[1]);
+            }
+            const r = await pedir("POST", "/dp11/contratos", { contratos, fuente: f.name });
+            await cargar("Contratos cargados");
+            toast("Contratos por EPS cargados: " + r.eps + " EPS.");
+          } catch (x) {
+            toast(x.message || "No se pudo leer el archivo.");
+          }
+        };
+        rd.readAsText(f);
+      };
     document.body.prepend(d);
   }
   document.addEventListener("click", async (e) => {
     const b = e.target.closest("[data-dp11]");
     if (!b) return;
     if (b.dataset.dp11 === "json") return $("fileLoad").click();
+    if (b.dataset.dp11 === "contratos") return document.getElementById("dp11-contratos").click();
     if (!confirm("Se crearán en Diálisis peritoneal v1.1 los pacientes de la v0.8 (con la misma persona del maestro) y sus laboratorios con equivalencia clara. ¿Continuar?")) return;
     try {
       b.disabled = true;

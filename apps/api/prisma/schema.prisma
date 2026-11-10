@@ -955,6 +955,29 @@ model HdOxigeno {
   @@map("hd_oxigeno")
 }
 
+/// Hoja «CilindrosOxigeno» del libro de hemodiálisis del prototipo.
+model HdCilindroOxigeno {
+  ID              String    @id @map("id")
+  Tipo            String?   @map("tipo")
+  CapacidadM3     Float?    @map("capacidad_m3")
+  Factor          Float?    @map("factor")
+  Ubicacion       String?   @map("ubicacion")
+  Lote            String?   @map("lote")
+  Vence           DateTime? @map("vence") @db.Date
+  Psi             Float?    @map("psi")
+  Estado          String?   @map("estado")
+  Usuario         String?   @map("usuario")
+  Registrado      String?   @map("registrado")
+  Anulado         String?   @map("anulado")
+  MotivoAnulacion String?   @map("motivo_anulacion")
+  creadoPor       String?   @map("creado_por") @db.Uuid
+  creadoEn        DateTime  @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoPor  String?   @map("actualizado_por") @db.Uuid
+  actualizadoEn   DateTime  @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+
+  @@map("hd_cilindro_oxigeno")
+}
+
 /// Hoja «ChequeoTurno» del libro de hemodiálisis del prototipo.
 model HdChequeoTurno {
   ID              String    @id @map("id")

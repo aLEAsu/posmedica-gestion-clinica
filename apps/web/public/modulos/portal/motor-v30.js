@@ -29,13 +29,7 @@
     oxiCalc: { cilindro: "M", psiIni: 1800, psiFin: 1100, flujo: 2, min: 180 },
     siisActs: [],
     oxiLog: [],
-    oxiCylinders: [
-      { id: "CIL-OXI-01", tipo: "M", capM3: 3.45, factor: 1.56, ubicacion: "Sala HD · Sector Sillas 1 a 6", lote: "OXM-2026-09", vence: "2027-09-30", psi: 1950, estado: "En uso / Disponible" },
-      { id: "CIL-OXI-02", tipo: "M", capM3: 3.45, factor: 1.56, ubicacion: "Sala HD · Sector Sillas 7 a 13", lote: "OXM-2026-10", vence: "2027-10-31", psi: 1750, estado: "En uso / Disponible" },
-      { id: "CIL-OXI-03", tipo: "E", capM3: 0.68, factor: 0.28, ubicacion: "Carro de Paro Unidad Renal", lote: "OXE-2026-08", vence: "2027-08-31", psi: 2100, estado: "Reserva Sellada (Carro de Paro)" },
-      { id: "CIL-OXI-04", tipo: "E", capM3: 0.68, factor: 0.28, ubicacion: "Sala de Procedimientos / Aislamiento Silla 13", lote: "OXE-2026-11", vence: "2027-11-30", psi: 420, estado: "Alerta Recambio (< 500 PSI)" },
-      { id: "CIL-OXI-05", tipo: "J", capM3: 6.80, factor: 2.41, ubicacion: "Central de Gases / Respaldo Sala HD", lote: "OXJ-2026-10", vence: "2027-10-31", psi: 2200, estado: "Reserva llena" }
-    ]
+    oxiCylinders: [] /* el kárdex real sale de la hoja CilindrosOxigeno (hd-registros.js); antes era un inventario fijo de ejemplo */
   };
   window.V30 = V30;
 
@@ -1704,7 +1698,8 @@
     /* Kárdex de Cilindros de Oxígeno en Sala + Bitácora Histórica GFA-FO-OXI-001 */
     h +=
       '<div class="panel" style="margin-bottom:14px">' +
-        '<h3>3. Kárdex de Cilindros de Oxígeno Medicinal en Unidad Renal (Sillas 1–13 y Carro de Paro)</h3>' +
+        '<div class="mhead"><h3 style="margin:0">3. Kárdex de Cilindros de Oxígeno Medicinal en Unidad Renal (Sillas 1–13 y Carro de Paro)</h3><button type="button" class="btn sm" data-v32cil="nuevo">Registrar cilindro</button></div>' +
+        (V30.oxiCylinders.length ? '' : '<p class="note">Aún no hay cilindros registrados. Registre cada cilindro (tipo, ubicación, lote, vencimiento y presión) para poder diligenciar la bitácora.</p>') +
         '<div class="tablebox" style="margin-top:8px">' +
           '<table class="dense">' +
             '<thead><tr><th>Código Cilindro</th><th>Tipo · Capacidad</th><th>Ubicación Asignada</th><th>Lote · Vencimiento FEFO</th><th class="num">Presión Actual (PSI)</th><th class="num">Volumen Restante</th><th>Estado / Semáforo</th></tr></thead>' +
@@ -1719,7 +1714,7 @@
                   '<td class="mono">' + esc(c.lote) + ' · Vence ' + esc(c.vence) + '</td>' +
                   '<td class="num mono"><strong>' + c.psi + ' PSI</strong></td>' +
                   '<td class="num mono">' + lit.toLocaleString("es-CO") + ' L</td>' +
-                  '<td><span class="st ' + cls + '">' + esc(c.psi < 500 ? "Recarga Urgente (< 500 PSI)" : c.estado) + '</span></td>' +
+                  '<td><span class="st ' + cls + '">' + esc(c.psi < 500 ? "Recarga Urgente (< 500 PSI)" : c.estado) + '</span> <button type="button" class="btn sm" data-v32cil="editar|' + esc(c.id) + '">Editar</button></td>' +
                 '</tr>';
               }).join("") +
             '</tbody>' +
@@ -3181,11 +3176,12 @@
         if(falta.length){ toast("Falta registrar: " + falta.join(", ") + "."); break; }
         const lit = Math.round(fl * mn);
         const m3 = +(lit / 1000).toFixed(3);
-        const cilId = ($("v30_ox_cil")||{}).value || "CIL-OXI-01";
-        const cilObj = V30.oxiCylinders.find(c => c.id === cilId) || V30.oxiCylinders[0];
+        const cilId = ($("v30_ox_cil")||{}).value || "";
+        const cilObj = V30.oxiCylinders.find(c => c.id === cilId);
+        if(!cilObj){ toast("Seleccione el cilindro utilizado (regístrelo primero en el kárdex)."); break; }
         const psi1 = num(($("v30_ox_psi1")||{}).value) || cilObj.psi;
         const psi2 = num(($("v30_ox_psi2")||{}).value) || Math.max(200, psi1 - Math.round(lit / (cilObj.factor || 1.56)));
-        cilObj.psi = psi2;
+        v32ActualizarCilindro(cilObj.id, psi2);
 
         const rec = {
           id: "OXI-" + String(V30.oxiLog.length + 1).padStart(4, "0"),

@@ -393,6 +393,35 @@ dp11.post(
   }),
 );
 
+/* ---------- Contenido de los contratos por EPS (qué cubre cada paquete de DP) ----------
+   No lleva precios ni pacientes, pero es información contractual de la institución: no va en el código público. Lo lee
+   quien ve Diálisis peritoneal y lo carga el administrador (parámetro «contratos» del programa dp). */
+const Contratos = z.object({ contratos: z.record(z.record(z.unknown())), fuente: z.string().max(200).optional() });
+dp11.get(
+  "/contratos",
+  h(async (req, res) => {
+    if (!puede(req.usuario, PROGRAMA, "ver")) throw prohibido();
+    const p = await prisma.parametro.findUnique({ where: { programa_clave: { programa: PROGRAMA, clave: "contratos" } } });
+    res.json({ contratos: p?.valor ?? null });
+  }),
+);
+dp11.post(
+  "/contratos",
+  ...requiereAdmin,
+  h(async (req, res) => {
+    const { contratos, fuente } = Contratos.parse(req.body);
+    await prisma.$transaction(async (tx) => {
+      await tx.parametro.upsert({
+        where: { programa_clave: { programa: PROGRAMA, clave: "contratos" } },
+        create: { programa: PROGRAMA, clave: "contratos", valor: contratos as Prisma.InputJsonValue, actualizadoPor: req.usuario!.id },
+        update: { valor: contratos as Prisma.InputJsonValue, actualizadoPor: req.usuario!.id, vigenteDesde: new Date() },
+      });
+      await auditar(req, { accion: "IMPORTA", entidad: `${ENTIDAD}.contratos`, programa: PROGRAMA, detalle: `${fuente ?? "contratos"}: ${Object.keys(contratos).join(", ")}` }, tx);
+    });
+    res.json({ eps: Object.keys(contratos).length });
+  }),
+);
+
 const Evento = z.object({ accion: z.enum(["EXPORTA"]), detalle: z.string().max(300) });
 dp11.post(
   "/auditar",
